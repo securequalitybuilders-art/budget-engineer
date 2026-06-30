@@ -5,7 +5,8 @@
 > **Legend:** ✅ Present | ❌ Missing | 🔄 Staged (not wired)
 > **Phase E (WS6 AI + Drawing Management) merged.**  
 > **Sprint 1:** 6 staged WS6 panels wired into Engineering Studio dashboard section.  
-> **Sprint 1.1:** Stabilized Engineering Studio — WebLLM button disabled, NaN guards, smoke report created.
+> **Sprint 1.1:** Stabilized Engineering Studio — WebLLM button disabled, NaN guards, smoke report created.  
+> **Sprint 2:** 3D BIM viewer integrated into Dashboard with 2D/3D toggle + design-to-BIM adapter.
 
 ---
 
@@ -42,7 +43,8 @@
 | **BOQ Export** (CSV + HTML dossier with plans/sections) | ✅ Present | WS6 `src/lib/export/boq-export.ts` |
 | **IFC Import/Export** (real IFC4 STEP) | ✅ Present | WS3 |
 | **IFC-like & COBie JSON Export** | ✅ Present | WS2/WS3 |
-| **3D BIM Viewer** (React Three Fiber) | ✅ Present | WS3 (lazy-loadable) |
+| **3D BIM Viewer** (React Three Fiber) | ✅ Present | WS3 (lazy-loadable, now wired via Sprint 2 2D/3D toggle) |
+| **3D BIM Viewer in Dashboard** (2D/3D toggle) | ✅ Present | Sprint 2 — `LazyBimViewer` + `designToBim.ts` adapter wired in Dashboard |
 | **BIM Legend & Inspector** | ✅ Present | WS3 |
 | **BIM Generator** (CAD→BIM) | ✅ Present | WS3 |
 | **BOQ Generator** (BIM→BOQ) | ✅ Present | WS3 |
@@ -100,3 +102,4 @@
 | 🔄 Staged (Phase D WS5 Structural algorithms) | 5 algorithm modules |
 | ✅ Present (Phase E WS6 AI/Drawing/Rates/Structural lib) | ~15 new modules |
 | ✅ Present (Sprint 1 — WS6 panels wired) | 6 panel components |
+| ✅ Present (Sprint 2 — BIM viewer in Dashboard) | 1 adapter + 1 toggle UI |

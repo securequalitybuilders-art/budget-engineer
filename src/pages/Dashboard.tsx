@@ -10,10 +10,12 @@ import { TransactionPanel } from '@/components/layout/TransactionPanel';
 import { AIChatPanel } from '@/components/layout/AIChatPanel';
 import { EngineeringStudioPanel } from '@/components/dashboard/EngineeringStudioPanel';
 import { Button } from '@/components/ui/Button';
-import { Layers, Box, Ruler, FileSpreadsheet, Wand2, Loader2 } from 'lucide-react';
+import { Layers, Box, Ruler, FileSpreadsheet, Wand2, Loader2, Boxes, LayoutGrid } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PlanCanvas } from '@/components/cad/PlanCanvas';
 import { PlanComparison } from '@/components/cad/PlanComparison';
+import { LazyBimViewer } from '@/components/bim/LazyBimViewer';
+import { designOptionToBimModel } from '@/adapters/designToBim';
 import type { DesignOption } from '@/domain/boq';
 
 export function Dashboard() {
@@ -22,6 +24,7 @@ export function Dashboard() {
   const { setActiveStage } = useUIStore();
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedDesignId, setSelectedDesignId] = useState<string | null>(null);
+  const [activeCanvasView, setActiveCanvasView] = useState<'plan' | 'bim'>('plan');
 
   const designOptions = useMemo<DesignOption[]>(
     () =>
@@ -43,6 +46,7 @@ export function Dashboard() {
   );
 
   const selectedDesign = designOptions.find((d) => d.id === selectedDesignId) ?? designOptions[0] ?? null;
+  const bimModel = useMemo(() => designOptionToBimModel(selectedDesign), [selectedDesign]);
 
   useEffect(() => {
     seed();
@@ -105,6 +109,27 @@ export function Dashboard() {
               <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" aria-label="AI design">
                 <Wand2 size={16} />
               </Button>
+
+              <span className="mx-1 h-5 w-px bg-white/10" />
+
+              <Button
+                variant={activeCanvasView === 'plan' ? 'default' : 'ghost'}
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                aria-label="2D Plan View"
+                onClick={() => setActiveCanvasView('plan')}
+              >
+                <LayoutGrid size={16} />
+              </Button>
+              <Button
+                variant={activeCanvasView === 'bim' ? 'default' : 'ghost'}
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                aria-label="3D BIM View"
+                onClick={() => setActiveCanvasView('bim')}
+              >
+                <Boxes size={16} />
+              </Button>
             </div>
 
             {/* Canvas area */}
@@ -130,7 +155,11 @@ export function Dashboard() {
                       {isGenerating ? 'Generating...' : 'Regenerate'}
                     </Button>
                   </div>
-                  <PlanCanvas projectId={id ?? null} design={selectedDesign} />
+                  {activeCanvasView === 'plan' ? (
+                    <PlanCanvas projectId={id ?? null} design={selectedDesign} />
+                  ) : (
+                    <LazyBimViewer model={bimModel} height={480} />
+                  )}
                   <PlanComparison designs={designOptions} selectedDesignId={selectedDesign?.id} />
                 </div>
               ) : (

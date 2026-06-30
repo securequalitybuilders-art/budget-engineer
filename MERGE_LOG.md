@@ -589,6 +589,9 @@ None — all modules use pure TypeScript. WebLLM (`@mlc-ai/web-llm`) is dynamica
 - WS4 clash/solar/MEP/executive panels (4 files)
 - WS5 structural algorithms (5 modules)
 - WS6 ExportPanel, ProjectSwitcherPanel, TransactionHistoryPanel, MaterialSwitchPanel, BoqPanel
+- BimInspector and FloorVisibilityPanel alongside viewer (future)
+- Persist active view preference (future)
+- Full CAD→BIM pipeline (Design[] → CadDocument → BimModel) (future)
 
 ---
 
@@ -612,3 +615,44 @@ None — all modules use pure TypeScript. WebLLM (`@mlc-ai/web-llm`) is dynamica
 | `npm run typecheck` | ✅ PASS (0 errors) |
 | `npm run lint` | ✅ PASS (0 errors, 6 warnings) |
 | `npm run build` | ✅ PASS (2783 modules, 15 precache) |
+
+---
+
+## Sprint 2 — BIM Viewer Dashboard Integration
+
+**Date:** 2026-06-30  
+**Goal:** Integrate the existing lazy-loaded 3D BIM viewer (`LazyBimViewer`) into the Dashboard with a 2D/3D toggle, via a design-to-BIM adapter.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/adapters/designToBim.ts` | Converts `DesignOption` (WS1 `@/domain/boq`) → canonical `BimModel` (`@/domain/bim`) — generates perimeter walls, slabs, roof from GFA and floor count |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/pages/Dashboard.tsx` | Added `activeCanvasView` state ('plan' | 'bim'), 2D/3D toggle buttons in toolbar, conditional render of LazyBimViewer vs PlanCanvas |
+
+### Key Decisions
+
+1. Adapter generates approximate geometry from DesignOption metadata (GFA, floors) — no actual CAD wall positions used; refinement requires full Design→CadDocument→BimModel pipeline
+2. BimViewer supports all canonical BimElement types (wall, slab, roof, opening, block, roomZone) via discriminated union
+3. LazyBimViewer ensures Three.js is code-split (866 KB chunk loaded only on 3D toggle)
+4. PlanComparison remains visible in both 2D and 3D views
+5. BimViewer's built-in empty state message is shown when no model exists
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm run build` (`tsc && vite build`) | ✅ PASS (3357 modules, 16 precache) |
+
+### Still Deferred
+- BimInspector and FloorVisibilityPanel alongside viewer
+- Element selection from BIM view
+- Persist activeCanvasView preference
+- Full Design→CadDocument→BimModel pipeline

@@ -2,7 +2,7 @@
 
 > **Date:** 2026-06-30  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 1.1 — Engineering Studio stabilized. WebLLM button disabled, NaN guards added, empty states for all data-dependent tabs, smoke report created. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
+> **Status:** Sprint 2 — 3D BIM viewer integrated into Dashboard with 2D/3D toggle + design-to-BIM adapter. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
 
 ---
 
@@ -243,6 +243,8 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 - **5 BIM components** (BimViewer, BimLegend, BimInspector, FloorVisibilityPanel, LazyBimViewer)
 - **6 WS6 panel components** (AiBriefPanel, RateCardPanel, RebarSpecPanel, FootingSizingPanel, LoadAnalysisPanel, SectionView) — ✅ wired into Engineering Studio
 - **Engineering Studio section** (EngineeringStudioPanel) — tabbed accordion panel in dashboard right sidebar
+- **1 adapter** (`src/adapters/designToBim.ts`) — converts DesignOption → canonical BimModel for 3D viewer
+- **2D/3D toggle** in Dashboard toolbar — switches between PlanCanvas and LazyBimViewer
 
 ---
 
@@ -256,7 +258,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **WS4 panel components** | 4 panels (Clash, Solar, MEP, Executive) deferred | Tailwind re-theme from WS4 |
 | **WS6 panels formerly not wired** | 6 panels now wired into Engineering Studio | ✅ DONE (Sprint 1) |
 | **WS6 WebLLM** | `@mlc-ai/web-llm` not installed | `npm install @mlc-ai/web-llm` then enable `webllm-parser.ts` |
-| **3D BIM viewer in Dashboard** | BimViewer exists but not integrated | Route LazyBimViewer in Dashboard |
+| **3D BIM viewer in Dashboard** | BimViewer exists now integrated | ✅ DONE (Sprint 2 — 2D/3D toggle + adapter) |
 | **Wire WS5 structural algorithms** | 5 algorithm modules staged | Connect to store + UI |
 | **Wire WS6 structural libs** | Load engine, footing sizer, rebar spec | ✅ DONE (Sprint 1 — via Engineering Studio with sample data) |
 | **Wire SectionView into Dashboard** | SectionView exists, not routed | ✅ DONE (Sprint 1 — Engineering Studio tab with sample CAD) |

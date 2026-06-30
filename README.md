@@ -5,7 +5,7 @@
 > AI-powered computational design → 2D CAD → 3D BIM → engineering quantities → BOQ.
 > Offline-first, open-source, Africa-focused.
 >
-> **All 5 workspace merges complete.** CI validates typecheck, lint, and production build on every push.
+> **All 5 workspace merges complete. 3D BIM viewer integrated into Dashboard with 2D/3D toggle.** CI validates typecheck, lint, and production build on every push.
 
 ## Quick start
 
