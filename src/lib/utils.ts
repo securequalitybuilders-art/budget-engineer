@@ -44,3 +44,25 @@ export function uuid(): string {
 export function clone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj)) as T;
 }
+
+// ─── Money helpers (from WS2) ────────────────────────────────────────
+
+export function cents(value: number): number {
+  return Math.round(value * 100);
+}
+
+export function fromCents(value: number): number {
+  return value / 100;
+}
+
+export function formatCurrency(valueInCents: number, currency = 'USD', locale = 'en-ZW'): string {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 2,
+  }).format(fromCents(valueInCents));
+}
+
+export function multiplyMoney(unitRateCents: number, quantity: number): number {
+  return Math.round(unitRateCents * quantity);
+}

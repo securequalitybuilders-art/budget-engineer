@@ -2,7 +2,7 @@
 
 > **Date:** 2026-06-30  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Pre-merge — Phase A foundation ready
+> **Status:** Phase A (WS2 CAD) merged — `npm run typecheck` (0 errors), `npm run build` (success)
 
 ---
 
@@ -69,7 +69,7 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
 |---|---|---|
 | `/` | `Home.tsx` | Landing page with hero, feature cards, recent projects |
 | `/new` | `ProjectWizard.tsx` | 3-step wizard: profile → region/currency → brief |
-| `/project/:id` | `Dashboard.tsx` | Main project workspace with BentoShell layout |
+| `/project/:id` | `Dashboard.tsx` | Main project workspace with BentoShell layout + integrated PlanCanvas |
 | `*` | — | Catch-all redirects to `/` |
 
 Route architecture: `createBrowserRouter` with `GlobalLayout` wrapper (CommandBar, CommandPalette, ShortcutsHelp via `Outlet`).
@@ -102,9 +102,29 @@ Route architecture: `createBrowserRouter` with `GlobalLayout` wrapper (CommandBa
 - AI BOQ engine: element-to-rate mapping, quantity computation, 10% contingency
 - Zod validation schemas for all AI pipeline data
 
+### 2D CAD (Merged from WS2 Phase A)
+- Interactive PlanCanvas with pan/zoom/viewport
+- Parametric floor plan generation from design options
+- Room move/resize with undo/redo
+- Dimension annotations and room labels on canvas
+- Wall-first CAD authoring (WallFirstCanvas)
+- Wall editing: draw, move endpoints, split, join, offset, trim
+- Opening editing: add/delete/move doors and windows
+- Layer management with visibility toggle
+- Multi-floor support (floor add/switch, projection)
+- Block library (stairs, cores)
+- Auto-dimension generation
+- Topology healing (snap endpoints)
+- CAD→Plan sync model
+- Export: MakerJS JSON, DXF, SVG, IFC-like JSON, COBie-like JSON
+- Professional tools: offset, trim-to-bounds, annotation editing, AIA DXF layer semantics
+- Plan Comparison table with area/perimeter/room count metrics
+- Plan Legend with metadata card
+
 ### Components
 - 7 UI primitives (Button, Card, Badge, Input, Label, Select, Textarea) with CVA variants
 - 12 layout components (BentoShell, Sidebar, CommandBar, CommandPalette, etc.)
+- 12 CAD components (PlanCanvas, WallFirstCanvas, PlanComparison, PlanLegend, CadToolbar, CadCommandPanel, CadGeometryPanel, CadProfessionalPanel, BlockLibraryPanel, CadExchangePanel, DimensionLayer, RoomLabels)
 - Cost breakdown chart (Recharts bar chart)
 - Transaction history panel
 - AI chat panel
@@ -128,14 +148,11 @@ Route architecture: `createBrowserRouter` with `GlobalLayout` wrapper (CommandBa
 
 | Gap | Details | Source to Merge |
 |---|---|---|
-| **2D CAD canvas** | Placeholder only — `"CAD canvas coming next sprint"` | WS2 |
 | **3D BIM viewer** | Absent entirely | WS3 |
-| **Interactive plan editing** | No room/wall drawing or manipulation | WS2 |
 | **WebLLM inference** | `@xenova/transformers` installed but not wired to real inference | WS6 |
 | **Web Workers** | No off-main-thread processing | All |
 | **Tests** | No unit or integration tests | None |
-| **IFC Import/Export** | Not present | WS3/4 |
-| **DXF Export** | Not present | WS2 |
+| **IFC Import** | Not present | WS3/4 |
 | **Governance workflow** | Not present | WS3 |
 | **RBAC** | Not present | WS3 |
 | **Project snapshots** | Not present | WS3 |
@@ -148,9 +165,5 @@ Route architecture: `createBrowserRouter` with `GlobalLayout` wrapper (CommandBa
 | **Clash detection** | Not present | WS4 |
 | **Solar analysis** | Not present | WS4 |
 | **MEP takeoff** | Not present | WS4 |
-| **Multi-floor support** | Not present | WS2/6 |
-| **Undo/redo** | Not present | WS2 |
-| **Layer management** | Not present | WS2 |
-| **Parametric floor plan gen** | Not present | WS2/6 |
 | **Regional cost database** | Zimbabwe only, not editable | WS6 |
 | **PDF/HTML dossier export** | Not present | WS4/6 |
