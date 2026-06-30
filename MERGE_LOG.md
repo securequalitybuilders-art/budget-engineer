@@ -656,3 +656,47 @@ None — all modules use pure TypeScript. WebLLM (`@mlc-ai/web-llm`) is dynamica
 - Element selection from BIM view
 - Persist activeCanvasView preference
 - Full Design→CadDocument→BimModel pipeline
+
+---
+
+## Sprint 3 — Local AI Brief-to-Design Flow
+
+**Date:** 2026-06-30  
+**Goal:** Wire the local/offline AI brief parser and design engine into the visible project workflow without paid APIs.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/adapters/aiDesignAdapter.ts` | Exports `generateDesignOptionsFromBriefText()` — uses canonical `src/ai/briefParser` + `designEngine` to produce `DesignOption[]` |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/components/ai/AiBriefPanel.tsx` | Added `onDesignOptionsGenerated` prop; calls adapter after successful parse to generate design options |
+| `src/components/dashboard/EngineeringStudioPanel.tsx` | Added `onDesignOptionsGenerated` prop; passes through to `<AiBriefPanel>` |
+| `src/pages/Dashboard.tsx` | Added `aiDesignOptions` state, `visibleDesignOptions` memo merging AI + store options, `handleAiDesignOptions` callback, wired to EngineeringStudioPanel |
+
+### Key Decisions
+
+1. **Canonical `src/ai/*` modules chosen** over WS6 `src/lib/ai/*` — canonical produces `Design[]` with proper BuildingElement quantities, already used by projectStore, zod-validated
+2. **AI options NOT persisted** to IndexedDB — local state only; store integration deferred
+3. **WebLLM remains disabled** — `@mlc-ai/web-llm` not installed; only `local-rules` active
+4. **Existing store flow untouched** — "Regenerate" button still calls `projectStore.generateDesigns()` and persists to Dexie
+5. **AiBriefPanel unchanged** — still uses WS6 `parseWithEngine` for display; adapter runs canonical parser in parallel for generation
+6. **visibleDesignOptions** merges: AI options take priority when present, otherwise store designs shown
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm run build` (`tsc && vite build`) | ✅ PASS (3358 modules, 16 precache) |
+
+### Still Deferred
+- Persist AI-generated designs to Dexie
+- BOQ auto-generation from AI designs
+- WebLLM integration (opt-in)
+- FloorVisibilityPanel wiring

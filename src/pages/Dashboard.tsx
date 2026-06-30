@@ -25,6 +25,7 @@ export function Dashboard() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedDesignId, setSelectedDesignId] = useState<string | null>(null);
   const [activeCanvasView, setActiveCanvasView] = useState<'plan' | 'bim'>('plan');
+  const [aiDesignOptions, setAiDesignOptions] = useState<DesignOption[]>([]);
 
   const designOptions = useMemo<DesignOption[]>(
     () =>
@@ -45,7 +46,12 @@ export function Dashboard() {
     [currentDesigns],
   );
 
-  const selectedDesign = designOptions.find((d) => d.id === selectedDesignId) ?? designOptions[0] ?? null;
+  const visibleDesignOptions = useMemo(
+    () => (aiDesignOptions.length > 0 ? aiDesignOptions : designOptions),
+    [aiDesignOptions, designOptions],
+  );
+
+  const selectedDesign = visibleDesignOptions.find((d) => d.id === selectedDesignId) ?? visibleDesignOptions[0] ?? null;
   const bimModel = useMemo(() => designOptionToBimModel(selectedDesign), [selectedDesign]);
 
   useEffect(() => {
@@ -76,6 +82,13 @@ export function Dashboard() {
       await generateDesigns(id);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleAiDesignOptions = (options: DesignOption[]) => {
+    setAiDesignOptions(options);
+    if (options.length > 0) {
+      setSelectedDesignId(options[0].id);
     }
   };
 
@@ -134,15 +147,15 @@ export function Dashboard() {
 
             {/* Canvas area */}
             <div className="flex flex-1 flex-col overflow-auto p-4">
-              {designOptions.length > 0 ? (
+              {visibleDesignOptions.length > 0 ? (
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-wrap items-center gap-2">
-                    {designOptions.map((option) => (
+                    {visibleDesignOptions.map((option) => (
                       <button
                         key={option.id}
                         onClick={() => setSelectedDesignId(option.id)}
                         className={`rounded-xl border px-3 py-2 text-xs ${
-                          (selectedDesign?.id ?? designOptions[0]?.id) === option.id
+                          (selectedDesign?.id ?? visibleDesignOptions[0]?.id) === option.id
                             ? 'border-cyan-400/40 bg-cyan-500/10 text-cyan-200'
                             : 'border-white/10 bg-slate-900 text-slate-400'
                         }`}
@@ -160,7 +173,7 @@ export function Dashboard() {
                   ) : (
                     <LazyBimViewer model={bimModel} height={480} />
                   )}
-                  <PlanComparison designs={designOptions} selectedDesignId={selectedDesign?.id} />
+                  <PlanComparison designs={visibleDesignOptions} selectedDesignId={selectedDesign?.id} />
                 </div>
               ) : (
                 <div className="flex flex-1 flex-col items-center justify-center">
@@ -203,7 +216,7 @@ export function Dashboard() {
           <div className="flex flex-shrink-0">
             <PropertiesPanel />
             <TransactionPanel />
-            <EngineeringStudioPanel selectedDesign={selectedDesign} />
+            <EngineeringStudioPanel selectedDesign={selectedDesign} onDesignOptionsGenerated={handleAiDesignOptions} />
           </div>
         </div>
       </div>

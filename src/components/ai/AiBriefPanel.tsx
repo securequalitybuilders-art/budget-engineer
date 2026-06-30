@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { AiEngine, ParseResult, parseWithEngine } from '@/lib/ai/ai-provider';
+import { generateDesignOptionsFromBriefText } from '@/adapters/aiDesignAdapter';
+import type { DesignOption } from '@/domain/boq';
 
 const ENGINES: { id: AiEngine; label: string; disabled?: boolean; hint?: string }[] = [
   { id: 'local-rules', label: 'Rules (instant)' },
@@ -8,9 +10,10 @@ const ENGINES: { id: AiEngine; label: string; disabled?: boolean; hint?: string 
 
 interface AiBriefPanelProps {
   onParsed?: (result: ParseResult) => void;
+  onDesignOptionsGenerated?: (options: DesignOption[]) => void;
 }
 
-export function AiBriefPanel({ onParsed }: AiBriefPanelProps) {
+export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPanelProps) {
   const [briefText, setBriefText] = useState('');
   const [aiEngine, setAiEngine] = useState<AiEngine>('local-rules');
   const [aiStatus, setAiStatus] = useState<string | null>(null);
@@ -20,10 +23,13 @@ export function AiBriefPanel({ onParsed }: AiBriefPanelProps) {
     setAiStatus('Parsing…');
     try {
       const result = await parseWithEngine(briefText, aiEngine);
-      setAiStatus(result.fellBack
-        ? `⚠ Rules fallback (${result.fallbackReason})`
-        : `✅ Parsed via ${aiEngine === 'local-rules' ? 'rules' : 'WebLLM'}`);
+      const optionsResult = generateDesignOptionsFromBriefText(briefText);
+      const count = optionsResult.designOptions.length;
+      setAiStatus(
+        `✅ Generated ${count} design option${count > 1 ? 's' : ''} via local rules`
+      );
       onParsed?.(result);
+      onDesignOptionsGenerated?.(optionsResult.designOptions);
     } catch (err) {
       setAiStatus(`❌ ${err instanceof Error ? err.message : 'Unknown error'}`);
     }

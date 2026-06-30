@@ -6,15 +6,16 @@
 > **Phase E (WS6 AI + Drawing Management) merged.**  
 > **Sprint 1:** 6 staged WS6 panels wired into Engineering Studio dashboard section.  
 > **Sprint 1.1:** Stabilized Engineering Studio — WebLLM button disabled, NaN guards, smoke report created.  
-> **Sprint 2:** 3D BIM viewer integrated into Dashboard with 2D/3D toggle + design-to-BIM adapter.
+> **Sprint 2:** 3D BIM viewer integrated into Dashboard with 2D/3D toggle + design-to-BIM adapter.  
+> **Sprint 3:** Local AI brief-to-design flow wired — brief parser + design engine produce visible design options in Dashboard via AiBriefPanel.
 
 ---
 
 | Feature | Status | Notes |
 |---|---|---|
-| **AI Brief Parser** (deterministic, canonical) | ✅ Present | WS1 `src/ai/briefParser.ts` |
-| **AI Brief Parser** (deterministic, WS6 variant) | ✅ Present | WS6 `src/lib/ai/brief-parser.ts` (compatible with WS6 AI pipeline) |
-| **AI Design Engine** (canonical, Design[] output) | ✅ Present | WS1 `src/ai/designEngine.ts` |
+| **AI Brief Parser** (deterministic, canonical) | ✅ Present, wired | WS1 `src/ai/briefParser.ts` — wired into Dashboard via Sprint 3 adapter |
+| **AI Brief Parser** (deterministic, WS6 variant) | ✅ Present | WS6 `src/lib/ai/brief-parser.ts` (used by AiBriefPanel display) |
+| **AI Design Engine** (canonical, Design[] output) | ✅ Present, wired | WS1 `src/ai/designEngine.ts` — wired into Dashboard via Sprint 3 adapter |
 | **AI Design Engine** (WS6, CadDocument output) | ✅ Present | WS6 `src/lib/ai/design-engine.ts` (multi-floor parametric) |
 | **AI Provider** (engine abstraction + fallback) | ✅ Present | WS6 `src/lib/ai/ai-provider.ts` |
 | **WebLLM Parser** (in-browser local LLM) | 🔄 Staged | WS6 `src/lib/ai/webllm-parser.ts` — opt-in; needs `@mlc-ai/web-llm` |
@@ -103,3 +104,4 @@
 | ✅ Present (Phase E WS6 AI/Drawing/Rates/Structural lib) | ~15 new modules |
 | ✅ Present (Sprint 1 — WS6 panels wired) | 6 panel components |
 | ✅ Present (Sprint 2 — BIM viewer in Dashboard) | 1 adapter + 1 toggle UI |
+| ✅ Present (Sprint 3 — AI brief-to-design flow) | 1 adapter + 3 files modified |

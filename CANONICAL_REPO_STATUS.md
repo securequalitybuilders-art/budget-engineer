@@ -2,7 +2,7 @@
 
 > **Date:** 2026-06-30  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 2 — 3D BIM viewer integrated into Dashboard with 2D/3D toggle + design-to-BIM adapter. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
+> **Status:** Sprint 3 — Local AI brief-to-design flow wired: brief parser + design engine produce visible design options in Dashboard via AiBriefPanel. No paid APIs, no cloud dependencies, no WebLLM. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
 
 ---
 
@@ -85,9 +85,14 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
 - Zustand stores with Immer + persist
 - Transaction logging on every mutation
 
-### AI Pipeline (WS1)
-- Deterministic brief parser, design engine, BOQ engine
-- Zod validation schemas
+### AI Pipeline (WS1 — Sprint 3: wired end-to-end)
+- Deterministic brief parser (`src/ai/briefParser.ts`) — regex-based, zod-validated, extracts building type, bedrooms, bathrooms, floors, area, budget, location, features
+- Design engine (`src/ai/designEngine.ts`) — generates 3 options (compact/standard/spacious) with full BuildingElement quantities
+- BOQ engine (`src/ai/boqEngine.ts`)
+- Zod validation schemas (`src/ai/schema.ts`)
+- **Sprint 3 adapter** (`src/adapters/aiDesignAdapter.ts`) — connects parser + engine to Dashboard UI
+- **User flow:** Enter brief in AiBriefPanel → parsed locally → 3 design options appear in Dashboard selector → view in 2D Plan or 3D BIM
+- No paid APIs, no cloud dependencies, no WebLLM required
 
 ### AI Modules — Staged (WS6 Phase E, `src/lib/ai/`, not wired to UI)
 - WS6 deterministic brief parser (`lib/ai/brief-parser.ts`) — regex-based, runs offline
@@ -243,7 +248,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 - **5 BIM components** (BimViewer, BimLegend, BimInspector, FloorVisibilityPanel, LazyBimViewer)
 - **6 WS6 panel components** (AiBriefPanel, RateCardPanel, RebarSpecPanel, FootingSizingPanel, LoadAnalysisPanel, SectionView) — ✅ wired into Engineering Studio
 - **Engineering Studio section** (EngineeringStudioPanel) — tabbed accordion panel in dashboard right sidebar
-- **1 adapter** (`src/adapters/designToBim.ts`) — converts DesignOption → canonical BimModel for 3D viewer
+- **2 adapters** (`src/adapters/designToBim.ts` + `src/adapters/aiDesignAdapter.ts`) — BIM model from DesignOption, AI design from brief text
 - **2D/3D toggle** in Dashboard toolbar — switches between PlanCanvas and LazyBimViewer
 
 ---

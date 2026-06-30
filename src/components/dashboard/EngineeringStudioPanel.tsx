@@ -80,9 +80,10 @@ function buildSampleBim(design: DesignOption | null): BimModel | null {
 
 interface EngineeringStudioPanelProps {
   selectedDesign: DesignOption | null;
+  onDesignOptionsGenerated?: (options: DesignOption[]) => void;
 }
 
-export function EngineeringStudioPanel({ selectedDesign }: EngineeringStudioPanelProps) {
+export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerated }: EngineeringStudioPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('ai');
 
   const sampleCad = useMemo(() => buildSampleCad(selectedDesign), [selectedDesign]);
@@ -113,7 +114,7 @@ export function EngineeringStudioPanel({ selectedDesign }: EngineeringStudioPane
       </div>
 
       <div className="flex-1 overflow-y-auto p-3">
-        {activeTab === 'ai' && <AiBriefPanel />}
+        {activeTab === 'ai' && <AiBriefPanel onDesignOptionsGenerated={onDesignOptionsGenerated} />}
 
         {activeTab === 'rates' && <RateCardPanel card={RATE_CARDS.zimbabwe} />}
 

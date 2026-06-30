@@ -5,7 +5,7 @@
 > AI-powered computational design → 2D CAD → 3D BIM → engineering quantities → BOQ.
 > Offline-first, open-source, Africa-focused.
 >
-> **All 5 workspace merges complete. 3D BIM viewer integrated into Dashboard with 2D/3D toggle.** CI validates typecheck, lint, and production build on every push.
+> **All 5 workspace merges complete. Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle.** CI validates typecheck, lint, and production build on every push.
 
 ## Quick start
 
@@ -28,7 +28,7 @@ Then open http://localhost:5173.
 | BIM + IFC | React Three Fiber 3D viewer, BIM legend/inspector, IFC4 STEP import/export, governance/RBAC types, versioning, zones, cross-project, export package | WS3 |
 | Advanced Eng | Wall corner solver (intersection math), clash detection (3 BIM rules), solar analysis, MEP takeoff, executive dossier (HTML print-to-PDF) | WS4 |
 | Structural | Column/beam/footing placement algorithms, rebar calculator, material rates, clash auto-healing | WS5 |
-| AI + Drawings + Engineering Studio | Deterministic brief parser, design engine, WebLLM adapter (opt-in), SVG plan/section/title-block generators, drawing register, regional rate cards, load analysis, footing sizing, rebar spec, design fingerprint, 6 wired panel components in Engineering Studio tabbed section | WS6 |
+| AI + Drawings + Engineering Studio | Deterministic brief parser, design engine, WebLLM adapter (opt-in), SVG plan/section/title-block generators, drawing register, regional rate cards, load analysis, footing sizing, rebar spec, design fingerprint, 6 wired panel components in Engineering Studio tabbed section **+ local AI brief-to-design flow wired into Dashboard** | WS6 |
 
 **Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Analysis → BOQ → Export
 
