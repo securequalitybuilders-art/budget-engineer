@@ -1,9 +1,11 @@
 # Dzenhare Budget Engineer Studio
 
+[![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml)
+
 > AI-powered computational design → 2D CAD → 3D BIM → engineering quantities → BOQ.
 > Offline-first, open-source, Africa-focused.
 >
-> **All 5 workspace merges complete.** Every module compiles, lints, and builds.
+> **All 5 workspace merges complete.** CI validates typecheck, lint, and production build on every push.
 
 ## Quick start
 
@@ -29,6 +31,8 @@ Then open http://localhost:5173.
 | AI + Drawings | Deterministic brief parser, design engine, WebLLM adapter (opt-in), SVG plan/section/title-block generators, drawing register, regional rate cards, load analysis, footing sizing, rebar spec, design fingerprint, 6 staged panel components | WS6 |
 
 **Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Analysis → BOQ → Export
+
+**Repository:** [github.com/securequalitybuilders-art/budget-engineer](https://github.com/securequalitybuilders-art/budget-engineer)
 
 ## Commands
 
