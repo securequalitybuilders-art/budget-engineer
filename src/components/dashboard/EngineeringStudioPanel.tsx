@@ -1,0 +1,135 @@
+import { useState, useMemo } from 'react';
+import { AiBriefPanel } from '@/components/ai/AiBriefPanel';
+import { RateCardPanel } from '@/components/rates/RateCardPanel';
+import { RebarSpecPanel } from '@/components/structural/RebarSpecPanel';
+import { FootingSizingPanel } from '@/components/structural/FootingSizingPanel';
+import { LoadAnalysisPanel } from '@/components/structural/LoadAnalysisPanel';
+import { SectionView } from '@/components/drawings/SectionView';
+import { RATE_CARDS } from '@/lib/rates/rate-card';
+import type { DesignOption } from '@/domain/boq';
+import type { BimModel, CadDocument, CadFloor } from '@/domain/ws6-types';
+
+type TabId = 'ai' | 'rates' | 'rebar' | 'footings' | 'loads' | 'section';
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: 'ai', label: 'AI Brief' },
+  { id: 'rates', label: 'Rates' },
+  { id: 'rebar', label: 'Rebar' },
+  { id: 'footings', label: 'Footings' },
+  { id: 'loads', label: 'Loads' },
+  { id: 'section', label: 'Section' },
+];
+
+function buildSampleCad(design: DesignOption | null): CadDocument | null {
+  if (!design) return null;
+  const floor: CadFloor = { id: 'f1', name: 'Ground', elevation: 0, height: 3 };
+  const wallLen = Math.sqrt(design.grossFloorArea) * 2;
+  return {
+    id: 'cad-sample',
+    projectId: '',
+    name: design.name,
+    materialSystem: 'concrete',
+    floors: [floor],
+    walls: [
+      {
+        id: 'w1', floorId: 'f1', start: { x: 0, y: 0 }, end: { x: wallLen, y: 0 },
+        thickness: 0.23, height: 3, name: 'Outer wall', metadata: { ifcClass: 'IfcWall', category: 'wall', properties: {} },
+      },
+      {
+        id: 'w2', floorId: 'f1', start: { x: wallLen, y: 0 }, end: { x: wallLen, y: wallLen / 2 },
+        thickness: 0.23, height: 3, name: 'Outer wall', metadata: { ifcClass: 'IfcWall', category: 'wall', properties: {} },
+      },
+    ],
+    openings: [],
+    blocks: [],
+  };
+}
+
+function buildSampleBim(design: DesignOption | null): BimModel | null {
+  if (!design) return null;
+  const floor: CadFloor = { id: 'f1', name: 'Ground', elevation: 0, height: 3 };
+  return {
+    id: 'bim-sample',
+    projectId: '',
+    name: design.name,
+    floors: [floor],
+    elements: [
+      {
+        id: 'slab1', cadId: 'cad1', type: 'slab', floorId: 'f1',
+        name: 'Ground slab', x: 0, y: 0,
+        width: Math.sqrt(design.grossFloorArea) * 2,
+        depth: Math.sqrt(design.grossFloorArea),
+        height: 0.15, area: design.grossFloorArea,
+        metadata: { ifcClass: 'IfcSlab', category: 'slab', properties: {} },
+      },
+    ],
+  };
+}
+
+interface EngineeringStudioPanelProps {
+  selectedDesign: DesignOption | null;
+}
+
+export function EngineeringStudioPanel({ selectedDesign }: EngineeringStudioPanelProps) {
+  const [activeTab, setActiveTab] = useState<TabId>('ai');
+
+  const sampleCad = useMemo(() => buildSampleCad(selectedDesign), [selectedDesign]);
+  const sampleBim = useMemo(() => buildSampleBim(selectedDesign), [selectedDesign]);
+
+  const slabArea = selectedDesign?.grossFloorArea ?? 0;
+
+  return (
+    <div className="flex flex-col border-l border-stone-700/60 bg-stone-950/80">
+      <div className="flex items-center gap-1 border-b border-stone-700/60 px-2 py-1.5">
+        <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400">Engineering Studio</span>
+      </div>
+
+      <div className="flex flex-wrap gap-1 border-b border-stone-700/60 px-2 py-1.5">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
+              activeTab === tab.id
+                ? 'bg-cyan-600/20 text-cyan-300'
+                : 'text-stone-500 hover:bg-stone-800 hover:text-stone-300'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-3">
+        {activeTab === 'ai' && <AiBriefPanel />}
+
+        {activeTab === 'rates' && <RateCardPanel card={RATE_CARDS.zimbabwe} />}
+
+        {activeTab === 'rebar' && <RebarSpecPanel slabArea={slabArea} />}
+
+        {activeTab === 'footings' && <FootingSizingPanel bim={sampleBim} />}
+
+        {activeTab === 'loads' && <LoadAnalysisPanel bim={sampleBim} />}
+
+        {activeTab === 'section' && (
+          sampleCad ? (
+            <SectionView cad={sampleCad} />
+          ) : (
+            <div className="rounded-lg border border-stone-700/60 bg-stone-900/80 p-6 text-center">
+              <p className="text-sm text-stone-400">Generate a design option to view building sections.</p>
+            </div>
+          )
+        )}
+      </div>
+
+      {selectedDesign && (
+        <div className="border-t border-stone-700/60 px-3 py-2">
+          <p className="text-xs text-stone-500">
+            Using <span className="text-stone-300">{selectedDesign.name}</span> —
+            {slabArea > 0 ? ` ${slabArea.toFixed(0)} m²` : ' sample data'}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}

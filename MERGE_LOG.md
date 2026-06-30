@@ -535,6 +535,57 @@ None — all modules use pure TypeScript. WebLLM (`@mlc-ai/web-llm`) is dynamica
 - `@mlc-ai/web-llm` dependency — not installed; guarded with `@ts-ignore`; run `npm install @mlc-ai/web-llm` to enable WebLLM
 - ExportPanel, ProjectSwitcherPanel, TransactionHistoryPanel, MaterialSwitchPanel, BoqPanel — deferred
 - WS6 BimViewer (Three.js direct) — WS3 R3F version is superior
-- Wire any WS6 panel into Dashboard — all panels staged but not routed
-- Wire WS6 structural modules (load-engine, footing-sizer, rebar-spec) into any store or UI — pure algorithm modules only
 - Integration of drawing-register, boq-export with canonical export pipeline
+
+---
+
+## Sprint 1 — Engineering Studio Dashboard Wiring
+
+**Date:** 2026-06-30  
+**Goal:** Wire 6 safe staged WS6 panels into the Dashboard through a controlled "Engineering Studio" section.  
+**Scope:** No new workspace sources, no paid APIs, no dashboard rewrite.
+
+### Panels Wired
+
+| Panel | Tab | Data Source | Safety |
+|-------|-----|-------------|--------|
+| AiBriefPanel (`src/components/ai/AiBriefPanel.tsx`) | AI Brief | Self-contained, local-rules by default | No WebLLM required at runtime |
+| RateCardPanel (`src/components/rates/RateCardPanel.tsx`) | Rates | `RATE_CARDS.zimbabwe` default | Editable, no crash on missing project |
+| RebarSpecPanel (`src/components/structural/RebarSpecPanel.tsx`) | Rebar | `DEFAULT_REBAR_SPEC`, slabArea from selectedDesign | Defaults to residential assumptions |
+| FootingSizingPanel (`src/components/structural/FootingSizingPanel.tsx`) | Footings | Sample BimModel from `buildSampleBim()` | Empty state if no design selected |
+| LoadAnalysisPanel (`src/components/structural/LoadAnalysisPanel.tsx`) | Loads | Sample BimModel from `buildSampleBim()` | Empty state if no design selected |
+| SectionView (`src/components/drawings/SectionView.tsx`) | Section | Sample CadDocument from `buildSampleCad()` | Explicit empty state message |
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/components/dashboard/EngineeringStudioPanel.tsx` | Tabbed container for all 6 panels |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/pages/Dashboard.tsx` | Added EngineeringStudioPanel import and render in right sidebar |
+| `vite.config.ts` | Added `@mlc-ai/web-llm` to `build.rollupOptions.external` |
+
+### Key Decisions
+
+1. Sample CadDocument/BimModel — adapter functions `buildSampleCad()` and `buildSampleBim()` generate lightweight WS6-compatible structures from the selected `DesignOption` (area, name). Safe defaults when no design exists.
+2. AiBriefPanel defaults to `local-rules` engine — WebLLM tab is visible but guarded; `@mlc-ai/web-llm` externalized in vite config to prevent Rollup resolution errors.
+3. No store wiring — all panels are props-based or self-contained with local state, matching their original interfaces.
+4. EngineeringStudioPanel is a tabbed sidebar section — no BentoShell layout changes, no PlanCanvas disturbance.
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
+| `npm run lint` (`eslint . --ext ts,tsx`) | ✅ PASS (0 errors, 6 warnings) |
+| `npm run build` (`tsc && vite build`) | ✅ PASS (2783 modules, 15 precache) |
+
+### Still Staged (not wired)
+- WS3 governance/RBAC/snapshot/zone/export panels (26 files)
+- WS4 clash/solar/MEP/executive panels (4 files)
+- WS5 structural algorithms (5 modules)
+- WS6 ExportPanel, ProjectSwitcherPanel, TransactionHistoryPanel, MaterialSwitchPanel, BoqPanel

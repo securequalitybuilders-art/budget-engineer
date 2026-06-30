@@ -38,6 +38,7 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
+      external: ['@mlc-ai/web-llm'],
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],

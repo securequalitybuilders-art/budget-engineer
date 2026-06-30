@@ -2,7 +2,7 @@
 
 > **Date:** 2026-06-30  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Phase E (WS6 AI + Drawing Management + Regional Rates + Structural Additions) merged — `npm run typecheck` (0 errors), `npm run build` (success)
+> **Status:** Sprint 1 — 6 WS6 staged panels wired into Engineering Studio dashboard section. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
 
 ---
 
@@ -241,7 +241,8 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 - **12 layout components** (BentoShell, Sidebar, CommandBar, CommandPalette, etc.)
 - **12 CAD components** (PlanCanvas, WallFirstCanvas, PlanComparison, PlanLegend, panels)
 - **5 BIM components** (BimViewer, BimLegend, BimInspector, FloorVisibilityPanel, LazyBimViewer)
-- **6 WS6 panel components** (AiBriefPanel, RateCardPanel, RebarSpecPanel, FootingSizingPanel, LoadAnalysisPanel, SectionView) — staged, not wired
+- **6 WS6 panel components** (AiBriefPanel, RateCardPanel, RebarSpecPanel, FootingSizingPanel, LoadAnalysisPanel, SectionView) — ✅ wired into Engineering Studio
+- **Engineering Studio section** (EngineeringStudioPanel) — tabbed accordion panel in dashboard right sidebar
 
 ---
 
@@ -253,12 +254,12 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **Cross-Project/Portfolio/Zone panels** | Lib merged; UI panels deferred | Port from WS3 panels |
 | **Export/Standards panels** | Lib merged; UI panels deferred | Port from WS3 panels |
 | **WS4 panel components** | 4 panels (Clash, Solar, MEP, Executive) deferred | Tailwind re-theme from WS4 |
-| **WS6 panels not wired** | 6 panels staged but not connected to Dashboard | Wire into Dashboard: AiBriefPanel, RateCardPanel, SectionView, etc. |
+| **WS6 panels formerly not wired** | 6 panels now wired into Engineering Studio | ✅ DONE (Sprint 1) |
 | **WS6 WebLLM** | `@mlc-ai/web-llm` not installed | `npm install @mlc-ai/web-llm` then enable `webllm-parser.ts` |
 | **3D BIM viewer in Dashboard** | BimViewer exists but not integrated | Route LazyBimViewer in Dashboard |
 | **Wire WS5 structural algorithms** | 5 algorithm modules staged | Connect to store + UI |
-| **Wire WS6 structural libs** | Load engine, footing sizer, rebar spec | Connect to store + UI |
-| **Wire SectionView into Dashboard** | SectionView exists, not routed | Add section marker slider to PlanCanvas |
+| **Wire WS6 structural libs** | Load engine, footing sizer, rebar spec | ✅ DONE (Sprint 1 — via Engineering Studio with sample data) |
+| **Wire SectionView into Dashboard** | SectionView exists, not routed | ✅ DONE (Sprint 1 — Engineering Studio tab with sample CAD) |
 | **Wire drawing register into export** | Register lib exists, not tied to export pipeline | Integrate with boq-export and pdf-dossier |
 | **Web Workers** | No off-main-thread processing | Future |
 | **Tests** | No unit or integration tests | Add tests for all engines and analysis modules |

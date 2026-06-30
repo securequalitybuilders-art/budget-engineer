@@ -3,7 +3,8 @@
 > **Date:** 2026-06-30  
 > **Base:** WS1 (`workspace-chart 1`)  
 > **Legend:** ✅ Present | ❌ Missing | 🔄 Staged (not wired)
-> **Phase E (WS6 AI + Drawing Management) merged.**
+> **Phase E (WS6 AI + Drawing Management) merged.**  
+> **Sprint 1:** 6 staged WS6 panels wired into Engineering Studio dashboard section.
 
 ---
 
@@ -56,17 +57,17 @@
 | **Executive Portfolio** (project aggregation) | ✅ Present | WS4 |
 | **Export Package** (ZIP, CSV, HTML, manifest) | ✅ Present | WS3 lib |
 | **Standards Manifest** (IFC/COBie/BOQ) | ✅ Present | WS3 lib |
-| **Rate Cards / Cost Database** (regional, editable) | ✅ Present | WS6 `src/lib/rates/rate-card.ts` — Zimbabwe, SA, Kenya, Global |
-| **Load Combination Factors** (SLS/ULS) | ✅ Present | WS6 `src/lib/structural/load-engine.ts` |
-| **Footing Sizing** (from soil bearing + load) | ✅ Present | WS6 `src/lib/structural/footing-sizer.ts` |
-| **Rebar Specification** (parametric bar mass from first principles) | ✅ Present | WS6 `src/lib/structural/rebar-spec.ts` |
+| **Rate Cards / Cost Database** (regional, editable, wired) | ✅ Present | WS6 `src/lib/rates/rate-card.ts` — Zimbabwe, SA, Kenya, Global |
+| **Load Combination Factors** (SLS/ULS, wired) | ✅ Present | WS6 `src/lib/structural/load-engine.ts` |
+| **Footing Sizing** (from soil bearing + load, wired) | ✅ Present | WS6 `src/lib/structural/footing-sizer.ts` |
+| **Rebar Specification** (parametric bar mass, wired) | ✅ Present | WS6 `src/lib/structural/rebar-spec.ts` |
 | **Design Fingerprint** (djb2 content hash) | ✅ Present | WS6 `src/lib/versioning/fingerprint.ts` |
 | **Design Metrics & Change Summary** | ✅ Present | WS6 `src/lib/versioning/design-metrics.ts` |
 | **Currency Symbols** (USD, ZAR, KES, etc.) | ✅ Present | WS6 `src/lib/utils/currency.ts` |
 | **Charts** (cost breakdown) | ✅ Present | Recharts |
 | **Transaction History** (audit log) | ✅ Present | WS1 |
 | **Exports** (CSV, HTML, ZIP, SVG, DXF) | ✅ Present | WS1/WS2/WS3/WS6 |
-| **Section/Elevation Views** (interactive SVG) | 🔄 Staged | WS6 SectionView component — not wired into dashboard |
+| **Section/Elevation Views** (interactive SVG) | ✅ Present | WS6 SectionView wired into Engineering Studio |
 | **Drawing Register Panel** | 🔄 Staged | WS6 drawing-register lib — not wired into dashboard |
 | **Structural Column Generator** | 🔄 Staged | WS5 structural-generator — not wired |
 | **Structural Beam Generator** | 🔄 Staged | WS5 structural-generator — not wired |
@@ -97,4 +98,4 @@
 | ✅ Present (Phase C WS4 Advanced Engineering merged) | ~7 |
 | 🔄 Staged (Phase D WS5 Structural algorithms) | 5 algorithm modules |
 | ✅ Present (Phase E WS6 AI/Drawing/Rates/Structural lib) | ~15 new modules |
-| 🔄 Staged (WS6 panels, not wired) | 6 panel components |
+| ✅ Present (Sprint 1 — WS6 panels wired) | 6 panel components |

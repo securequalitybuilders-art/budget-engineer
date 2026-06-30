@@ -8,6 +8,7 @@ import { PropertiesPanel } from '@/components/layout/PropertiesPanel';
 import { BOQPanel } from '@/components/layout/BOQPanel';
 import { TransactionPanel } from '@/components/layout/TransactionPanel';
 import { AIChatPanel } from '@/components/layout/AIChatPanel';
+import { EngineeringStudioPanel } from '@/components/dashboard/EngineeringStudioPanel';
 import { Button } from '@/components/ui/Button';
 import { Layers, Box, Ruler, FileSpreadsheet, Wand2, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -173,6 +174,7 @@ export function Dashboard() {
           <div className="flex flex-shrink-0">
             <PropertiesPanel />
             <TransactionPanel />
+            <EngineeringStudioPanel selectedDesign={selectedDesign} />
           </div>
         </div>
       </div>
