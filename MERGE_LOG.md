@@ -397,3 +397,144 @@ None — all extracted modules use pure TypeScript with no new npm packages.
 - WS5 `store/appStore.ts` — algorithms extracted, store logic not needed
 - WS5 `domain/cad.ts` block kind 'column'/'footing' — canonical CadBlockInstance.blockType not extended; structural-generator returns positions, caller maps to appropriate types
 - All 5 WS5 algorithms are staged but not wired into canonical stores or UI — deferred to integration phase
+
+---
+
+## Phase E — WS6 AI + Drawing Management + Regional Rates + Structural Additions
+
+**Source:** `workspace-chart 6/budget-engineer-os`  
+**Target:** `budget-engineer-canonical`  
+**Order:** 5th merge (after Phase D WS5 Structural Algorithms)
+
+### Files Copied from WS6 (Adapted for Canonical Import Paths)
+
+#### Domain Bridge
+| Source (WS6) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/domain/types.ts` | `src/domain/ws6-types.ts` | Self-contained WS6 CadDocument/BimModel/BOQ bridge types; no canonical domain files modified |
+
+#### AI Modules (`src/lib/ai/`)
+| Source (WS6) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/ai/briefParser.ts` | `src/lib/ai/brief-parser.ts` | Deterministic regex-based brief parser |
+| `src/ai/designEngine.ts` | `src/lib/ai/design-engine.ts` | Multi-floor parametric CadDocument generator from ParsedBrief |
+| `src/ai/aiProvider.ts` | `src/lib/ai/ai-provider.ts` | AI engine abstraction with local-rules/webllm fallback |
+| `src/ai/webllmParser.ts` | `src/lib/ai/webllm-parser.ts` | WebLLM adapter (lazy-imported, opt-in dependency) |
+| — | `src/lib/ai/ai-types.ts` | ParsedBrief type for WS6 AI pipeline |
+
+#### Drawing Modules (`src/lib/drawings/`)
+| Source (WS6) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/lib/planSvg.ts` | `src/lib/drawings/plan-svg.ts` | Static SVG floor plan generator (no DOM) |
+| `src/lib/sectionSvg.ts` | `src/lib/drawings/section-svg.ts` | Section elevation SVG generator (AA/BB) |
+| `src/lib/titleBlock.ts` | `src/lib/drawings/title-block.ts` | SVG title block fragment for A-series sheets |
+| `src/lib/drawingRegister.ts` | `src/lib/drawings/drawing-register.ts` | Drawing register with revision history |
+
+#### Rate Cards (`src/lib/rates/`)
+| Source (WS6) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/lib/rateCard.ts` | `src/lib/rates/rate-card.ts` | Regional cost database: Zimbabwe, South Africa, Kenya, Global |
+
+#### Structural Additions (`src/lib/structural/`)
+| Source (WS6) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/lib/rebarSpec.ts` | `src/lib/structural/rebar-spec.ts` | Parametric rebar (bar diameter/spacing/layers, kg/m² from first principles) |
+| `src/lib/loadEngine.ts` | `src/lib/structural/load-engine.ts` | SLS/ULS load combination factors |
+| `src/lib/footingSizer.ts` | `src/lib/structural/footing-sizer.ts` | RC pad footing sizing from design load + soil bearing |
+
+#### Versioning (`src/lib/versioning/`)
+| Source (WS6) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/lib/fingerprint.ts` | `src/lib/versioning/fingerprint.ts` | djb2 design content hash (no md5 dependency) |
+| `src/lib/designMetrics.ts` | `src/lib/versioning/design-metrics.ts` | Headline change summary diff |
+
+#### Export (`src/lib/export/`)
+| Source (WS6) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/lib/boqExport.ts` | `src/lib/export/boq-export.ts` | CSV + HTML dossier BOQ export with drawing register, plan SVGs, section |
+
+#### Utility (`src/lib/utils/`)
+| Source (WS6) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/lib/currency.ts` | `src/lib/utils/currency.ts` | Currency symbol lookup |
+
+#### Panel Components (Tailwind-rethemed, props-based, not wired to stores)
+| Source (WS6) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/components/panels/AiBriefPanel.tsx` | `src/components/ai/AiBriefPanel.tsx` | Brief input + AI engine selector; self-contained with local state |
+| `src/components/panels/RateCardPanel.tsx` | `src/components/rates/RateCardPanel.tsx` | Editable rate card UI; props-based |
+| `src/components/panels/RebarSpecPanel.tsx` | `src/components/structural/RebarSpecPanel.tsx` | Rebar diameter/spacing/layers selector; props-based |
+| `src/components/panels/FootingSizingPanel.tsx` | `src/components/structural/FootingSizingPanel.tsx` | Footing sizing with soil combo toggle; self-contained |
+| `src/components/panels/LoadAnalysisPanel.tsx` | `src/components/structural/LoadAnalysisPanel.tsx` | Load combo + element table; self-contained |
+| `src/components/cad/SectionView.tsx` | `src/components/drawings/SectionView.tsx` | Interactive section marker with AA/BB slider |
+
+### Files Discarded from WS6
+- `src/domain/types.ts` — canonical domain types are superior; all WS6 types in ws6-types.ts bridge
+- `src/engine/bimGenerator.ts`, `boqGenerator.ts` — canonical bim-generator.ts and boq-generator.ts are superior
+- `src/lib/db.ts` — canonical schema already has all tables
+- `src/store/appStore.ts` — canonical Zustand stores are superior
+- `src/App.tsx`, `src/main.tsx`, `src/index.css` — replaced by canonical scaffolding
+- `src/components/panels/ExportPanel.tsx`, `ProjectSwitcherPanel.tsx`, `TransactionHistoryPanel.tsx`, `MaterialSwitchPanel.tsx`, `BoqPanel.tsx`, `BimViewerPanel.tsx` — deferred
+- `src/components/cad/CadPlanView.tsx` — WS2 PlanCanvas is sufficient
+- `src/components/bim/BimViewer.tsx` — WS3 BimViewer is superior (R3F)
+- `src/components/charts/*` — WS1 has CostBreakdownChart via Recharts
+- `src/routes/BimRoute.tsx` — canonical has proper routing via React Router
+
+### Key Decisions
+1. WS6 domain/types.ts placed in `src/domain/ws6-types.ts` as a self-contained bridge type file — no canonical domain types modified
+2. All WS6 AI modules placed under `src/lib/ai/` to avoid conflicting with canonical `src/ai/` (which has different ParsedBrief and schema)
+3. WS6 `briefParser.ts` and `designEngine.ts` are separate from canonical ones — they serve different purposes (WS6 generates CadDocument from brief, canonical generates Design[])
+4. WS6 fingerprint.ts uses djb2 hash (deterministic, no deps) — no md5 package needed
+5. All 6 panel components use Tailwind classes matching canonical design system (dark theme, stone/cyan palette)
+6. Panels are props-based or self-contained with local state — no store dependencies
+7. No panel is wired into the dashboard — all staged for future integration
+8. WebLLM parser uses `// @ts-ignore` for the `@mlc-ai/web-llm` dynamic import — opt-in dependency
+9. No canonical stores, routes, Dashboard.tsx, or Dexie schema modified
+10. Phase C pdf-dossier.ts and Phase E boq-export.ts are independent — pdf-dossier uses canonical CadDocument, boq-export uses WS6 CadDocument via ws6-types
+
+### Dependencies
+None — all modules use pure TypeScript. WebLLM (`@mlc-ai/web-llm`) is dynamically imported and guarded with `@ts-ignore`. Install via `npm install @mlc-ai/web-llm` to enable.
+
+---
+
+## Phase E — Build Result
+
+| Command | Result |
+|---|---|
+| `npm install` | ✅ SKIPPED (no new deps) |
+| `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
+| `npm run build` (`tsc && vite build`) | ✅ PASS (2767 modules, 14 precache) |
+
+### Errors Encountered & Fixes
+
+| Error | Fix |
+|---|---|
+| `FootingSizingPanel.tsx` — `setLoadCombo` unused | Added load combo toggle button row in JSX |
+| `webllm-parser.ts` — `@mlc-ai/web-llm` not installed | Added `// @ts-ignore` before dynamic import; opt-in dependency |
+
+### Phase E — Merge Result
+
+| Step | Status |
+|---|---|
+| Created `src/domain/ws6-types.ts` (bridge types) | ✅ DONE |
+| Created `src/lib/ai/` (5 files: ai-types, brief-parser, design-engine, ai-provider, webllm-parser) | ✅ DONE |
+| Created `src/lib/drawings/` (4 files: plan-svg, section-svg, title-block, drawing-register) | ✅ DONE |
+| Created `src/lib/rates/rate-card.ts` | ✅ DONE |
+| Created `src/lib/structural/rebar-spec.ts`, `load-engine.ts`, `footing-sizer.ts` | ✅ DONE |
+| Created `src/lib/versioning/fingerprint.ts`, `design-metrics.ts` | ✅ DONE |
+| Created `src/lib/export/boq-export.ts` | ✅ DONE |
+| Created `src/lib/utils/currency.ts` | ✅ DONE |
+| Created 6 panel components (AiBriefPanel, RateCardPanel, RebarSpecPanel, FootingSizingPanel, LoadAnalysisPanel, SectionView) | ✅ DONE |
+| `npm run typecheck` | ✅ PASS (0 errors) |
+| `npm run build` | ✅ PASS |
+| Updated MERGE_LOG.md | ✅ DONE |
+| Updated FEATURE_MATRIX.md | ✅ DONE |
+| Updated CANONICAL_REPO_STATUS.md | ✅ DONE |
+
+### Deferred from WS6
+- `@mlc-ai/web-llm` dependency — not installed; guarded with `@ts-ignore`; run `npm install @mlc-ai/web-llm` to enable WebLLM
+- ExportPanel, ProjectSwitcherPanel, TransactionHistoryPanel, MaterialSwitchPanel, BoqPanel — deferred
+- WS6 BimViewer (Three.js direct) — WS3 R3F version is superior
+- Wire any WS6 panel into Dashboard — all panels staged but not routed
+- Wire WS6 structural modules (load-engine, footing-sizer, rebar-spec) into any store or UI — pure algorithm modules only
+- Integration of drawing-register, boq-export with canonical export pipeline

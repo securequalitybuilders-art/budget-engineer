@@ -2,7 +2,7 @@
 
 > **Date:** 2026-06-30  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Phase D (WS5 Structural Algorithms) extracted — `npm run typecheck` (0 errors), `npm run build` (success)
+> **Status:** Phase E (WS6 AI + Drawing Management + Regional Rates + Structural Additions) merged — `npm run typecheck` (0 errors), `npm run build` (success)
 
 ---
 
@@ -50,6 +50,11 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
 ### Dev Dependencies (`devDependencies`)
 - Unchanged from WS1 base
 
+### Phase E Dependencies
+- **No new npm packages added** — all WS6 modules use pure TypeScript
+- `@mlc-ai/web-llm` NOT installed (opt-in — run `npm install @mlc-ai/web-llm` to enable WebLLM parser)
+- `md5` NOT added — WS6 fingerprint.ts uses djb2 hash (deterministic, zero deps)
+
 ---
 
 ## Current Routes (unchanged from WS1)
@@ -83,6 +88,13 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
 ### AI Pipeline (WS1)
 - Deterministic brief parser, design engine, BOQ engine
 - Zod validation schemas
+
+### AI Modules — Staged (WS6 Phase E, `src/lib/ai/`, not wired to UI)
+- WS6 deterministic brief parser (`lib/ai/brief-parser.ts`) — regex-based, runs offline
+- WS6 multi-floor parametric design engine (`lib/ai/design-engine.ts`) — generates CadDocument from brief
+- AI provider abstraction (`lib/ai/ai-provider.ts`) — `local-rules` / `webllm` engine with fallback chain
+- WebLLM adapter (`lib/ai/webllm-parser.ts`) — lazy-imported, opt-in (`@mlc-ai/web-llm`), guarded with `@ts-ignore`
+- All 5 AI modules are pure TypeScript, no paid API, no store dependencies
 
 ### 2D CAD (WS2 Phase A)
 - Interactive PlanCanvas with pan/zoom/viewport
@@ -163,45 +175,91 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
   - Total portfolio value, avg scheme cost, category distribution
   - Active vs archived counts
 
-### Structural Algorithms — Staged (WS5 Phase D, not wired to UI)
+### Drawings & SVG Export (WS6 Phase E, `src/lib/drawings/`)
+- Static plan SVG generator (`plan-svg.ts`) — pure string, no DOM, for dossiers
+- Section elevation SVG generator (`section-svg.ts`) — AA/BB cut planes, opening filtering
+- SVG title block (`title-block.ts`) — DZENHARE OS branded bottom strip
+- Drawing register (`drawing-register.ts`) — A-1xx/A-201 sheet list with revision history
+- All 4 modules are pure SVG string generators — safe for Node.js verification and browser export
 
-All 5 algorithm modules are pure TypeScript, no side effects, no store dependencies. Staged for future integration.
+### Rate Cards (WS6 Phase E, `src/lib/rates/`)
+- Regional cost database (`rate-card.ts`) — 4 regions: Zimbabwe (USD), South Africa (ZAR), Kenya (KES), Global (USD)
+- Full RateCard interface with wall/beam/column rates per material system, plus slab, roof, rebar, excavation, formwork
+- Editable in the UI (RateCardPanel), cloned before mutation
+- Preserves existing canonical `seedRates` for backward compatibility
 
+### Rebar Specification (WS6 Phase E, `src/lib/structural/rebar-spec.ts`)
+- Parametric rebar from first principles: bar diameter (Y10/Y12/Y16), spacing (150/200/250), layers (1/2)
+- `barMassPerMetre()` — steel density × cross-sectional area
+- `rebarKgPerM2()` — two-way mesh kg/m²
+- `rebarTonnage()` — total slab tonnage
+
+### Load Analysis (WS6 Phase E, `src/lib/structural/load-engine.ts`)
+- SLS/ULS load combination factors (1.0G+1.0Q / 1.2G+1.5Q)
+- Element-wise load computation (slab, roof, wall)
+- Material self-weight scaling (concrete 1.0, steel 0.55, timber 0.4)
+- Total vertical load to footings
+
+### Footing Sizing (WS6 Phase E, `src/lib/structural/footing-sizer.ts`)
+- RC pad footing sizing from design load + soil bearing capacity
+- 4 soil classes: soft clay (75 kPa) → weathered rock (600 kPa)
+- 50 mm module rounding, min 600 mm pad
+- Excavation/formwork takeoff + reinforcement tonnage
+
+### Versioning & Change Detection (WS6 Phase E, `src/lib/versioning/`)
+- Design fingerprint (`fingerprint.ts`) — djb2 content hash of geometry + cost (no md5 dep)
+- Design metrics (`design-metrics.ts`) — headline metrics snapshot + `summarizeChanges()` diff
+- Currency symbols (`src/lib/utils/currency.ts`) — USD, ZAR, KES, GBP, EUR, NGN
+
+### BOQ Export (WS6 Phase E, `src/lib/export/boq-export.ts`)
+- CSV export with currency-aware formatting
+- Self-contained HTML dossier with cover, drawing register, revision history, per-floor plan SVGs, section SVG, BOQ table
+- Browser download + print/save-as-PDF helpers
+
+### Structural Algorithms — Staged (WS5 Phase D + WS6 Phase E, not wired to UI)
+
+All algorithm modules are pure TypeScript, no side effects, no store dependencies. Staged for future integration.
+
+#### WS5 Algorithms (Phase D)
 | Module | File | Purpose |
 |---|---|---|
 | **Structural Generator** | `src/lib/structural/structural-generator.ts` | `computeColumnPositions()` — deduplicates structural wall nodes; `computeBeamConnections()` — links columns not on walls; `computeFootingPlacements()` — places pad footings under columns |
-| **Rebar Calculator** | `src/lib/structural/rebar-calculator.ts` | `computeRebarTonnes(slabArea, spec?)` — slab reinforcement mass from area + Y10/Y12/Y16 bar spec |
-| **Material Rates** | `src/lib/structural/material-rates.ts` | `materialRateTable` — 3 materials × 11 categories; `getMaterialRates()` — lookup; `ifcClassMaterialMap` — material→IFC class; `getIfcClass()` |
-| **Clash Healer** | `src/lib/structural/clash-healer.ts` | `autoHealClashes()` — repairs opening proximity (<30cm) and block-wall overlap |
-| **Structural Types** | `src/lib/structural/structural-types.ts` | `RebarSpec`, `StructuralMaterial`, `SimpleWall`, `ColumnPlacement`, `BeamConnection`, `FootingPlacement` |
+| **Rebar Calculator** | `src/lib/structural/rebar-calculator.ts` | Slab reinforcement mass from area + Y10/Y12/Y16 bar spec |
+| **Material Rates** | `src/lib/structural/material-rates.ts` | 3 materials × 11 categories; material→IFC class mapping |
+| **Clash Healer** | `src/lib/structural/clash-healer.ts` | Auto-repair opening proximity and block-wall overlap |
+| **Structural Types** | `src/lib/structural/structural-types.ts` | `RebarSpec`, `StructuralMaterial`, placement types |
+
+#### WS6 Algorithms (Phase E)
+| Module | File | Purpose |
+|---|---|---|
+| **Rebar Spec** | `src/lib/structural/rebar-spec.ts` | Parametric bar diameter/spacing/layers, kg/m² from first principles |
+| **Load Engine** | `src/lib/structural/load-engine.ts` | SLS/ULS load combos, element-wise kN, material self-weight scaling |
+| **Footing Sizer** | `src/lib/structural/footing-sizer.ts` | RC pad footing sizing from design load + 4 soil classes |
 
 ### Components
 - **7 UI primitives** (Button, Card, Badge, Input, Label, Select, Textarea)
 - **12 layout components** (BentoShell, Sidebar, CommandBar, CommandPalette, etc.)
 - **12 CAD components** (PlanCanvas, WallFirstCanvas, PlanComparison, PlanLegend, panels)
 - **5 BIM components** (BimViewer, BimLegend, BimInspector, FloorVisibilityPanel, LazyBimViewer)
+- **6 WS6 panel components** (AiBriefPanel, RateCardPanel, RebarSpecPanel, FootingSizingPanel, LoadAnalysisPanel, SectionView) — staged, not wired
 
 ---
 
 ## Current Known Gaps
 
-| Gap | Details | Source to Merge |
+| Gap | Details | Resolution |
 |---|---|---|
-| **Governance/RBAC/Snapshot panels** | Types/lib merged; UI panels deferred | WS3 |
-| **Cross-Project/Portfolio/Zone panels** | Lib merged; UI panels deferred | WS3 |
-| **Export/Standards panels** | Lib merged; UI panels deferred | WS3 |
-| **WebLLM inference** | `@xenova/transformers` installed but not wired | WS6 |
-| **Web Workers** | No off-main-thread processing | All |
-| **Tests** | No unit or integration tests | None |
-| **3D BIM viewer in Dashboard** | BimViewer exists but not integrated into Dashboard page | Future |
-| **Section/elevation views** | Not present | WS6 |
-| **Drawing register** | Not present | WS6 |
-| **Structural engineering** | No column/beam/footing gen, load analysis, rebar | WS5/6 |
-| **Regional cost database** | Zimbabwe only, not editable | WS6 |
-| **WS4 panel components** | 4 panels (Clash, Solar, MEP, Executive) deferred — need Tailwind re-theme | WS4 |
-| **WS5 structural algorithms** | 5 pure algorithm modules staged but not wired to any store or UI | WS5 |
-| **WebLLM inference** | `@xenova/transformers` installed but not wired | WS6 |
-| **Section/elevation views** | Not present | WS6 |
-| **Drawing register** | Not present | WS6 |
-| **Load path analysis** | Not present as standalone algorithm (UI-rendered in WS5) | WS6 |
-| **WS5 panel components** | 40 panels — ~30 are 4-line stubs; skipped | WS5 |
+| **Governance/RBAC/Snapshot panels** | Types/lib merged; UI panels deferred | Port from WS3 panels |
+| **Cross-Project/Portfolio/Zone panels** | Lib merged; UI panels deferred | Port from WS3 panels |
+| **Export/Standards panels** | Lib merged; UI panels deferred | Port from WS3 panels |
+| **WS4 panel components** | 4 panels (Clash, Solar, MEP, Executive) deferred | Tailwind re-theme from WS4 |
+| **WS6 panels not wired** | 6 panels staged but not connected to Dashboard | Wire into Dashboard: AiBriefPanel, RateCardPanel, SectionView, etc. |
+| **WS6 WebLLM** | `@mlc-ai/web-llm` not installed | `npm install @mlc-ai/web-llm` then enable `webllm-parser.ts` |
+| **3D BIM viewer in Dashboard** | BimViewer exists but not integrated | Route LazyBimViewer in Dashboard |
+| **Wire WS5 structural algorithms** | 5 algorithm modules staged | Connect to store + UI |
+| **Wire WS6 structural libs** | Load engine, footing sizer, rebar spec | Connect to store + UI |
+| **Wire SectionView into Dashboard** | SectionView exists, not routed | Add section marker slider to PlanCanvas |
+| **Wire drawing register into export** | Register lib exists, not tied to export pipeline | Integrate with boq-export and pdf-dossier |
+| **Web Workers** | No off-main-thread processing | Future |
+| **Tests** | No unit or integration tests | Add tests for all engines and analysis modules |
+| **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |
