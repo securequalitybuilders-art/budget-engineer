@@ -9,6 +9,14 @@ import { RATE_CARDS } from '@/lib/rates/rate-card';
 import type { DesignOption } from '@/domain/boq';
 import type { BimModel, CadDocument, CadFloor } from '@/domain/ws6-types';
 
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="rounded-lg border border-stone-700/60 bg-stone-900/80 p-6 text-center">
+      <p className="text-sm text-stone-400">{message}</p>
+    </div>
+  );
+}
+
 type TabId = 'ai' | 'rates' | 'rebar' | 'footings' | 'loads' | 'section';
 
 const TABS: { id: TabId; label: string }[] = [
@@ -20,10 +28,14 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'section', label: 'Section' },
 ];
 
+function safeSqrt(n: number): number {
+  return n > 0 ? Math.sqrt(n) : 0;
+}
+
 function buildSampleCad(design: DesignOption | null): CadDocument | null {
-  if (!design) return null;
+  if (!design || design.grossFloorArea <= 0) return null;
   const floor: CadFloor = { id: 'f1', name: 'Ground', elevation: 0, height: 3 };
-  const wallLen = Math.sqrt(design.grossFloorArea) * 2;
+  const wallLen = safeSqrt(design.grossFloorArea) * 2;
   return {
     id: 'cad-sample',
     projectId: '',
@@ -46,7 +58,7 @@ function buildSampleCad(design: DesignOption | null): CadDocument | null {
 }
 
 function buildSampleBim(design: DesignOption | null): BimModel | null {
-  if (!design) return null;
+  if (!design || design.grossFloorArea <= 0) return null;
   const floor: CadFloor = { id: 'f1', name: 'Ground', elevation: 0, height: 3 };
   return {
     id: 'bim-sample',
@@ -57,8 +69,8 @@ function buildSampleBim(design: DesignOption | null): BimModel | null {
       {
         id: 'slab1', cadId: 'cad1', type: 'slab', floorId: 'f1',
         name: 'Ground slab', x: 0, y: 0,
-        width: Math.sqrt(design.grossFloorArea) * 2,
-        depth: Math.sqrt(design.grossFloorArea),
+        width: safeSqrt(design.grossFloorArea) * 2,
+        depth: safeSqrt(design.grossFloorArea),
         height: 0.15, area: design.grossFloorArea,
         metadata: { ifcClass: 'IfcSlab', category: 'slab', properties: {} },
       },
@@ -107,9 +119,13 @@ export function EngineeringStudioPanel({ selectedDesign }: EngineeringStudioPane
 
         {activeTab === 'rebar' && <RebarSpecPanel slabArea={slabArea} />}
 
-        {activeTab === 'footings' && <FootingSizingPanel bim={sampleBim} />}
+        {activeTab === 'footings' && (
+          sampleBim ? <FootingSizingPanel bim={sampleBim} /> : <EmptyState message="Generate a design option to size footings." />
+        )}
 
-        {activeTab === 'loads' && <LoadAnalysisPanel bim={sampleBim} />}
+        {activeTab === 'loads' && (
+          sampleBim ? <LoadAnalysisPanel bim={sampleBim} /> : <EmptyState message="Generate a design option to analyse loads." />
+        )}
 
         {activeTab === 'section' && (
           sampleCad ? (

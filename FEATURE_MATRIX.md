@@ -4,7 +4,8 @@
 > **Base:** WS1 (`workspace-chart 1`)  
 > **Legend:** ✅ Present | ❌ Missing | 🔄 Staged (not wired)
 > **Phase E (WS6 AI + Drawing Management) merged.**  
-> **Sprint 1:** 6 staged WS6 panels wired into Engineering Studio dashboard section.
+> **Sprint 1:** 6 staged WS6 panels wired into Engineering Studio dashboard section.  
+> **Sprint 1.1:** Stabilized Engineering Studio — WebLLM button disabled, NaN guards, smoke report created.
 
 ---
 

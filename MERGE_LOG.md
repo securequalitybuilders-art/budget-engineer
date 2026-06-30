@@ -589,3 +589,26 @@ None — all modules use pure TypeScript. WebLLM (`@mlc-ai/web-llm`) is dynamica
 - WS4 clash/solar/MEP/executive panels (4 files)
 - WS5 structural algorithms (5 modules)
 - WS6 ExportPanel, ProjectSwitcherPanel, TransactionHistoryPanel, MaterialSwitchPanel, BoqPanel
+
+---
+
+## Sprint 1.1 — Stabilize Engineering Studio
+
+**Date:** 2026-06-30  
+**Git identity:** Fixed for future commits — `Secure Quality Builders` / `securequalitybuilders.art@gmail.com`
+
+### Changes
+
+| File | Change |
+|------|--------|
+| `src/components/ai/AiBriefPanel.tsx` | WebLLM button disabled, strikethrough label "not installed", tooltip with install command; permanent "Local rules active by default" message |
+| `src/components/dashboard/EngineeringStudioPanel.tsx` | `safeSqrt()` guard for non-positive areas; empty state messages for Footings/Loads/Section when no design; `buildSampleCad`/`buildSampleBim` return null on area ≤ 0 |
+| `SPRINT_1_1_ENGINEERING_STUDIO_SMOKE_REPORT.md` | Created — full smoke checklist, WebLLM decision, remaining risks |
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 warnings) |
+| `npm run build` | ✅ PASS (2783 modules, 15 precache) |

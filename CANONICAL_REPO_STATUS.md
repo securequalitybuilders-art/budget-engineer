@@ -2,7 +2,7 @@
 
 > **Date:** 2026-06-30  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 1 — 6 WS6 staged panels wired into Engineering Studio dashboard section. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
+> **Status:** Sprint 1.1 — Engineering Studio stabilized. WebLLM button disabled, NaN guards added, empty states for all data-dependent tabs, smoke report created. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
 
 ---
 

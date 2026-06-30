@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { AiEngine, ParseResult, parseWithEngine } from '@/lib/ai/ai-provider';
 
-const ENGINES: { id: AiEngine; label: string }[] = [
+const ENGINES: { id: AiEngine; label: string; disabled?: boolean; hint?: string }[] = [
   { id: 'local-rules', label: 'Rules (instant)' },
-  { id: 'webllm', label: 'Local LLM (WebGPU)' },
+  { id: 'webllm', label: 'WebLLM — not installed', disabled: true, hint: 'npm install @mlc-ai/web-llm' },
 ];
 
 interface AiBriefPanelProps {
@@ -39,12 +39,16 @@ export function AiBriefPanel({ onParsed }: AiBriefPanelProps) {
         {ENGINES.map((e) => (
           <button
             key={e.id}
+            disabled={e.disabled}
             onClick={() => setAiEngine(e.id)}
             className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
-              aiEngine === e.id
-                ? 'bg-cyan-600 text-white'
-                : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
+              e.disabled
+                ? 'cursor-not-allowed bg-stone-800/50 text-stone-600 line-through'
+                : aiEngine === e.id
+                  ? 'bg-cyan-600 text-white'
+                  : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
             }`}
+            title={e.hint}
           >
             {e.label}
           </button>
@@ -74,15 +78,9 @@ export function AiBriefPanel({ onParsed }: AiBriefPanelProps) {
         </p>
       )}
 
-      {aiEngine === 'webllm' && (
-        <p className="mt-2 text-xs text-amber-400">
-          ⚠ The local LLM runs fully in your browser (free, no API) but needs <b>WebGPU</b> and
-          downloads a ~1&nbsp;GB model on first use. If unavailable it automatically falls back to
-          the rules parser — generation never breaks.
-        </p>
-      )}
-
       <p className="mt-2 text-xs text-stone-500">
+        <span className="text-emerald-400">✅ Local rules active by default</span> — instant, offline, no dependencies.
+        WebLLM requires <code className="text-amber-400">npm install @mlc-ai/web-llm</code>.
         Extracts building type, bedrooms, bathrooms, floors, area &amp; features, then the
         parametric engine builds the 2D plan → BIM → BOQ.
       </p>
