@@ -16,7 +16,7 @@ async function getEngine(): Promise<Engine> {
   }
   if (!enginePromise) {
     enginePromise = (async () => {
-      // @ts-ignore — @mlc-ai/web-llm is opt-in; install via `npm install @mlc-ai/web-llm`
+      // @ts-expect-error — @mlc-ai/web-llm is opt-in; install via `npm install @mlc-ai/web-llm`
       const webllm = await import('@mlc-ai/web-llm');
       return webllm.CreateMLCEngine(MODEL_ID, {
         initProgressCallback: (r: { progress: number; text: string }) =>

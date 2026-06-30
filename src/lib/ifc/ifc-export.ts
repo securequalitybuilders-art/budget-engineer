@@ -111,12 +111,10 @@ export function buildIfcStep(cad: CadDocument): string {
   return [...header, ...lines].join('\n');
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function boxShape(_width?: number, _depth?: number, _height?: number): string {
   return `IFCPRODUCTDEFINITIONSHAPE($,$,(${''}))`;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function localPlacement(_x: number, _y: number, _z: number, _angle: number): string {
   return `IFCLOCALPLACEMENT($,IFCAXIS2PLACEMENT3D(IFCCARTESIANPOINT((${0},${0},${0})),IFCDIRECTION((0,0,1)),IFCDIRECTION((1,0,0))))`;
 }

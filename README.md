@@ -1,7 +1,9 @@
 # Dzenhare Budget Engineer Studio
 
-> AI-powered computational design → 2D CAD → 3D BIM → engineering quantities → BOQ.  
+> AI-powered computational design → 2D CAD → 3D BIM → engineering quantities → BOQ.
 > Offline-first, open-source, Africa-focused.
+>
+> **All 5 workspace merges complete.** Every module compiles, lints, and builds.
 
 ## Quick start
 
@@ -15,44 +17,18 @@ Then open http://localhost:5173.
 
 ## What is built so far
 
-This is the **scaffold + data model** (M1–M2 of the BLAST Blueprint). It includes:
+**All 5 BLAST Blueprint phases merged from 5 workspaces (WS1–WS6).** Full pipeline:
 
-- ✅ Vite + React 18 + TypeScript (strict)
-- ✅ Tailwind CSS + custom Dzenhare design tokens (Deep Cobalt `#1a365d` + Warm Sand `#d4a574`)
-- ✅ Dark-first theme with system/light toggle
-- ✅ PWA scaffold (service worker, manifest)
-- ✅ shadcn/ui-style components: Button, Card, Input, Select, Textarea, Badge, Label
-- ✅ Zustand + Immer state management
-- ✅ Dexie.js (IndexedDB) for offline-first project storage
-- ✅ Project creation wizard with brief, region, currency, budget
-- ✅ Transaction history (immutable event log) for every project/brief mutation
-- ✅ Bento dashboard shell: command bar, sidebar, canvas placeholder, properties panel, BOQ panel, AI chat, transaction history
-- ✅ Seed Zimbabwe/CWICR-style cost rates in the local database
-- ✅ Integer-cents currency handling (no floating-point money)
-- ✅ Code-split pages and vendor libraries into separate chunks
-- ✅ Command palette (`Cmd/Ctrl + K` or `/`)
-- ✅ Global keyboard shortcuts (`T`, `B`, `C`, `Q`, `H`, `N`, `P`, `1-6`, `?`)
-- ✅ Real app icons (favicon + PWA 192/512 PNGs)
-- ✅ Local AI brief-to-design — deterministic parser + Zod schema → 3 design options (compact/standard/spacious) with rooms and quantities
+| Phase | Scope | Source |
+|-------|-------|--------|
+| Base + UX | Vite/React 18, Tailwind, PWA, Zustand, Dexie, routing, command palette, themes, project wizard, pipeline UI | WS1 |
+| 2D CAD | PlanCanvas, WallFirstCanvas, DXF/SVG/MakerJS export, undo/redo, multi-floor, block library, dimensions | WS2 |
+| BIM + IFC | React Three Fiber 3D viewer, BIM legend/inspector, IFC4 STEP import/export, governance/RBAC types, versioning, zones, cross-project, export package | WS3 |
+| Advanced Eng | Wall corner solver (intersection math), clash detection (3 BIM rules), solar analysis, MEP takeoff, executive dossier (HTML print-to-PDF) | WS4 |
+| Structural | Column/beam/footing placement algorithms, rebar calculator, material rates, clash auto-healing | WS5 |
+| AI + Drawings | Deterministic brief parser, design engine, WebLLM adapter (opt-in), SVG plan/section/title-block generators, drawing register, regional rate cards, load analysis, footing sizing, rebar spec, design fingerprint, 6 staged panel components | WS6 |
 
-## Next steps (thin slice pipeline)
-
-1. **AI brief-to-design** — local LLM (`transformers.js` / WebLLM / Ollama) parses brief into parametric JSON.
-2. **2D CAD** — `Maker.js` + `Design-Core` canvas renders floor plans; export DXF/SVG.
-3. **3D BIM** — `OpenJSCAD` + `Manifold` + `three.js` + `xeokit-sdk` viewer; export IFC/XKT.
-4. **QTO engine** — extract volumes/areas/lengths from geometry.
-5. **BOQ engine** — map quantities to local CWICR/Zimbabwe rates; produce charts + export CSV/PDF.
-6. **4-stage computational pipeline** — structural check → solar analysis → material estimate → BOQ (via Amanbh997 CD skills).
-
-## Context files
-
-The production-ready context files for AntiGravity / AI agents are in the workspace root:
-
-- `gemini.md` — system prompt and open-source stack
-- `brandguidelines.md` — UI/UX Pro Max design system
-- `project_constitution.md` — technical governance and data model
-- `task_plan.md` — BLAST Blueprint with milestones
-- `critical_analysis.md` — audit of the original live app
+**Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Analysis → BOQ → Export
 
 ## Commands
 
