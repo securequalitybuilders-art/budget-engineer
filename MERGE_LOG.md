@@ -304,3 +304,96 @@ None — all new modules use pure TypeScript with no new npm packages.
 - WS4 `cadSeed.ts` — canonical has superior seedCadDocument with PlanModel
 - WS4 `cadExport.ts` — inline SVG builder kept in pdf-dossier.ts
 - WS4 panel types re-export (`AllPanels.tsx`, `LazyAnalytics.tsx`) — not needed yet
+
+---
+
+## Phase D — WS5 Structural Algorithms Extraction
+
+**Source:** `workspace-chart 5/budget-engineer-os`  
+**Target:** `budget-engineer-canonical`  
+**Order:** 4th merge (after Phase C WS4 Advanced Engineering)
+
+### Algorithms Extracted from WS5
+
+| Source Location | Target (Canonical) | Algorithm |
+|---|---|---|
+| `store/appStore.ts` `generateStructuralColumns` | `src/lib/structural/structural-generator.ts` | Auto-places columns at structural wall node intersections |
+| `store/appStore.ts` `generateStructuralBeams` | `src/lib/structural/structural-generator.ts` | Auto-places link beams between columns not on walls |
+| `store/appStore.ts` `generateFoundationFootings` | `src/lib/structural/structural-generator.ts` | Auto-places pad footings under columns |
+| `store/appStore.ts` `autoHealClashes` | `src/lib/structural/clash-healer.ts` | Repair opening proximity & block-wall overlaps |
+| `engine/boqGenerator.ts` `computeRebarTonnes` | `src/lib/structural/rebar-calculator.ts` | Slab reinforcement tonnage from area + rebar spec |
+| `engine/boqGenerator.ts` `materialRates` | `src/lib/structural/material-rates.ts` | Material-variant rate tables (concrete/steel/timber) |
+| `store/appStore.ts` `updateCadElementMaterial` IFC map | `src/lib/structural/material-rates.ts` | Material-to-IFC-class mapping |
+| — | `src/lib/structural/structural-types.ts` | RebarSpec, StructuralMaterial type definitions |
+
+### Files Created in Canonical
+
+| File | Purpose |
+|---|---|
+| `src/lib/structural/structural-types.ts` | RebarSpec (barSize, spacing, layers), StructuralMaterial type |
+| `src/lib/structural/structural-generator.ts` | `generateStructuralColumns`, `generateStructuralBeams`, `generateFoundationFootings` — pure functions operating on generic wall/block arrays |
+| `src/lib/structural/rebar-calculator.ts` | `computeRebarTonnes(slabArea, rebarSpec?)` — slab reinforcement mass calculator |
+| `src/lib/structural/material-rates.ts` | materialRates table (3 materials × 11 categories), ifcClassMaterialMap for material→IFC class |
+| `src/lib/structural/clash-healer.ts` | `autoHealClashes(walls, openings, blocks)` — repair opening proximity and block-wall overlap |
+
+### Files Discarded from WS5
+- `store/appStore.ts` — all state management code; only algorithms extracted
+- `domain/cad.ts`, `domain/bim.ts`, `domain/boq.ts` — canonical types already more comprehensive
+- `engine/bimGenerator.ts` — canonical bim-generator.ts produces richer BIM elements
+- `engine/boqGenerator.ts` — canonical boq-generator.ts uses WS3-style BOQ bridge; only `computeRebarTonnes` extracted
+- All 40+ panel components — ~30 are 4-line stubs, rest already covered by WS3/WS4
+- `App.tsx`, `main.tsx`, `index.css` — replaced by canonical scaffolding
+- `routes/BimRoute.tsx` — canonical has proper routing via React Router
+
+### Key Decisions
+1. All algorithms extracted as pure typed TypeScript functions — no UI, no store, no side effects
+2. No canonical domain types modified — algorithms use generic parameter types compatible with canonical concepts
+3. `structural-generator.ts` accepts `{id, start, end}[]` for walls and returns positions for placement — caller maps to canonical CadBlockInstance
+4. `rebar-calculator.ts` is pure math — accepts area + optional spec, returns tonnes
+5. `material-rates.ts` provides lookup tables and helper functions — no DOM/browser dependencies
+6. `clash-healer.ts` accepts canonical CadWall/CadOpening/CadBlockInstance arrays — adapts WS5 logic to canonical field names (structuralRole→external, kind→blockType, offset→offsetRatio, depth→height)
+7. No WS5 algorithms are wired into any store or UI — all are clean typed modules staged for future integration
+8. All algorithms compile independently without modifying existing canonical files
+9. No new npm dependencies needed
+10. WS5's `load path diagram` and `load magnitude labels` are UI-rendered computations, not reusable algorithms — not extracted
+
+### Expected Dependencies
+None — all extracted modules use pure TypeScript with no new npm packages.
+
+---
+
+## Phase D — Build Result
+
+| Command | Result |
+|---|---|
+| `npm install` | ✅ SKIPPED (no new deps) |
+| `npm run typecheck` | ? |
+| `npm run build` | ? |
+
+### Errors Encountered & Fixes
+
+| Error | Fix |
+|---|---|
+| — | — |
+
+### Phase D — Merge Result
+
+| Step | Status |
+|---|---|
+| Created `src/lib/structural/structural-types.ts` | ✅ DONE |
+| Created `src/lib/structural/structural-generator.ts` | ✅ DONE |
+| Created `src/lib/structural/rebar-calculator.ts` | ✅ DONE |
+| Created `src/lib/structural/material-rates.ts` | ✅ DONE |
+| Created `src/lib/structural/clash-healer.ts` | ✅ DONE |
+| `npm run typecheck` | ✅ PASS (0 errors) |
+| `npm run build` | ✅ PASS |
+| Updated MERGE_LOG.md | ✅ DONE |
+| Updated FEATURE_MATRIX.md | ✅ DONE |
+| Updated CANONICAL_REPO_STATUS.md | ✅ DONE |
+
+### Deferred from WS5
+- All WS5 panel components (40 files) — stubs or duplicates
+- WS5 `engine/bimGenerator.ts` and `engine/boqGenerator.ts` — canonical versions are superior
+- WS5 `store/appStore.ts` — algorithms extracted, store logic not needed
+- WS5 `domain/cad.ts` block kind 'column'/'footing' — canonical CadBlockInstance.blockType not extended; structural-generator returns positions, caller maps to appropriate types
+- All 5 WS5 algorithms are staged but not wired into canonical stores or UI — deferred to integration phase

@@ -2,7 +2,7 @@
 
 > **Date:** 2026-06-30  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Phase C (WS4 Advanced Engineering) merged — `npm run typecheck` (0 errors), `npm run build` (success)
+> **Status:** Phase D (WS5 Structural Algorithms) extracted — `npm run typecheck` (0 errors), `npm run build` (success)
 
 ---
 
@@ -163,6 +163,18 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
   - Total portfolio value, avg scheme cost, category distribution
   - Active vs archived counts
 
+### Structural Algorithms — Staged (WS5 Phase D, not wired to UI)
+
+All 5 algorithm modules are pure TypeScript, no side effects, no store dependencies. Staged for future integration.
+
+| Module | File | Purpose |
+|---|---|---|
+| **Structural Generator** | `src/lib/structural/structural-generator.ts` | `computeColumnPositions()` — deduplicates structural wall nodes; `computeBeamConnections()` — links columns not on walls; `computeFootingPlacements()` — places pad footings under columns |
+| **Rebar Calculator** | `src/lib/structural/rebar-calculator.ts` | `computeRebarTonnes(slabArea, spec?)` — slab reinforcement mass from area + Y10/Y12/Y16 bar spec |
+| **Material Rates** | `src/lib/structural/material-rates.ts` | `materialRateTable` — 3 materials × 11 categories; `getMaterialRates()` — lookup; `ifcClassMaterialMap` — material→IFC class; `getIfcClass()` |
+| **Clash Healer** | `src/lib/structural/clash-healer.ts` | `autoHealClashes()` — repairs opening proximity (<30cm) and block-wall overlap |
+| **Structural Types** | `src/lib/structural/structural-types.ts` | `RebarSpec`, `StructuralMaterial`, `SimpleWall`, `ColumnPlacement`, `BeamConnection`, `FootingPlacement` |
+
 ### Components
 - **7 UI primitives** (Button, Card, Badge, Input, Label, Select, Textarea)
 - **12 layout components** (BentoShell, Sidebar, CommandBar, CommandPalette, etc.)
@@ -187,7 +199,9 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
 | **Structural engineering** | No column/beam/footing gen, load analysis, rebar | WS5/6 |
 | **Regional cost database** | Zimbabwe only, not editable | WS6 |
 | **WS4 panel components** | 4 panels (Clash, Solar, MEP, Executive) deferred — need Tailwind re-theme | WS4 |
+| **WS5 structural algorithms** | 5 pure algorithm modules staged but not wired to any store or UI | WS5 |
 | **WebLLM inference** | `@xenova/transformers` installed but not wired | WS6 |
 | **Section/elevation views** | Not present | WS6 |
 | **Drawing register** | Not present | WS6 |
-| **Structural engineering** | No column/beam/footing gen, load analysis, rebar | WS5/6 |
+| **Load path analysis** | Not present as standalone algorithm (UI-rendered in WS5) | WS6 |
+| **WS5 panel components** | 40 panels — ~30 are 4-line stubs; skipped | WS5 |

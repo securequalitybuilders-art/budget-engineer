@@ -54,10 +54,16 @@
 | **Exports** (CSV, HTML, ZIP) | ✅ Present | WS3 |
 | **Section/Elevation Views** | ❌ Missing | 🔄 WS6 |
 | **Drawing Register / Title Blocks** | ❌ Missing | 🔄 WS6 |
-| **Structural Engineering** (columns, beams, footings) | ❌ Missing | 🔄 WS5/WS6 |
-| **Load Path Analysis** | ❌ Missing | 🔄 WS5/WS6 |
-| **Rebar Specification / Takeoff** | ❌ Missing | 🔄 WS5/WS6 |
-| **Footing Sizing** | ❌ Missing | 🔄 WS6 |
+| **Structural Column Generator** (auto-place at wall nodes) | 🔄 Staged | WS5 structural-generator — not wired to store/UI |
+| **Structural Beam Generator** (link beams between columns) | 🔄 Staged | WS5 structural-generator — not wired to store/UI |
+| **Foundation Footing Generator** (pad footings under columns) | 🔄 Staged | WS5 structural-generator — not wired to store/UI |
+| **Rebar Specification & Takeoff** (slab tonnage calc) | 🔄 Staged | WS5 rebar-calculator — not wired to store/UI |
+| **Material Switch** (concrete/steel/timber rates + IFC map) | 🔄 Staged | WS5 material-rates — not wired to store/UI |
+| **Clash Auto-Healing** (move openings, shift overlapping blocks) | 🔄 Staged | WS5 clash-healer — not wired to store/UI |
+| **Load Path Analysis** | ❌ Missing | 🔄 WS6 |
+| **Footing Sizing** (from soil bearing + load) | ❌ Missing | 🔄 WS6 |
+| **Section/Elevation Views** | ❌ Missing | 🔄 WS6 |
+| **Drawing Register / Title Blocks** | ❌ Missing | 🔄 WS6 |
 | **Command Palette** | ✅ Present | WS1 |
 | **Keyboard Shortcuts** | ✅ Present | WS1 |
 | **Theme Toggle** (dark/light/system) | ✅ Present | WS1 |
@@ -79,4 +85,5 @@
 | ✅ Present (Phase A WS2 CAD merged) | 16 |
 | ✅ Present (Phase B WS3 BIM merged) | ~20 |
 | ✅ Present (Phase C WS4 Advanced Engineering merged) | ~7 new features |
-| ❌ Missing (WS5/6) | ~8 |
+| 🔄 Staged (Phase D WS5 Structural algorithms — unwired) | 5 new algorithm modules |
+| ❌ Missing (WS6) | ~6 |
