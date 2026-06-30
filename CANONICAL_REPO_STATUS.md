@@ -2,7 +2,7 @@
 
 > **Date:** 2026-06-30  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Phase B (WS3 BIM + Enterprise) merged — `npm run typecheck` (0 errors), `npm run build` (success)
+> **Status:** Phase C (WS4 Advanced Engineering) merged — `npm run typecheck` (0 errors), `npm run build` (success)
 
 ---
 
@@ -140,6 +140,29 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
 - Standards manifest (IFC classes, COBie mappings, BOQ mappings)
 - Download helpers
 
+### Advanced Engineering (WS4 Phase C)
+- Wall corner solver (`cad-solver.ts`) — pure line-intersection math for wall trim/join
+- 3-rule BIM clash detection (`clash-checker.ts`):
+  - Rule 1: Opening near structural wall corner (< 20cm) → high severity
+  - Rule 2: Opening overlap collision on same wall → high severity
+  - Rule 3: Object AABB overlap with wall strip → moderate severity
+- Cardinal solar orientation heat gain analysis (`solar-analyzer.ts`):
+  - North/East/South/West wall + window area calculation
+  - Peak irradiance (280–450 W/m²) and cooling load estimation
+  - Efficiency rating with recommendations
+- MEP services points takeoff (`mep-takeoff.ts`):
+  - Per-zone electrical, lighting, plumbing point counts
+  - Program-based density rules (kitchen, bath, bedroom, open plan)
+  - Cost estimation at $65/point (elec/light) and $180/point (plumbing)
+- PDF executive dossier (`pdf-dossier.ts`):
+  - Full project report as HTML document with print-to-PDF support
+  - BOQ cost breakdown table, governance signoff audit trail
+  - Per-floor CAD SVG floor plan renderings
+- Executive portfolio aggregation (`executive-portfolio.ts`):
+  - Load projects from IndexedDB, aggregate BOQ by category
+  - Total portfolio value, avg scheme cost, category distribution
+  - Active vs archived counts
+
 ### Components
 - **7 UI primitives** (Button, Card, Badge, Input, Label, Select, Textarea)
 - **12 layout components** (BentoShell, Sidebar, CommandBar, CommandPalette, etc.)
@@ -162,9 +185,9 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
 | **Section/elevation views** | Not present | WS6 |
 | **Drawing register** | Not present | WS6 |
 | **Structural engineering** | No column/beam/footing gen, load analysis, rebar | WS5/6 |
-| **Clash detection** | Not present | WS4 |
-| **Solar analysis** | Not present | WS4 |
-| **MEP takeoff** | Not present | WS4 |
-| **PDF dossier** | Not present | WS4 |
 | **Regional cost database** | Zimbabwe only, not editable | WS6 |
-| **Advanced engineering** | Wall solver, opening families, column grid | WS4 |
+| **WS4 panel components** | 4 panels (Clash, Solar, MEP, Executive) deferred — need Tailwind re-theme | WS4 |
+| **WebLLM inference** | `@xenova/transformers` installed but not wired | WS6 |
+| **Section/elevation views** | Not present | WS6 |
+| **Drawing register** | Not present | WS6 |
+| **Structural engineering** | No column/beam/footing gen, load analysis, rebar | WS5/6 |

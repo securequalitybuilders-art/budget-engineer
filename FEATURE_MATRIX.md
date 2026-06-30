@@ -18,12 +18,17 @@
 | **Layer Management** | ✅ Present | WS2 |
 | **Block Library** (furniture fixtures) | ✅ Present | WS2 |
 | **Dimension Annotations** | ✅ Present | WS2 |
-| **CAD Topology** (split/join/heal walls) | ✅ Present | WS2 |
+| **CAD Topology** (split/join/heal walls) | ✅ Present | WS2 + WS4 cad-solver (wall corner solver) |
 | **Undo/Redo** | ✅ Present | WS2 |
 | **Multi-Floor Support** | ✅ Present | WS2 |
+| **Wall Corner Solver** (intersection trim) | ✅ Present | WS4 cad-solver |
+| **Clash Detection** (3 BIM rules) | ✅ Present | WS4 clash-checker |
+| **Solar Orientation Analysis** (cardinal heat gain) | ✅ Present | WS4 solar-analyzer |
+| **MEP Takeoff** (points per zone) | ✅ Present | WS4 mep-takeoff |
 | **DXF Export** | ✅ Present | WS2 |
 | **MakerJS Export** | ✅ Present | WS2 |
 | **SVG Plan Export** | ✅ Present | WS2 |
+| **PDF Executive Dossier** (HTML-to-Print) | ✅ Present | WS4 pdf-dossier |
 | **IFC Import/Export** (real IFC4 STEP) | ✅ Present | WS3 |
 | **IFC-like & COBie JSON Export** | ✅ Present | WS2/WS3 |
 | **3D BIM Viewer** (React Three Fiber) | ✅ Present | WS3 (lazy-loadable) |
@@ -38,7 +43,8 @@
 | **Zone Costing & Traceability** | ✅ Present | WS3 lib (cost, trace, grouping) |
 | **Room Zone Reconstruction** | ✅ Present | WS3 lib |
 | **Cross-Project Analytics** | ✅ Present | WS3 lib (portfolio, cross-project metrics) |
-| **Portfolio Analytics** | ✅ Present | WS3 lib (portfolio metrics) |
+| **Portfolio Analytics** | ✅ Present | WS3 + WS4 lib (executive-portfolio) |
+| **Executive Portfolio** (project aggregation) | ✅ Present | WS4 executive-portfolio |
 | **Export Package** (ZIP, CSV, HTML, manifest) | ✅ Present | WS3 lib (fflate-based ZIP) |
 | **Standards Manifest** (IFC/COBie/BOQ) | ✅ Present | WS3 lib |
 | **BOQ Engine** (rate-based costing) | ✅ Present | WS1 |
@@ -52,10 +58,6 @@
 | **Load Path Analysis** | ❌ Missing | 🔄 WS5/WS6 |
 | **Rebar Specification / Takeoff** | ❌ Missing | 🔄 WS5/WS6 |
 | **Footing Sizing** | ❌ Missing | 🔄 WS6 |
-| **Clash Detection** | ❌ Missing | 🔄 WS4 |
-| **Solar Orientation Analysis** | ❌ Missing | 🔄 WS4 |
-| **MEP Takeoff** | ❌ Missing | 🔄 WS4 |
-| **PDF Executive Dossier** | ❌ Missing | 🔄 WS4 |
 | **Command Palette** | ✅ Present | WS1 |
 | **Keyboard Shortcuts** | ✅ Present | WS1 |
 | **Theme Toggle** (dark/light/system) | ✅ Present | WS1 |
@@ -75,5 +77,6 @@
 |---|---|
 | ✅ Present (WS1 base) | 14 |
 | ✅ Present (Phase A WS2 CAD merged) | 16 |
-| ✅ Present (Phase B WS3 BIM merged) | ~20 new features |
-| ❌ Missing (WS4/5/6) | ~12 |
+| ✅ Present (Phase B WS3 BIM merged) | ~20 |
+| ✅ Present (Phase C WS4 Advanced Engineering merged) | ~7 new features |
+| ❌ Missing (WS5/6) | ~8 |

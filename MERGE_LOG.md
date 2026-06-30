@@ -201,3 +201,106 @@
 - WS3 chart components (KpiCards, CostBreakdownChart) — WS1 has CostBreakdownChart via Recharts
 - WS3 section orchestrators (SnapshotPortfolioSection, ZoneInspectorSection)
 - Integration of BIM viewer into Dashboard
+
+---
+
+## Phase C — WS4 Advanced Engineering Merge Plan
+
+**Source:** `workspace- chart 4/budget-engineer-os`  
+**Target:** `budget-engineer-canonical`  
+**Order:** 3rd merge (after Phase B WS3 BIM)
+
+### Files Copied from WS4 (Adapted for Canonical Types)
+
+| Source (WS4) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/lib/cadSolver.ts` | `src/lib/cad/cad-solver.ts` | Adapted: `Vec2`→`CadPoint`, no other change (pure geometry) |
+| `src/lib/clashChecker.ts` | `src/lib/analysis/clash-checker.ts` | Adapted: `structural`→`structuralRole==='external'`, `offset`→`offsetRatio*wallLen`, `b.kind`→`b.blockType`, `b.depth`→`b.height`, skipped `b.kind==='column'` check |
+| `src/lib/solarAnalyzer.ts` | `src/lib/analysis/solar-analyzer.ts` | Adapted: default `wallHeight=3` (canonical walls lack `height`) |
+| `src/lib/mepTakeoff.ts` | `src/lib/quantities/mep-takeoff.ts` | Adapted: area from `width*depth`, program from `properties['program']` or name-based inference |
+| `src/lib/pdfDossier.ts` | `src/lib/export/pdf-dossier.ts` | Adapted: uses WS3-style BOQ from `@/lib/boq/boq-types`, `cad.id` for name, inline `buildCadSvg` for canonical CadDocument |
+| `src/lib/executivePortfolio.ts` | `src/lib/portfolio/executive-portfolio.ts` | Adapted: canonical `db`, `Project`, `seedCadDocument(planModel)`, `generateBimModel`, `generateBoqFromBim` |
+
+### Files Modified in Canonical
+
+| File | Change |
+|---|---|
+| `src/lib/cad/cad-solver.ts` | Created — wall corner solver (intersection math) |
+| `src/lib/analysis/clash-checker.ts` | Created — 3-rule clash detection on CadDocument |
+| `src/lib/analysis/solar-analyzer.ts` | Created — cardinal solar heat gain analysis |
+| `src/lib/quantities/mep-takeoff.ts` | Created — MEP points takeoff from BimModel zones |
+| `src/lib/export/pdf-dossier.ts` | Created — HTML dossier generator (print-as-PDF) |
+| `src/lib/portfolio/executive-portfolio.ts` | Created — executive portfolio aggregation |
+
+### Files Discarded from WS4
+- `src/domain/cad.ts` — canonical version has richer types (layers, annotations, tools, metadata)
+- `src/domain/boq.ts` — canonical WS2 WS3 boq-types.ts bridge is superior
+- `src/domain/bim.ts` — canonical version more detailed (union types, Vec3)
+- `src/domain/project.ts` — canonical Project type is more comprehensive
+- `src/lib/cadSeed.ts` — canonical cad-seed.ts already exists
+- `src/lib/cadExport.ts` — inline SVG builder kept in pdf-dossier.ts
+- `src/lib/db.ts` — canonical schema already has all tables
+- `src/engine/bimGenerator.ts` — canonical bim-generator.ts has richer BIM elements
+- `src/engine/boqGenerator.ts` — canonical boq-generator.ts uses boq-types.ts BOQ
+- `src/lib/boqShare.ts`, `src/lib/crossProject*.ts`, `src/lib/snapshotDiff.ts` — already ported in Phase B
+- `src/lib/printExport.ts`, `src/lib/scheduleExport.ts`, `src/lib/exporters.ts`, `src/lib/zipPackage.ts`, `src/lib/archiveExport.ts` — already ported in Phase B
+- `src/lib/rbac.ts`, `src/lib/session.ts` — already ported in Phase B
+- WS4 panel components (ClashCheckerPanel, SolarOrientationPanel, MepTakeoffPanel, ExecutivePortfolioDashboardPanel) — deferred; would need full Tailwind re-theme
+- WS4 `src/App.tsx`, `src/components/`, `src/routes/`, `src/store/` — canonical architecture is superior
+
+### Key Decisions
+1. WS4 `cadSolver.ts` trivial to port — pure line-intersection math, no type dependencies beyond `CadPoint`
+2. WS4 `clashChecker.ts` adapted to canonical CadDocument types with 3 field mappings
+3. WS4 `solarAnalyzer.ts` uses default 3m wall height (canonical walls lack height at CadDocument level)
+4. WS4 `mepTakeoff.ts` adapted for canonical BimRoomZone (area from width*depth, program from properties)
+5. WS4 `pdfDossier.ts` uses WS3-style BOQ (`@/lib/boq/boq-types.ts`) which has same shape as WS4's BOQ
+6. WS4 `executive-portfolio.ts` completely rewritten to use canonical db/engine/cad-seed
+7. Inline `buildCadSvg` in pdf-dossier.ts matches canonical CadDocument structure (no height on walls, structuralRole instead of structural)
+8. No new npm dependencies needed — all functions are pure TypeScript math/string generation
+9. Panel components deferred — not critical for passing typecheck/build
+10. No WS1 stores, routes, or Dexie schema modified
+
+### Expected Dependencies
+None — all new modules use pure TypeScript with no new npm packages.
+
+---
+
+## Phase C — Build Result
+
+| Command | Result |
+|---|---|
+| `npm install` | ✅ SKIPPED (no new deps) |
+| `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
+| `npm run build` (`tsc && vite build`) | ✅ PASS (2767 modules, 14 precache) |
+
+### Errors Encountered & Fixes
+
+| Error | Fix |
+|---|---|
+| `clash-checker.ts` — unused `DEFAULT_WALL_HEIGHT` | Removed |
+| `pdf-dossier.ts` — unused `openings`, `bim`, `snapshots` | Removed destructuring, prefixed params with `_` |
+| `executive-portfolio.ts` — unused `generateBimModel`, `generateBoqFromBim` | Removed imports |
+| `executive-portfolio.ts` — `boq.items`, `boq.summary` not on `{}` | Cast to WS3-style BOQ type |
+| `executive-portfolio.ts` — `bim.elements` not on `{}` | Cast to BimModel type |
+
+### Phase C — Merge Result
+
+| Step | Status |
+|---|---|
+| Ported cad-solver.ts (`src/lib/cad/cad-solver.ts`) | ✅ DONE |
+| Ported clash-checker.ts (`src/lib/analysis/clash-checker.ts`) | ✅ DONE |
+| Ported solar-analyzer.ts (`src/lib/analysis/solar-analyzer.ts`) | ✅ DONE |
+| Ported mep-takeoff.ts (`src/lib/quantities/mep-takeoff.ts`) | ✅ DONE |
+| Ported pdf-dossier.ts (`src/lib/export/pdf-dossier.ts`) | ✅ DONE |
+| Ported executive-portfolio.ts (`src/lib/portfolio/executive-portfolio.ts`) | ✅ DONE |
+| `npm run typecheck` | ✅ PASS (0 errors) |
+| `npm run build` | ✅ PASS |
+| Updated MERGE_LOG.md | ✅ DONE |
+| Updated FEATURE_MATRIX.md | ✅ DONE |
+| Updated CANONICAL_REPO_STATUS.md | ✅ DONE |
+
+### Deferred from WS4
+- Panel components (ClashCheckerPanel, SolarOrientationPanel, MepTakeoffPanel, ExecutivePortfolioDashboardPanel) — need full Tailwind re-theme; defer to UI integration phase
+- WS4 `cadSeed.ts` — canonical has superior seedCadDocument with PlanModel
+- WS4 `cadExport.ts` — inline SVG builder kept in pdf-dossier.ts
+- WS4 panel types re-export (`AllPanels.tsx`, `LazyAnalytics.tsx`) — not needed yet
