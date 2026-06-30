@@ -8,6 +8,7 @@
 2026-06-30 04:55 | INIT   | Created budget-engineer-canonical from workspace-chart 1     | DONE
 2026-06-30 04:55 | INIT   | Created MERGE_LOG.md, CANONICAL_REPO_STATUS.md, FEATURE_MATRIX.md | DONE
 2026-06-30 08:11 | INIT   | Verified WS1 as canonical base — no errors to fix                  | DONE
+2026-06-30 08:11 | INIT   | Committed canonical base (57bfe8c)                                 | DONE
 ```
 
 ---
@@ -30,4 +31,5 @@
 | `npm install` | ✅ PASS |
 | `npm run typecheck` | ✅ PASS |
 | `npm run build` | ✅ PASS |
+| `git commit` (57bfe8c) | ✅ DONE |
 | **Verdict** | **Canonical base from WS1 is ready. No errors to fix.** |
