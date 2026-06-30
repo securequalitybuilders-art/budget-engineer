@@ -1,11 +1,10 @@
 import Dexie, { type Table } from 'dexie';
 import type { Project, Brief, Design, BOQ, ProjectTransaction, Rate } from '@/types';
+import type { CadDocument } from '@/domain/cad';
+import type { BimModel } from '@/domain/bim';
+import type { GovernanceRecord } from '@/domain/governance';
+import type { ProjectSnapshot } from '@/domain/versioning';
 
-/**
- * Local-first IndexedDB database for Budget Engineer OS.
- * All project data, briefs, designs, BOQs, and transactions live here.
- * Sync to a backend is optional and layered on top of this store.
- */
 export class BudgetEngineerDB extends Dexie {
   projects!: Table<Project, string>;
   briefs!: Table<Brief, string>;
@@ -13,6 +12,10 @@ export class BudgetEngineerDB extends Dexie {
   boqs!: Table<BOQ, string>;
   transactions!: Table<ProjectTransaction, string>;
   rates!: Table<Rate, string>;
+  cadDocs!: Table<CadDocument, string>;
+  bimModels!: Table<BimModel, string>;
+  governance!: Table<GovernanceRecord, string>;
+  snapshots!: Table<ProjectSnapshot, string>;
 
   constructor() {
     super('BudgetEngineerDB');
@@ -23,6 +26,28 @@ export class BudgetEngineerDB extends Dexie {
       boqs: 'id, projectId, designId',
       transactions: 'id, [projectId+createdAt], entityType',
       rates: 'id, [region+code], source',
+    });
+    this.version(2).stores({
+      projects: 'id, [ownerId+status], updatedAt',
+      briefs: 'projectId',
+      designs: 'id, projectId, [projectId+optionIndex]',
+      boqs: 'id, projectId, designId',
+      transactions: 'id, [projectId+createdAt], entityType',
+      rates: 'id, [region+code], source',
+      cadDocs: 'id,name,projectId',
+      bimModels: 'id,name,projectId',
+    });
+    this.version(3).stores({
+      projects: 'id, [ownerId+status], updatedAt',
+      briefs: 'projectId',
+      designs: 'id, projectId, [projectId+optionIndex]',
+      boqs: 'id, projectId, designId',
+      transactions: 'id, [projectId+createdAt], entityType',
+      rates: 'id, [region+code], source',
+      cadDocs: 'id,name,projectId',
+      bimModels: 'id,name,projectId',
+      governance: 'projectId,approvalState,lastUpdated',
+      snapshots: 'id,timestamp,name,projectId',
     });
   }
 }

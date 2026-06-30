@@ -1,0 +1,10 @@
+export type Vec3 = { x: number; y: number; z: number };
+export type BimElementBase = { id: string; projectId: string; sourceCadId?: string; floorId: string; name: string; ifcClass: string; material: string; properties: Record<string, string | number | boolean>; quantityRefs?: string[] };
+export type BimWall = BimElementBase & { type: 'wall'; start: Vec3; end: Vec3; thickness: number; height: number };
+export type BimSlab = BimElementBase & { type: 'slab'; origin: Vec3; width: number; depth: number; thickness: number };
+export type BimOpening = BimElementBase & { type: 'opening'; wallId: string; center: Vec3; width: number; height: number; sillHeight: number };
+export type BimBlock = BimElementBase & { type: 'block'; kind: string; position: Vec3; width: number; depth: number; height: number; rotation?: number };
+export type BimRoomZone = BimElementBase & { type: 'roomZone'; origin: Vec3; width: number; depth: number; height: number };
+export type BimRoof = BimElementBase & { type: 'roof'; origin: Vec3; width: number; depth: number; thickness: number };
+export type BimElement = BimWall | BimSlab | BimOpening | BimBlock | BimRoomZone | BimRoof;
+export type BimModel = { id: string; projectId: string; name: string; floors: { id: string; name: string; elevation: number; height: number }[]; elements: BimElement[] };

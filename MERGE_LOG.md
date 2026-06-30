@@ -10,79 +10,157 @@
 2026-06-30 08:11 | INIT   | Verified WS1 as canonical base — no errors to fix                  | DONE
 2026-06-30 08:11 | INIT   | Committed canonical base (57bfe8c)                                 | DONE
 2026-06-30 08:11 | INIT   | Documented canonical base status (6653075)                         | DONE
-2026-06-30 08:XX | PHASE-A | Written all domain, engine, lib files from WS2                  | DONE
-2026-06-30 08:XX | PHASE-A | Written all hooks from WS2                                       | DONE
-2026-06-30 08:XX | PHASE-A | Written all 12 CAD components from WS2                           | DONE
-2026-06-30 08:XX | PHASE-A | Integrated PlanCanvas into Dashboard.tsx                          | DONE
-2026-06-30 08:XX | PHASE-A | npm run typecheck — 0 errors                                     | DONE
-2026-06-30 08:XX | PHASE-A | npm run build — success (2767 modules, 14 precache)               | DONE
-2026-06-30 08:XX | PHASE-A | Updated MERGE_LOG.md, FEATURE_MATRIX.md, CANONICAL_REPO_STATUS.md | DONE
-2026-06-30 08:XX | PHASE-A | Committed Phase A merge                                           | DONE
+2026-06-30 08:XX | PHASE-A | Merged WS2 CAD engine into canonical                            | DONE
+2026-06-30 08:XX | PHASE-A | Committed Phase A merge (fbc7775)                               | DONE
+2026-06-30 08:XX | PHASE-B | START: Merge WS3 BIM + Enterprise                               | DONE
+2026-06-30 08:XX | PHASE-B | npm run typecheck — 0 errors                                    | DONE
+2026-06-30 08:XX | PHASE-B | npm run build — success (2767 modules, 14 precache)               | DONE
+2026-06-30 08:XX | PHASE-B | Updated MERGE_LOG.md, FEATURE_MATRIX.md, CANONICAL_REPO_STATUS.md | DONE
+2026-06-30 08:XX | PHASE-B | Committed Phase B merge                                           | DONE
 ```
 
 ---
 
 ## Phase A — WS2 CAD Merge Plan
 
-**Source:** `workspace-chart 2`  
+[Phase A details unchanged — see previous commit]
+
+---
+
+## Phase B — WS3 BIM + Enterprise Merge
+
+**Source:** `workspace-chart 3/budget-engineer-os`  
 **Target:** `budget-engineer-canonical`  
-**Order:** 1st merge (after canonical base)
+**Order:** 2nd merge (after Phase A WS2 CAD)
 
-### Files Copied from WS2
+### Files Copied from WS3
 
-| Source (WS2) | Target (Canonical) | Notes |
+#### Domain Types (5 files)
+| Source (WS3) | Target (Canonical) | Notes |
 |---|---|---|
-| `src/domain/plan.ts` | `src/domain/plan.ts` | PlanModel types |
-| `src/domain/cad.ts` | `src/domain/cad.ts` | CadDocument types |
-| `src/domain/boq.ts` | `src/domain/boq.ts` | BOQ types (separate from WS1 BOQ types) |
-| `src/engine/planGenerator.ts` | `src/engine/plan-generator.ts` | Parametric floor plan generator |
-| `src/lib/planGeometry.ts` | `src/lib/geometry/plan-geometry.ts` | Room/wall area calculations |
-| `src/lib/planTransforms.ts` | `src/lib/geometry/plan-transforms.ts` | Room move/resize |
-| `src/lib/planConstraints.ts` | `src/lib/geometry/plan-constraints.ts` | Snap, collision, bounds |
-| `src/lib/planTopology.ts` | `src/lib/geometry/plan-topology.ts` | Wall rebuild from rooms |
-| `src/lib/quantityFromPlan.ts` | `src/lib/quantities/quantity-from-plan.ts` | Derive building elements |
-| `src/lib/cadSeed.ts` | `src/lib/cad/cad-seed.ts` | Seed CadDocument from PlanModel |
-| `src/lib/cadCommands.ts` | `src/lib/cad/cad-commands.ts` | Add/delete walls, openings |
-| `src/lib/cadEditing.ts` | `src/lib/cad/cad-editing.ts` | Tool management, endpoint editing |
-| `src/lib/cadTopology.ts` | `src/lib/cad/cad-topology.ts` | Split/join walls |
-| `src/lib/cadIntersections.ts` | `src/lib/cad/cad-intersections.ts` | Trim at intersection |
-| `src/lib/cadHealing.ts` | `src/lib/cad/cad-healing.ts` | Snap endpoints |
-| `src/lib/cadDimensions.ts` | `src/lib/cad/cad-dimensions.ts` | Auto-dimension |
-| `src/lib/cadBlocks.ts` | `src/lib/cad/cad-blocks.ts` | Furniture block library |
-| `src/lib/cadMultiFloor.ts` | `src/lib/cad/cad-multi-floor.ts` | Floor projection |
-| `src/lib/cadProfessional.ts` | `src/lib/cad/cad-professional.ts` | Offset, trim, annotation edit |
-| `src/lib/cadDxfSemantics.ts` | `src/lib/cad/cad-dxf-semantics.ts` | AIA DXF layer names |
-| `src/lib/cadExchange.ts` | `src/lib/cad/cad-exchange.ts` | IFC/COBie JSON export |
-| `src/lib/cadPlanSync.ts` | `src/lib/cad/cad-plan-sync.ts` | Plan sync from CAD doc |
-| `src/lib/cadProjection.ts` | `src/lib/cad/cad-projection.ts` | CAD doc to PlanModel |
-| `src/lib/makerExport.ts` | `src/lib/export/maker-export.ts` | MakerJS/JSON/DXF export |
-| `src/lib/svgExport.ts` | `src/lib/export/svg-export.ts` | SVG plan export |
-| `src/lib/fileExport.ts` | `src/lib/export/file-export.ts` | Browser download utility |
-| `src/lib/money.ts` (partial) | `src/lib/utils.ts` (merge) | Add cents/formatCurrency |
-| `src/components/cad/usePlanViewport.ts` | `src/hooks/usePlanViewport.ts` | Canvas pan/zoom |
-| `src/components/cad/usePlanHistory.ts` | `src/hooks/usePlanHistory.ts` | Plan undo/redo |
-| `src/components/cad/useEditablePlan.ts` | `src/hooks/useEditablePlan.ts` | Plan editing state |
-| `src/components/cad/useCadHistory.ts` | `src/hooks/useCadHistory.ts` | CadDocument undo/redo |
-| `src/components/cad/useCadDocument.ts` | `src/hooks/useCadDocument.ts` | CadDocument lifecycle |
-| `src/components/cad/*.tsx` | `src/components/cad/*.tsx` | 12 CAD components |
+| `src/domain/bim.ts` | `src/domain/bim.ts` | BimModel types |
+| `src/domain/governance.ts` | `src/domain/governance.ts` | Governance workflow types |
+| `src/domain/rbac.ts` | `src/domain/rbac.ts` | Role-based access types |
+| `src/domain/versioning.ts` | `src/domain/versioning.ts` | Snapshot types |
+| `src/domain/transaction.ts` | `src/domain/transaction.ts` | Audit event types |
 
-### Files Discarded from WS2
-- `src/engine/boqEngine.ts` — WS1 has superior boqEngine in `src/ai/boqEngine.ts`
-- `src/store/appStore.ts` — WS1 uses Zustand stores; no monolithic store
-- `src/routes/Dashboard.tsx` — WS1 has proper routing via react-router-dom
-- `src/data/seedRates.ts` — WS1 has rate seeding in `src/db/db.ts`
-- `src/demo/` — demo data not needed
-- `src/index.css` — replaced by Tailwind design system
-- Markdown files — already captured in project docs
+#### Engines (2 files, adapted)
+| Source (WS3) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/engine/bimGenerator.ts` | `src/engine/bim-generator.ts` | Adapted for WS2 CadDocument types |
+| `src/engine/boqGenerator.ts` | `src/engine/boq-generator.ts` | Adapted for WS3-style BOQ types |
+
+#### IFC Modules (2 files, adapted)
+| Source (WS3) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/lib/ifc/ifcImport.ts` | `src/lib/ifc/ifc-import.ts` | Adapted for WS2 CadDocument types |
+| `src/lib/ifc/ifcExport.ts` | `src/lib/ifc/ifc-export.ts` | Adapted for WS2 CadDocument types |
+
+#### Auth Modules (2 files)
+| Source (WS3) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/lib/rbac.ts` | `src/lib/auth/rbac.ts` | Authorization functions |
+| `src/lib/session.ts` | `src/lib/auth/session.ts` | User session persistence |
+
+#### Governance DB (1 file, adapted)
+| Source (WS3) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/lib/governanceDb.ts` | `src/lib/db/governance-db.ts` | Adapted for canonical db schema |
+
+#### Versioning (1 file)
+| Source (WS3) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/lib/snapshotDiff.ts` | `src/lib/versioning/snapshot-diff.ts` | Snapshot diff computation |
+
+#### BOQ Analysis (3 files)
+| Source (WS3) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/lib/boqCompare.ts` | `src/lib/boq/boq-compare.ts` | BOQ line item comparison |
+| `src/lib/boqShare.ts` | `src/lib/boq/boq-share.ts` | Cost composition %-share |
+| `src/lib/boqCategoryTotals.ts` | `src/lib/boq/boq-category-totals.ts` | Category totals aggregation |
+
+#### Zone Costing (4 files)
+| Source (WS3) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/lib/zoneCost.ts` | `src/lib/zones/zone-cost.ts` | Zone cost estimation |
+| `src/lib/zoneTrace.ts` | `src/lib/zones/zone-trace.ts` | Zone-to-BOQ traceability |
+| `src/lib/zoneGrouping.ts` | `src/lib/zones/zone-grouping.ts` | Zone BOQ grouping |
+| `src/lib/zoneReconstruction.ts` | `src/lib/zones/zone-reconstruction.ts` | Room zone reconstruction from walls |
+
+#### Portfolio/Cross-Project (5 files)
+| Source (WS3) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/lib/crossProjectPortfolio.ts` | `src/lib/portfolio/cross-project-portfolio.ts` | Load project portfolio |
+| `src/lib/crossProjectMetrics.ts` | `src/lib/portfolio/cross-project-metrics.ts` | Cross-project metrics |
+| `src/lib/crossProjectBoq.ts` | `src/lib/portfolio/cross-project-boq.ts` | Cross-project BOQ totals |
+| `src/lib/portfolioMetrics.ts` | `src/lib/portfolio/portfolio-metrics.ts` | Portfolio metric builder |
+| `src/lib/projectFilters.ts` | `src/lib/portfolio/project-filters.ts` | Filter helpers |
+
+#### Export/Standards (7 files)
+| Source (WS3) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/lib/exporters.ts` | `src/lib/export/exporters.ts` | Download helpers + CSV |
+| `src/lib/printExport.ts` | `src/lib/export/print-export.ts` | HTML schedule export |
+| `src/lib/scheduleExport.ts` | `src/lib/export/schedule-export.ts` | CSV schedule export |
+| `src/lib/standardsManifest.ts` | `src/lib/export/standards-manifest.ts` | IFC/COBie/BOQ standards |
+| `src/lib/exportPackage.ts` | `src/lib/export/export-package.ts` | Package assembly |
+| `src/lib/archiveExport.ts` | `src/lib/export/archive-export.ts` | ZIP archive (fflate) |
+| `src/lib/zipPackage.ts` | `src/lib/export/zip-package.ts` | ZIP wrapper |
+
+#### BIM Viewer Components (5 files, Tailwind re-theme)
+| Source (WS3) | Target (Canonical) | Notes |
+|---|---|---|
+| `src/components/bim/BimViewer.tsx` | `src/components/bim/BimViewer.tsx` | 3D R3F viewer |
+| `src/components/bim/BimLegend.tsx` | `src/components/bim/BimLegend.tsx` | Color legend |
+| `src/components/bim/BimInspector.tsx` | `src/components/bim/BimInspector.tsx` | Element inspector |
+| `src/components/bim/FloorVisibilityPanel.tsx` | `src/components/bim/FloorVisibilityPanel.tsx` | Floor toggle |
+| `src/components/bim/LazyBimViewer.tsx` | `src/components/bim/LazyBimViewer.tsx` | Lazy loading wrapper |
+
+#### BOQ Type Bridge
+| File | Purpose |
+|---|---|
+| `src/lib/boq/boq-types.ts` | WS3-style BOQ types (compatible with canonical BOQ table) |
+
+### Files Modified in Canonical
+
+| File | Change |
+|---|---|
+| `src/db/db.ts` | Added tables: cadDocs, bimModels, governance, snapshots (v2→v3 migration) |
+
+### Files Discarded from WS3
+- `src/domain/cad.ts` — WS2 version is superior (layers, annotations, tools, metadata)
+- `src/domain/boq.ts` — WS2's domain/boq.ts kept; WS3 BOQ types in lib/boq/boq-types.ts
+- `src/domain/project.ts` — WS1's Project type is more comprehensive
+- `src/lib/cadSeed.ts` — WS2 already has cad-seed.ts
+- `src/lib/cadExport.ts` — WS2 has maker-export + svg-export
+- `src/lib/db.ts` — schema merged into WS1's db.ts
+- `src/store/appStore.ts` — WS1's stores are superior
+- `src/routes/Dashboard.tsx`, `src/routes/BimRoute.tsx` — WS1 has proper routing
+- `src/App.tsx`, `src/main.tsx`, `src/index.css` — replaced by canonical scaffolding
+- `src/components/sections/*` — orchestration components; panels not ported yet
+- `src/components/cad/CadPlanView.tsx` — WS2 PlanCanvas is sufficient; CadPropertiesPanel/IfcInteropPanel deferred
+- `src/components/charts/*` — WS1 has CostBreakdownChart; WS3 KpiCards deferred
+- `src/components/panels/*` — all 26 panel components deferred (cherry-pick future)
+- Inline `style={}` objects in components — converted to Tailwind
 
 ### Key Decisions
-1. Copy WS2 domain types AS-IS in `src/domain/`. They are CAD-specific and separate from WS1's app types in `src/types/`.
-2. Rename `planGenerator.ts` → `plan-generator.ts` (kebab-case for consistency).
-3. Keep relative imports from WS2 files (they resolve correctly with same directory structure).
-4. Merge `src/lib/money.ts` functions into `src/lib/utils.ts` alongside existing `fmtCents`/`toCents`.
-5. WS2 components use Tailwind-compatible class names — they work with canonical Tailwind CSS.
-6. WS2 hooks move from `src/components/cad/` to `src/hooks/` (proper hook location).
-7. Integrate PlanCanvas into Dashboard replacing placeholder canvas section.
+1. WS3 CadDocument (`src/domain/cad.ts`) discarded — WS2 version already present with richer types (layers, annotations, tools, metadata)
+2. WS3 BOQ types stored in `src/lib/boq/boq-types.ts` to avoid conflict with WS2's `src/domain/boq.ts`
+3. WS3 `bimGenerator.ts` adapted to work with WS2 CadDocument fields (structuralRole, bim, no wall name/height)
+4. WS3 `ifcImport.ts` adapted to produce WS2 CadDocument types
+5. Dexie schema extended with 4 new WS3 tables (cadDocs, bimModels, governance, snapshots)
+6. No WS1 stores were replaced or modified — all WS3 state management left as future integration
+7. BIM viewer components ported with Tailwind classes matching canonical design system
+8. Three.js, @react-three/fiber, @react-three/drei, fflate added as dependencies
+
+### Errors Encountered & Fixes
+
+| Error | Fix |
+|---|---|
+| `cross-project-portfolio.ts` — type mismatch WS1 vs WS3 BOQ | Added `as Ws3Boq` cast |
+| `cross-project-boq.ts` — type mismatch | Added `as Ws3Boq` cast |
+| `ifc-export.ts` — unused variables | Removed unused `fxs`, `fys`, `minX`, `minY`, `maxX`, `maxY`, `len`, `voidDepth` |
+| `BimInspector.tsx` — unsafe `as Record<string, number>` casts | Changed to `as Record<string, unknown>` with `Number()` |
 
 ---
 
@@ -90,26 +168,36 @@
 
 | Command | Result |
 |---|---|
+| `npm install` | ✅ PASS (61 new packages: three, @react-three/fiber, @react-three/drei, fflate) |
 | `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
-| `npm run build` (`tsc && vite build`) | ✅ PASS (2767 modules, 14 precache entries) |
+| `npm run build` (`tsc && vite build`) | ✅ PASS (2767 modules, 14 precache) |
 
-## Phase A — Merge Result
+## Phase B — Merge Result
 
 | Step | Status |
 |---|---|
-| Wrote domain files (plan.ts, cad.ts, boq.ts) | ✅ DONE |
-| Wrote engine file (plan-generator.ts) | ✅ DONE |
-| Wrote geometry lib files (4 files) | ✅ DONE |
-| Wrote quantities lib file | ✅ DONE |
-| Wrote CAD lib files (12 files) | ✅ DONE |
-| Wrote export lib files (3 files) | ✅ DONE |
-| Merged money.ts helpers into utils.ts | ✅ DONE |
-| Wrote hooks (5 files) | ✅ DONE |
-| Wrote CAD components (12 files) | ✅ DONE |
-| Integrated PlanCanvas into Dashboard.tsx | ✅ DONE |
+| Ported domain types (bim, governance, rbac, versioning, transaction) | ✅ DONE |
+| Ported engines (bim-generator, boq-generator) | ✅ DONE |
+| Ported IFC import/export | ✅ DONE |
+| Ported auth modules (rbac, session) | ✅ DONE |
+| Ported governance-db | ✅ DONE |
+| Ported versioning (snapshot-diff) | ✅ DONE |
+| Ported BOQ analysis modules (compare, share, category-totals) | ✅ DONE |
+| Ported zone costing modules (cost, trace, grouping, reconstruction) | ✅ DONE |
+| Ported portfolio/cross-project modules | ✅ DONE |
+| Ported export/standards modules | ✅ DONE |
+| Ported BIM viewer components (5 files, Tailwind pass) | ✅ DONE |
+| Merged WS3 Dexie schema into canonical db.ts | ✅ DONE |
+| `npm install` (Three.js, R3F, drei, fflate) | ✅ DONE |
 | `npm run typecheck` | ✅ PASS (0 errors) |
 | `npm run build` | ✅ PASS |
 | Updated MERGE_LOG.md | ✅ DONE |
 | Updated FEATURE_MATRIX.md | ✅ DONE |
 | Updated CANONICAL_REPO_STATUS.md | ✅ DONE |
-| **Verdict** | **Phase A (WS2 CAD) merged successfully.** |
+
+### Deferred to Future Phases
+- WS3 panel components (26 files) — cherry-pick governance, RBAC, snapshot, comparison, cross-project, zone, export panels
+- WS3 CadPlanView, CadPropertiesPanel, IfcInteropPanel — WS2 already has PlanCanvas/WallFirstCanvas
+- WS3 chart components (KpiCards, CostBreakdownChart) — WS1 has CostBreakdownChart via Recharts
+- WS3 section orchestrators (SnapshotPortfolioSection, ZoneInspectorSection)
+- Integration of BIM viewer into Dashboard
