@@ -1108,3 +1108,62 @@ Scanned for: OPENAI, ANTHROPIC, GEMINI_API_KEY, API_KEY, SECRET, TOKEN, PRIVATE_
 - Dashboard chunk size (727 KB) — beyond small-polish scope
 - Component-level tests — pure function tests exist
 - Mobile-responsive layout — desktop-optimized by design
+
+---
+
+## Sprint 13 — Geometry-Derived BOQ Quantities
+
+**Date:** 2026-07-01  
+**Goal:** Derive BOQ quantities from generated CAD geometry instead of broad gross-floor-area assumptions.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/adapters/geometryQuantitiesAdapter.ts` | `extractGeometryQuantities()` — 26 quantity fields from walls, openings, rooms, zones |
+| `src/__tests__/geometryQuantitiesAdapter.test.ts` | 10 tests for the new adapter |
+| `docs/SPRINT_13_GEOMETRY_BOQ_REPORT.md` | Sprint report with quantity tables |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/adapters/designToBoq.ts` | Uses `extractGeometryQuantities()`; external wall line item; CSV quantity-basis headers; `BoqResult.quantities` |
+| `src/components/dashboard/BoqExportPanel.tsx` | Quantity Basis section; passes quantities to CSV export |
+| `src/__tests__/designToBoq.test.ts` | 5 new tests for geometry-derived items, CSV basis, duplex/clinic quantities |
+| `CANONICAL_REPO_STATUS.md` | Status → Sprint 13, 7 adapters, 73 tests |
+| `MERGE_LOG.md` | Added Sprint 13 entry |
+
+### Key Decisions
+
+1. **Geometry adapter separate from BOQ adapter** — clean separation of concerns; `extractGeometryQuantities()` can be used by analysis or BIM adapters later
+2. **Wall area uses 3 m default height** — matches `FLOOR_HEIGHT` in `designToBim.ts`
+3. **Finish floor area from room areas, not GFA** — sums actual `GeneratedRoom.area` values
+4. **Service zone area from generated zones** — more precise than blanket GFA × rate
+5. **External wall area as separate BOQ line** — rate card already has `wall` rate for external walls
+6. **CSV header includes quantity basis** — makes exported BOQ self-documenting
+
+### Sample Cost Impact (150 m² House, Zimbabwe)
+
+| Line Item | Before (Sprint 8) | After (Sprint 13) |
+|-----------|-------------------|-------------------|
+| Partitions | 80 m² (10 × 8) | 74 m² (actual) |
+| Doors | 20 nr (10 × 2) | 5 nr (actual) |
+| Windows | 20 nr (10 × 2) | 4 nr (actual) |
+| Finishes | 525 m² (150 × 3.5) | 287 m² (actual rooms) |
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
+| `npm test` (`vitest run`) | ✅ PASS (73 tests, 8 files) |
+
+### Still Deferred
+- Component-level tests (PlanCanvas, LazyBimViewer, Dashboard panels)
+- WebLLM parser tests (requires `@mlc-ai/web-llm`)
+- Multi-floor room distribution for >2 floors
+- CAD export (DXF/SVG) string generation tests
+- Furniture/blocks in generated rooms
+- Room layout optimization (self-intersecting wall rings)
+- Multi-floor layout variation (ground vs upper floor templates)

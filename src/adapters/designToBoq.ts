@@ -1,11 +1,11 @@
 import type { DesignOption } from '@/domain/boq'
 import type { BOQ, BOQLineItem } from '@/lib/boq/boq-types'
-import { buildDesignGeometry } from './designGeometryAdapter'
 import { designOptionToBimModel } from './designToBim'
 import { generateBoqFromBim } from '@/engine/boq-generator'
 import { resolveBoqRate, getContingencyRate, getFeesRate, getVatRate } from './rateCardAdapter'
 import { getRegionRateCard } from './rateCardAdapter'
 import type { RateAssumption } from './rateCardAdapter'
+import { extractGeometryQuantities, type GeometryQuantities } from './geometryQuantitiesAdapter'
 
 function safe<T>(fn: () => T, fallback: T): T {
   try { return fn() } catch { return fallback }
@@ -13,6 +13,7 @@ function safe<T>(fn: () => T, fallback: T): T {
 
 export interface BoqResult extends BOQ {
   assumptions: RateAssumption[]
+  quantities?: GeometryQuantities
 }
 
 export function buildBoqFromDesignOption(
@@ -21,32 +22,33 @@ export function buildBoqFromDesignOption(
 ): BoqResult | null {
   if (!design || design.grossFloorArea <= 0) return null
 
+  const qty = extractGeometryQuantities(design)
+
   const bim = designOptionToBimModel(design)
   if (!bim) return null
 
   const baseBoq = safe(() => generateBoqFromBim(bim), null)
   if (!baseBoq) return null
 
-  const geo = buildDesignGeometry(design)
-  const doorCount = geo.openings.filter((o) => o.type === 'door').length
-  const windowCount = geo.openings.filter((o) => o.type === 'window').length
-  const internalWallCount = geo.walls.filter((w) => w.kind === 'internal').length
-  const area = design.grossFloorArea
-
   const card = getRegionRateCard(region)
 
-  // Build rate assumptions
   const assumptions: RateAssumption[] = [
-    { ...resolveBoqRate(region, 'wall', 85), itemKey: 'wall', label: 'External walls' },
+    { ...resolveBoqRate(region, 'wall', 85), itemKey: 'wall', label: `External walls (${qty.externalWallArea.toFixed(0)} m² from generated geometry)` },
     { ...resolveBoqRate(region, 'slab', 110), itemKey: 'slab', label: 'Floor slabs' },
     { ...resolveBoqRate(region, 'roof', 75), itemKey: 'roof', label: 'Roof' },
-    { ...resolveBoqRate(region, 'partition', 65), itemKey: 'partition', label: 'Internal partitions' },
-    { ...resolveBoqRate(region, 'door', 180), itemKey: 'door', label: 'Doors' },
-    { ...resolveBoqRate(region, 'window', 320), itemKey: 'window', label: 'Windows' },
+    { ...resolveBoqRate(region, 'partition', 65), itemKey: 'partition', label: `Internal partitions (${qty.partitionArea.toFixed(0)} m² from generated geometry)` },
+    { ...resolveBoqRate(region, 'door', 180), itemKey: 'door', label: `Doors (${qty.doorCount} nr from generated openings)` },
+    { ...resolveBoqRate(region, 'window', 320), itemKey: 'window', label: `Windows (${qty.windowCount} nr from generated openings)` },
     { ...resolveBoqRate(region, 'opening', 250), itemKey: 'opening', label: 'Generic openings' },
-    { itemKey: 'finishes', label: 'Finishes allowance', rate: 35, currency: card.currency, source: 'fallback' as const, warning: 'Finishes rate is a fixed estimate, not from rate card' },
-    { itemKey: 'services', label: 'Services allowance', rate: 45, currency: card.currency, source: 'fallback' as const, warning: 'Services rate is a fixed estimate, not from rate card' },
+    { itemKey: 'finishes', label: `Finishes allowance (${qty.finishFloorArea.toFixed(0)} m² from generated rooms)`, rate: 35, currency: card.currency, source: 'fallback' as const, warning: 'Finishes rate is a fixed estimate, not from rate card' },
+    { itemKey: 'services', label: `Services allowance (${qty.serviceZoneArea.toFixed(0)} m² from generated zones)`, rate: 45, currency: card.currency, source: 'fallback' as const, warning: 'Services rate is a fixed estimate, not from rate card' },
   ]
+
+  if (qty.warnings.length > 0) {
+    for (const w of qty.warnings) {
+      assumptions.push({ itemKey: 'warning', label: w, rate: 0, currency: card.currency, source: 'fallback' as const, warning: w })
+    }
+  }
 
   // Post-process base BOQ items to use rate card rates
   const baseItems: BOQLineItem[] = baseBoq.items.map((item) => {
@@ -72,68 +74,85 @@ export function buildBoqFromDesignOption(
 
   const extraItems: BOQLineItem[] = []
 
-  if (doorCount > 0) {
+  if (qty.doorCount > 0) {
     const r = resolveBoqRate(region, 'door', 180)
     extraItems.push({
       id: 'boq-extra-doors',
       quantityRef: 'doors',
       category: 'Openings',
-      description: `Internal doors (${doorCount} nr)`,
+      description: `Internal doors (${qty.doorCount} nr) — from generated geometry`,
       unit: 'each',
-      quantity: doorCount,
+      quantity: qty.doorCount,
       rate: r.rate,
-      total: Math.round(doorCount * r.rate * 100) / 100,
+      total: Math.round(qty.doorCount * r.rate * 100) / 100,
     })
   }
 
-  if (windowCount > 0) {
+  if (qty.windowCount > 0) {
     const r = resolveBoqRate(region, 'window', 320)
     extraItems.push({
       id: 'boq-extra-windows',
       quantityRef: 'windows',
       category: 'Openings',
-      description: `Windows with glazing (${windowCount} nr)`,
+      description: `Windows with glazing (${qty.windowCount} nr) — from generated geometry`,
       unit: 'each',
-      quantity: windowCount,
+      quantity: qty.windowCount,
       rate: r.rate,
-      total: Math.round(windowCount * r.rate * 100) / 100,
+      total: Math.round(qty.windowCount * r.rate * 100) / 100,
     })
   }
 
-  if (internalWallCount > 0) {
+  if (qty.partitionArea > 0) {
     const r = resolveBoqRate(region, 'partition', 65)
     extraItems.push({
       id: 'boq-extra-partitions',
       quantityRef: 'partitions',
       category: 'Walls',
-      description: `Internal partition walls (${internalWallCount} walls)`,
+      description: `Internal partitions (${qty.partitionArea.toFixed(0)} m²) — from generated geometry`,
       unit: 'm²',
-      quantity: internalWallCount * 8,
+      quantity: Math.round(qty.partitionArea * 100) / 100,
       rate: r.rate,
-      total: Math.round(internalWallCount * 8 * r.rate * 100) / 100,
+      total: Math.round(qty.partitionArea * r.rate * 100) / 100,
     })
   }
 
-  if (area > 0) {
+  if (qty.externalWallArea > 0) {
+    const r = resolveBoqRate(region, 'wall', 85)
+    extraItems.push({
+      id: 'boq-extra-ext-walls',
+      quantityRef: 'external-walls',
+      category: 'Walls',
+      description: `External wall area (${qty.externalWallArea.toFixed(0)} m²) — from generated geometry`,
+      unit: 'm²',
+      quantity: Math.round(qty.externalWallArea * 100) / 100,
+      rate: r.rate,
+      total: Math.round(qty.externalWallArea * r.rate * 100) / 100,
+    })
+  }
+
+  if (qty.finishFloorArea > 0) {
     extraItems.push({
       id: 'boq-extra-finishes',
       quantityRef: 'finishes',
       category: 'Finishes',
-      description: 'Floor, wall & ceiling finishes allowance',
+      description: `Floor, wall & ceiling finishes (${qty.finishFloorArea.toFixed(0)} m²) — from generated rooms`,
       unit: 'm²',
-      quantity: area,
+      quantity: Math.round(qty.finishFloorArea * 100) / 100,
       rate: 35,
-      total: Math.round(area * 35 * 100) / 100,
+      total: Math.round(qty.finishFloorArea * 35 * 100) / 100,
     })
+  }
+
+  if (qty.serviceZoneArea > 0) {
     extraItems.push({
       id: 'boq-extra-services',
       quantityRef: 'services',
       category: 'MEP',
-      description: 'Electrical, plumbing & drainage allowance',
+      description: `Electrical, plumbing & drainage (${qty.serviceZoneArea.toFixed(0)} m² from ${qty.roomCount} rooms, ${qty.wetRoomCount} wet rooms)`,
       unit: 'm²',
-      quantity: area,
+      quantity: Math.round(qty.serviceZoneArea * 100) / 100,
       rate: 45,
-      total: Math.round(area * 45 * 100) / 100,
+      total: Math.round(qty.serviceZoneArea * 45 * 100) / 100,
     })
   }
 
@@ -153,6 +172,7 @@ export function buildBoqFromDesignOption(
     items: allItems,
     summary: { subtotal, contingency, professionalFees, vat, grandTotal },
     assumptions,
+    quantities: qty,
   }
 }
 
@@ -161,7 +181,7 @@ export function getCostPerM2(boq: BOQ, areaM2: number): number {
   return Math.round((boq.summary.grandTotal / areaM2) * 100) / 100
 }
 
-export function buildExportCsv(boq: BOQ, regionName?: string): string {
+export function buildExportCsv(boq: BOQ, regionName?: string, quantities?: GeometryQuantities): string {
   const esc = (v: string | number) => {
     const s = String(v)
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
@@ -171,6 +191,15 @@ export function buildExportCsv(boq: BOQ, regionName?: string): string {
     lines.push(esc(`Region: ${regionName}`))
   }
   lines.push(esc(`Currency: ${boq.currency}`))
+  if (quantities) {
+    lines.push(esc(`Gross floor area: ${quantities.grossFloorArea.toFixed(0)} m²`))
+    lines.push(esc(`External walls: ${quantities.externalWallArea.toFixed(0)} m²`))
+    lines.push(esc(`Internal partitions: ${quantities.partitionArea.toFixed(0)} m²`))
+    lines.push(esc(`Doors: ${quantities.doorCount} nr`))
+    lines.push(esc(`Windows: ${quantities.windowCount} nr`))
+    lines.push(esc(`Finish area: ${quantities.finishFloorArea.toFixed(0)} m²`))
+    lines.push(esc(`Rooms: ${quantities.roomCount} (${quantities.wetRoomCount} wet rooms)`))
+  }
   lines.push(['Category', 'Description', 'Quantity', 'Unit', `Rate (${boq.currency})`, `Total (${boq.currency})`].map(esc).join(','))
   for (const it of boq.items) {
     lines.push([it.category, it.description, it.quantity, it.unit, it.rate.toFixed(2), it.total.toFixed(2)].map(esc).join(','))

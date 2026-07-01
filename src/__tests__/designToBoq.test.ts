@@ -101,4 +101,51 @@ describe('designToBoq', () => {
     const cpm = getCostPerM2(boq, 150)
     expect(cpm).toBeGreaterThan(0)
   })
+
+  it('BOQ includes geometry-derived doors/windows/partitions/finishes/services', () => {
+    const design = makeDesign({ name: '3 Bedroom House', grossFloorArea: 150 })
+    const boq = buildBoqFromDesignOption(design, 'zimbabwe')!
+    const descriptions = boq.items.map((i) => i.description)
+    const desc = descriptions.join(' ').toLowerCase()
+    expect(desc).toContain('door')
+    expect(desc).toContain('window')
+    expect(desc).toContain('partition')
+    expect(desc).toContain('finish')
+    expect(desc).toContain('electrical')
+  })
+
+  it('BOQ includes quantities object with geometry data', () => {
+    const design = makeDesign({ name: '3 Bedroom House', grossFloorArea: 150 })
+    const boq = buildBoqFromDesignOption(design, 'zimbabwe')!
+    expect(boq.quantities).toBeDefined()
+    expect(boq.quantities!.externalWallLength).toBeGreaterThan(0)
+    expect(boq.quantities!.doorCount).toBeGreaterThan(0)
+    expect(boq.quantities!.finishFloorArea).toBeGreaterThan(0)
+  })
+
+  it('CSV export includes quantity basis when quantities provided', () => {
+    const design = makeDesign({ grossFloorArea: 150 })
+    const boq = buildBoqFromDesignOption(design, 'zimbabwe')!
+    const csv = buildExportCsv(boq, 'Zimbabwe (CWICR)', boq.quantities)
+    expect(csv).toContain('Gross floor area')
+    expect(csv).toContain('External walls')
+    expect(csv).toContain('Internal partitions')
+    expect(csv).toContain('Doors')
+    expect(csv).toContain('Windows')
+  })
+
+  it('duplex BOQ has higher grand total than single house in same region', () => {
+    const house = makeDesign({ name: 'House', grossFloorArea: 120, floors: 1 })
+    const duplex = makeDesign({ name: 'Duplex', grossFloorArea: 240, floors: 2 })
+    const hBoq = buildBoqFromDesignOption(house, 'zimbabwe')!
+    const dBoq = buildBoqFromDesignOption(duplex, 'zimbabwe')!
+    expect(dBoq.summary.grandTotal).toBeGreaterThan(hBoq.summary.grandTotal)
+  })
+
+  it('clinic BOQ has quantities with clinic room info', () => {
+    const clinic = makeDesign({ name: 'Small rural clinic', grossFloorArea: 300 })
+    const boq = buildBoqFromDesignOption(clinic, 'zimbabwe')!
+    expect(boq.quantities).toBeDefined()
+    expect(boq.quantities!.clinicRoomCount).toBeGreaterThan(0)
+  })
 })

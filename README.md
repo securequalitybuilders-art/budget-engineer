@@ -5,7 +5,7 @@
 > AI-powered computational design → 2D CAD → 3D BIM → engineering checks → quantities → BOQ → export.
 > Offline-first, open-source, Africa-focused.
 >
-> **Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, 58 automated tests across the full pipeline.** CI validates typecheck, lint, tests, and production build on every push.
+> **Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, geometry-derived BOQ quantities (door/window/partition/finish quantities from actual CAD geometry — not GFA estimates), 73 automated tests across the full pipeline.** CI validates typecheck, lint, tests, and production build on every push.
 
 **Live demo:** [budget-engineer.vercel.app](https://budget-engineer.vercel.app/)
 
@@ -38,6 +38,10 @@ Then open http://localhost:5173.
 | **Sprint 7: Generated CAD Detail** | designGeometryAdapter with rooms, doors, windows, internal walls, zones; richer BIM/CAD/BOQ output | Sprint 7 |
 | **Sprint 8: Regional BOQ Pricing** | rateCardAdapter, region selector in BoqExportPanel, rate assumptions in CSV/HTML export | Sprint 8 |
 | **Sprint 9: Automated Tests + CI** | 58 tests across 7 files, vitest, fake-indexeddb, GitHub CI workflow | Sprint 9 |
+| **Sprint 10: Deployment polish** | DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects, README updates | Sprint 10 |
+| **Sprint 11: Live deployment** | Verified Vercel deployment, updated live URL | Sprint 11 |
+| **Sprint 12: Public demo audit** | SEO meta tags, accessibility fixes, mobile polish, bundle audit | Sprint 12 |
+| **Sprint 13: Geometry-derived BOQ quantities** | geometryQuantitiesAdapter, external wall line item, quantity-basis UI section + CSV headers, 73 tests | Sprint 13 |
 
 **Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Checks → Quantities → BOQ → Export (CSV / HTML / PDF)
 
@@ -65,7 +69,7 @@ Each push to `main` runs via GitHub Actions:
 1. `npm ci`
 2. `npm run typecheck`
 3. `npm run lint`
-4. `npm test` (58 tests, 7 files)
+4. `npm test` (73 tests, 8 files)
 5. `npm run build`
 
 ## Known Limitations

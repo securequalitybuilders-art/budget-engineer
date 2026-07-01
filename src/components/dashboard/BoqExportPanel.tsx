@@ -31,7 +31,7 @@ export function BoqExportPanel({ selectedDesign, onExport }: BoqExportPanelProps
 
   const handleExportCsv = () => {
     if (!boq || !selectedDesign) return
-    const csv = buildExportCsv(boq, currentRegion?.label)
+    const csv = buildExportCsv(boq, currentRegion?.label, boq.quantities)
     const slug = selectedDesign.name.toLowerCase().replace(/\s+/g, '-')
     downloadTextFile(`boq-${slug}.csv`, csv, 'text/csv')
     setExported(true)
@@ -119,6 +119,27 @@ export function BoqExportPanel({ selectedDesign, onExport }: BoqExportPanelProps
             </div>
           )}
         </div>
+
+        {/* Quantity basis */}
+        {boq?.quantities && (
+          <div className="mb-3 rounded-lg border border-stone-700/60 bg-stone-900/80 p-2.5 text-[10px]">
+            <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider text-cyan-400">Quantity Basis</div>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+              <span className="text-stone-500">GFA</span>
+              <span className="text-right text-stone-200 tabular-nums">{boq.quantities.grossFloorArea.toFixed(0)} m²</span>
+              <span className="text-stone-500">External walls</span>
+              <span className="text-right text-stone-200 tabular-nums">{boq.quantities.externalWallArea.toFixed(0)} m²</span>
+              <span className="text-stone-500">Partitions</span>
+              <span className="text-right text-stone-200 tabular-nums">{boq.quantities.partitionArea.toFixed(0)} m²</span>
+              <span className="text-stone-500">Doors / Windows</span>
+              <span className="text-right text-stone-200 tabular-nums">{boq.quantities.doorCount} / {boq.quantities.windowCount}</span>
+              <span className="text-stone-500">Finish area</span>
+              <span className="text-right text-stone-200 tabular-nums">{boq.quantities.finishFloorArea.toFixed(0)} m²</span>
+              <span className="text-stone-500">Rooms (wet)</span>
+              <span className="text-right text-stone-200 tabular-nums">{boq.quantities.roomCount} ({boq.quantities.wetRoomCount})</span>
+            </div>
+          </div>
+        )}
 
         {/* BOQ table */}
         {boq ? (

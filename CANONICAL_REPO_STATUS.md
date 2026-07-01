@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-01  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 12 — Public demo audit and polish: SEO meta tags (OG, Twitter, canonical), accessibility fixes (tab ARIA, form labels, expanded states), mobile BOQ table scroll, bundle/performance audit, live smoke test verified. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (58 passed), `npm run build` (success)
+> **Status:** Sprint 13 — Geometry-derived BOQ quantities: `extractGeometryQuantities()` computes 26 fields (wall areas, door/window counts, room/zone areas) from `buildDesignGeometry()` and feeds them into regional BOQ line items. External wall area now a separate BOQ item. Quantity-basis section in BoqExportPanel. CSV export includes quantity-basis headers. `npm run typecheck` (0 errors), `npm test` (73 passed — 10 new tests for geometryQuantitiesAdapter + 5 new tests for designToBoq).
 
 ---
 
@@ -251,7 +251,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 - **Engineering Studio section** (EngineeringStudioPanel) — tabbed accordion panel in dashboard right sidebar
 - **BOQ Export Panel** (BoqExportPanel) — sidebar panel for BOQ display, CSV export, HTML dossier, print-to-PDF
 - **Engineering Analysis Panel** (EngineeringAnalysisPanel) — sidebar panel for clash detection, solar analysis, MEP takeoff with recommendation cards
-- **6 adapters** (`designGeometryAdapter.ts` + `designToBim.ts` + `aiDesignAdapter.ts` + `designToBoq.ts` + `designToAnalysis.ts` + `rateCardAdapter.ts`) — building geometry, BIM model, AI design, BOQ generation, engineering analysis, rate card resolution from DesignOption
+- **7 adapters** (`designGeometryAdapter.ts` + `geometryQuantitiesAdapter.ts` + `designToBim.ts` + `aiDesignAdapter.ts` + `designToBoq.ts` + `designToAnalysis.ts` + `rateCardAdapter.ts`) — building geometry, geometry quantities, BIM model, AI design, BOQ generation, engineering analysis, rate card resolution from DesignOption
 - **2D/3D toggle** in Dashboard toolbar — switches between PlanCanvas and LazyBimViewer
 
 ---
@@ -275,6 +275,8 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **Wire engineering analysis into Dashboard** | designToAnalysis adapter + EngineeringAnalysisPanel created | ✅ DONE (Sprint 5 — clash, solar, MEP display) |
 | **Openings/doors/windows in BOQ** | designToBim didn't create opening elements | ✅ DONE (Sprint 7 — designGeometryAdapter generates doors/windows → BIM openings → BOQ items) |
 | **Finishes allowance in BOQ** | No finishes, services, or preliminaries line items | Add as percentage allowances in adapter |
+| **External wall area missing in BOQ** | External walls were not costed separately | ✅ DONE (Sprint 13 — added as line item) |
+| **Partition/opening estimates in BOQ** | Used fixed m² estimates, not actual geometry | ✅ DONE (Sprint 13 — geometryQuantitiesAdapter provides derived quantities) |
 | **Web Workers** | No off-main-thread processing | Future |
 | **Tests** | 58 unit tests across 7 files | ✅ DONE (Sprint 9 — vitest, all adapters tested, CI pipeline) |
 | **Deployment docs** | DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects | ✅ DONE (Sprint 10 — Vercel/Netlify/static hosting, SPA fallback, release checklist) |
