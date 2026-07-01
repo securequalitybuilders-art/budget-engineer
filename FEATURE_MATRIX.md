@@ -30,9 +30,12 @@
 | **Undo/Redo** | ✅ Present | WS2 |
 | **Multi-Floor Support** | ✅ Present | WS2 |
 | **Wall Corner Solver** (intersection trim) | ✅ Present | WS4 cad-solver |
-| **Clash Detection** (3 BIM rules) | ✅ Present | WS4 clash-checker |
-| **Solar Orientation Analysis** (cardinal heat gain) | ✅ Present | WS4 solar-analyzer |
-| **MEP Takeoff** (points per zone) | ✅ Present | WS4 mep-takeoff |
+| **Clash Detection** (3 BIM rules) | ✅ Present, wired | WS4 clash-checker — wired into Dashboard via Sprint 5 EngineeringAnalysisPanel |
+| **Solar Orientation Analysis** (cardinal heat gain) | ✅ Present, wired | WS4 solar-analyzer — wired into Dashboard via Sprint 5 EngineeringAnalysisPanel |
+| **MEP Takeoff** (points per zone) | ✅ Present, wired | WS4 mep-takeoff — wired into Dashboard via Sprint 5 EngineeringAnalysisPanel |
+| **Engineering Analysis Panel** (clash + solar + MEP) | ✅ Present, wired | Sprint 5 — BoqExportPanel sidebar with recommendation cards |
+| **Solar Orientation Analysis** (cardinal heat gain) | ✅ Present, wired | WS4 solar-analyzer — wired via Sprint 5 |
+| **MEP Takeoff** (points per zone) | ✅ Present, wired | WS4 mep-takeoff — wired via Sprint 5 |
 | **DXF Export** | ✅ Present | WS2 |
 | **MakerJS Export** | ✅ Present | WS2 |
 | **SVG Plan Export** | ✅ Present | WS2 |
@@ -102,8 +105,9 @@
 | ✅ Present (WS1 base) | 14 |
 | ✅ Present (Phase A WS2 CAD merged) | 16 |
 | ✅ Present (Phase B WS3 BIM merged) | ~20 |
-| ✅ Present (Phase C WS4 Advanced Engineering merged) | ~7 |
+| ✅ Present (Phase C WS4 Advanced Engineering merged) | ~7 (clash, solar, MEP now wired) |
 | 🔄 Staged (Phase D WS5 Structural algorithms) | 5 algorithm modules |
+| ✅ Present (Sprint 5 — Engineering analysis panels wired) | 1 adapter + 1 panel + 1 Dashboard integration |
 | ✅ Present (Phase E WS6 AI/Drawing/Rates/Structural lib) | ~15 new modules |
 | ✅ Present (Sprint 1 — WS6 panels wired) | 6 panel components |
 | ✅ Present (Sprint 2 — BIM viewer in Dashboard) | 1 adapter + 1 toggle UI |

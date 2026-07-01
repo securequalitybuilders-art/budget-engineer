@@ -697,7 +697,7 @@ None — all modules use pure TypeScript. WebLLM (`@mlc-ai/web-llm`) is dynamica
 
 ### Still Deferred
 - Persist AI-generated designs to Dexie
-- Openings/doors/windows in BOQ
+- Openings/doors/windows in BOQ and analysis
 - Finishes/services/preliminaries allowances
 - WebLLM integration (opt-in)
 - FloorVisibilityPanel wiring
@@ -739,3 +739,41 @@ None — all modules use pure TypeScript. WebLLM (`@mlc-ai/web-llm`) is dynamica
 | `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
 | `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
 | `npm run build` (`tsc && vite build`) | ✅ PASS (3361 modules, 16 precache) |
+
+---
+
+## Sprint 5 — Engineering Analysis Panels
+
+**Date:** 2026-07-01  
+**Goal:** Wire existing WS4 engineering analysis modules (clash detection, solar/orientation analysis, MEP takeoff) into the visible Dashboard workflow.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/adapters/designToAnalysis.ts` | DesignOption → analysis adapter: `buildAnalysisFromDesignOption()` runs clash, solar, MEP with `safe()` error isolation |
+| `src/components/dashboard/EngineeringAnalysisPanel.tsx` | Dashboard panel showing clash status, solar orientation, MEP takeoff, and recommendation cards |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/pages/Dashboard.tsx` | Added EngineeringAnalysisPanel import and render in right sidebar |
+
+### Key Decisions
+
+1. **CadDocument generated from DesignOption** — `buildCadFromDesignOption()` creates 4 perimeter walls per floor (same geometry as designToBim), enabling clash and solar analysis
+2. **Room zones generated for MEP** — `enrichBimWithRoomZones()` adds one "Open Plan Studio Space" per floor to the BimModel
+3. **Each analysis independently caught** — `safe()` wrapper prevents one failure from blocking the others
+4. **Executive Portfolio not wired** — it's multi-project/IndexedDB based, not useful for single-design analysis
+5. **No new npm dependencies** — all analysis modules are pure TypeScript math
+6. **Existing EngineeringStudioPanel untouched** — has its own `buildSampleCad`/`buildSampleBim` functions
+7. **Recommendation cards** — three status cards summarize clash, solar, MEP findings at a glance
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm run build` (`tsc && vite build`) | ✅ PASS (3366 modules, 16 precache) |
