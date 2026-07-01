@@ -1164,6 +1164,55 @@ Scanned for: OPENAI, ANTHROPIC, GEMINI_API_KEY, API_KEY, SECRET, TOKEN, PRIVATE_
 
 ---
 
+## Sprint 15 — Mobile Dashboard Layout Polish
+
+**Date:** 2026-07-01  
+**Goal:** Improve mobile and small-screen usability of the Dashboard and guided builder journey. No new features.
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/components/layout/BentoShell.tsx` | Added `min-w-0` to root flex container to prevent horizontal overflow |
+| `src/pages/Dashboard.tsx` | Right sidebar `overflow-x-auto lg:overflow-x-visible`; design options `max-w-[160px] truncate`; mobile note in canvas empty state |
+| `src/components/dashboard/BuilderJourneyGuide.tsx` | Default collapsed (`false`); `min-w-[200px]` |
+| `src/components/dashboard/EngineeringStudioPanel.tsx` | Tab list `overflow-x-auto` (removed `flex-wrap`) |
+| `src/components/dashboard/BoqExportPanel.tsx` | BOQ table `overflow-x-auto` + `min-w-[400px]` on `<table>` |
+| `src/pages/Home.tsx` | Hero buttons `flex-wrap` |
+| `src/styles/index.css` | (inspected — no change needed) |
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `docs/SPRINT_15_MOBILE_POLISH_REPORT.md` | Sprint report with responsive changes, smoke checklist, remaining limitations |
+
+### Key Decisions
+
+1. **Right sidebar scrolls horizontally on mobile** — Stacking panels vertically would require significant layout restructuring; horizontal scroll is the minimal fix
+2. **BuilderJourneyGuide collapsed by default** — Saves vertical space on all screens; the cyan header is still visible as an entry point
+3. **BOQ table min-width** — `400px` accommodates 4 columns at readable widths; anything smaller would make numbers unreadable
+4. **No media-query hooks** — All changes use responsive Tailwind classes; no JS-based breakpoint detection
+5. **No new dependencies** — Pure Tailwind/JSX changes
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm test` | ✅ PASS (73 tests, 8 files) |
+| `npm run build` | ✅ PASS (3371 modules, 16 precache) |
+
+### Remaining Mobile Limitations
+- Right sidebar remains flex-row (scrolls rather than stacks)
+- Dashboard toolbar is absolute-positioned (overlaps canvas on short screens)
+- PlanCanvas interaction is desktop-oriented
+- No hamburger menu for left sidebar on mobile
+- BuilderJourneyGuide state not persisted across page reloads
+
+---
+
 **Date:** 2026-07-01  
 **Goal:** Derive BOQ quantities from generated CAD geometry instead of broad gross-floor-area assumptions.
 

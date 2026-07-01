@@ -8,7 +8,7 @@ interface BentoShellProps {
 
 export function BentoShell({ children, className }: BentoShellProps) {
   return (
-    <div className={cn('flex h-[calc(100vh-3.5rem)] overflow-hidden', className)}>
+    <div className={cn('flex h-[calc(100vh-3.5rem)] overflow-hidden min-w-0', className)}>
       {children}
     </div>
   );

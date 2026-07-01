@@ -205,11 +205,12 @@ export function Dashboard() {
                       <button
                         key={option.id}
                         onClick={() => setSelectedDesignId(option.id)}
-                        className={`rounded-xl border px-3 py-2 text-xs ${
+                        className={`max-w-[160px] truncate rounded-xl border px-3 py-2 text-xs ${
                           (selectedDesign?.id ?? visibleDesignOptions[0]?.id) === option.id
                             ? 'border-cyan-400/40 bg-cyan-500/10 text-cyan-200'
                             : 'border-white/10 bg-slate-900 text-slate-400'
                         }`}
+                        title={option.name}
                       >
                         {option.name}
                       </button>
@@ -255,6 +256,9 @@ export function Dashboard() {
                         Import DXF
                       </Button>
                     </div>
+                    <p className="mt-6 max-w-xs text-[10px] text-stone-500">
+                      Mobile: review, estimates, exports supported. For best CAD editing, use a tablet or desktop.
+                    </p>
                   </motion.div>
                 </div>
               )}
@@ -265,7 +269,7 @@ export function Dashboard() {
           </div>
 
           {/* Right sidebar */}
-          <div className="flex flex-shrink-0">
+          <div className="flex flex-shrink-0 overflow-x-auto lg:overflow-x-visible">
             <BuilderJourneyGuide
               hasDesignOptions={visibleDesignOptions.length > 0}
               selectedDesignName={selectedDesign?.name}

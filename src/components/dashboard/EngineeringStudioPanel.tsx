@@ -97,7 +97,7 @@ export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerate
         <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400">Engineering Studio</span>
       </div>
 
-      <div className="flex flex-wrap gap-1 border-b border-stone-700/60 px-2 py-1.5" role="tablist">
+      <div className="flex gap-1 overflow-x-auto border-b border-stone-700/60 px-2 py-1.5" role="tablist">
         {TABS.map((tab) => (
           <button
             key={tab.id}

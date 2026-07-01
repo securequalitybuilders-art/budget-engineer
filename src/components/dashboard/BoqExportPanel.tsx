@@ -143,8 +143,8 @@ export function BoqExportPanel({ selectedDesign, onExport }: BoqExportPanelProps
 
         {/* BOQ table */}
         {boq ? (
-          <div className="mb-3 max-h-64 overflow-auto rounded-lg border border-stone-700/60">
-            <table className="w-full text-left text-[10px]">
+          <div className="mb-3 max-h-64 overflow-x-auto rounded-lg border border-stone-700/60">
+            <table className="w-full text-left text-[10px] min-w-[400px]">
               <thead className="sticky top-0 bg-stone-800 text-stone-400 uppercase">
                 <tr>
                   <th className="px-2 py-1.5">Item</th>

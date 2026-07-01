@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-01  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 14 — Guided first-time builder journey: 6-step journey section on Home page, template brief examples in Project Wizard, collapsible BuilderJourneyGuide panel in Dashboard right sidebar showing current step + next action + 6-step progress + plain-language guidance. Empty states audited for beginner-friendliness across 5 panels. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (73 passed, 8 files), `npm run build` (3371 modules).
+> **Status:** Sprint 15 — Mobile dashboard layout polish: right sidebar scrolls horizontally on mobile, BOQ table has horizontal scroll with `min-w-[400px]`, Engineering Studio tabs overflow-x-auto instead of wrapping, BuilderJourneyGuide collapsed by default, design option buttons truncate at 160px, mobile note added to canvas empty state, Home hero buttons wrap, BentoShell root has `min-w-0` to prevent overflow. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (73 passed, 8 files), `npm run build` (3371 modules).
 
 ---
 

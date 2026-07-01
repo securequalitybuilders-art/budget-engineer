@@ -89,7 +89,7 @@ export function BuilderJourneyGuide({
   hasBoq,
   hasAnalysis,
 }: BuilderJourneyGuideProps) {
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
   const navigate = useNavigate()
 
@@ -99,7 +99,7 @@ export function BuilderJourneyGuide({
 
   return (
     <div
-      className="flex w-72 flex-shrink-0 flex-col border-l border-stone-700/60 bg-stone-950/80"
+      className="flex w-72 min-w-[200px] flex-shrink-0 flex-col border-l border-stone-700/60 bg-stone-950/80"
       role="region"
       aria-label="Builder journey guide"
     >

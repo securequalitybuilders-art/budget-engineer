@@ -46,7 +46,7 @@ export function Home() {
           <p className="mx-auto mt-4 max-w-2xl text-lg text-[var(--text-secondary)]">
             AI-powered computational design → 2D CAD → 3D BIM → engineering quantities → BOQ. All in your browser, offline-first.
           </p>
-          <div className="mt-8 flex justify-center gap-3">
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link to="/new">
               <Button size="lg" className="gap-2">
                 <Plus size={18} />
