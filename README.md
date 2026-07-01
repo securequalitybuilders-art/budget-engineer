@@ -50,10 +50,21 @@ Then open http://localhost:5173.
 | **Sprint 18: Portfolio dashboard** | PortfolioPage at `/portfolio`, executive summary stats, category distribution bar chart, project cards, Home page button | Sprint 18 |
 | **Sprint 19: Portfolio filters & archive** | Search, status filter (All/Active/Archived), sort (newest/name/cost), archive/restore buttons, status messages, 117 tests | Sprint 19 |
 | **Sprint 20: v0.1.0 public MVP release** | Package version → 0.1.0, CHANGELOG.md, release notes, tag v0.1.0, final validation | Sprint 20 |
+| **Sprint 21: Feedback & issue reporting** | FeedbackPanel, `/feedback` route, copy/GitHub/email actions, privacy-first, 127 tests | Sprint 21 |
 
 **Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Checks → Quantities → BOQ → Export (CSV / HTML / PDF)
 
 **Repository:** [github.com/securequalitybuilders-art/budget-engineer](https://github.com/securequalitybuilders-art/budget-engineer)
+
+## Feedback
+
+Found a bug? Have a suggestion? Feedback is local-first and privacy-respecting:
+
+- **File a GitHub issue** at [github.com/securequalitybuilders-art/budget-engineer/issues/new](https://github.com/securequalitybuilders-art/budget-engineer/issues/new)
+- **Use the in-app form** at [/feedback](https://budget-engineer.vercel.app/feedback) — copy report, open GitHub issue, or send email
+- **Email directly:** securequalitybuilders.art@gmail.com
+
+No analytics, no telemetry, no automatic data collection. You choose what to share.
 
 ## Commands
 
@@ -77,7 +88,7 @@ Each push to `main` runs via GitHub Actions:
 1. `npm ci`
 2. `npm run typecheck`
 3. `npm run lint`
-4. `npm test` (117 tests, 12 files)
+4. `npm test` (127 tests, 13 files)
 5. `npm run build`
 
 ## Release
@@ -88,7 +99,7 @@ Each push to `main` runs via GitHub Actions:
 | Live demo | https://budget-engineer.vercel.app/ |
 | GitHub | https://github.com/securequalitybuilders-art/budget-engineer |
 | CI status | [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions) |
-| Tests | 117 across 12 files |
+| Tests | 127 across 13 files |
 | Architecture | Local-first, no paid APIs, no backend, no cloud LLM |
 
 See [CHANGELOG.md](CHANGELOG.md) for full release history.

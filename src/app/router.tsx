@@ -15,6 +15,7 @@ const Home = lazy(() => import('@/pages/Home').then((m) => ({ default: m.Home })
 const ProjectWizard = lazy(() => import('@/pages/ProjectWizard').then((m) => ({ default: m.ProjectWizard })));
 const Dashboard = lazy(() => import('@/pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 const PortfolioPage = lazy(() => import('@/pages/PortfolioPage').then((m) => ({ default: m.PortfolioPage })));
+const FeedbackPage = lazy(() => import('@/pages/FeedbackPage').then((m) => ({ default: m.FeedbackPage })));
 
 function GlobalLayout() {
   useKeyboardShortcuts();
@@ -62,6 +63,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <PortfolioPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: '/feedback',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <FeedbackPage />
           </Suspense>
         ),
       },

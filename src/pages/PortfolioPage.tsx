@@ -8,7 +8,7 @@ import { formatCurrency } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { ArrowLeft, Building2, Home, Archive, DollarSign, Layers, SlidersHorizontal, Warehouse, DoorOpen, Box, Activity, Search, RotateCcw, X } from 'lucide-react';
+import { ArrowLeft, Building2, Home, Archive, DollarSign, Layers, SlidersHorizontal, Warehouse, DoorOpen, Box, Activity, Search, RotateCcw, X, Bug } from 'lucide-react';
 import type { ExecutivePortfolioSummary, SchemePortfolioItem } from '@/lib/portfolio/executive-portfolio';
 import type { StatusFilter, SortBy } from '@/adapters/portfolioFiltersAdapter';
 
@@ -254,6 +254,11 @@ export function PortfolioPage() {
                 {activeSchemesCount} active
               </Badge>
             )}
+            <Link to="/feedback">
+              <Button variant="ghost" size="icon" className="h-8 w-8" title="Send feedback">
+                <Bug size={16} />
+              </Button>
+            </Link>
           </div>
         </div>
 

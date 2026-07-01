@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-01  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 20 — Public MVP release preparation for v0.1.0. Current app includes local AI brief-to-design, generated CAD geometry, 2D/3D BIM workflow, engineering analysis, regional geometry-derived BOQ, exports, IndexedDB persistence, governance/audit, snapshots, portfolio dashboard, archive/restore, CI, 117 tests, and live Vercel demo. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (117 passed, 12 files), `npm run build` (success).
+> **Status:** Sprint 21 — Feedback and issue reporting workflow. Current app includes local AI brief-to-design, generated CAD geometry, 2D/3D BIM workflow, engineering analysis, regional geometry-derived BOQ, exports, IndexedDB persistence, governance/audit, snapshots, portfolio dashboard, archive/restore, local-first feedback system (copy report, GitHub issue, email), CI, 127 tests, and live Vercel demo. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (127 passed, 13 files), `npm run build` (success).
 
 ---
 
@@ -143,6 +143,12 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
 - **Status filter** — All / Active / Archived toggle
 - **Sort** — Newest / Name / Highest Cost / Lowest Cost
 - **Archive/Restore** — hover button on project card, local-first via IndexedDB, transaction logging, instant metric refresh
+
+### Feedback & Issue Reporting (Sprint 21)
+- **FeedbackPanel** — reusable form with category select (8 types), title, description, steps-to-reproduce, optional browser info
+- **Three output actions:** Copy report to clipboard, Open GitHub Issue, Send email (`mailto:`)
+- **Privacy-first:** no analytics, no telemetry, no automatic data collection, explicit privacy note
+- **Surface points:** Home page footer, Dashboard right sidebar, Portfolio header, dedicated `/feedback` route
 
 ### BOQ Analysis (WS3 Phase B)
 - BOQ line item comparison (before/after)
@@ -291,7 +297,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **External wall area missing in BOQ** | External walls were not costed separately | ✅ DONE (Sprint 13 — added as line item) |
 | **Partition/opening estimates in BOQ** | Used fixed m² estimates, not actual geometry | ✅ DONE (Sprint 13 — geometryQuantitiesAdapter provides derived quantities) |
 | **Web Workers** | No off-main-thread processing | Future |
-| **Tests** | 117 unit tests across 12 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 + Sprint 19 — vitest, all adapters tested, CI pipeline) |
+| **Tests** | 127 unit tests across 13 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 + Sprint 19 + Sprint 21 — vitest, all adapters tested, CI pipeline) |
 | **Deployment docs** | DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects | ✅ DONE (Sprint 10 — Vercel/Netlify/static hosting, SPA fallback, release checklist) |
 | **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |
 | **Room layout optimization** | Grid-based layout may produce self-intersecting wall rings | Improve geometry adapter with proper floorplan algorithm |

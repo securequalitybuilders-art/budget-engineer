@@ -20,6 +20,7 @@ import { BoqExportPanel } from '@/components/dashboard/BoqExportPanel';
 import { EngineeringAnalysisPanel } from '@/components/dashboard/EngineeringAnalysisPanel';
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
 import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
+import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
 import { designOptionToBimModel } from '@/adapters/designToBim';
 import { buildBoqFromDesignOption } from '@/adapters/designToBoq';
 import { persistDesigns, persistBimModel, persistBoq, logTransaction, loadPersistedProjectWork } from '@/services/projectPersistenceService';
@@ -295,6 +296,9 @@ export function Dashboard() {
               selectedDesign={selectedDesign}
               currentBoq={currentBoq}
             />
+            <div className="w-64 shrink-0 border-l border-[var(--border-default)] bg-[var(--bg-secondary)] p-3">
+              <FeedbackPanel compact projectName={currentProject?.name} currentUrl={window.location.href} />
+            </div>
           </div>
         </div>
       </div>

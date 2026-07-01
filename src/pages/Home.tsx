@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/Badge';
 import {
   Plus, Folder, ArrowRight, Cpu, HardHat, FileBarChart,
-  MessageSquare, LayoutGrid, Boxes, Activity, Calculator, BarChart3,
+  MessageSquare, LayoutGrid, Boxes, Activity, Calculator, BarChart3, Bug,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -223,6 +223,16 @@ export function Home() {
             </div>
           </div>
         )}
+
+        {/* Feedback link */}
+        <div className="mt-10 text-center">
+          <Link to="/feedback">
+            <Button variant="ghost" size="sm" className="gap-2 text-[var(--text-muted)]">
+              <Bug size={14} />
+              Send feedback
+            </Button>
+          </Link>
+        </div>
       </div>
     </main>
   );
