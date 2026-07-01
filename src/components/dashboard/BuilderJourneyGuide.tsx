@@ -89,7 +89,7 @@ export function BuilderJourneyGuide({
   hasBoq,
   hasAnalysis,
 }: BuilderJourneyGuideProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(true)
   const [showTemplates, setShowTemplates] = useState(false)
   const navigate = useNavigate()
 

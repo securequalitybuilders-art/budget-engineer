@@ -1,6 +1,7 @@
 # Sprint 15 — Mobile Dashboard Layout Polish
 
 **Date:** 2026-07-01  
+**Last updated:** 2026-07-01 (post-fix)  
 **Goal:** Improve mobile and small-screen usability of the Dashboard and guided builder journey. No new features.
 
 ---
@@ -49,11 +50,12 @@
 **Change:** Added `max-w-[160px] truncate` and `title={option.name}`  
 **Target:** Prevents design names like "Compact 3-Bedroom Family Home" from breaking layout on small screens.
 
-### 5. BuilderJourneyGuide — Collapsed by default
+### 5. BuilderJourneyGuide — Collapsed by default (REVERTED)
 
 **File:** `src/components/dashboard/BuilderJourneyGuide.tsx`  
-**Change:** `useState(false)` (was `true`)  
-**Target:** Saves vertical space; users tap the cyan "Builder Guide" header to open it.
+**Change:** `useState(false)` (was `true`) — **reverted to `useState(true)`**  
+**Target:** Saves vertical space; users tap the cyan "Builder Guide" header to open it.  
+**Reason for revert:** First-time users do not see the guide without tapping. Keeping it expanded by default is safer UX.
 
 ### 6. BuilderJourneyGuide — Responsive minimum width
 
@@ -67,11 +69,12 @@
 **Change:** `overflow-auto` → `overflow-x-auto` + added `min-w-[400px]` to the `<table>`.  
 **Target:** The table (4 columns: Item, Qty, Rate, Total) scrolls horizontally on narrow panels instead of squishing.
 
-### 8. Engineering Studio Tabs — Horizontal scroll
+### 8. Engineering Studio Tabs — Horizontal scroll (REVERTED)
 
 **File:** `src/components/dashboard/EngineeringStudioPanel.tsx` (line 100)  
-**Change:** `flex-wrap` → `overflow-x-auto`  
-**Target:** The 6 tab buttons (AI Brief, Rates, Rebar, Footings, Loads, Section) scroll left/right instead of wrapping unevenly.
+**Change:** `flex-wrap` → `overflow-x-auto` — **reverted back to `flex-wrap`**  
+**Target:** The 6 tab buttons (AI Brief, Rates, Rebar, Footings, Loads, Section) scroll left/right instead of wrapping unevenly.  
+**Reason for revert:** Wrapping to multiple rows is more discoverable than a hidden horizontal scroll. Users may not notice tabs off-screen without a visible scroll indicator.
 
 ### 9. Home Hero Buttons — Wrapping
 
@@ -88,8 +91,8 @@
 | Home at mobile width (390px) | ✅ Hero buttons wrap; journey cards stack; badge row wraps |
 | ProjectWizard at mobile width | ✅ Cards stack via existing `grid gap-3` |
 | Dashboard at mobile width | ✅ Canvas area flexible; right sidebar scrolls horizontally |
-| BuilderJourneyGuide collapses | ✅ Default collapsed; tap to open |
-| EngineeringStudioPanel tabs | ✅ Scroll horizontally when tabs overflow |
+| BuilderJourneyGuide collapses | ✅ Default expanded `useState(true)` (reverted from collapsed) |
+| EngineeringStudioPanel tabs | ✅ Wrap to multiple rows via `flex-wrap` (reverted from `overflow-x-auto`) |
 | EngineeringAnalysisPanel | ✅ Cards are compact, recommendations wrap |
 | BOQ table scrolls | ✅ `overflow-x-auto` + `min-w-[400px]` table |
 | 2D/3D toggle visible | ✅ Visible in toolbar (fits within 390px) |
@@ -107,6 +110,30 @@
 | `npm run build` | ✅ PASS (3371 modules, 16 precache) |
 
 No new tests added — all changes are CSS/JSX class-only modifications with no new logic.
+
+### Post-Fix Re-test (2026-07-01)
+
+After reverting Engineering Studio tabs to `flex-wrap` and BuilderJourneyGuide to `useState(true)`:
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm test` | ✅ PASS (73 tests, 8 files) |
+| `npm run build` | ✅ PASS (3371 modules, 16 precache) |
+
+---
+
+---
+
+## Issues Found & Fixed
+
+| # | Issue | Root Cause | Fix |
+|---|-------|------------|-----|
+| 1 | Engineering Studio tabs changed from wrapping to scrolling — tabs off-screen without visible indicator | `flex-wrap` → `overflow-x-auto` removed wrapping behavior | Reverted to `flex-wrap`. Tabs wrap to multiple rows on narrow screens. |
+| 2 | BuilderJourneyGuide hidden on first load — new users may not discover the guide | `useState(false)` collapsed by default | Reverted to `useState(true)`. Guide is expanded by default. |
+
+**Affected files:** `src/components/dashboard/EngineeringStudioPanel.tsx`, `src/components/dashboard/BuilderJourneyGuide.tsx`
 
 ---
 
