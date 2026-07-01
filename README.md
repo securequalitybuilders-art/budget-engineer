@@ -1,6 +1,7 @@
 # Dzenhare Budget Engineer Studio
 
 [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions)
+**Current release:** v0.1.0 — [View on GitHub](https://github.com/securequalitybuilders-art/budget-engineer/releases/tag/v0.1.0)
 
 > AI-powered computational design → 2D CAD → 3D BIM → engineering checks → quantities → BOQ → export.
 > Offline-first, open-source, Africa-focused.
@@ -48,6 +49,7 @@ Then open http://localhost:5173.
 | **Sprint 17: Snapshot history & comparison** | projectSnapshotService (save/load/compare), SnapshotHistoryPanel in Dashboard sidebar, cost/quantity deltas, 99 tests | Sprint 17 |
 | **Sprint 18: Portfolio dashboard** | PortfolioPage at `/portfolio`, executive summary stats, category distribution bar chart, project cards, Home page button | Sprint 18 |
 | **Sprint 19: Portfolio filters & archive** | Search, status filter (All/Active/Archived), sort (newest/name/cost), archive/restore buttons, status messages, 117 tests | Sprint 19 |
+| **Sprint 20: v0.1.0 public MVP release** | Package version → 0.1.0, CHANGELOG.md, release notes, tag v0.1.0, final validation | Sprint 20 |
 
 **Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Checks → Quantities → BOQ → Export (CSV / HTML / PDF)
 
@@ -77,6 +79,19 @@ Each push to `main` runs via GitHub Actions:
 3. `npm run lint`
 4. `npm test` (117 tests, 12 files)
 5. `npm run build`
+
+## Release
+
+| Detail | Value |
+|--------|-------|
+| Current version | v0.1.0 |
+| Live demo | https://budget-engineer.vercel.app/ |
+| GitHub | https://github.com/securequalitybuilders-art/budget-engineer |
+| CI status | [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions) |
+| Tests | 117 across 12 files |
+| Architecture | Local-first, no paid APIs, no backend, no cloud LLM |
+
+See [CHANGELOG.md](CHANGELOG.md) for full release history.
 
 ## Known Limitations
 

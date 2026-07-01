@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-01  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 19 — Portfolio filters, search, sort, archive/restore: projectArchiveService (archive/restore with transaction logging), portfolioFiltersAdapter (search/status filter/sort), PortfolioPage with search input, status filter buttons, sort selector, archive/restore buttons on hover, status messages. `isArchived` field added to Project type. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (117 passed, 12 files), `npm run build` (18 precache entries). projectSnapshotService with saveProjectSnapshot(), loadProjectSnapshots(), compareCurrentToSnapshot(). SnapshotHistoryPanel in Dashboard right sidebar with Save button, label input, snapshot list, cost/area/floor/wall/door/window delta cards. `currentBoq` memoized in Dashboard to avoid recomputation. Uses existing `db.snapshots` table (v3 schema) with JSON payload in `notes` field. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (99 passed, 10 files), `npm run build` (3375 modules).
+> **Status:** Sprint 20 — Public MVP release preparation for v0.1.0. Current app includes local AI brief-to-design, generated CAD geometry, 2D/3D BIM workflow, engineering analysis, regional geometry-derived BOQ, exports, IndexedDB persistence, governance/audit, snapshots, portfolio dashboard, archive/restore, CI, 117 tests, and live Vercel demo. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (117 passed, 12 files), `npm run build` (success).
 
 ---
 

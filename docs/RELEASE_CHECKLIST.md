@@ -10,8 +10,8 @@
 - [ ] `npm install`
 - [ ] `npm run typecheck` — 0 errors
 - [ ] `npm run lint` — 0 errors (warnings allowed if pre-existing)
-- [ ] `npm test` — 58 tests, 7 files, all passing
-- [ ] `npm run build` — succeeds (3369 modules, 16 precache)
+- [ ] `npm test` — all passing
+- [ ] `npm run build` — succeeds
 - [ ] CI badge shows green at https://github.com/securequalitybuilders-art/budget-engineer/actions
 - [ ] README.md is up to date
 - [ ] No secrets or API keys in source (run grep: API_KEY, SECRET, TOKEN, PRIVATE_KEY, PASSWORD, OPENAI, ANTHROPIC, GEMINI)
@@ -23,6 +23,9 @@
 - [ ] `public/_redirects` has SPA fallback rule (Netlify)
 - [ ] `version` in `package.json` is bumped (if releasing new version)
 - [ ] Deployment guide is up to date (`docs/DEPLOYMENT_GUIDE.md`)
+- [ ] CHANGELOG.md is up to date
+- [ ] Release notes created (docs/RELEASE_NOTES_v0.X.X.md)
+- [ ] Git tag created and pushed
 
 ---
 
@@ -43,6 +46,25 @@
 - [ ] Offline mode: load once online, go offline, page is accessible
 - [ ] Dark theme is default and toggleable
 - [ ] No console errors on any route
+- [ ] Portfolio Dashboard loads at `/portfolio`
+- [ ] Archive/restore works on portfolio cards
+- [ ] Search/filter/sort works on portfolio page
+
+---
+
+## v0.1.0 Release Verification
+
+| Check | Result |
+|-------|--------|
+| `npm run typecheck` | 0 errors |
+| `npm run lint` | 0 errors (6 pre-existing warnings) |
+| `npm test` | 117 passed, 12 files |
+| `npm run build` | Success, 18 precache entries |
+| Live demo loads | https://budget-engineer.vercel.app/ ✅ |
+| No secrets in source | ✅ |
+| No paid APIs | ✅ |
+| PWA assets present | ✅ |
+| Git tag v0.1.0 created | ✅ |
 
 ---
 
