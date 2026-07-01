@@ -962,3 +962,58 @@ None — all modules use pure TypeScript. WebLLM (`@mlc-ai/web-llm`) is dynamica
 - WebLLM parser tests (requires `@mlc-ai/web-llm`)
 - Multi-floor room distribution for >2 floors
 - CAD export (DXF/SVG) string generation tests
+
+---
+
+## Sprint 10 — Deployment Polish & Production Release Preparation
+
+**Date:** 2026-07-01  
+**Goal:** Prepare the Budget Engineer app for a public production demo release. No feature changes.
+
+### Files Added
+
+| File | Purpose |
+|------|---------|
+| `docs/DEPLOYMENT_GUIDE.md` | Vercel, Netlify, static hosting, PWA, no-paid-API notes |
+| `docs/RELEASE_CHECKLIST.md` | Pre-release and post-deploy smoke test checklist |
+| `docs/SPRINT_10_RELEASE_PREP_REPORT.md` | Sprint report |
+| `vercel.json` | SPA routing fallback for Vercel |
+| `public/_redirects` | SPA routing fallback for Netlify |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `README.md` | Live demo placeholder, deploy link, CI status, known limitations |
+| `FEATURE_MATRIX.md` | Added Sprint 10 rows (deployment docs, release checklist, router fallback, PWA assets) + summary count |
+| `CANONICAL_REPO_STATUS.md` | Status → Sprint 10, added deployment docs gap resolution |
+| `MERGE_LOG.md` | Added Sprint 10 entry |
+
+### Key Decisions
+
+1. **vercel.json added** — `createBrowserRouter` needs SPA fallback; Vite dev server handles it natively but production hosts do not.
+2. **public/_redirects added** — Netlify equivalent of vercel.json rewrites.
+3. **Known limitations documented** — Honest about cost estimates, no structural sign-off, early-stage CAD.
+4. **No icons redesigned** — Existing favicon.svg, icon-192.png, icon-512.png are adequate for demo.
+5. **No version bump** — `package.json` stays at `0.0.0`; first release should set `1.0.0`.
+6. **No paid APIs** — Verified zero paid API dependencies; WebLLM remains opt-in/uninstalled.
+
+### Secret Scan
+
+Scanned for: OPENAI, ANTHROPIC, GEMINI_API_KEY, API_KEY, SECRET, TOKEN, PRIVATE_KEY, PASSWORD. **0 matches found.**
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm test` | ✅ PASS (58 tests, 7 files) |
+| `npm run build` | ✅ PASS (3369 modules, 16 precache) |
+
+### Remaining Pre-Demo Tasks
+- Deploy to Vercel/Netlify for the first time
+- Replace "Live demo: coming soon" with actual URL
+- Run full smoke checklist against live URL
+- Test IndexedDB persistence on live domain
+- Verify PWA install prompt on mobile + desktop

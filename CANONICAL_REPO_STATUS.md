@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-01  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 9 — Automated tests for core pipeline: 58 tests across 7 files covering AI design → geometry → BIM → analysis → BOQ → rate cards → persistence. CI pipeline created with typecheck + lint + test + build. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (58 passed), `npm run build` (success)
+> **Status:** Sprint 10 — Deployment polish and production release preparation: DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects, README production section, PWA assets verified, secret scan clean. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (58 passed), `npm run build` (success)
 
 ---
 
@@ -277,6 +277,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **Finishes allowance in BOQ** | No finishes, services, or preliminaries line items | Add as percentage allowances in adapter |
 | **Web Workers** | No off-main-thread processing | Future |
 | **Tests** | 58 unit tests across 7 files | ✅ DONE (Sprint 9 — vitest, all adapters tested, CI pipeline) |
+| **Deployment docs** | DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects | ✅ DONE (Sprint 10 — Vercel/Netlify/static hosting, SPA fallback, release checklist) |
 | **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |
 | **Room layout optimization** | Grid-based layout may produce self-intersecting wall rings | Improve geometry adapter with proper floorplan algorithm |
 | **Multi-floor layout variation** | All floors use same room template | Add floor-specific templates (ground vs upper) |

@@ -104,6 +104,11 @@
 | **BOQ Rate Assumptions** (source tracking, fallback warnings) | ✅ Present | Sprint 8 — rateCardAdapter assumptions + BoqExportPanel display |
 | **BOQ CSV/HTML: region, currency, rate source in export** | ✅ Present | Sprint 8 — updated buildExportCsv/buildExportHtml |
 | **Automated Tests** (vitest, 58 tests, 7 files) | ✅ Present | Sprint 9 — all core adapters/engines tested, CI pipeline |
+| **CI Pipeline** (GitHub Actions: typecheck → lint → test → build) | ✅ Present | Sprint 9 — `.github/workflows/ci.yml` |
+| **Deployment Docs** (DEPLOYMENT_GUIDE.md) | ✅ Present | Sprint 10 — Vercel, Netlify, static hosting, PWA notes |
+| **Release Checklist** (RELEASE_CHECKLIST.md) | ✅ Present | Sprint 10 — pre-release + smoke test checklist |
+| **SPA Router Fallback** (vercel.json, _redirects) | ✅ Present | Sprint 10 — BrowserRouter fallback for Vercel/Netlify |
+| **PWA Assets** (icon-192, icon-512, favicon, manifest) | ✅ Present | Sprint 10 — verified all present |
 
 ---
 
@@ -127,3 +132,4 @@
 | ✅ Present (Sprint 7 — Generated rooms, doors, windows, zones) | 1 adapter + 3 files modified + 1 sprint report |
 | ✅ Present (Sprint 8 — Regional rate card BOQ pricing) | 1 adapter + 2 files modified + 1 sprint report |
 | ✅ Present (Sprint 9 — Automated tests + CI) | 7 test files + 1 CI workflow + 1 sprint report |
+| ✅ Present (Sprint 10 — Deployment polish + release prep) | 4 docs + 1 vercel.json + 1 _redirects + README updates |

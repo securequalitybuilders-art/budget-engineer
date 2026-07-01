@@ -5,12 +5,15 @@
 > AI-powered computational design → 2D CAD → 3D BIM → engineering checks → quantities → BOQ → export.
 > Offline-first, open-source, Africa-focused.
 >
-> **All 5 workspace merges complete. Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, 58 automated tests across the full pipeline.** CI validates typecheck, lint, tests, and production build on every push.
+> **Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, 58 automated tests across the full pipeline.** CI validates typecheck, lint, tests, and production build on every push.
+
+**Live demo:** coming soon
 
 ## Quick start
 
 ```bash
-cd budget-engineer-os
+git clone https://github.com/securequalitybuilders-art/budget-engineer
+cd budget-engineer
 npm install
 npm run dev
 ```
@@ -50,6 +53,30 @@ Then open http://localhost:5173.
 | `npm run lint` | ESLint |
 | `npm test` | Run all tests (vitest) |
 | `npm run test:watch` | Run tests in watch mode |
+
+## Deploy
+
+See [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) for Vercel, Netlify, and static hosting instructions.
+
+## CI Status
+
+Each push to `main` runs via GitHub Actions:
+
+1. `npm ci`
+2. `npm run typecheck`
+3. `npm run lint`
+4. `npm test` (58 tests, 7 files)
+5. `npm run build`
+
+## Known Limitations
+
+- **Approximate cost rates** — BOQ totals are based on regional rate cards with default assumptions. Not suitable for procurement or final budgeting.
+- **No structural engineer sign-off** — generated designs are concept/feasibility only. Always engage a registered structural engineer for detailed design.
+- **Early-stage CAD** — generated geometry is deterministic and grid-based. Manual editing in the 2D CAD canvas is recommended for real projects.
+- **WebLLM not installed** — `@mlc-ai/web-llm` is opt-in. The app works fully offline without it using the deterministic local-rules engine.
+- **Not a replacement for professional review** — this tool aids early-stage design and cost estimation. It does not replace qualified quantity surveyors, structural engineers, or architects.
+- **Same room template per floor** — multi-floor designs use the same room layout for all levels (no ground/upper variation).
+- **Finishes/services are estimates** — finishes and services line items are percentage-based allowances, not detailed takeoffs.
 
 ## License
 
