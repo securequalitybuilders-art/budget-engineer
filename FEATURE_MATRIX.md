@@ -95,6 +95,11 @@
 | **Pipeline UI** (6-stage workflow) | ✅ Present | WS1 |
 | **Project Wizard** (3-step) | ✅ Present | WS1 |
 | **Lazy Loading / Code Splitting** | ✅ Present | WS1/WS3 |
+| **Generated Rooms/zones** (room layout per building type) | ✅ Present | Sprint 7 — designGeometryAdapter |
+| **Generated Doors** (internal + entrance) | ✅ Present | Sprint 7 — designGeometryAdapter → BIM openings |
+| **Generated Windows** (on external walls) | ✅ Present | Sprint 7 — designGeometryAdapter → BIM openings + solar analysis |
+| **Internal Partition Walls** | ✅ Present | Sprint 7 — designGeometryAdapter → BIM walls |
+| **BOQ: Doors, Windows, Finishes, Services line items** | ✅ Present | Sprint 7 — designToBoq extra items |
 
 ---
 
@@ -115,3 +120,4 @@
 | ✅ Present (Sprint 4 — BOQ dashboard workflow + CSV/HTML export) | 1 adapter + 1 panel + 1 fix + 4 doc files |
 | ✅ Present (Sprint 5 — Engineering analysis panels wired) | 1 adapter + 1 panel + 1 Dashboard integration |
 | ✅ Present (Sprint 6 — IndexedDB persistence) | 1 service + 2 files modified + 1 sprint report |
+| ✅ Present (Sprint 7 — Generated rooms, doors, windows, zones) | 1 adapter + 3 files modified + 1 sprint report |

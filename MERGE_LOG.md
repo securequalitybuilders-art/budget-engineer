@@ -814,6 +814,44 @@ None — all modules use pure TypeScript. WebLLM (`@mlc-ai/web-llm`) is dynamica
 | `npm run lint` | ✅ PASS (0 errors, 7 pre-existing warnings) |
 | `npm run build` (`tsc && vite build`) | ✅ PASS (3367 modules, 16 precache) |
 
+---
+
+## Sprint 7 — Generated CAD Detail with Rooms, Openings, Doors, Windows, Zones
+
+**Date:** 2026-07-01  
+**Goal:** Improve AI-generated design geometry to produce richer CAD/BIM/analysis/BOQ outputs with rooms, doors, windows, internal walls, zones, and better BOQ items.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/adapters/designGeometryAdapter.ts` | Building geometry engine: `buildDesignGeometry()` generates rooms, internal/external walls, doors, windows, zones from `DesignOption` |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/adapters/designToBim.ts` | Uses geometry adapter for walls + adds BimOpening (doors/windows) + BimRoomZone elements |
+| `src/adapters/designToAnalysis.ts` | Uses geometry adapter for richer CAD walls + openings; removes old single-zone approach |
+| `src/adapters/designToBoq.ts` | Adds extra BOQ line items for doors, windows, partitions, finishes, services |
+
+### Key Decisions
+
+1. **New geometry adapter over inline code** — keeps wall/room/opening logic reusable across BIM, CAD, and BOQ adapters
+2. **Grid-based room layout** — flexible template system for residential/clinic/commercial; room positions as fractions of building dimensions
+3. **Edge deduplication wall generation** — shared room edges become internal walls; perimeter edges become external walls; canonical edge keys prevent duplicates
+4. **Opening placement rules** — entrance door at 45% of front wall; windows on external walls for habitable rooms; internal doors on partition walls; all clamped ≥0.3 m from corners
+5. **Extra BOQ items in adapter** — boq-generator handles wall/slab/roof/opening base items; adapter adds doors, windows, partitions, finishes, services allowances
+6. **No PlanCanvas changes** — derived geometry powers BIM/analysis/BOQ only; CAD engine unchanged
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm run build` (`tsc && vite build`) | ✅ PASS (3368 modules, 16 precache) |
+
 ### Still Deferred
 - Persist active canvas view preference
 - Openings/doors/windows in BOQ and analysis

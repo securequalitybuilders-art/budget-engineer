@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-01  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 6 — IndexedDB persistence for AI-generated designs, BIM models, BOQs, and export actions. AI designs survive page refresh via Dexie. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
+> **Status:** Sprint 7 — Generated CAD detail: rooms, doors, windows, internal walls, and zones improve 2D CAD realism, 3D BIM, clash detection, solar analysis, MEP takeoff, and BOQ completeness. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
 
 ---
 
@@ -250,7 +250,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 - **Engineering Studio section** (EngineeringStudioPanel) — tabbed accordion panel in dashboard right sidebar
 - **BOQ Export Panel** (BoqExportPanel) — sidebar panel for BOQ display, CSV export, HTML dossier, print-to-PDF
 - **Engineering Analysis Panel** (EngineeringAnalysisPanel) — sidebar panel for clash detection, solar analysis, MEP takeoff with recommendation cards
-- **4 adapters** (`designToBim.ts` + `aiDesignAdapter.ts` + `designToBoq.ts` + `designToAnalysis.ts`) — BIM model, AI design, BOQ generation, engineering analysis from DesignOption
+- **5 adapters** (`designGeometryAdapter.ts` + `designToBim.ts` + `aiDesignAdapter.ts` + `designToBoq.ts` + `designToAnalysis.ts`) — building geometry, BIM model, AI design, BOQ generation, engineering analysis from DesignOption
 - **2D/3D toggle** in Dashboard toolbar — switches between PlanCanvas and LazyBimViewer
 
 ---
@@ -272,10 +272,13 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **Wire drawing register into export** | Register lib exists, not tied to export pipeline | Integrate with boq-export and pdf-dossier |
 | **Wire BOQ into Dashboard export workflow** | designToBoq adapter + BoqExportPanel created | ✅ DONE (Sprint 4 — BOQ display, CSV/HTML export, print-to-PDF) |
 | **Wire engineering analysis into Dashboard** | designToAnalysis adapter + EngineeringAnalysisPanel created | ✅ DONE (Sprint 5 — clash, solar, MEP display) |
-| **Openings/doors/windows in BOQ** | designToBim doesn't create opening elements from DesignOption | Add when DesignOption includes opening data |
+| **Openings/doors/windows in BOQ** | designToBim didn't create opening elements | ✅ DONE (Sprint 7 — designGeometryAdapter generates doors/windows → BIM openings → BOQ items) |
 | **Finishes allowance in BOQ** | No finishes, services, or preliminaries line items | Add as percentage allowances in adapter |
 | **Web Workers** | No off-main-thread processing | Future |
 | **Tests** | No unit or integration tests | Add tests for all engines and analysis modules |
 | **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |
+| **Room layout optimization** | Grid-based layout may produce self-intersecting wall rings | Improve geometry adapter with proper floorplan algorithm |
+| **Multi-floor layout variation** | All floors use same room template | Add floor-specific templates (ground vs upper) |
+| **Furniture/blocks in generated rooms** | No furniture placement in rooms | Add CadBlockInstance generation in geometry adapter |
 | **Persist AI-generated designs** | AI designs were local-state only | ✅ DONE (Sprint 6 — projectPersistenceService + Dashboard wiring) |
 | **Persist BIM, BOQ, export actions** | No persistence for BIM/BOQ/export | ✅ DONE (Sprint 6 — projectPersistenceService + Dashboard wiring) |

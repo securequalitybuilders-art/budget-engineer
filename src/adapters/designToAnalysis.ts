@@ -1,6 +1,6 @@
 import type { DesignOption } from '@/domain/boq'
-import type { BimModel, BimRoomZone } from '@/domain/bim'
-import type { CadDocument, CadFloor, CadWall, CadOpening, CadBlockInstance, CadLayer } from '@/domain/cad'
+import type { CadDocument, CadFloor, CadWall, CadOpening, CadBlockInstance } from '@/domain/cad'
+import { buildDesignGeometry } from './designGeometryAdapter'
 import { designOptionToBimModel } from './designToBim'
 import { detectBimClashes } from '@/lib/analysis/clash-checker'
 import { computeSolarAnalysis } from '@/lib/analysis/solar-analyzer'
@@ -9,11 +9,6 @@ import type { ClashReportSummary } from '@/lib/analysis/clash-checker'
 import type { SolarAnalysisSummary } from '@/lib/analysis/solar-analyzer'
 import type { MepTakeoffSummary } from '@/lib/quantities/mep-takeoff'
 
-
-function safeSqrt(n: number): number {
-  return n > 0 ? Math.sqrt(n) : 0
-}
-
 function safe<T>(fn: () => T, fallback: T): T {
   try { return fn() } catch { return fallback }
 }
@@ -21,7 +16,9 @@ function safe<T>(fn: () => T, fallback: T): T {
 function buildCadFromDesignOption(design: DesignOption): CadDocument | null {
   if (!design || design.grossFloorArea <= 0) return null
 
-  const dim = safeSqrt(design.grossFloorArea)
+  const geo = buildDesignGeometry(design)
+  if (geo.walls.length === 0) return null
+
   const floorHeight = 3
 
   const floors: CadFloor[] = []
@@ -39,35 +36,37 @@ function buildCadFromDesignOption(design: DesignOption): CadDocument | null {
       bim: { classification: floorName },
     })
 
-    // 4 perimeter walls (same geometry as designToBim but in 2D)
-    const wallDefs: { x1: number; y1: number; x2: number; y2: number }[] = [
-      { x1: 0, y1: 0, x2: dim * 2, y2: 0 },
-      { x1: dim * 2, y1: 0, x2: dim * 2, y2: dim },
-      { x1: dim * 2, y1: dim, x2: 0, y2: dim },
-      { x1: 0, y1: dim, x2: 0, y2: 0 },
-    ]
-
-    for (let wi = 0; wi < wallDefs.length; wi++) {
-      const { x1, y1, x2, y2 } = wallDefs[wi]
-      const id = `wall-${floorId}-${wi + 1}`
+    for (const gw of geo.walls.filter((w) => w.floorIndex === i)) {
       walls.push({
-        id,
+        id: gw.id,
         floorId,
-        start: { x: x1, y: y1 },
-        end: { x: x2, y: y2 },
-        thickness: 0.23,
-        structuralRole: wi === 0 ? 'external' : wi === 2 ? 'external' : 'internal',
+        start: { x: gw.start.x, y: gw.start.y },
+        end: { x: gw.end.x, y: gw.end.y },
+        thickness: gw.thickness,
+        structuralRole: gw.kind,
         layerId: 'walls',
-        bim: { classification: 'wall' },
+        bim: { classification: gw.kind === 'external' ? 'external wall' : 'internal partition' },
       })
     }
-  }
 
-  const layer: CadLayer = {
-    id: 'walls',
-    name: 'Walls',
-    visible: true,
-    color: '#1a365d',
+    for (const go of geo.openings.filter((o) => o.floorIndex === i)) {
+      const wall = geo.walls.find((w) => w.id === go.wallId)
+      if (!wall) continue
+      const wlen = Math.hypot(wall.end.x - wall.start.x, wall.end.y - wall.start.y) || 1
+      const offsetRatio = wlen > 0 ? (go.offset + go.width / 2) / wlen : 0.5
+      openings.push({
+        id: go.id,
+        floorId,
+        wallId: go.wallId,
+        kind: go.type,
+        offsetRatio,
+        width: go.width,
+        sillHeight: go.sillHeight,
+        headHeight: go.height,
+        layerId: 'openings',
+        bim: { classification: go.type },
+      })
+    }
   }
 
   return {
@@ -77,7 +76,10 @@ function buildCadFromDesignOption(design: DesignOption): CadDocument | null {
     activeFloorId: floors[0]?.id ?? 'f1',
     activeTool: 'select',
     floors,
-    layers: [layer],
+    layers: [
+      { id: 'walls', name: 'Walls', visible: true, color: '#1a365d' },
+      { id: 'openings', name: 'Openings', visible: true, color: '#d4a574' },
+    ],
     walls,
     openings,
     annotations: [],
@@ -85,41 +87,9 @@ function buildCadFromDesignOption(design: DesignOption): CadDocument | null {
   }
 }
 
-function enrichBimWithRoomZones(bim: BimModel, design: DesignOption): BimModel {
-  const dim = safeSqrt(design.grossFloorArea)
-  const floorHeight = 3
-
-  const roomZones: BimRoomZone[] = []
-
-  for (let i = 0; i < design.floors; i++) {
-    const floorId = `f${i + 1}`
-    const zOffset = i * floorHeight
-
-    roomZones.push({
-      id: `zone-${floorId}`,
-      projectId: bim.projectId,
-      floorId,
-      name: i === 0 ? 'Ground Floor' : `Floor ${i + 1}`,
-      ifcClass: 'IfcSpace',
-      material: 'generic',
-      properties: { program: 'Open Plan Studio Space' },
-      type: 'roomZone',
-      origin: { x: 0, y: zOffset, z: 0 },
-      width: dim * 2,
-      depth: dim,
-      height: floorHeight,
-    })
-  }
-
-  return {
-    ...bim,
-    elements: [...bim.elements, ...roomZones],
-  }
-}
-
 export interface AnalysisResult {
-  bim: BimModel | null
   cad: CadDocument | null
+  bim: ReturnType<typeof designOptionToBimModel>
   clashes: ClashReportSummary | null
   solar: SolarAnalysisSummary | null
   mep: MepTakeoffSummary | null
@@ -138,7 +108,9 @@ export function buildAnalysisFromDesignOption(design: DesignOption | null): Anal
   cad = safe(() => buildCadFromDesignOption(design), null)
   if (!cad) warnings.push('Could not build CAD model for clash/solar analysis')
 
-  const enrichedBim = bim ? enrichBimWithRoomZones(bim, design) : null
+  const enrichedBim = bim
+    ? { ...bim, elements: [...bim.elements] }
+    : null
 
   const clashes = bim && cad
     ? safe(() => detectBimClashes(cad), null)

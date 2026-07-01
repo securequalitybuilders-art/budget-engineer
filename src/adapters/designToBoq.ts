@@ -1,5 +1,6 @@
 import type { DesignOption } from '@/domain/boq'
-import type { BOQ } from '@/lib/boq/boq-types'
+import type { BOQ, BOQLineItem } from '@/lib/boq/boq-types'
+import { buildDesignGeometry } from './designGeometryAdapter'
 import { designOptionToBimModel } from './designToBim'
 import { generateBoqFromBim } from '@/engine/boq-generator'
 import { RATE_CARDS } from '@/lib/rates/rate-card'
@@ -14,14 +15,93 @@ export function buildBoqFromDesignOption(design: DesignOption | null, region = '
   const bim = designOptionToBimModel(design)
   if (!bim) return null
 
-  const boq = safe(() => generateBoqFromBim(bim), null)
-  if (!boq) return null
+  const baseBoq = safe(() => generateBoqFromBim(bim), null)
+  if (!baseBoq) return null
+
+  const geo = buildDesignGeometry(design)
+  const doorCount = geo.openings.filter((o) => o.type === 'door').length
+  const windowCount = geo.openings.filter((o) => o.type === 'window').length
+  const internalWallCount = geo.walls.filter((w) => w.kind === 'internal').length
+  const area = design.grossFloorArea
 
   const card = RATE_CARDS[region] ?? RATE_CARDS.zimbabwe
 
+  const extraItems: BOQLineItem[] = []
+
+  if (doorCount > 0) {
+    extraItems.push({
+      id: `boq-extra-doors`,
+      quantityRef: 'doors',
+      category: 'Openings',
+      description: `Internal doors (${doorCount} nr)`,
+      unit: 'each',
+      quantity: doorCount,
+      rate: 180,
+      total: doorCount * 180,
+    })
+  }
+
+  if (windowCount > 0) {
+    extraItems.push({
+      id: `boq-extra-windows`,
+      quantityRef: 'windows',
+      category: 'Openings',
+      description: `Windows with glazing (${windowCount} nr)`,
+      unit: 'each',
+      quantity: windowCount,
+      rate: 320,
+      total: windowCount * 320,
+    })
+  }
+
+  if (internalWallCount > 0) {
+    extraItems.push({
+      id: `boq-extra-partitions`,
+      quantityRef: 'partitions',
+      category: 'Walls',
+      description: `Internal partition walls (${internalWallCount} walls)`,
+      unit: 'm²',
+      quantity: internalWallCount * 8,
+      rate: 65,
+      total: internalWallCount * 8 * 65,
+    })
+  }
+
+  if (area > 0) {
+    extraItems.push({
+      id: `boq-extra-finishes`,
+      quantityRef: 'finishes',
+      category: 'Finishes',
+      description: 'Floor, wall & ceiling finishes allowance',
+      unit: 'm²',
+      quantity: area,
+      rate: 35,
+      total: area * 35,
+    })
+    extraItems.push({
+      id: `boq-extra-services`,
+      quantityRef: 'services',
+      category: 'MEP',
+      description: 'Electrical, plumbing & drainage allowance',
+      unit: 'm²',
+      quantity: area,
+      rate: 45,
+      total: area * 45,
+    })
+  }
+
+  const allItems = [...baseBoq.items, ...extraItems]
+  const subtotal = Math.round(allItems.reduce((sum, item) => sum + item.total, 0) * 100) / 100
+  const contingency = Math.round(subtotal * 0.05 * 100) / 100
+  const professionalFees = Math.round(subtotal * 0.07 * 100) / 100
+  const vat = Math.round((subtotal + contingency + professionalFees) * 0.15 * 100) / 100
+  const grandTotal = Math.round((subtotal + contingency + professionalFees + vat) * 100) / 100
+
   return {
-    ...boq,
+    ...baseBoq,
     currency: card.currency,
+    items: allItems,
+    summary: { subtotal, contingency, professionalFees, vat, grandTotal },
   }
 }
 
