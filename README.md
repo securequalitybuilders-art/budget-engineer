@@ -7,7 +7,7 @@
 >
 > **Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, 58 automated tests across the full pipeline.** CI validates typecheck, lint, tests, and production build on every push.
 
-**Live demo:** coming soon
+**Live demo:** [budget-engineer.vercel.app](https://budget-engineer.vercel.app/)
 
 ## Quick start
 
