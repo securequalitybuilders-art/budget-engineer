@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -18,6 +18,8 @@ import { LazyBimViewer } from '@/components/bim/LazyBimViewer';
 import { BoqExportPanel } from '@/components/dashboard/BoqExportPanel';
 import { EngineeringAnalysisPanel } from '@/components/dashboard/EngineeringAnalysisPanel';
 import { designOptionToBimModel } from '@/adapters/designToBim';
+import { buildBoqFromDesignOption } from '@/adapters/designToBoq';
+import { persistDesigns, persistBimModel, persistBoq, logTransaction, loadPersistedProjectWork } from '@/services/projectPersistenceService';
 import type { DesignOption } from '@/domain/boq';
 
 export function Dashboard() {
@@ -28,6 +30,9 @@ export function Dashboard() {
   const [selectedDesignId, setSelectedDesignId] = useState<string | null>(null);
   const [activeCanvasView, setActiveCanvasView] = useState<'plan' | 'bim'>('plan');
   const [aiDesignOptions, setAiDesignOptions] = useState<DesignOption[]>([]);
+  const loadedPersistenceRef = useRef(false);
+  const loggedBimRef = useRef<string | null>(null);
+  const loggedBoqRef = useRef<string | null>(null);
 
   const designOptions = useMemo<DesignOption[]>(
     () =>
@@ -56,11 +61,20 @@ export function Dashboard() {
   const selectedDesign = visibleDesignOptions.find((d) => d.id === selectedDesignId) ?? visibleDesignOptions[0] ?? null;
   const bimModel = useMemo(() => designOptionToBimModel(selectedDesign), [selectedDesign]);
 
+  // ── Persistence: load saved AI designs on mount ──
   useEffect(() => {
     seed();
     if (id) {
       loadProject(id);
+      loadPersistedProjectWork(id).then((saved) => {
+        if (saved.designs.length > 0 && aiDesignOptions.length === 0 && designOptions.length === 0) {
+          setAiDesignOptions(saved.designs);
+          setSelectedDesignId(saved.designs[0].id);
+        }
+      })
     }
+    loadedPersistenceRef.current = true;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, loadProject, seed]);
 
   useEffect(() => {
@@ -77,6 +91,27 @@ export function Dashboard() {
     }
   }, [currentProject, setActiveStage]);
 
+  // ── Persistence: save BIM model when it changes ──
+  useEffect(() => {
+    if (!bimModel || !id) return
+    persistBimModel(bimModel)
+    if (loggedBimRef.current !== selectedDesign?.id) {
+      logTransaction(id, 'CREATE', 'boq', bimModel.id, 'BIM model generated from design option')
+      loggedBimRef.current = selectedDesign?.id ?? null
+    }
+  }, [bimModel, id, selectedDesign?.id])
+
+  // ── Persistence: save BOQ when selected design changes ──
+  useEffect(() => {
+    if (!selectedDesign || !id) return
+    const boq = buildBoqFromDesignOption(selectedDesign)
+    if (boq && loggedBoqRef.current !== selectedDesign.id) {
+      persistBoq(id, selectedDesign.id, boq)
+      logTransaction(id, 'CREATE', 'boq', boq.id, 'BOQ generated from design option')
+      loggedBoqRef.current = selectedDesign.id
+    }
+  }, [selectedDesign, id])
+
   const handleGenerate = async () => {
     if (!id) return;
     setIsGenerating(true);
@@ -87,12 +122,25 @@ export function Dashboard() {
     }
   };
 
-  const handleAiDesignOptions = (options: DesignOption[]) => {
+  const handleAiDesignOptions = async (options: DesignOption[]) => {
     setAiDesignOptions(options);
     if (options.length > 0) {
       setSelectedDesignId(options[0].id);
     }
+    // Persist AI-generated designs
+    if (id && options.length > 0) {
+      await persistDesigns(id, options)
+      await logTransaction(id, 'AI_GENERATE', 'design', id, 'AI design options generated from brief', {
+        after: { count: options.length, options: options.map((o) => o.name) },
+      })
+    }
   };
+
+  const handleExport = (type: 'csv' | 'html' | 'print') => {
+    if (!id || !selectedDesign) return
+    const label = type === 'csv' ? 'CSV' : type === 'html' ? 'HTML dossier' : 'Print/PDF'
+    logTransaction(id, 'EXPORT', 'export', selectedDesign.id, `BOQ exported as ${label}`)
+  }
 
   if (isLoading || !currentProject) {
     return (
@@ -219,7 +267,7 @@ export function Dashboard() {
             <PropertiesPanel />
             <TransactionPanel />
             <EngineeringStudioPanel selectedDesign={selectedDesign} onDesignOptionsGenerated={handleAiDesignOptions} />
-            <BoqExportPanel selectedDesign={selectedDesign} />
+            <BoqExportPanel selectedDesign={selectedDesign} onExport={handleExport} />
             <EngineeringAnalysisPanel selectedDesign={selectedDesign} />
           </div>
         </div>

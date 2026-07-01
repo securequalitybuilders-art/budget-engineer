@@ -113,3 +113,5 @@
 | ✅ Present (Sprint 2 — BIM viewer in Dashboard) | 1 adapter + 1 toggle UI |
 | ✅ Present (Sprint 3 — AI brief-to-design flow) | 1 adapter + 3 files modified |
 | ✅ Present (Sprint 4 — BOQ dashboard workflow + CSV/HTML export) | 1 adapter + 1 panel + 1 fix + 4 doc files |
+| ✅ Present (Sprint 5 — Engineering analysis panels wired) | 1 adapter + 1 panel + 1 Dashboard integration |
+| ✅ Present (Sprint 6 — IndexedDB persistence) | 1 service + 2 files modified + 1 sprint report |

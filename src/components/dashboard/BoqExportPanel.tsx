@@ -6,9 +6,10 @@ import { Calculator, FileDown, FileText, Printer } from 'lucide-react'
 
 interface BoqExportPanelProps {
   selectedDesign: DesignOption | null
+  onExport?: (type: 'csv' | 'html' | 'print') => void
 }
 
-export function BoqExportPanel({ selectedDesign }: BoqExportPanelProps) {
+export function BoqExportPanel({ selectedDesign, onExport }: BoqExportPanelProps) {
   const [exported, setExported] = useState(false)
 
   const boq = useMemo<BOQ | null>(
@@ -28,6 +29,7 @@ export function BoqExportPanel({ selectedDesign }: BoqExportPanelProps) {
     const slug = selectedDesign.name.toLowerCase().replace(/\s+/g, '-')
     downloadTextFile(`boq-${slug}.csv`, csv, 'text/csv')
     setExported(true)
+    onExport?.('csv')
     setTimeout(() => setExported(false), 3000)
   }
 
@@ -37,6 +39,7 @@ export function BoqExportPanel({ selectedDesign }: BoqExportPanelProps) {
     const slug = selectedDesign.name.toLowerCase().replace(/\s+/g, '-')
     downloadTextFile(`boq-${slug}.html`, html, 'text/html')
     setExported(true)
+    onExport?.('html')
     setTimeout(() => setExported(false), 3000)
   }
 
@@ -48,6 +51,7 @@ export function BoqExportPanel({ selectedDesign }: BoqExportPanelProps) {
       w.document.write(html)
       w.document.close()
     }
+    onExport?.('print')
   }
 
   const money = (n: number) =>

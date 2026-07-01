@@ -1,8 +1,8 @@
 # Canonical Repo Status — Budget Engineer OS
 
-> **Date:** 2026-06-30  
+> **Date:** 2026-07-01  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 5 — Engineering analysis panels wired: clash detection, solar/orientation analysis, and MEP takeoff run on the selected design option via a new adapter + dashboard panel. No paid APIs, no cloud dependencies, no WebLLM. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
+> **Status:** Sprint 6 — IndexedDB persistence for AI-generated designs, BIM models, BOQs, and export actions. AI designs survive page refresh via Dexie. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
 
 ---
 
@@ -277,3 +277,5 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **Web Workers** | No off-main-thread processing | Future |
 | **Tests** | No unit or integration tests | Add tests for all engines and analysis modules |
 | **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |
+| **Persist AI-generated designs** | AI designs were local-state only | ✅ DONE (Sprint 6 — projectPersistenceService + Dashboard wiring) |
+| **Persist BIM, BOQ, export actions** | No persistence for BIM/BOQ/export | ✅ DONE (Sprint 6 — projectPersistenceService + Dashboard wiring) |

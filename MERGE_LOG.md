@@ -777,3 +777,48 @@ None — all modules use pure TypeScript. WebLLM (`@mlc-ai/web-llm`) is dynamica
 | `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
 | `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
 | `npm run build` (`tsc && vite build`) | ✅ PASS (3366 modules, 16 precache) |
+
+---
+
+## Sprint 6 — IndexedDB Persistence
+
+**Date:** 2026-07-01  
+**Goal:** Persist AI-generated designs, BIM models, BOQs, and export actions to Dexie/IndexedDB so generated work survives page refresh.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/services/projectPersistenceService.ts` | Persistence service: `persistDesigns`, `loadPersistedDesignOptions`, `persistBimModel`, `persistBoq`, `logTransaction`, `loadPersistedProjectWork` |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/components/dashboard/BoqExportPanel.tsx` | Added `onExport?: (type: 'csv' \| 'html' \| 'print') => void` prop |
+| `src/pages/Dashboard.tsx` | Added persistence calls on AI design generation, BIM model change, BOQ computation, and export |
+
+### Key Decisions
+
+1. **Service layer over store** — AI designs flow through the adapter, not store actions; dedicated service with try/catch is cleaner
+2. **db.put (upsert)** — avoids duplicate-key errors on repeated generation; existing records with same id are overwritten
+3. **Type conversion in service** — `@/domain/boq` and `@/types` define different `BuildingElement` shapes; service handles the mapping
+4. **useRef guard** — prevents duplicate transaction logging when identity doesn't change across renders
+5. **Migration-safe** — uses existing tables + v3 schema; no schema changes needed
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 7 pre-existing warnings) |
+| `npm run build` (`tsc && vite build`) | ✅ PASS (3367 modules, 16 precache) |
+
+### Still Deferred
+- Persist active canvas view preference
+- Openings/doors/windows in BOQ and analysis
+- Finishes/services/preliminaries allowances
+- WebLLM integration (opt-in)
+- FloorVisibilityPanel wiring
+- Drawing register integration into export pipeline
+- Tests for all engines and analysis modules
