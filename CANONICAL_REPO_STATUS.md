@@ -2,7 +2,7 @@
 
 > **Date:** 2026-06-30  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 3 — Local AI brief-to-design flow wired: brief parser + design engine produce visible design options in Dashboard via AiBriefPanel. No paid APIs, no cloud dependencies, no WebLLM. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
+> **Status:** Sprint 4 — BOQ & export workflow wired: selected design option generates BOQ via BIM adapter, displayed in dashboard sidebar panel with CSV export, HTML dossier export, and print-to-PDF. No paid APIs, no cloud dependencies, no WebLLM. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
 
 ---
 
@@ -248,7 +248,8 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 - **5 BIM components** (BimViewer, BimLegend, BimInspector, FloorVisibilityPanel, LazyBimViewer)
 - **6 WS6 panel components** (AiBriefPanel, RateCardPanel, RebarSpecPanel, FootingSizingPanel, LoadAnalysisPanel, SectionView) — ✅ wired into Engineering Studio
 - **Engineering Studio section** (EngineeringStudioPanel) — tabbed accordion panel in dashboard right sidebar
-- **2 adapters** (`src/adapters/designToBim.ts` + `src/adapters/aiDesignAdapter.ts`) — BIM model from DesignOption, AI design from brief text
+- **BOQ Export Panel** (BoqExportPanel) — sidebar panel for BOQ display, CSV export, HTML dossier, print-to-PDF
+- **3 adapters** (`designToBim.ts` + `aiDesignAdapter.ts` + `designToBoq.ts`) — BIM model, AI design, BOQ generation from DesignOption
 - **2D/3D toggle** in Dashboard toolbar — switches between PlanCanvas and LazyBimViewer
 
 ---
@@ -268,6 +269,9 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **Wire WS6 structural libs** | Load engine, footing sizer, rebar spec | ✅ DONE (Sprint 1 — via Engineering Studio with sample data) |
 | **Wire SectionView into Dashboard** | SectionView exists, not routed | ✅ DONE (Sprint 1 — Engineering Studio tab with sample CAD) |
 | **Wire drawing register into export** | Register lib exists, not tied to export pipeline | Integrate with boq-export and pdf-dossier |
+| **Wire BOQ into Dashboard export workflow** | designToBoq adapter + BoqExportPanel created | ✅ DONE (Sprint 4 — BOQ display, CSV/HTML export, print-to-PDF) |
+| **Openings/doors/windows in BOQ** | designToBim doesn't create opening elements from DesignOption | Add when DesignOption includes opening data |
+| **Finishes allowance in BOQ** | No finishes, services, or preliminaries line items | Add as percentage allowances in adapter |
 | **Web Workers** | No off-main-thread processing | Future |
 | **Tests** | No unit or integration tests | Add tests for all engines and analysis modules |
 | **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |

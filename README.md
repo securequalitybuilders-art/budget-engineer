@@ -2,10 +2,10 @@
 
 [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml)
 
-> AI-powered computational design → 2D CAD → 3D BIM → engineering quantities → BOQ.
+> AI-powered computational design → 2D CAD → 3D BIM → engineering quantities → BOQ → CSV/HTML export.
 > Offline-first, open-source, Africa-focused.
 >
-> **All 5 workspace merges complete. Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle.** CI validates typecheck, lint, and production build on every push.
+> **All 5 workspace merges complete. Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export and print-to-PDF.** CI validates typecheck, lint, and production build on every push.
 
 ## Quick start
 
@@ -29,8 +29,9 @@ Then open http://localhost:5173.
 | Advanced Eng | Wall corner solver (intersection math), clash detection (3 BIM rules), solar analysis, MEP takeoff, executive dossier (HTML print-to-PDF) | WS4 |
 | Structural | Column/beam/footing placement algorithms, rebar calculator, material rates, clash auto-healing | WS5 |
 | AI + Drawings + Engineering Studio | Deterministic brief parser, design engine, WebLLM adapter (opt-in), SVG plan/section/title-block generators, drawing register, regional rate cards, load analysis, footing sizing, rebar spec, design fingerprint, 6 wired panel components in Engineering Studio tabbed section **+ local AI brief-to-design flow wired into Dashboard** | WS6 |
+| **Sprint 4: BOQ & Export** | designToBoq adapter, BoqExportPanel sidebar, CSV export, HTML dossier export, print-to-PDF, roof type fix in designToBim | Sprint 4 |
 
-**Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Analysis → BOQ → Export
+**Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Analysis → BOQ → Export (CSV / HTML / PDF)
 
 **Repository:** [github.com/securequalitybuilders-art/budget-engineer](https://github.com/securequalitybuilders-art/budget-engineer)
 

@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import { PlanCanvas } from '@/components/cad/PlanCanvas';
 import { PlanComparison } from '@/components/cad/PlanComparison';
 import { LazyBimViewer } from '@/components/bim/LazyBimViewer';
+import { BoqExportPanel } from '@/components/dashboard/BoqExportPanel';
 import { designOptionToBimModel } from '@/adapters/designToBim';
 import type { DesignOption } from '@/domain/boq';
 
@@ -217,6 +218,7 @@ export function Dashboard() {
             <PropertiesPanel />
             <TransactionPanel />
             <EngineeringStudioPanel selectedDesign={selectedDesign} onDesignOptionsGenerated={handleAiDesignOptions} />
+            <BoqExportPanel selectedDesign={selectedDesign} />
           </div>
         </div>
       </div>

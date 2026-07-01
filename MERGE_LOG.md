@@ -697,6 +697,45 @@ None — all modules use pure TypeScript. WebLLM (`@mlc-ai/web-llm`) is dynamica
 
 ### Still Deferred
 - Persist AI-generated designs to Dexie
-- BOQ auto-generation from AI designs
+- Openings/doors/windows in BOQ
+- Finishes/services/preliminaries allowances
 - WebLLM integration (opt-in)
 - FloorVisibilityPanel wiring
+
+---
+
+## Sprint 4 — BOQ & Export Workflow
+
+**Date:** 2026-07-01  
+**Goal:** Wire BOQ generation and export into the Dashboard — connect selected design option to quantities/BOQ/export workflow.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/adapters/designToBoq.ts` | DesignOption → BOQ adapter: `buildBoqFromDesignOption()`, `buildExportCsv()`, `buildExportHtml()`, `downloadTextFile()` |
+| `src/components/dashboard/BoqExportPanel.tsx` | Dashboard panel showing BOQ table, totals, and export buttons (CSV, HTML, Print/PDF) |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/adapters/designToBim.ts` | Fixed roof element type: changed from `BimWall` (type 'wall') to `BimRoof` (type 'roof') so BOQ generator picks it up |
+| `src/pages/Dashboard.tsx` | Added BoqExportPanel import and render in right sidebar |
+
+### Key Decisions
+
+1. **`src/lib/boq/boq-types.ts` BOQ type chosen** as canonical — already used by boq-generator, compatible with ws6-types and pdf-dossier
+2. **No new npm dependencies** — all code is pure TypeScript/React
+3. **Existing BOQPanel unchanged** — bottom panel remains; BoqExportPanel is an additional sidebar panel
+4. **No paid APIs, no cloud** — CSV/HTML via string generation, PDF via browser print-to-PDF
+5. **Rate card used for currency only** — boq-generator has hardcoded rates; currency sourced from rate card
+6. **Roof type fixed** — previous BimWall/type:'wall' meant roof was invisible to BOQ generator; now BimRoof/type:'roof'
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm run build` (`tsc && vite build`) | ✅ PASS (3361 modules, 16 precache) |

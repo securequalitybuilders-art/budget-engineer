@@ -48,7 +48,10 @@
 | **3D BIM Viewer in Dashboard** (2D/3D toggle) | ✅ Present | Sprint 2 — `LazyBimViewer` + `designToBim.ts` adapter wired in Dashboard |
 | **BIM Legend & Inspector** | ✅ Present | WS3 |
 | **BIM Generator** (CAD→BIM) | ✅ Present | WS3 |
-| **BOQ Generator** (BIM→BOQ) | ✅ Present | WS3 |
+| **BOQ Generator** (BIM→BOQ) | ✅ Present, wired | WS3 — wired into Dashboard via Sprint 4 designToBoq adapter |
+| **BOQ Dashboard Panel** (sidebar BOQ display, CSV/HTML export, print PDF) | ✅ Present, wired | Sprint 4 — `BoqExportPanel.tsx` + `designToBoq.ts` |
+| **CSV Export** (from BOQ panel) | ✅ Present, wired | Sprint 4 — `buildExportCsv()` + `downloadTextFile()` |
+| **HTML Dossier Export** (self-contained, with print-to-PDF) | ✅ Present, wired | Sprint 4 — `buildExportHtml()` + `downloadTextFile()` |
 | **Governance Workflow** | ✅ Present | WS3 types + lib (panels deferred) |
 | **RBAC** (role-based access control) | ✅ Present | WS3 types + lib (panels deferred) |
 | **Project Snapshots** (versioning) | ✅ Present | WS3 types + lib (panels deferred) |
@@ -105,3 +108,4 @@
 | ✅ Present (Sprint 1 — WS6 panels wired) | 6 panel components |
 | ✅ Present (Sprint 2 — BIM viewer in Dashboard) | 1 adapter + 1 toggle UI |
 | ✅ Present (Sprint 3 — AI brief-to-design flow) | 1 adapter + 3 files modified |
+| ✅ Present (Sprint 4 — BOQ dashboard workflow + CSV/HTML export) | 1 adapter + 1 panel + 1 fix + 4 doc files |

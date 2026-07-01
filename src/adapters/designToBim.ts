@@ -1,5 +1,5 @@
 import type { DesignOption } from '@/domain/boq'
-import type { BimModel, BimElement, BimSlab, BimWall } from '@/domain/bim'
+import type { BimModel, BimElement, BimSlab, BimWall, BimRoof } from '@/domain/bim'
 import { uuid } from '@/lib/utils'
 
 function safeSqrt(n: number): number {
@@ -73,7 +73,7 @@ export function designOptionToBimModel(design: DesignOption | null): BimModel | 
   // Roof slab
   const roofFloorIndex = design.floors
   const roofZ = roofFloorIndex * floorHeight
-  const roof: BimWall = {
+  const roof: BimRoof = {
     id: 'roof',
     projectId: '',
     floorId: bimFloors[roofFloorIndex - 1]?.id ?? 'f1',
@@ -81,11 +81,11 @@ export function designOptionToBimModel(design: DesignOption | null): BimModel | 
     ifcClass: 'IfcRoof',
     material: 'concrete',
     properties: {},
-    type: 'wall',
-    start: { x: 0, y: roofZ, z: 0 },
-    end: { x: dim * 2, y: roofZ, z: dim },
+    type: 'roof',
+    origin: { x: 0, y: roofZ, z: 0 },
+    width: dim * 2,
+    depth: dim,
     thickness: 0.15,
-    height: 0.15,
   }
   elements.push(roof)
 
