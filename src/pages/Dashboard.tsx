@@ -18,6 +18,7 @@ import { PlanComparison } from '@/components/cad/PlanComparison';
 import { LazyBimViewer } from '@/components/bim/LazyBimViewer';
 import { BoqExportPanel } from '@/components/dashboard/BoqExportPanel';
 import { EngineeringAnalysisPanel } from '@/components/dashboard/EngineeringAnalysisPanel';
+import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
 import { designOptionToBimModel } from '@/adapters/designToBim';
 import { buildBoqFromDesignOption } from '@/adapters/designToBoq';
 import { persistDesigns, persistBimModel, persistBoq, logTransaction, loadPersistedProjectWork } from '@/services/projectPersistenceService';
@@ -282,6 +283,12 @@ export function Dashboard() {
             <EngineeringStudioPanel selectedDesign={selectedDesign} onDesignOptionsGenerated={handleAiDesignOptions} />
             <BoqExportPanel selectedDesign={selectedDesign} onExport={handleExport} />
             <EngineeringAnalysisPanel selectedDesign={selectedDesign} />
+            <GovernancePanel
+              selectedDesign={selectedDesign}
+              hasBim={(bimModel?.elements.length ?? 0) > 0}
+              hasBoq={!!selectedDesign}
+              hasAnalysis={!!selectedDesign}
+            />
           </div>
         </div>
       </div>

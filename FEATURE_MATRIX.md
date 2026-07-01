@@ -55,9 +55,9 @@
 | **BOQ Dashboard Panel** (sidebar BOQ display, CSV/HTML export, print PDF) | ✅ Present, wired | Sprint 4 — `BoqExportPanel.tsx` + `designToBoq.ts` |
 | **CSV Export** (from BOQ panel) | ✅ Present, wired | Sprint 4 — `buildExportCsv()` + `downloadTextFile()` |
 | **HTML Dossier Export** (self-contained, with print-to-PDF) | ✅ Present, wired | Sprint 4 — `buildExportHtml()` + `downloadTextFile()` |
-| **Governance Workflow** | ✅ Present | WS3 types + lib (panels deferred) |
-| **RBAC** (role-based access control) | ✅ Present | WS3 types + lib (panels deferred) |
-| **Project Snapshots** (versioning) | ✅ Present | WS3 types + lib (panels deferred) |
+| **Governance Workflow** | ✅ Present | WS3 types + lib — wired via Sprint 16 GovernancePanel |
+| **RBAC** (role-based access control) | ✅ Present | WS3 types + lib — displayed in GovernancePanel |
+| **Project Snapshots** (versioning) | ✅ Present | WS3 types + lib — fingerprint shown in GovernancePanel |
 | **Snapshot Diff** | ✅ Present | WS3 lib |
 | **BOQ Analysis & Comparison** | ✅ Present | WS3 lib |
 | **Zone Costing & Traceability** | ✅ Present | WS3 lib |
@@ -76,6 +76,7 @@
 | **Currency Symbols** (USD, ZAR, KES, etc.) | ✅ Present | WS6 `src/lib/utils/currency.ts` |
 | **Charts** (cost breakdown) | ✅ Present | Recharts |
 | **Transaction History** (audit log) | ✅ Present | WS1 |
+| **Governance Dashboard Panel** (status, checklist, RBAC, audit) | ✅ Present | Sprint 16 — GovernancePanel in Dashboard right sidebar |
 | **Exports** (CSV, HTML, ZIP, SVG, DXF) | ✅ Present | WS1/WS2/WS3/WS6 |
 | **Section/Elevation Views** (interactive SVG) | ✅ Present | WS6 SectionView wired into Engineering Studio |
 | **Drawing Register Panel** | 🔄 Staged | WS6 drawing-register lib — not wired into dashboard |
@@ -139,3 +140,7 @@
 | ✅ Present (Sprint 10 — Deployment polish + release prep) | 4 docs + 1 vercel.json + 1 _redirects + README updates |
 | ✅ Present (Sprint 11 — Live deployment smoke test) | 1 report + README URL update |
 | ✅ Present (Sprint 12 — Public demo audit + polish) | SEO tags + a11y fixes + mobile polish + audit report |
+| ✅ Present (Sprint 13 — Geometry-derived BOQ quantities) | 1 adapter + 1 test file + 2 files modified + 1 report |
+| ✅ Present (Sprint 14 — Builder journey guide) | 1 panel + 2 pages modified + 1 report |
+| ✅ Present (Sprint 15 — Mobile polish) | 6 files modified + 1 report |
+| ✅ Present (Sprint 16 — Governance & audit panel) | 1 adapter + 1 panel + 1 Dashboard integration + 1 test file + 1 report |

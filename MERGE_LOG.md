@@ -1213,6 +1213,60 @@ Scanned for: OPENAI, ANTHROPIC, GEMINI_API_KEY, API_KEY, SECRET, TOKEN, PRIVATE_
 
 ---
 
+## Sprint 16 — Governance & Audit Dashboard Panel
+
+**Date:** 2026-07-01  
+**Goal:** Wire existing governance/RBAC/versioning/transaction foundations into visible dashboard panels for enterprise and institutional credibility.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/adapters/governanceAdapter.ts` | `buildGovernanceSummary()` — produces GovernanceSummary with status, checklist, roles, fingerprint, audit trail, recommendations, warnings |
+| `src/components/dashboard/GovernancePanel.tsx` | Collapsible Dashboard sidebar panel showing governance status, approval readiness checklist, RBAC role descriptions, design fingerprint, recent audit trail from IndexedDB transactions, actionable recommendations, and local-demo warnings |
+| `src/__tests__/governanceAdapter.test.ts` | 13 tests: Draft status, Ready for Review, Reviewed, Exported, stable fingerprint, different fingerprints, role descriptions, transaction limit, recommendations, warnings, null safety, NaN check, timestamps |
+| `docs/SPRINT_16_GOVERNANCE_REPORT.md` | Sprint report |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/pages/Dashboard.tsx` | Imported GovernancePanel and rendered at end of right sidebar; passes selectedDesign, hasBim, hasBoq, hasAnalysis |
+| `FEATURE_MATRIX.md` | Governance workflow/RBAC marked as wired; added Governance Dashboard Panel feature row; Sprint 16 summary count |
+| `CANONICAL_REPO_STATUS.md` | Status → Sprint 16; Governance & RBAC section updated; known gap → done; 8 adapters; GovernancePanel in component list; 86 tests across 9 files |
+| `MERGE_LOG.md` | Added Sprint 16 entry |
+| `README.md` | Mentioned governance/audit panel |
+
+### Key Decisions
+
+1. **Local-only governance** — no real auth backend; roles displayed as reference; all panels show "Local demo mode" disclaimer
+2. **Adapter separate from panel** — GovernanceAdapter is testable pure function; GovernancePanel reads from store and renders
+3. **Fingerprint from adapter** — `simpleFingerprint()` uses design id/name/GFA/floors/elements (djb2 hash, deterministic, zero deps)
+4. **Transactions from projectStore** — reuses existing `loadProject()` IndexedDB loading; no new persistence code
+5. **Thresholds: 0–4 items = Draft, 5 = Ready for Review, 6 = Reviewed, any EXPORT = Exported**
+6. **Checklist always shows "Professional review required" as unsatisfied** — keeps the professional disclaimer visible
+7. **Panel collapsed by default** on mobile/desktop? `useState(true)` — expanded by default so first-time users see governance info immediately
+8. **No destructive DB changes** — governance/snapshot tables already exist in v3 schema
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm test` (`vitest run`) | ✅ PASS (86 tests, 9 files) |
+| `npm run build` (`tsc && vite build`) | ✅ PASS (3373 modules, 16 precache) |
+
+### Still Deferred
+- Full snapshot diff viewer UI
+- Governance state mutation (set approval state, add comments)
+- Real RBAC auth backend
+- Cross-project/portfolio analytics panels
+- Drawing register integration into export pipeline
+- Component-level tests (PlanCanvas, LazyBimViewer, Dashboard panels)
+
+---
+
 **Date:** 2026-07-01  
 **Goal:** Derive BOQ quantities from generated CAD geometry instead of broad gross-floor-area assumptions.
 
