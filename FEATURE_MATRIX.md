@@ -103,6 +103,7 @@
 | **Regional BOQ Pricing** (Zimbabwe/South Africa/Kenya/Global) | ✅ Present | Sprint 8 — rateCardAdapter + region selector in BoqExportPanel |
 | **BOQ Rate Assumptions** (source tracking, fallback warnings) | ✅ Present | Sprint 8 — rateCardAdapter assumptions + BoqExportPanel display |
 | **BOQ CSV/HTML: region, currency, rate source in export** | ✅ Present | Sprint 8 — updated buildExportCsv/buildExportHtml |
+| **Automated Tests** (vitest, 58 tests, 7 files) | ✅ Present | Sprint 9 — all core adapters/engines tested, CI pipeline |
 
 ---
 
@@ -125,3 +126,4 @@
 | ✅ Present (Sprint 6 — IndexedDB persistence) | 1 service + 2 files modified + 1 sprint report |
 | ✅ Present (Sprint 7 — Generated rooms, doors, windows, zones) | 1 adapter + 3 files modified + 1 sprint report |
 | ✅ Present (Sprint 8 — Regional rate card BOQ pricing) | 1 adapter + 2 files modified + 1 sprint report |
+| ✅ Present (Sprint 9 — Automated tests + CI) | 7 test files + 1 CI workflow + 1 sprint report |

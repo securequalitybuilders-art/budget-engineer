@@ -1,11 +1,11 @@
 # Dzenhare Budget Engineer Studio
 
-[![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml)
+[![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions)
 
 > AI-powered computational design → 2D CAD → 3D BIM → engineering checks → quantities → BOQ → export.
 > Offline-first, open-source, Africa-focused.
 >
-> **All 5 workspace merges complete. Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing.** CI validates typecheck, lint, and production build on every push.
+> **All 5 workspace merges complete. Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, 58 automated tests across the full pipeline.** CI validates typecheck, lint, tests, and production build on every push.
 
 ## Quick start
 
@@ -34,6 +34,7 @@ Then open http://localhost:5173.
 | **Sprint 6: IndexedDB Persistence** | projectPersistenceService, AI designs/BIM/BOQ/export persisted to Dexie, survives page refresh | Sprint 6 |
 | **Sprint 7: Generated CAD Detail** | designGeometryAdapter with rooms, doors, windows, internal walls, zones; richer BIM/CAD/BOQ output | Sprint 7 |
 | **Sprint 8: Regional BOQ Pricing** | rateCardAdapter, region selector in BoqExportPanel, rate assumptions in CSV/HTML export | Sprint 8 |
+| **Sprint 9: Automated Tests + CI** | 58 tests across 7 files, vitest, fake-indexeddb, GitHub CI workflow | Sprint 9 |
 
 **Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Checks → Quantities → BOQ → Export (CSV / HTML / PDF)
 
@@ -47,6 +48,8 @@ Then open http://localhost:5173.
 | `npm run build` | Build for production |
 | `npm run typecheck` | TypeScript strict check |
 | `npm run lint` | ESLint |
+| `npm test` | Run all tests (vitest) |
+| `npm run test:watch` | Run tests in watch mode |
 
 ## License
 

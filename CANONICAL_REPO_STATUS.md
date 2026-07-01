@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-01  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 8 — Regional rate-card BOQ pricing: BOQ costs now vary by Zimbabwe (USD), South Africa (ZAR), Kenya (KES), or Global (USD). Rate source tracking and fallback warnings in panel and exports. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
+> **Status:** Sprint 9 — Automated tests for core pipeline: 58 tests across 7 files covering AI design → geometry → BIM → analysis → BOQ → rate cards → persistence. CI pipeline created with typecheck + lint + test + build. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (58 passed), `npm run build` (success)
 
 ---
 
@@ -48,7 +48,8 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
 | `fflate` | ^0.8.2 | ZIP compression | WS3 |
 
 ### Dev Dependencies (`devDependencies`)
-- Unchanged from WS1 base
+- `vitest` ^4.1.9 (Sprint 9 — test runner)
+- `fake-indexeddb` ^6.0.0 (Sprint 9 — IndexedDB polyfill for Node)
 
 ### Phase E Dependencies
 - **No new npm packages added** — all WS6 modules use pure TypeScript
@@ -275,7 +276,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **Openings/doors/windows in BOQ** | designToBim didn't create opening elements | ✅ DONE (Sprint 7 — designGeometryAdapter generates doors/windows → BIM openings → BOQ items) |
 | **Finishes allowance in BOQ** | No finishes, services, or preliminaries line items | Add as percentage allowances in adapter |
 | **Web Workers** | No off-main-thread processing | Future |
-| **Tests** | No unit or integration tests | Add tests for all engines and analysis modules |
+| **Tests** | 58 unit tests across 7 files | ✅ DONE (Sprint 9 — vitest, all adapters tested, CI pipeline) |
 | **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |
 | **Room layout optimization** | Grid-based layout may produce self-intersecting wall rings | Improve geometry adapter with proper floorplan algorithm |
 | **Multi-floor layout variation** | All floors use same room template | Add floor-specific templates (ground vs upper) |

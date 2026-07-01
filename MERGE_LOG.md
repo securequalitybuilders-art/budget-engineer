@@ -906,4 +906,59 @@ None — all modules use pure TypeScript. WebLLM (`@mlc-ai/web-llm`) is dynamica
 - WebLLM integration (opt-in)
 - FloorVisibilityPanel wiring
 - Drawing register integration into export pipeline
-- Tests for all engines and analysis modules
+
+---
+
+## Sprint 9 — Automated Tests for Core Pipeline
+
+**Date:** 2026-07-01  
+**Goal:** Add automated unit tests for all core adapters/engines with CI pipeline.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/__tests__/aiDesignAdapter.test.ts` | 6 tests: brief → design options pipeline |
+| `src/__tests__/designGeometryAdapter.test.ts` | 9 tests: room/wall/opening generation |
+| `src/__tests__/designToBim.test.ts` | 8 tests: BIM model shape + elements |
+| `src/__tests__/designToAnalysis.test.ts` | 8 tests: clash/solar/MEP analysis results |
+| `src/__tests__/designToBoq.test.ts` | 11 tests: regional BOQ, exports, NaN checks |
+| `src/__tests__/rateCardAdapter.test.ts` | 11 tests: region listing, rate resolution, fallback |
+| `src/__tests__/projectPersistenceService.test.ts` | 5 tests: Dexie write/read smoke |
+| `.github/workflows/ci.yml` | CI pipeline: typecheck → lint → test → build |
+| `docs/SPRINT_9_TESTING_REPORT.md` | Sprint report with coverage summary |
+| `vitest.config.ts` | Vitest config with `@` alias, node environment |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `package.json` | Added `test` and `test:watch` scripts |
+| `FEATURE_MATRIX.md` | Added Sprint 9 row + summary count |
+| `CANONICAL_REPO_STATUS.md` | Status → Sprint 9, Tests gap → done, devDeps updated |
+| `MERGE_LOG.md` | Added Sprint 9 entry |
+| `README.md` | Added `npm test` command, Sprint 9 info |
+
+### Key Decisions
+
+1. **vitest over jest** — Vite-native, alias resolution works out of box
+2. **fake-indexeddb for persistence** — Dexie works in Node without browser
+3. **`environment: 'node'`** — No DOM needed; all adapters pure functions
+4. **Separate test files per adapter** — Focused, easy to maintain
+5. **No component tests** — Higher priority to cover pipeline logic first
+6. **CI from scratch** — No existing `.github/` directory
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm test` (`vitest run`) | ✅ PASS (58 tests, 7 files) |
+| `npm run build` (`tsc && vite build`) | ✅ PASS (3369 modules, 16 precache) |
+
+### Still Deferred
+- Component tests (PlanCanvas, LazyBimViewer, BoqExportPanel, Dashboard)
+- WebLLM parser tests (requires `@mlc-ai/web-llm`)
+- Multi-floor room distribution for >2 floors
+- CAD export (DXF/SVG) string generation tests
