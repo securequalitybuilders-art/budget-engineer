@@ -31,6 +31,7 @@ export interface Project {
   region: Region;
   currency: Currency;
   status: ProjectStatus;
+  isArchived?: boolean;
   createdAt: string;
   updatedAt: string;
   version: number;

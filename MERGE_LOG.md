@@ -18,6 +18,10 @@
 2026-06-30 08:XX | PHASE-B | Updated MERGE_LOG.md, FEATURE_MATRIX.md, CANONICAL_REPO_STATUS.md | DONE
 2026-06-30 08:XX | PHASE-B | Committed Phase B merge                                           | DONE
 ```
+```
+2026-07-01 14:46 | SPRINT-18 | Portfolio Dashboard (PortfolioPage, route, Home link)             | DONE (f3f048e)
+2026-07-01 15:23 | SPRINT-19 | Portfolio filters, search, sort, archive/restore                  | DONE
+```
 
 ---
 

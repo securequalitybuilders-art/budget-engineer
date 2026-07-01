@@ -146,3 +146,5 @@
 | ✅ Present (Sprint 15 — Mobile polish) | 6 files modified + 1 report |
 | ✅ Present (Sprint 16 — Governance & audit panel) | 1 adapter + 1 panel + 1 Dashboard integration + 1 test file + 1 report |
 | ✅ Present (Sprint 17 — Snapshot history & comparison) | 1 service + 1 panel + 1 Dashboard integration + 1 test file + 1 report |
+| ✅ Present (Sprint 18 — Portfolio dashboard) | 1 page + 2 files modified + 1 report |
+| ✅ Present (Sprint 19 — Portfolio filters, search, sort, archive/restore) | 2 services + 1 adapter + 2 test files + 2 reports + 7 files modified |

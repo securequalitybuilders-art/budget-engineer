@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-01  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 17 — Snapshot history and comparison: save lightweight snapshots of design/BOQ state to IndexedDB, list project snapshots, compare current vs previous snapshot with cost/quantity deltas. projectSnapshotService with saveProjectSnapshot(), loadProjectSnapshots(), compareCurrentToSnapshot(). SnapshotHistoryPanel in Dashboard right sidebar with Save button, label input, snapshot list, cost/area/floor/wall/door/window delta cards. `currentBoq` memoized in Dashboard to avoid recomputation. Uses existing `db.snapshots` table (v3 schema) with JSON payload in `notes` field. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (99 passed, 10 files), `npm run build` (3375 modules).
+> **Status:** Sprint 19 — Portfolio filters, search, sort, archive/restore: projectArchiveService (archive/restore with transaction logging), portfolioFiltersAdapter (search/status filter/sort), PortfolioPage with search input, status filter buttons, sort selector, archive/restore buttons on hover, status messages. `isArchived` field added to Project type. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (117 passed, 12 files), `npm run build` (18 precache entries). projectSnapshotService with saveProjectSnapshot(), loadProjectSnapshots(), compareCurrentToSnapshot(). SnapshotHistoryPanel in Dashboard right sidebar with Save button, label input, snapshot list, cost/area/floor/wall/door/window delta cards. `currentBoq` memoized in Dashboard to avoid recomputation. Uses existing `db.snapshots` table (v3 schema) with JSON payload in `notes` field. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (99 passed, 10 files), `npm run build` (3375 modules).
 
 ---
 
@@ -137,6 +137,13 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
 - Portfolio metric builder
 - **Sprint 17 SnapshotHistoryPanel** — collapsible sidebar panel with Save button + label input, project snapshot list (latest first), selected snapshot comparison showing cost delta (with %), floor area delta, floor count delta, wall area delta, door count delta, window count delta, local-storage note
 
+### Portfolio (Sprint 18 + Sprint 19)
+- **Portfolio Dashboard page** (`/portfolio`) — executive summary across all projects: total portfolio value, avg scheme cost, active/archived counts, category distribution (Walls/Slabs/Roof/Openings/Objects), per-project cost cards
+- **Project search** — case-insensitive name search in portfolio
+- **Status filter** — All / Active / Archived toggle
+- **Sort** — Newest / Name / Highest Cost / Lowest Cost
+- **Archive/Restore** — hover button on project card, local-first via IndexedDB, transaction logging, instant metric refresh
+
 ### BOQ Analysis (WS3 Phase B)
 - BOQ line item comparison (before/after)
 - Cost composition %-share analysis (scale-independent)
@@ -265,6 +272,8 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | Gap | Details | Resolution |
 |---|---|---|
 | **Governance/RBAC/Snapshot panels** | GovernancePanel + SnapshotHistoryPanel wired in Dashboard | ✅ DONE (Sprint 16 + 17) |
+| **Portfolio Dashboard** (executive summary page) | ✅ Present | Sprint 18 — `/portfolio` route with summary stats, category distribution, project cards |
+| **Portfolio Filters** (search, active/archived, sort) | ✅ Present | Sprint 19 — search box, status filter, sort selector, archive/restore actions on card hover |
 | **Cross-Project/Portfolio/Zone panels** | Lib merged; UI panels deferred | Port from WS3 panels |
 | **Export/Standards panels** | Lib merged; UI panels deferred | Port from WS3 panels |
 | **WS4 panel components** | 4 panels (Clash, Solar, MEP, Executive) deferred | Tailwind re-theme from WS4 |
@@ -282,7 +291,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **External wall area missing in BOQ** | External walls were not costed separately | ✅ DONE (Sprint 13 — added as line item) |
 | **Partition/opening estimates in BOQ** | Used fixed m² estimates, not actual geometry | ✅ DONE (Sprint 13 — geometryQuantitiesAdapter provides derived quantities) |
 | **Web Workers** | No off-main-thread processing | Future |
-| **Tests** | 99 unit tests across 10 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 — vitest, all adapters tested, CI pipeline) |
+| **Tests** | 117 unit tests across 12 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 + Sprint 19 — vitest, all adapters tested, CI pipeline) |
 | **Deployment docs** | DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects | ✅ DONE (Sprint 10 — Vercel/Netlify/static hosting, SPA fallback, release checklist) |
 | **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |
 | **Room layout optimization** | Grid-based layout may produce self-intersecting wall rings | Improve geometry adapter with proper floorplan algorithm |

@@ -34,7 +34,8 @@ export async function loadExecutivePortfolioMetrics(projects: Project[]): Promis
   let archivedCount = 0;
 
   for (const p of projects) {
-    if (p.status === 'draft') archivedCount++;
+    const isArchived = p.isArchived ?? (p.status === 'draft');
+    if (isArchived) archivedCount++;
     else activeCount++;
 
     let boq: Ws3Boq | null = null;
@@ -63,7 +64,7 @@ export async function loadExecutivePortfolioMetrics(projects: Project[]): Promis
     schemes.push({
       id: p.id,
       name: p.name,
-      isArchived: p.status === 'draft',
+      isArchived: p.isArchived ?? (p.status === 'draft'),
       grandTotal: boq.summary.grandTotal,
       subtotal: boq.summary.subtotal,
       wallsTotal,
