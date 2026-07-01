@@ -81,8 +81,9 @@ export function BoqExportPanel({ selectedDesign, onExport }: BoqExportPanelProps
       <div className="overflow-y-auto p-3">
         {/* Region selector */}
         <div className="mb-3 rounded-lg border border-stone-700/60 bg-stone-900/80 p-3">
-          <label className="mb-1 block text-xs font-medium text-stone-400">Pricing Region</label>
+          <label htmlFor="pricing-region" className="mb-1 block text-xs font-medium text-stone-400">Pricing Region</label>
           <select
+            id="pricing-region"
             value={regionId}
             onChange={(e) => setRegionId(e.target.value)}
             className="w-full rounded border border-stone-700 bg-stone-800 p-2 text-sm text-stone-200"
@@ -121,7 +122,7 @@ export function BoqExportPanel({ selectedDesign, onExport }: BoqExportPanelProps
 
         {/* BOQ table */}
         {boq ? (
-          <div className="mb-3 max-h-64 overflow-y-auto rounded-lg border border-stone-700/60">
+          <div className="mb-3 max-h-64 overflow-auto rounded-lg border border-stone-700/60">
             <table className="w-full text-left text-[10px]">
               <thead className="sticky top-0 bg-stone-800 text-stone-400 uppercase">
                 <tr>
@@ -189,6 +190,8 @@ export function BoqExportPanel({ selectedDesign, onExport }: BoqExportPanelProps
           <div className="mb-3">
             <button
               onClick={() => setShowAssumptions(!showAssumptions)}
+              aria-expanded={showAssumptions}
+              aria-controls="rate-assumptions-content"
               className="flex w-full items-center gap-2 rounded-lg border border-stone-700/60 bg-stone-900/80 px-3 py-2 text-xs text-stone-400 transition-colors hover:border-stone-600/60 hover:text-stone-200"
             >
               <Info size={12} />
@@ -197,7 +200,7 @@ export function BoqExportPanel({ selectedDesign, onExport }: BoqExportPanelProps
               <span className="ml-auto">{showAssumptions ? '▲' : '▼'}</span>
             </button>
             {showAssumptions && (
-              <div className="mt-1 max-h-40 overflow-y-auto rounded-lg border border-stone-700/60 bg-stone-900/80 p-2 text-[10px]">
+              <div id="rate-assumptions-content" className="mt-1 max-h-40 overflow-y-auto rounded-lg border border-stone-700/60 bg-stone-900/80 p-2 text-[10px]">
                 {boq.assumptions.map((a) => (
                   <div key={a.itemKey} className="flex items-start gap-2 border-b border-stone-800/60 py-1.5 last:border-0">
                     <span className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${a.source === 'rate-card' ? 'bg-emerald-500' : 'bg-amber-500'}`} />

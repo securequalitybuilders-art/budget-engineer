@@ -109,6 +109,10 @@
 | **Release Checklist** (RELEASE_CHECKLIST.md) | ✅ Present | Sprint 10 — pre-release + smoke test checklist |
 | **SPA Router Fallback** (vercel.json, _redirects) | ✅ Present | Sprint 10 — BrowserRouter fallback for Vercel/Netlify |
 | **PWA Assets** (icon-192, icon-512, favicon, manifest) | ✅ Present | Sprint 10 — verified all present |
+| **SEO Meta Tags** (OG, Twitter, canonical) | ✅ Present | Sprint 12 — added OG/twitter/canonical to index.html |
+| **Accessibility** (ARIA roles, labels, form associations) | ✅ Present | Sprint 12 — tab ARIA, form labels, expanded states |
+| **Performance Audit** (bundle size, lazy loading) | ✅ Present | Sprint 12 — documented chunks, lazy BIM, excluded WebLLM |
+| **Public Demo Audit** (live smoke test, polish) | ✅ Present | Sprint 12 — full audit report |
 
 ---
 
@@ -133,3 +137,5 @@
 | ✅ Present (Sprint 8 — Regional rate card BOQ pricing) | 1 adapter + 2 files modified + 1 sprint report |
 | ✅ Present (Sprint 9 — Automated tests + CI) | 7 test files + 1 CI workflow + 1 sprint report |
 | ✅ Present (Sprint 10 — Deployment polish + release prep) | 4 docs + 1 vercel.json + 1 _redirects + README updates |
+| ✅ Present (Sprint 11 — Live deployment smoke test) | 1 report + README URL update |
+| ✅ Present (Sprint 12 — Public demo audit + polish) | SEO tags + a11y fixes + mobile polish + audit report |

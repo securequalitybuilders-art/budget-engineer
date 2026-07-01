@@ -97,10 +97,14 @@ export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerate
         <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400">Engineering Studio</span>
       </div>
 
-      <div className="flex flex-wrap gap-1 border-b border-stone-700/60 px-2 py-1.5">
+      <div className="flex flex-wrap gap-1 border-b border-stone-700/60 px-2 py-1.5" role="tablist">
         {TABS.map((tab) => (
           <button
             key={tab.id}
+            id={tab.id + '-tab'}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            aria-controls={tab.id + '-panel'}
             onClick={() => setActiveTab(tab.id)}
             className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
               activeTab === tab.id
@@ -114,21 +118,21 @@ export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerate
       </div>
 
       <div className="flex-1 overflow-y-auto p-3">
-        {activeTab === 'ai' && <AiBriefPanel onDesignOptionsGenerated={onDesignOptionsGenerated} />}
+        <div id="ai-panel" role="tabpanel" aria-labelledby="ai-tab" hidden={activeTab !== 'ai'}>{activeTab === 'ai' && <AiBriefPanel onDesignOptionsGenerated={onDesignOptionsGenerated} />}</div>
 
-        {activeTab === 'rates' && <RateCardPanel card={RATE_CARDS.zimbabwe} />}
+        <div id="rates-panel" role="tabpanel" aria-labelledby="rates-tab" hidden={activeTab !== 'rates'}>{activeTab === 'rates' && <RateCardPanel card={RATE_CARDS.zimbabwe} />}</div>
 
-        {activeTab === 'rebar' && <RebarSpecPanel slabArea={slabArea} />}
+        <div id="rebar-panel" role="tabpanel" aria-labelledby="rebar-tab" hidden={activeTab !== 'rebar'}>{activeTab === 'rebar' && <RebarSpecPanel slabArea={slabArea} />}</div>
 
-        {activeTab === 'footings' && (
+        <div id="footings-panel" role="tabpanel" aria-labelledby="footings-tab" hidden={activeTab !== 'footings'}>{activeTab === 'footings' && (
           sampleBim ? <FootingSizingPanel bim={sampleBim} /> : <EmptyState message="Generate a design option to size footings." />
-        )}
+        )}</div>
 
-        {activeTab === 'loads' && (
+        <div id="loads-panel" role="tabpanel" aria-labelledby="loads-tab" hidden={activeTab !== 'loads'}>{activeTab === 'loads' && (
           sampleBim ? <LoadAnalysisPanel bim={sampleBim} /> : <EmptyState message="Generate a design option to analyse loads." />
-        )}
+        )}</div>
 
-        {activeTab === 'section' && (
+        <div id="section-panel" role="tabpanel" aria-labelledby="section-tab" hidden={activeTab !== 'section'}>{activeTab === 'section' && (
           sampleCad ? (
             <SectionView cad={sampleCad} />
           ) : (
@@ -136,7 +140,7 @@ export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerate
               <p className="text-sm text-stone-400">Generate a design option to view building sections.</p>
             </div>
           )
-        )}
+        )}</div>
       </div>
 
       {selectedDesign && (

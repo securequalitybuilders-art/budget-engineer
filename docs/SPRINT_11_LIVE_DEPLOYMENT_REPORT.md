@@ -15,7 +15,7 @@
 | **Build command** | `npm run build` |
 | **Output directory** | `dist` |
 | **SPA fallback** | `vercel.json` rewrites (`/* → /index.html`) |
-| **Latest commit** | `895c0e0` — Sprint 10 release prep |
+| **Latest commit** | `df81d06` — Document live demo deployment |
 
 ---
 

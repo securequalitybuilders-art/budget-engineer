@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-01  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 10 — Deployment polish and production release preparation: DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects, README production section, PWA assets verified, secret scan clean. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (58 passed), `npm run build` (success)
+> **Status:** Sprint 12 — Public demo audit and polish: SEO meta tags (OG, Twitter, canonical), accessibility fixes (tab ARIA, form labels, expanded states), mobile BOQ table scroll, bundle/performance audit, live smoke test verified. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (58 passed), `npm run build` (success)
 
 ---
 

@@ -1017,3 +1017,94 @@ Scanned for: OPENAI, ANTHROPIC, GEMINI_API_KEY, API_KEY, SECRET, TOKEN, PRIVATE_
 - Run full smoke checklist against live URL
 - Test IndexedDB persistence on live domain
 - Verify PWA install prompt on mobile + desktop
+
+---
+
+## Sprint 11 — Live Deployment Smoke Test
+
+**Date:** 2026-07-01  
+**Goal:** Verify the production Vercel deployment is fully functional. No feature changes.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `docs/SPRINT_11_LIVE_DEPLOYMENT_REPORT.md` | Full smoke checklist results |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `README.md` | Live demo URL: "coming soon" → "budget-engineer.vercel.app" |
+
+### Key Results
+
+- **Live URL:** https://budget-engineer.vercel.app/
+- All 19 smoke checks pass: home, wizard, dashboard, SPA routing, PWA manifest/icons/SW, all JS/CSS chunks load
+- Interactive features (AI brief, 2D/3D, BOQ) use same code validated locally (58 tests, 0 errors)
+- SPA fallback confirmed via `vercel.json` rewrites
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm test` | ✅ PASS (58 tests, 7 files) |
+| `npm run build` | ✅ PASS (3369 modules, 16 precache) |
+
+---
+
+## Sprint 12 — Public Demo Audit and Polish
+
+**Date:** 2026-07-01  
+**Goal:** Audit and polish the public demo after launch. No feature changes.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `docs/SPRINT_12_PUBLIC_DEMO_AUDIT.md` | Full audit report with SEO, a11y, mobile, bundle, live checks |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `index.html` | Added OG/Twitter/canonical meta tags, improved title/description |
+| `src/components/dashboard/EngineeringStudioPanel.tsx` | Added ARIA tab roles, states, and panel associations |
+| `src/components/dashboard/BoqExportPanel.tsx` | Added `htmlFor`/`id` on region select, `aria-expanded`/`aria-controls` on assumptions toggle |
+| `FEATURE_MATRIX.md` | Added Sprint 11 + 12 rows and summary counts |
+| `CANONICAL_REPO_STATUS.md` | Status → Sprint 12 |
+| `MERGE_LOG.md` | Added Sprint 11 + 12 entries |
+| `docs/SPRINT_11_LIVE_DEPLOYMENT_REPORT.md` | Fixed stale commit hash |
+
+### SEO Fixes
+
+- Title: "Budget Engineer — AI CAD BIM BOQ Construction Cost OS"
+- Description: Local-first engineering OS description
+- Added: `og:title`, `og:description`, `og:type`, `og:url`, `twitter:card`, `twitter:title`, `twitter:description`, `canonical URL`
+
+### Accessibility Fixes
+
+- Tab container: `role="tablist"`
+- Tab buttons: `role="tab"`, `aria-selected`, `aria-controls`
+- Tab panels: `role="tabpanel"`, `aria-labelledby`, `hidden`
+- Pricing Region: `htmlFor`/`id` association
+- Rate Assumptions: `aria-expanded`, `aria-controls`
+
+### Mobile Polish
+
+- BOQ table wrapper: `overflow-y-auto` → `overflow-auto` for horizontal scroll
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm test` | ✅ PASS (58 tests, 7 files) |
+| `npm run build` | ✅ PASS (3369 modules, 16 precache) |
+
+### Issues Deferred
+- `og:image` — requires screenshot asset
+- Dashboard chunk size (727 KB) — beyond small-polish scope
+- Component-level tests — pure function tests exist
+- Mobile-responsive layout — desktop-optimized by design
