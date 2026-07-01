@@ -14,6 +14,7 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 const Home = lazy(() => import('@/pages/Home').then((m) => ({ default: m.Home })));
 const ProjectWizard = lazy(() => import('@/pages/ProjectWizard').then((m) => ({ default: m.ProjectWizard })));
 const Dashboard = lazy(() => import('@/pages/Dashboard').then((m) => ({ default: m.Dashboard })));
+const PortfolioPage = lazy(() => import('@/pages/PortfolioPage').then((m) => ({ default: m.PortfolioPage })));
 
 function GlobalLayout() {
   useKeyboardShortcuts();
@@ -53,6 +54,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <Dashboard />
+          </Suspense>
+        ),
+      },
+      {
+        path: '/portfolio',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <PortfolioPage />
           </Suspense>
         ),
       },

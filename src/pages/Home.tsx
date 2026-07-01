@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/Badge';
 import {
   Plus, Folder, ArrowRight, Cpu, HardHat, FileBarChart,
-  MessageSquare, LayoutGrid, Boxes, Activity, Calculator,
+  MessageSquare, LayoutGrid, Boxes, Activity, Calculator, BarChart3,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -51,6 +51,12 @@ export function Home() {
               <Button size="lg" className="gap-2">
                 <Plus size={18} />
                 Start New Project
+              </Button>
+            </Link>
+            <Link to="/portfolio">
+              <Button variant="secondary" size="lg" className="gap-2">
+                <BarChart3 size={18} />
+                Portfolio Dashboard
               </Button>
             </Link>
             <Button variant="secondary" size="lg" className="gap-2">
