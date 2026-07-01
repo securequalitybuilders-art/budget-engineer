@@ -19,6 +19,7 @@ import { LazyBimViewer } from '@/components/bim/LazyBimViewer';
 import { BoqExportPanel } from '@/components/dashboard/BoqExportPanel';
 import { EngineeringAnalysisPanel } from '@/components/dashboard/EngineeringAnalysisPanel';
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
+import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
 import { designOptionToBimModel } from '@/adapters/designToBim';
 import { buildBoqFromDesignOption } from '@/adapters/designToBoq';
 import { persistDesigns, persistBimModel, persistBoq, logTransaction, loadPersistedProjectWork } from '@/services/projectPersistenceService';
@@ -62,6 +63,7 @@ export function Dashboard() {
 
   const selectedDesign = visibleDesignOptions.find((d) => d.id === selectedDesignId) ?? visibleDesignOptions[0] ?? null;
   const bimModel = useMemo(() => designOptionToBimModel(selectedDesign), [selectedDesign]);
+  const currentBoq = useMemo(() => buildBoqFromDesignOption(selectedDesign), [selectedDesign]);
 
   // ── Persistence: load saved AI designs on mount ──
   useEffect(() => {
@@ -106,13 +108,12 @@ export function Dashboard() {
   // ── Persistence: save BOQ when selected design changes ──
   useEffect(() => {
     if (!selectedDesign || !id) return
-    const boq = buildBoqFromDesignOption(selectedDesign)
-    if (boq && loggedBoqRef.current !== selectedDesign.id) {
-      persistBoq(id, selectedDesign.id, boq)
-      logTransaction(id, 'CREATE', 'boq', boq.id, 'BOQ generated from design option')
+    if (currentBoq && loggedBoqRef.current !== selectedDesign.id) {
+      persistBoq(id, selectedDesign.id, currentBoq)
+      logTransaction(id, 'CREATE', 'boq', currentBoq.id, 'BOQ generated from design option')
       loggedBoqRef.current = selectedDesign.id
     }
-  }, [selectedDesign, id])
+  }, [selectedDesign, id, currentBoq])
 
   const handleGenerate = async () => {
     if (!id) return;
@@ -288,6 +289,11 @@ export function Dashboard() {
               hasBim={(bimModel?.elements.length ?? 0) > 0}
               hasBoq={!!selectedDesign}
               hasAnalysis={!!selectedDesign}
+            />
+            <SnapshotHistoryPanel
+              projectId={id}
+              selectedDesign={selectedDesign}
+              currentBoq={currentBoq}
             />
           </div>
         </div>

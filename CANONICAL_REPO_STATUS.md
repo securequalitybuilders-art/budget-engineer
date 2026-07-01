@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-01  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 16 — Governance and audit dashboard panel: wired existing governance/RBAC/versioning/transaction foundations into visible dashboard panel. GovernanceAdapter with `buildGovernanceSummary()` producing status (draft/ready/reviewed/exported), 7-step approval readiness checklist, RBAC role descriptions, design fingerprint, recent audit trail from IndexedDB transactions. GovernancePanel in Dashboard right sidebar with collapsible sections. 13 new tests. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (86 passed, 9 files), `npm run build` (3373 modules).
+> **Status:** Sprint 17 — Snapshot history and comparison: save lightweight snapshots of design/BOQ state to IndexedDB, list project snapshots, compare current vs previous snapshot with cost/quantity deltas. projectSnapshotService with saveProjectSnapshot(), loadProjectSnapshots(), compareCurrentToSnapshot(). SnapshotHistoryPanel in Dashboard right sidebar with Save button, label input, snapshot list, cost/area/floor/wall/door/window delta cards. `currentBoq` memoized in Dashboard to avoid recomputation. Uses existing `db.snapshots` table (v3 schema) with JSON payload in `notes` field. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (99 passed, 10 files), `npm run build` (3375 modules).
 
 ---
 
@@ -135,6 +135,7 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
 - Project snapshot types
 - Snapshot diff computation (wall, opening, zone, BOQ deltas)
 - Portfolio metric builder
+- **Sprint 17 SnapshotHistoryPanel** — collapsible sidebar panel with Save button + label input, project snapshot list (latest first), selected snapshot comparison showing cost delta (with %), floor area delta, floor count delta, wall area delta, door count delta, window count delta, local-storage note
 
 ### BOQ Analysis (WS3 Phase B)
 - BOQ line item comparison (before/after)
@@ -253,6 +254,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 - **BOQ Export Panel** (BoqExportPanel) — sidebar panel for BOQ display, CSV export, HTML dossier, print-to-PDF
 - **Engineering Analysis Panel** (EngineeringAnalysisPanel) — sidebar panel for clash detection, solar analysis, MEP takeoff with recommendation cards
 - **Governance Panel** (GovernancePanel) — sidebar panel for project governance status, approval readiness, RBAC roles, audit trail, fingerprint
+- **Snapshot History Panel** (SnapshotHistoryPanel) — sidebar panel for saving/listing/comparing design snapshots with cost and quantity deltas
 - **8 adapters** (`designGeometryAdapter.ts` + `geometryQuantitiesAdapter.ts` + `designToBim.ts` + `aiDesignAdapter.ts` + `designToBoq.ts` + `designToAnalysis.ts` + `rateCardAdapter.ts` + `governanceAdapter.ts`) — building geometry, geometry quantities, BIM model, AI design, BOQ generation, engineering analysis, rate card resolution, governance summary from DesignOption
 - **2D/3D toggle** in Dashboard toolbar — switches between PlanCanvas and LazyBimViewer
 
@@ -262,7 +264,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 
 | Gap | Details | Resolution |
 |---|---|---|
-| **Governance/RBAC/Snapshot panels** | GovernancePanel wired in Dashboard; RBAC/audit trail visible | ✅ DONE (Sprint 16) |
+| **Governance/RBAC/Snapshot panels** | GovernancePanel + SnapshotHistoryPanel wired in Dashboard | ✅ DONE (Sprint 16 + 17) |
 | **Cross-Project/Portfolio/Zone panels** | Lib merged; UI panels deferred | Port from WS3 panels |
 | **Export/Standards panels** | Lib merged; UI panels deferred | Port from WS3 panels |
 | **WS4 panel components** | 4 panels (Clash, Solar, MEP, Executive) deferred | Tailwind re-theme from WS4 |
@@ -280,7 +282,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **External wall area missing in BOQ** | External walls were not costed separately | ✅ DONE (Sprint 13 — added as line item) |
 | **Partition/opening estimates in BOQ** | Used fixed m² estimates, not actual geometry | ✅ DONE (Sprint 13 — geometryQuantitiesAdapter provides derived quantities) |
 | **Web Workers** | No off-main-thread processing | Future |
-| **Tests** | 86 unit tests across 9 files | ✅ DONE (Sprint 9 + Sprint 16 — vitest, all adapters tested, CI pipeline) |
+| **Tests** | 99 unit tests across 10 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 — vitest, all adapters tested, CI pipeline) |
 | **Deployment docs** | DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects | ✅ DONE (Sprint 10 — Vercel/Netlify/static hosting, SPA fallback, release checklist) |
 | **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |
 | **Room layout optimization** | Grid-based layout may produce self-intersecting wall rings | Improve geometry adapter with proper floorplan algorithm |

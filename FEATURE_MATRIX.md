@@ -57,8 +57,8 @@
 | **HTML Dossier Export** (self-contained, with print-to-PDF) | ✅ Present, wired | Sprint 4 — `buildExportHtml()` + `downloadTextFile()` |
 | **Governance Workflow** | ✅ Present | WS3 types + lib — wired via Sprint 16 GovernancePanel |
 | **RBAC** (role-based access control) | ✅ Present | WS3 types + lib — displayed in GovernancePanel |
-| **Project Snapshots** (versioning) | ✅ Present | WS3 types + lib — fingerprint shown in GovernancePanel |
-| **Snapshot Diff** | ✅ Present | WS3 lib |
+| **Project Snapshots** (versioning) | ✅ Present | WS3 types + lib — wired via Sprint 17 SnapshotHistoryPanel panel (save, list, compare) |
+| **Snapshot Diff** | ✅ Present | WS3 lib — lightweight cost/quantity diff via Sprint 17 comparison |
 | **BOQ Analysis & Comparison** | ✅ Present | WS3 lib |
 | **Zone Costing & Traceability** | ✅ Present | WS3 lib |
 | **Room Zone Reconstruction** | ✅ Present | WS3 lib |
@@ -77,6 +77,7 @@
 | **Charts** (cost breakdown) | ✅ Present | Recharts |
 | **Transaction History** (audit log) | ✅ Present | WS1 |
 | **Governance Dashboard Panel** (status, checklist, RBAC, audit) | ✅ Present | Sprint 16 — GovernancePanel in Dashboard right sidebar |
+| **Snapshot History Panel** (save, list, compare, cost/quantity deltas) | ✅ Present | Sprint 17 — SnapshotHistoryPanel in Dashboard right sidebar |
 | **Exports** (CSV, HTML, ZIP, SVG, DXF) | ✅ Present | WS1/WS2/WS3/WS6 |
 | **Section/Elevation Views** (interactive SVG) | ✅ Present | WS6 SectionView wired into Engineering Studio |
 | **Drawing Register Panel** | 🔄 Staged | WS6 drawing-register lib — not wired into dashboard |
@@ -144,3 +145,4 @@
 | ✅ Present (Sprint 14 — Builder journey guide) | 1 panel + 2 pages modified + 1 report |
 | ✅ Present (Sprint 15 — Mobile polish) | 6 files modified + 1 report |
 | ✅ Present (Sprint 16 — Governance & audit panel) | 1 adapter + 1 panel + 1 Dashboard integration + 1 test file + 1 report |
+| ✅ Present (Sprint 17 — Snapshot history & comparison) | 1 service + 1 panel + 1 Dashboard integration + 1 test file + 1 report |

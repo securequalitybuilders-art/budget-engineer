@@ -1267,6 +1267,86 @@ Scanned for: OPENAI, ANTHROPIC, GEMINI_API_KEY, API_KEY, SECRET, TOKEN, PRIVATE_
 
 ---
 
+## Sprint 17 — Snapshot History and Comparison
+
+**Date:** 2026-07-01  
+**Goal:** Add visible local-first project history: save snapshots of design/BOQ state, list project snapshots, compare current vs previous with cost and quantity deltas.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/services/projectSnapshotService.ts` | `saveProjectSnapshot()` — saves design/BOQ snapshot to `db.snapshots` with JSON payload in `notes` field; `loadProjectSnapshots()` — loads snapshots sorted by newest first; `compareCurrentToSnapshot()` — computes cost delta (with %), GFA/floor/wall/door/window deltas, warns when BOQ missing |
+| `src/components/dashboard/SnapshotHistoryPanel.tsx` | Collapsible Dashboard sidebar panel with Save button + optional label input, snapshot list (latest first, shows label + date + cost), selected snapshot comparison cards with delta icons, empty state message, local-only note |
+| `src/__tests__/projectSnapshotService.test.ts` | 13 tests: save/load roundtrip, null guard (no design, no projectId), empty array for unknown/empty project, comparison false when no snapshot/no design, cost delta computation, NaN guard, quantity deltas, warning when no BOQ, roundtrip preserves all fields |
+| `docs/SPRINT_17_SNAPSHOT_HISTORY_REPORT.md` | Sprint report |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/pages/Dashboard.tsx` | Imported SnapshotHistoryPanel; added `currentBoq` memoized via `useMemo(() => buildBoqFromDesignOption(selectedDesign), [selectedDesign])`; updated BOQ persistence effect to use memoized `currentBoq`; rendered SnapshotHistoryPanel after GovernancePanel |
+| `FEATURE_MATRIX.md` | Project Snapshots → wired; Snapshot Diff → lightweight diff via comparison; Snapshot History Panel row added; Sprint 17 summary count |
+| `CANONICAL_REPO_STATUS.md` | Status → Sprint 17; Versioning section updated; known gap → done; 99 tests across 10 files; SnapshotHistoryPanel in component list |
+| `MERGE_LOG.md` | Added Sprint 17 entry |
+| `README.md` | Description updated; Sprint 17 row; CI badge → 99 tests |
+
+### Key Decisions
+
+1. **Existing `db.snapshots` table used** — v3 Dexie schema already has snapshots table with `ProjectSnapshot` type; JSON payload stored in `notes` field to preserve schema compatibility
+2. **No schema changes** — all extra data (fingerprint, GFA, floors, grandTotal, currency, quantities summary) serialized into `notes` JSON
+3. **Memoized `currentBoq`** — moved `buildBoqFromDesignOption` from inline effect to `useMemo` so both the persistence effect and SnapshotHistoryPanel share the same computed BOQ without recomputation
+4. **Deterministic fingerprint** — same djb2 algorithm as governance adapter; stable for same design, different for different designs
+5. **Comparison always vs selected snapshot** — user clicks a snapshot in the list to compare current state against that snapshot
+6. **Deltas use absolute values** — `clampFinite()` ensures no NaN, no negatives from broken data
+7. **Snapshot transaction logged** — `logTransaction` called on save so GovernancePanel audit trail shows snapshot events
+8. **No full snapshot diff** — `snapshot-diff.ts` (WS3) uses BimModel/BOQ types not available in the dashboard flow; simplified quantity-based comparison is sufficient
+
+### Snapshot Storage Approach
+
+| `ProjectSnapshot` field | Stored value |
+|---|---|
+| `id` | `uuid()` |
+| `projectId` | From input |
+| `name` | User label or auto-generated (`v2026-07-01`) |
+| `timestamp` | ISO 8601 |
+| `cadId` | Design ID |
+| `bimId` | Empty (no BIM snapshot stored) |
+| `boqId` | BOQ ID if available |
+| `notes` | JSON: `{designName, fingerprint, grossFloorArea, floors, grandTotal, currency, externalWallArea, partitionArea, doorCount, windowCount, finishFloorArea, serviceZoneArea, roomCount}` |
+
+### Comparison Fields
+
+| Delta | Source |
+|-------|--------|
+| Cost delta | Current BOQ grandTotal − snapshot grandTotal |
+| Cost delta % | `(current − snap) / snap * 100` |
+| Floor area delta | Current GFA − snapshot GFA |
+| Floor count delta | Current floors − snapshot floors |
+| Wall area delta | Current external wall area − snapshot external wall area |
+| Door count delta | Current door count − snapshot door count |
+| Window count delta | Current window count − snapshot window count |
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm test` (`vitest run`) | ✅ PASS (99 tests, 10 files) |
+| `npm run build` (`tsc && vite build`) | ✅ PASS (3375 modules, 16 precache) |
+
+### Still Deferred
+- Full snapshot diff viewer UI (WS3 `snapshot-diff.ts` using BimModel/BOQ)
+- Snapshot compare with actual BIM element IDs (added/removed/modified)
+- Snapshot naming (auto-label from design name + version number)
+- Snapshot delete / rename
+- Multi-snapshot comparison (3-way diff)
+- Cross-project snapshot portfolio
+- Component-level tests (PlanCanvas, LazyBimViewer, Dashboard panels)
+
+---
+
 **Date:** 2026-07-01  
 **Goal:** Derive BOQ quantities from generated CAD geometry instead of broad gross-floor-area assumptions.
 

@@ -5,7 +5,7 @@
 > AI-powered computational design → 2D CAD → 3D BIM → engineering checks → quantities → BOQ → export.
 > Offline-first, open-source, Africa-focused.
 >
-> **Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, geometry-derived BOQ quantities (door/window/partition/finish quantities from actual CAD geometry — not GFA estimates), guided first-time builder journey with 6-step progress and template briefs, governance/audit readiness panel with approval checklist and RBAC roles, mobile review support (review, estimates, exports on phone — CAD editing best on tablet/desktop), 86 automated tests across the full pipeline.** CI validates typecheck, lint, tests, and production build on every push.
+> **Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, geometry-derived BOQ quantities (door/window/partition/finish quantities from actual CAD geometry — not GFA estimates), guided first-time builder journey with 6-step progress and template briefs, governance/audit readiness panel with approval checklist and RBAC roles, snapshot history panel with save/compare/cost and quantity deltas, mobile review support (review, estimates, exports on phone — CAD editing best on tablet/desktop), 99 automated tests across the full pipeline.** CI validates typecheck, lint, tests, and production build on every push.
 
 **Live demo:** [budget-engineer.vercel.app](https://budget-engineer.vercel.app/)
 
@@ -45,6 +45,7 @@ Then open http://localhost:5173.
 | **Sprint 14: Builder journey guide** | Home page 6-step journey, Project Wizard template briefs, BuilderJourneyGuide dashboard panel, beginner-friendly empty states | Sprint 14 |
 | **Sprint 15: Mobile polish** | Right sidebar horizontal scroll, BOQ table scroll, engineering tabs scroll, BuilderJourneyGuide collapsed by default, design option truncation, mobile note in canvas, Home button wrap | Sprint 15 |
 | **Sprint 16: Governance & audit panel** | GovernanceAdapter with buildGovernanceSummary, GovernancePanel in Dashboard sidebar, approval readiness checklist, RBAC roles, audit trail, design fingerprint, 86 tests | Sprint 16 |
+| **Sprint 17: Snapshot history & comparison** | projectSnapshotService (save/load/compare), SnapshotHistoryPanel in Dashboard sidebar, cost/quantity deltas, 99 tests | Sprint 17 |
 
 **Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Checks → Quantities → BOQ → Export (CSV / HTML / PDF)
 
@@ -72,7 +73,7 @@ Each push to `main` runs via GitHub Actions:
 1. `npm ci`
 2. `npm run typecheck`
 3. `npm run lint`
-4. `npm test` (86 tests, 9 files)
+4. `npm test` (99 tests, 10 files)
 5. `npm run build`
 
 ## Known Limitations
