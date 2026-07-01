@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-01  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 13 — Geometry-derived BOQ quantities: `extractGeometryQuantities()` computes 26 fields (wall areas, door/window counts, room/zone areas) from `buildDesignGeometry()` and feeds them into regional BOQ line items. External wall area now a separate BOQ item. Quantity-basis section in BoqExportPanel. CSV export includes quantity-basis headers. `npm run typecheck` (0 errors), `npm test` (73 passed — 10 new tests for geometryQuantitiesAdapter + 5 new tests for designToBoq).
+> **Status:** Sprint 14 — Guided first-time builder journey: 6-step journey section on Home page, template brief examples in Project Wizard, collapsible BuilderJourneyGuide panel in Dashboard right sidebar showing current step + next action + 6-step progress + plain-language guidance. Empty states audited for beginner-friendliness across 5 panels. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (73 passed, 8 files), `npm run build` (3371 modules).
 
 ---
 

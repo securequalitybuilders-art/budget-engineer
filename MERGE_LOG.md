@@ -1111,7 +1111,58 @@ Scanned for: OPENAI, ANTHROPIC, GEMINI_API_KEY, API_KEY, SECRET, TOKEN, PRIVATE_
 
 ---
 
-## Sprint 13 — Geometry-Derived BOQ Quantities
+## Sprint 14 — Guided First-Time Builder Journey
+
+**Date:** 2026-07-01  
+**Goal:** Make Budget Engineer easier for ordinary first-time builders with a guided plain-English journey.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/components/dashboard/BuilderJourneyGuide.tsx` | Collapsible journey guide panel — current step, 6-step progress, template briefs, safety note |
+| `docs/SPRINT_14_BUILDER_JOURNEY_REPORT.md` | Sprint report |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/pages/Home.tsx` | Added 6-step "First-Time Builder Journey" section with icon cards and plain-language badges |
+| `src/pages/ProjectWizard.tsx` | Added collapsible "Try an example brief" with 4 template cards on step 3 |
+| `src/pages/Dashboard.tsx` | Imported and rendered BuilderJourneyGuide in right sidebar |
+| `src/components/dashboard/BoqExportPanel.tsx` | Updated empty state text (beginner-friendly) |
+| `src/components/dashboard/EngineeringAnalysisPanel.tsx` | Updated empty state text (beginner-friendly) |
+| `src/components/dashboard/EngineeringStudioPanel.tsx` | Updated 3 empty state messages |
+| `CANONICAL_REPO_STATUS.md` | Status → Sprint 14 |
+| `MERGE_LOG.md` | Added Sprint 14 entry |
+| `README.md` | Mentioned builder journey |
+
+### Key Decisions
+
+1. **No tutorial overlay system** — static guide panel is simpler, less invasive for professional users
+2. **Template briefs copy example text** — wizard state is hard to modify programmatically; pre-filling the textarea is the safest integration point
+3. **Journey state derived from app state** — no additional user-tracking store needed; steps auto-advance based on design options, canvas view, BOQ/analysis availability
+4. **Empty states point to AI Brief** — all empty states now direct users to the first step, creating a consistent funnel
+5. **No paid APIs, no new dependencies** — all changes are pure React/TypeScript + existing icons
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm test` | ✅ PASS (73 tests, 8 files) |
+| `npm run build` | ✅ PASS (3371 modules, 16 precache) |
+
+### Still Deferred
+- Tutorial overlay / onboarding tooltip system
+- Journey guide state persistence (collapsed/expanded)
+- Component-level tests (PlanCanvas, LazyBimViewer, Dashboard panels)
+- WebLLM parser tests (requires `@mlc-ai/web-llm`)
+- Multi-floor room distribution for >2 floors
+- CAD export (DXF/SVG) string generation tests
+
+---
 
 **Date:** 2026-07-01  
 **Goal:** Derive BOQ quantities from generated CAD geometry instead of broad gross-floor-area assumptions.

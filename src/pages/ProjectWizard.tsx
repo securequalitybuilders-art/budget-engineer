@@ -8,7 +8,7 @@ import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { ChevronLeft, ChevronRight, Building2, Home, School, Briefcase, Stethoscope } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Building2, Home, School, Briefcase, Stethoscope } from 'lucide-react';
 import type { UserProfile, Region, Currency } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -33,6 +33,25 @@ const currencies: { value: Currency; label: string }[] = [
   { value: 'ZWG', label: 'Zimbabwe Gold (ZWG)' },
 ];
 
+const BRIEF_TEMPLATES = [
+  {
+    label: 'Affordable family house',
+    brief: '3-bedroom, 2-bathroom house with open-plan living, kitchen, and a small veranda. Total budget around $45,000. Flat site in a suburban area.',
+  },
+  {
+    label: 'Duplex / rental units',
+    brief: '2-unit duplex with 2 bedrooms each, simple finishes, shared parking. Budget $80,000. Level urban plot.',
+  },
+  {
+    label: 'Rural clinic / NGO facility',
+    brief: 'Small rural clinic with 4 consultation rooms, waiting area, pharmacy, 2 toilets. Solar power, rainwater harvesting. Budget $120,000.',
+  },
+  {
+    label: 'Small shop / commercial space',
+    brief: 'Ground-floor shop with storage room and customer WC. Open frontage, simple finishes. Budget $30,000. High-street location.',
+  },
+]
+
 export function ProjectWizard() {
   const navigate = useNavigate();
   const { createProject, updateBrief } = useProjectStore();
@@ -44,6 +63,7 @@ export function ProjectWizard() {
   const [brief, setBrief] = useState('');
   const [budget, setBudget] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   const totalSteps = 3;
 
@@ -189,6 +209,35 @@ export function ProjectWizard() {
                 <p className="text-xs text-[var(--text-muted)]">
                   The AI will parse this into building type, dimensions, and budget.
                 </p>
+              </div>
+
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setShowTemplates(!showTemplates)}
+                  className="flex items-center gap-1 text-xs font-medium text-[var(--brand-accent)] hover:underline"
+                >
+                  {showTemplates ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  Try an example brief
+                </button>
+                {showTemplates && (
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {BRIEF_TEMPLATES.map((t) => (
+                      <button
+                        key={t.label}
+                        type="button"
+                        onClick={() => {
+                          setBrief(t.brief)
+                          setShowTemplates(false)
+                        }}
+                        className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-tertiary)] p-3 text-left transition-all hover:border-[var(--brand-accent)] hover:bg-[var(--brand-accent)]/5"
+                      >
+                        <span className="text-sm font-medium text-[var(--text-primary)]">{t.label}</span>
+                        <p className="mt-0.5 text-xs text-[var(--text-muted)] line-clamp-2">{t.brief}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

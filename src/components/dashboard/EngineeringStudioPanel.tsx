@@ -125,11 +125,11 @@ export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerate
         <div id="rebar-panel" role="tabpanel" aria-labelledby="rebar-tab" hidden={activeTab !== 'rebar'}>{activeTab === 'rebar' && <RebarSpecPanel slabArea={slabArea} />}</div>
 
         <div id="footings-panel" role="tabpanel" aria-labelledby="footings-tab" hidden={activeTab !== 'footings'}>{activeTab === 'footings' && (
-          sampleBim ? <FootingSizingPanel bim={sampleBim} /> : <EmptyState message="Generate a design option to size footings." />
+          sampleBim ? <FootingSizingPanel bim={sampleBim} /> : <EmptyState message="Start with the AI Brief tab to describe your project. Once a design is generated, footings can be sized here." />
         )}</div>
 
         <div id="loads-panel" role="tabpanel" aria-labelledby="loads-tab" hidden={activeTab !== 'loads'}>{activeTab === 'loads' && (
-          sampleBim ? <LoadAnalysisPanel bim={sampleBim} /> : <EmptyState message="Generate a design option to analyse loads." />
+          sampleBim ? <LoadAnalysisPanel bim={sampleBim} /> : <EmptyState message="Start with the AI Brief tab to describe your project. Load analysis runs once a design is ready." />
         )}</div>
 
         <div id="section-panel" role="tabpanel" aria-labelledby="section-tab" hidden={activeTab !== 'section'}>{activeTab === 'section' && (
@@ -137,7 +137,7 @@ export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerate
             <SectionView cad={sampleCad} />
           ) : (
             <div className="rounded-lg border border-stone-700/60 bg-stone-900/80 p-6 text-center">
-              <p className="text-sm text-stone-400">Generate a design option to view building sections.</p>
+              <p className="text-sm text-stone-400">Start with the AI Brief tab. Once a design exists, section views appear here.</p>
             </div>
           )
         )}</div>

@@ -3,7 +3,10 @@ import { useProjectStore } from '@/stores/projectStore';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { Plus, Folder, ArrowRight, Cpu, HardHat, FileBarChart } from 'lucide-react';
+import {
+  Plus, Folder, ArrowRight, Cpu, HardHat, FileBarChart,
+  MessageSquare, LayoutGrid, Boxes, Activity, Calculator,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const container = {
@@ -18,6 +21,15 @@ const item = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0 },
 };
+
+const JOURNEY_STEPS = [
+  { icon: MessageSquare, label: 'Describe your project', desc: 'Write what you want to build in plain English. The AI handles the details.' },
+  { icon: FileBarChart, label: 'Generate design options', desc: 'Get up to 3 design variations to compare and choose from.' },
+  { icon: LayoutGrid, label: 'View 2D floor plan', desc: 'See your design as a CAD drawing with rooms, doors, and windows.' },
+  { icon: Boxes, label: 'View 3D BIM model', desc: 'Switch to the 3D viewer for a realistic preview of your building.' },
+  { icon: Activity, label: 'Check engineering + services', desc: 'Run clash detection, solar analysis, and MEP takeoff.' },
+  { icon: Calculator, label: 'Get BOQ + export report', desc: 'See cost breakdown by region and export CSV or a PDF report.' },
+]
 
 export function Home() {
   const { projects, isHydrated } = useProjectStore();
@@ -134,8 +146,51 @@ export function Home() {
           </motion.div>
         </motion.div>
 
+        {/* First-Time Builder Journey */}
+        <section className="mt-14">
+          <h2 className="mb-2 font-display text-2xl font-semibold">First-Time Builder Journey</h2>
+          <p className="mb-6 max-w-2xl text-sm text-[var(--text-secondary)]">
+            No CAD experience needed. Everything runs in your browser with no paid AI APIs.
+            The numbers you get are early estimates — always consult a registered professional for final construction.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {JOURNEY_STEPS.map((step) => {
+              const StepIcon = step.icon
+              return (
+                <Card key={step.label} className="h-full">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand-accent)]/10">
+                        <StepIcon size={16} className="text-[var(--brand-accent)]" />
+                      </div>
+                      <CardTitle className="text-base">{step.label}</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-[var(--text-secondary)]">{step.desc}</p>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <span className="rounded-full border border-[var(--border-default)] bg-[var(--bg-tertiary)] px-3 py-1 text-xs text-[var(--text-muted)]">
+              No CAD experience needed
+            </span>
+            <span className="rounded-full border border-[var(--border-default)] bg-[var(--bg-tertiary)] px-3 py-1 text-xs text-[var(--text-muted)]">
+              Works in your browser
+            </span>
+            <span className="rounded-full border border-[var(--border-default)] bg-[var(--bg-tertiary)] px-3 py-1 text-xs text-[var(--text-muted)]">
+              No paid AI API required
+            </span>
+            <span className="rounded-full border border-[var(--border-default)] bg-[var(--bg-tertiary)] px-3 py-1 text-xs text-[var(--text-muted)]">
+              Early estimate, not final professional sign-off
+            </span>
+          </div>
+        </section>
+
         {projects.length > 0 && (
-          <div className="mt-12">
+          <div className="mt-14">
             <h2 className="mb-4 font-display text-2xl font-semibold">Recent Projects</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {projects.slice(0, 6).map((project) => (

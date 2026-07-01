@@ -9,6 +9,7 @@ import { BOQPanel } from '@/components/layout/BOQPanel';
 import { TransactionPanel } from '@/components/layout/TransactionPanel';
 import { AIChatPanel } from '@/components/layout/AIChatPanel';
 import { EngineeringStudioPanel } from '@/components/dashboard/EngineeringStudioPanel';
+import { BuilderJourneyGuide } from '@/components/dashboard/BuilderJourneyGuide';
 import { Button } from '@/components/ui/Button';
 import { Layers, Box, Ruler, FileSpreadsheet, Wand2, Loader2, Boxes, LayoutGrid } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -235,9 +236,10 @@ export function Dashboard() {
                     <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-2xl border border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-lg">
                       <Box size={40} className="text-[var(--brand-accent)]" />
                     </div>
-                    <h2 className="font-display text-2xl font-bold">2D CAD / 3D BIM Canvas</h2>
+                    <h2 className="font-display text-2xl font-bold">2D / 3D Design Canvas</h2>
                     <p className="mt-2 max-w-md text-sm text-[var(--text-secondary)]">
-                      This is the design workspace. Generate design options from a brief to see 2D CAD plans.
+                      Go to the AI Brief panel on the right to describe your project in plain English.
+                      Once you generate design options, 2D plans and 3D views appear here.
                     </p>
                     <div className="mt-6 flex flex-col items-center gap-3">
                       <Button className="gap-2" onClick={handleGenerate} disabled={isGenerating || !currentBrief}>
@@ -264,6 +266,13 @@ export function Dashboard() {
 
           {/* Right sidebar */}
           <div className="flex flex-shrink-0">
+            <BuilderJourneyGuide
+              hasDesignOptions={visibleDesignOptions.length > 0}
+              selectedDesignName={selectedDesign?.name}
+              activeCanvasView={activeCanvasView}
+              hasBoq={!!selectedDesign}
+              hasAnalysis={!!selectedDesign}
+            />
             <PropertiesPanel />
             <TransactionPanel />
             <EngineeringStudioPanel selectedDesign={selectedDesign} onDesignOptionsGenerated={handleAiDesignOptions} />

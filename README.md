@@ -5,7 +5,7 @@
 > AI-powered computational design → 2D CAD → 3D BIM → engineering checks → quantities → BOQ → export.
 > Offline-first, open-source, Africa-focused.
 >
-> **Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, geometry-derived BOQ quantities (door/window/partition/finish quantities from actual CAD geometry — not GFA estimates), 73 automated tests across the full pipeline.** CI validates typecheck, lint, tests, and production build on every push.
+> **Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, geometry-derived BOQ quantities (door/window/partition/finish quantities from actual CAD geometry — not GFA estimates), guided first-time builder journey with 6-step progress and template briefs, 73 automated tests across the full pipeline.** CI validates typecheck, lint, tests, and production build on every push.
 
 **Live demo:** [budget-engineer.vercel.app](https://budget-engineer.vercel.app/)
 
@@ -42,6 +42,7 @@ Then open http://localhost:5173.
 | **Sprint 11: Live deployment** | Verified Vercel deployment, updated live URL | Sprint 11 |
 | **Sprint 12: Public demo audit** | SEO meta tags, accessibility fixes, mobile polish, bundle audit | Sprint 12 |
 | **Sprint 13: Geometry-derived BOQ quantities** | geometryQuantitiesAdapter, external wall line item, quantity-basis UI section + CSV headers, 73 tests | Sprint 13 |
+| **Sprint 14: Builder journey guide** | Home page 6-step journey, Project Wizard template briefs, BuilderJourneyGuide dashboard panel, beginner-friendly empty states | Sprint 14 |
 
 **Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Checks → Quantities → BOQ → Export (CSV / HTML / PDF)
 

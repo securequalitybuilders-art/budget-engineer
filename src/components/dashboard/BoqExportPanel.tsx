@@ -67,7 +67,7 @@ export function BoqExportPanel({ selectedDesign, onExport }: BoqExportPanelProps
     return (
       <div className="flex flex-col items-center justify-center gap-2 border-l border-stone-700/60 bg-stone-950/80 p-4 text-center text-xs text-stone-500">
         <Calculator size={18} className="text-stone-600" />
-        <p>Generate or select a design option to create a BOQ.</p>
+        <p>Describe your project in the AI Brief first. Once a design is ready, this panel shows your cost estimate and lets you export a report.</p>
       </div>
     )
   }

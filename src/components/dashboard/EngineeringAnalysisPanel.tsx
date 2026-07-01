@@ -24,7 +24,7 @@ export function EngineeringAnalysisPanel({ selectedDesign }: Props) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 border-l border-stone-700/60 bg-stone-950/80 p-4 text-center text-xs text-stone-500">
         <Activity size={18} className="text-stone-600" />
-        <p>Select or generate a design option to run engineering analysis.</p>
+        <p>Describe your project in the AI Brief first. Once designs are ready, this panel checks for clashes, solar orientation, and services.</p>
       </div>
     )
   }
