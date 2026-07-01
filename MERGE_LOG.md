@@ -852,6 +852,53 @@ None — all modules use pure TypeScript. WebLLM (`@mlc-ai/web-llm`) is dynamica
 | `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
 | `npm run build` (`tsc && vite build`) | ✅ PASS (3368 modules, 16 precache) |
 
+---
+
+## Sprint 8 — Regional Rate Card BOQ Pricing
+
+**Date:** 2026-07-01  
+**Goal:** Replace fixed BOQ assumptions with regional rate cards so costs vary by Zimbabwe, South Africa, Kenya, or Global defaults.
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+| `src/adapters/rateCardAdapter.ts` | Rate card resolution: `resolveBoqRate()`, `getBoqRateAssumptions()`, `getContingencyRate()`, `getFeesRate()`, `getVatRate()`, region listing |
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/adapters/designToBoq.ts` | Uses rate card for all item rates + contingency/fees/vat%; returns `BoqResult` with `assumptions`; CSV/HTML exports include region and rate assumptions |
+| `src/components/dashboard/BoqExportPanel.tsx` | Added region selector dropdown, rate assumptions toggle with source/warning display |
+
+### Key Decisions
+
+1. **Adapter over store integration** — rate card resolution is a pure function, no store changes needed
+2. **Post-process base BOQ** — boq-generator unchanged; base item rates replaced after generation
+3. **Finishes/services remain fallback** — no rate card fields for these; $35/m² and $45/m² with explicit warnings
+4. **Door/window share opening_each** — rate card has a single `opening_each` field; doors and windows both map to it
+5. **Region state local to BoqExportPanel** — not persisted (lightweight, no IndexedDB risk)
+6. **Rate assumptions on demand** — collapsible UI section, not always visible
+7. **Rate card adapter reusable** — `getBoqRateAssumptions` can be used by RateCardPanel if needed later
+
+### Sample Cost Comparison (150 m² house)
+
+| Region | Approx Grand Total |
+|--------|-------------------|
+| Zimbabwe (USD) | ~$57,000 |
+| South Africa (ZAR) | ~R1,036,000 |
+| Kenya (KES) | ~KSh 7,373,000 |
+| Global (USD) | ~$63,200 |
+
+### Build Result
+
+| Command | Result |
+|---------|--------|
+| `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
+| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm run build` (`tsc && vite build`) | ✅ PASS (3369 modules, 16 precache) |
+
 ### Still Deferred
 - Persist active canvas view preference
 - Openings/doors/windows in BOQ and analysis

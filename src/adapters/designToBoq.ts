@@ -3,13 +3,22 @@ import type { BOQ, BOQLineItem } from '@/lib/boq/boq-types'
 import { buildDesignGeometry } from './designGeometryAdapter'
 import { designOptionToBimModel } from './designToBim'
 import { generateBoqFromBim } from '@/engine/boq-generator'
-import { RATE_CARDS } from '@/lib/rates/rate-card'
+import { resolveBoqRate, getContingencyRate, getFeesRate, getVatRate } from './rateCardAdapter'
+import { getRegionRateCard } from './rateCardAdapter'
+import type { RateAssumption } from './rateCardAdapter'
 
 function safe<T>(fn: () => T, fallback: T): T {
   try { return fn() } catch { return fallback }
 }
 
-export function buildBoqFromDesignOption(design: DesignOption | null, region = 'zimbabwe'): BOQ | null {
+export interface BoqResult extends BOQ {
+  assumptions: RateAssumption[]
+}
+
+export function buildBoqFromDesignOption(
+  design: DesignOption | null,
+  region = 'zimbabwe',
+): BoqResult | null {
   if (!design || design.grossFloorArea <= 0) return null
 
   const bim = designOptionToBimModel(design)
@@ -24,77 +33,118 @@ export function buildBoqFromDesignOption(design: DesignOption | null, region = '
   const internalWallCount = geo.walls.filter((w) => w.kind === 'internal').length
   const area = design.grossFloorArea
 
-  const card = RATE_CARDS[region] ?? RATE_CARDS.zimbabwe
+  const card = getRegionRateCard(region)
+
+  // Build rate assumptions
+  const assumptions: RateAssumption[] = [
+    { ...resolveBoqRate(region, 'wall', 85), itemKey: 'wall', label: 'External walls' },
+    { ...resolveBoqRate(region, 'slab', 110), itemKey: 'slab', label: 'Floor slabs' },
+    { ...resolveBoqRate(region, 'roof', 75), itemKey: 'roof', label: 'Roof' },
+    { ...resolveBoqRate(region, 'partition', 65), itemKey: 'partition', label: 'Internal partitions' },
+    { ...resolveBoqRate(region, 'door', 180), itemKey: 'door', label: 'Doors' },
+    { ...resolveBoqRate(region, 'window', 320), itemKey: 'window', label: 'Windows' },
+    { ...resolveBoqRate(region, 'opening', 250), itemKey: 'opening', label: 'Generic openings' },
+    { itemKey: 'finishes', label: 'Finishes allowance', rate: 35, currency: card.currency, source: 'fallback' as const, warning: 'Finishes rate is a fixed estimate, not from rate card' },
+    { itemKey: 'services', label: 'Services allowance', rate: 45, currency: card.currency, source: 'fallback' as const, warning: 'Services rate is a fixed estimate, not from rate card' },
+  ]
+
+  // Post-process base BOQ items to use rate card rates
+  const baseItems: BOQLineItem[] = baseBoq.items.map((item) => {
+    let itemKey: string | null = null
+    if (item.category === 'Walls') itemKey = 'wall'
+    else if (item.category === 'Slabs') itemKey = 'slab'
+    else if (item.category === 'Roof') itemKey = 'roof'
+    else if (item.category === 'Openings') {
+      const desc = item.description.toLowerCase()
+      if (desc.includes('door')) itemKey = 'door'
+      else if (desc.includes('window') || desc.includes('glazing')) itemKey = 'window'
+      else itemKey = 'opening'
+    }
+    else if (item.category === 'Objects') itemKey = 'object'
+
+    if (itemKey) {
+      const resolved = resolveBoqRate(region, itemKey, item.rate)
+      const newTotal = Math.round(item.quantity * resolved.rate * 100) / 100
+      return { ...item, rate: resolved.rate, total: newTotal }
+    }
+    return item
+  })
 
   const extraItems: BOQLineItem[] = []
 
   if (doorCount > 0) {
+    const r = resolveBoqRate(region, 'door', 180)
     extraItems.push({
-      id: `boq-extra-doors`,
+      id: 'boq-extra-doors',
       quantityRef: 'doors',
       category: 'Openings',
       description: `Internal doors (${doorCount} nr)`,
       unit: 'each',
       quantity: doorCount,
-      rate: 180,
-      total: doorCount * 180,
+      rate: r.rate,
+      total: Math.round(doorCount * r.rate * 100) / 100,
     })
   }
 
   if (windowCount > 0) {
+    const r = resolveBoqRate(region, 'window', 320)
     extraItems.push({
-      id: `boq-extra-windows`,
+      id: 'boq-extra-windows',
       quantityRef: 'windows',
       category: 'Openings',
       description: `Windows with glazing (${windowCount} nr)`,
       unit: 'each',
       quantity: windowCount,
-      rate: 320,
-      total: windowCount * 320,
+      rate: r.rate,
+      total: Math.round(windowCount * r.rate * 100) / 100,
     })
   }
 
   if (internalWallCount > 0) {
+    const r = resolveBoqRate(region, 'partition', 65)
     extraItems.push({
-      id: `boq-extra-partitions`,
+      id: 'boq-extra-partitions',
       quantityRef: 'partitions',
       category: 'Walls',
       description: `Internal partition walls (${internalWallCount} walls)`,
       unit: 'm²',
       quantity: internalWallCount * 8,
-      rate: 65,
-      total: internalWallCount * 8 * 65,
+      rate: r.rate,
+      total: Math.round(internalWallCount * 8 * r.rate * 100) / 100,
     })
   }
 
   if (area > 0) {
     extraItems.push({
-      id: `boq-extra-finishes`,
+      id: 'boq-extra-finishes',
       quantityRef: 'finishes',
       category: 'Finishes',
       description: 'Floor, wall & ceiling finishes allowance',
       unit: 'm²',
       quantity: area,
       rate: 35,
-      total: area * 35,
+      total: Math.round(area * 35 * 100) / 100,
     })
     extraItems.push({
-      id: `boq-extra-services`,
+      id: 'boq-extra-services',
       quantityRef: 'services',
       category: 'MEP',
       description: 'Electrical, plumbing & drainage allowance',
       unit: 'm²',
       quantity: area,
       rate: 45,
-      total: area * 45,
+      total: Math.round(area * 45 * 100) / 100,
     })
   }
 
-  const allItems = [...baseBoq.items, ...extraItems]
+  const allItems = [...baseItems, ...extraItems]
   const subtotal = Math.round(allItems.reduce((sum, item) => sum + item.total, 0) * 100) / 100
-  const contingency = Math.round(subtotal * 0.05 * 100) / 100
-  const professionalFees = Math.round(subtotal * 0.07 * 100) / 100
-  const vat = Math.round((subtotal + contingency + professionalFees) * 0.15 * 100) / 100
+  const contingencyPct = getContingencyRate(region)
+  const feesPct = getFeesRate(region)
+  const vatPct = getVatRate(region)
+  const contingency = Math.round(subtotal * contingencyPct * 100) / 100
+  const professionalFees = Math.round(subtotal * feesPct * 100) / 100
+  const vat = Math.round((subtotal + contingency + professionalFees) * vatPct * 100) / 100
   const grandTotal = Math.round((subtotal + contingency + professionalFees + vat) * 100) / 100
 
   return {
@@ -102,6 +152,7 @@ export function buildBoqFromDesignOption(design: DesignOption | null, region = '
     currency: card.currency,
     items: allItems,
     summary: { subtotal, contingency, professionalFees, vat, grandTotal },
+    assumptions,
   }
 }
 
@@ -110,12 +161,16 @@ export function getCostPerM2(boq: BOQ, areaM2: number): number {
   return Math.round((boq.summary.grandTotal / areaM2) * 100) / 100
 }
 
-export function buildExportCsv(boq: BOQ): string {
+export function buildExportCsv(boq: BOQ, regionName?: string): string {
   const esc = (v: string | number) => {
     const s = String(v)
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
   }
   const lines: string[] = []
+  if (regionName) {
+    lines.push(esc(`Region: ${regionName}`))
+  }
+  lines.push(esc(`Currency: ${boq.currency}`))
   lines.push(['Category', 'Description', 'Quantity', 'Unit', `Rate (${boq.currency})`, `Total (${boq.currency})`].map(esc).join(','))
   for (const it of boq.items) {
     lines.push([it.category, it.description, it.quantity, it.unit, it.rate.toFixed(2), it.total.toFixed(2)].map(esc).join(','))
@@ -129,7 +184,14 @@ export function buildExportCsv(boq: BOQ): string {
   return lines.join('\n')
 }
 
-export function buildExportHtml(designName: string, boq: BOQ, areaM2: number, floors: number): string {
+export function buildExportHtml(
+  designName: string,
+  boq: BOQ,
+  areaM2: number,
+  floors: number,
+  regionName?: string,
+  assumptions?: RateAssumption[],
+): string {
   const sym = boq.currency === 'USD' ? '$' : boq.currency === 'ZAR' ? 'R' : boq.currency === 'KES' ? 'KSh' : '$'
   const money = (n: number) => `${sym}${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   const costPerM2 = getCostPerM2(boq, areaM2)
@@ -143,6 +205,14 @@ export function buildExportHtml(designName: string, boq: BOQ, areaM2: number, fl
       <td>${it.unit}</td>
       <td class="num">${money(it.rate)}</td>
       <td class="num">${money(it.total)}</td>
+    </tr>`).join('')
+
+  const assumptionRows = (assumptions ?? []).map((a) => `
+    <tr>
+      <td>${a.label}</td>
+      <td class="num">${money(a.rate)}</td>
+      <td><span class="tag ${a.source === 'rate-card' ? 'tag-ok' : 'tag-warn'}">${a.source === 'rate-card' ? 'Rate card' : 'Estimate'}</span></td>
+      <td style="font-size:10px;color:#94a3b8">${a.warning ?? '—'}</td>
     </tr>`).join('')
 
   return `<!doctype html>
@@ -163,12 +233,16 @@ export function buildExportHtml(designName: string, boq: BOQ, areaM2: number, fl
   th { background: #f1f5f9; color: #475569; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   .tag { font-size: 10px; padding: 2px 7px; border-radius: 999px; background: #e0f2fe; color: #0369a1; }
+  .tag-ok { background: #dcfce7; color: #166534; }
+  .tag-warn { background: #fef9c3; color: #854d0e; }
   .summary { margin-top: 14px; margin-left: auto; width: 320px; }
   .summary tr td { border: none; padding: 5px 9px; }
   .summary tr.total td { border-top: 2px solid #1a365d; font-weight: 700; font-size: 15px; color: #1a365d; }
   .totals { background: #0f172a; color: #fff; padding: 16px 20px; border-radius: 10px; margin-top: 18px; }
   .totals .row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; border-bottom: 1px solid #334155; }
   .totals .grand { display: flex; justify-content: space-between; padding-top: 10px; font-size: 18px; font-weight: 800; color: #22c55e; border-top: 2px solid #22c55e; }
+  .assumptions { margin-top: 20px; }
+  .assumptions h3 { font-size: 14px; color: #1a365d; margin: 0 0 8px; }
   .footer { margin-top: 24px; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 10px; }
   .printbar { position: sticky; top: 0; background: #0b1220; padding: 10px; text-align: center; }
   .printbar button { background: #06b6d4; color: #04202a; border: none; padding: 9px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; }
@@ -186,7 +260,9 @@ export function buildExportHtml(designName: string, boq: BOQ, areaM2: number, fl
       <div><b>${designName}</b>Design Option</div>
       <div><b>${areaM2.toFixed(0)} m²</b>Gross Floor Area</div>
       <div><b>${floors}</b>Floor${floors > 1 ? 's' : ''}</div>
-      <div><b>${costPerM2.toFixed(2)}</b>Cost per m² (${boq.currency})</div>
+      <div><b>${regionName ?? '—'}</b>Region</div>
+      <div><b>${boq.currency}</b>Currency</div>
+      <div><b>${costPerM2.toFixed(2)}</b>Cost per m²</div>
       <div><b>${boq.items.length}</b>Line items</div>
       <div><b>${now}</b>Generated</div>
     </div>
@@ -205,9 +281,17 @@ export function buildExportHtml(designName: string, boq: BOQ, areaM2: number, fl
       <div class="row"><span>VAT (${boq.summary.grandTotal > 0 ? Math.round((boq.summary.vat / (boq.summary.grandTotal - boq.summary.vat)) * 100) : 0}%)</span><span>${money(boq.summary.vat)}</span></div>
       <div class="grand"><span>Grand Total</span><span>${money(boq.summary.grandTotal)}</span></div>
     </div>
+    ${assumptionRows.length > 0 ? `
+    <div class="assumptions">
+      <h3>Rate Assumptions</h3>
+      <table>
+        <thead><tr><th>Item</th><th class="num">Rate</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>${assumptionRows}</tbody>
+      </table>
+    </div>` : ''}
     <div class="footer">
       Generated by Budget Engineer Studio. Quantities derived from parametric BIM model;
-      rates are early-stage estimates. This document is a budgeting aid, not a tendered contract sum.
+      rates are early-stage estimates from regional rate cards. This document is a budgeting aid, not a tendered contract sum.
     </div>
   </div>
 </body></html>`

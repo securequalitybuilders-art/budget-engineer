@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-01  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 7 — Generated CAD detail: rooms, doors, windows, internal walls, and zones improve 2D CAD realism, 3D BIM, clash detection, solar analysis, MEP takeoff, and BOQ completeness. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
+> **Status:** Sprint 8 — Regional rate-card BOQ pricing: BOQ costs now vary by Zimbabwe (USD), South Africa (ZAR), Kenya (KES), or Global (USD). Rate source tracking and fallback warnings in panel and exports. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm run build` (success)
 
 ---
 
@@ -250,7 +250,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 - **Engineering Studio section** (EngineeringStudioPanel) — tabbed accordion panel in dashboard right sidebar
 - **BOQ Export Panel** (BoqExportPanel) — sidebar panel for BOQ display, CSV export, HTML dossier, print-to-PDF
 - **Engineering Analysis Panel** (EngineeringAnalysisPanel) — sidebar panel for clash detection, solar analysis, MEP takeoff with recommendation cards
-- **5 adapters** (`designGeometryAdapter.ts` + `designToBim.ts` + `aiDesignAdapter.ts` + `designToBoq.ts` + `designToAnalysis.ts`) — building geometry, BIM model, AI design, BOQ generation, engineering analysis from DesignOption
+- **6 adapters** (`designGeometryAdapter.ts` + `designToBim.ts` + `aiDesignAdapter.ts` + `designToBoq.ts` + `designToAnalysis.ts` + `rateCardAdapter.ts`) — building geometry, BIM model, AI design, BOQ generation, engineering analysis, rate card resolution from DesignOption
 - **2D/3D toggle** in Dashboard toolbar — switches between PlanCanvas and LazyBimViewer
 
 ---
