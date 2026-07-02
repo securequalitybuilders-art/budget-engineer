@@ -12,6 +12,7 @@ interface UIState {
   aiChatOpen: boolean;
   shortcutsOpen: boolean;
   activeStage: number;
+  selectedDesignId: string | null;
   setTheme: (theme: AppTheme) => void;
   toggleSidebar: () => void;
   togglePropertiesPanel: () => void;
@@ -19,6 +20,7 @@ interface UIState {
   toggleAiChat: () => void;
   toggleShortcutsHelp: () => void;
   setActiveStage: (stage: number) => void;
+  setSelectedDesignId: (id: string | null) => void;
 }
 
 function resolveTheme(theme: AppTheme): 'dark' | 'light' {
@@ -46,6 +48,7 @@ export const useUIStore = create<UIState>()(
         aiChatOpen: false,
         shortcutsOpen: false,
         activeStage: 1,
+        selectedDesignId: null,
 
         setTheme: (theme) => {
           const resolved = resolveTheme(theme);
@@ -79,6 +82,10 @@ export const useUIStore = create<UIState>()(
         setActiveStage: (stage) =>
           set((s) => {
             s.activeStage = stage;
+          }),
+        setSelectedDesignId: (id) =>
+          set((s) => {
+            s.selectedDesignId = id;
           }),
       }),
       {

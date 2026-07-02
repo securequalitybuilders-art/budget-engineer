@@ -4,6 +4,13 @@
 
 - Diagnosed Lighthouse NO_FCP audit failure on project route — root cause was a CSS-only spinner with no visible text rendered indefinitely for non-existent project IDs
 - Hardened Dashboard first paint: loading state now shows "Loading project…" text; non-existent projects show "Project not found" fallback with create-project link
+- Design option selection gating and stage progression UX:
+  - Design options are now clickable card-shaped selectors with area/floors info and Select/Selected badge
+  - High-visibility "Select a design option to continue" prompt in brand cyan when no option selected
+  - Design stage tab in top nav is locked (dotted line-through + tooltip) until a design option is selected
+  - Auto-scroll to design options after generation
+  - Removed automatic selection of first option — user must explicitly click a card
+  - `selectedDesignId` moved from local Dashboard state to central uiStore for cross-component access
 
 ---
 

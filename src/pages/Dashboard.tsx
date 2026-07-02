@@ -34,9 +34,8 @@ import type { GeometrySource } from '@/adapters/cadToDesignSyncAdapter';
 export function Dashboard() {
   const { id } = useParams<{ id: string }>();
   const { loadProject, currentProject, currentBrief, currentDesigns, isLoading, generateDesigns, seed } = useProjectStore();
-  const { setActiveStage } = useUIStore();
+  const { setActiveStage, selectedDesignId, setSelectedDesignId } = useUIStore();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [selectedDesignId, setSelectedDesignId] = useState<string | null>(null);
   const [activeCanvasView, setActiveCanvasView] = useState<'plan' | 'bim'>('plan');
   const [aiDesignOptions, setAiDesignOptions] = useState<DesignOption[]>([]);
   const [persistedPlan, setPersistedPlan] = useState<PlanModel | null>(null);
@@ -50,6 +49,7 @@ export function Dashboard() {
   const loadedCadRef = useRef<string | null>(null);
   const loggedBimRef = useRef<string | null>(null);
   const loggedBoqRef = useRef<string | null>(null);
+  const designOptionsRef = useRef<HTMLDivElement>(null);
 
   function showStatus(msg: string, type: 'success' | 'error' | 'info') {
     if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
@@ -128,6 +128,13 @@ export function Dashboard() {
       setActiveStage(stageMap[currentProject.status] || 1);
     }
   }, [currentProject, setActiveStage]);
+
+  // ── Auto-scroll to design options after generation ──
+  useEffect(() => {
+    if (visibleDesignOptions.length > 0 && designOptionsRef.current) {
+      designOptionsRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [visibleDesignOptions.length]);
 
   // ── CAD Persistence: load saved PlanModel on design selection change ──
   useEffect(() => {
@@ -240,9 +247,6 @@ export function Dashboard() {
 
   const handleAiDesignOptions = async (options: DesignOption[]) => {
     setAiDesignOptions(options);
-    if (options.length > 0) {
-      setSelectedDesignId(options[0].id);
-    }
     // Persist AI-generated designs
     if (id && options.length > 0) {
       await persistDesigns(id, options)
@@ -356,27 +360,59 @@ export function Dashboard() {
             {/* Canvas area */}
             <div className="flex flex-1 flex-col overflow-auto p-4">
               {visibleDesignOptions.length > 0 ? (
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {visibleDesignOptions.map((option) => (
-                      <button
-                        key={option.id}
-                        onClick={() => setSelectedDesignId(option.id)}
-                        className={`max-w-[160px] truncate rounded-xl border px-3 py-2 text-xs ${
-                          (selectedDesign?.id ?? visibleDesignOptions[0]?.id) === option.id
-                            ? 'border-cyan-400/40 bg-cyan-500/10 text-cyan-200'
-                            : 'border-white/10 bg-slate-900 text-slate-400'
-                        }`}
-                        title={option.name}
-                      >
-                        {option.name}
-                      </button>
-                    ))}
-                    <Button className="ml-auto gap-2" onClick={handleGenerate} disabled={isGenerating || !currentBrief}>
-                      {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
-                      {isGenerating ? 'Generating...' : 'Regenerate'}
-                    </Button>
+                <div ref={designOptionsRef} className="flex flex-col gap-4">
+                  {/* Select prompt when no option selected */}
+                  {!selectedDesignId && visibleDesignOptions.length > 0 && (
+                    <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-sm font-medium text-cyan-300">
+                      Select a design option to continue
+                    </div>
+                  )}
+
+                  {/* Design option cards */}
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {visibleDesignOptions.map((option) => {
+                      const isSelected = selectedDesignId === option.id;
+                      return (
+                        <button
+                          key={option.id}
+                          onClick={() => setSelectedDesignId(option.id)}
+                          className={`flex flex-col items-start gap-1 rounded-xl border p-4 text-left transition-all hover:scale-[1.02] ${
+                            isSelected
+                              ? 'border-cyan-400/50 bg-cyan-500/15 shadow-md shadow-cyan-500/10'
+                              : 'border-white/10 bg-slate-900 hover:border-cyan-500/30 hover:bg-cyan-500/5'
+                          }`}
+                        >
+                          <span className={`text-sm font-semibold ${isSelected ? 'text-cyan-200' : 'text-slate-300'}`}>
+                            {option.name}
+                          </span>
+                          <span className="text-[11px] text-slate-500">
+                            {option.grossFloorArea.toFixed(0)} m² · {option.floors} floor{option.floors > 1 ? 's' : ''}
+                          </span>
+                          <span
+                            className={`mt-1 self-start rounded-md px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                              isSelected
+                                ? 'bg-cyan-500/20 text-cyan-300'
+                                : 'bg-amber-500/10 text-amber-400'
+                            }`}
+                          >
+                            {isSelected ? 'Selected' : 'Select'}
+                          </span>
+                          {isSelected && (
+                            <span className="mt-2 flex items-center gap-1 text-[11px] text-cyan-400">
+                              View 2D floor plan →
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                    <div className="flex items-end">
+                      <Button className="w-full gap-2" onClick={handleGenerate} disabled={isGenerating || !currentBrief}>
+                        {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
+                        {isGenerating ? 'Generating...' : 'Regenerate'}
+                      </Button>
+                    </div>
                   </div>
+
                   {activeCanvasView === 'plan' ? (
                     <PlanCanvas projectId={id ?? null} design={selectedDesign} persistedPlan={persistedPlan} onSavePlan={handleSavePlan} />
                   ) : (

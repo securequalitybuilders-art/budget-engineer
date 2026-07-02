@@ -18,7 +18,14 @@ const stages = [
 
 export function CommandBar() {
   const { currentProject } = useProjectStore();
-  const { toggleSidebar, activeStage } = useUIStore();
+  const { toggleSidebar, activeStage, selectedDesignId } = useUIStore();
+
+  function isStageAccessible(idx: number): { accessible: boolean; reason?: string } {
+    if (idx >= 2 && !selectedDesignId) {
+      return { accessible: false, reason: 'Select a design option first' };
+    }
+    return { accessible: true };
+  }
 
   return (
     <header className="glass-strong sticky top-0 z-40 flex h-14 items-center justify-between border-b border-[var(--border-default)] px-4">
@@ -48,14 +55,19 @@ export function CommandBar() {
       <nav className="hidden items-center gap-1 lg:flex">
         {stages.map((stage, idx) => {
           const isActive = idx + 1 === activeStage;
+          const { accessible, reason } = isStageAccessible(idx);
+          const isLocked = !accessible && !isActive;
           return (
             <div
               key={stage}
+              title={isLocked ? reason : undefined}
               className={
                 'relative flex items-center gap-2 px-3 py-1 text-sm transition-colors ' +
                 (isActive
                   ? 'font-medium text-[var(--brand-accent)]'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]')
+                  : isLocked
+                    ? 'cursor-not-allowed text-[var(--text-muted)]/40 line-through decoration-dotted'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]')
               }
             >
               {isActive && <span className="absolute inset-0 rounded-md border border-[var(--brand-accent)]/30 bg-[var(--brand-accent)]/10" />}
