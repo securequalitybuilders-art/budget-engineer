@@ -358,73 +358,119 @@ export function Dashboard() {
             </div>
 
             {/* Canvas area */}
-            <div className="flex flex-1 flex-col overflow-auto p-4">
-              {visibleDesignOptions.length > 0 ? (
-                <div ref={designOptionsRef} className="flex flex-col gap-4">
-                  {/* Select prompt when no option selected */}
-                  {!selectedDesignId && visibleDesignOptions.length > 0 && (
-                    <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-sm font-medium text-cyan-300">
-                      Select a design option to continue
-                    </div>
-                  )}
+              <div className="flex flex-1 flex-col overflow-auto p-4">
+                {visibleDesignOptions.length > 0 ? (
+                  <div ref={designOptionsRef} className="flex flex-col gap-6">
+                    {/* ── Prominent "Choose your design" section ── */}
+                    <div className="rounded-2xl border-2 border-cyan-500/25 bg-slate-900/80 p-5 shadow-lg shadow-cyan-500/5 sm:p-6">
+                      {/* Section header */}
+                      <div className="mb-5 flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20">
+                          <LayoutGrid size={20} className="text-cyan-400" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h2 className="text-lg font-bold text-white">Choose your design</h2>
+                          <p className="text-xs text-slate-400">
+                            {selectedDesignId
+                              ? 'Design selected — you can change anytime'
+                              : 'Select a design option to unlock the Design stage'}
+                          </p>
+                        </div>
+                      </div>
 
-                  {/* Design option cards */}
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {visibleDesignOptions.map((option) => {
-                      const isSelected = selectedDesignId === option.id;
-                      return (
-                        <button
-                          key={option.id}
-                          onClick={() => setSelectedDesignId(option.id)}
-                          className={`flex flex-col items-start gap-1 rounded-xl border p-4 text-left transition-all hover:scale-[1.02] ${
-                            isSelected
-                              ? 'border-cyan-400/50 bg-cyan-500/15 shadow-md shadow-cyan-500/10'
-                              : 'border-white/10 bg-slate-900 hover:border-cyan-500/30 hover:bg-cyan-500/5'
-                          }`}
-                        >
-                          <span className={`text-sm font-semibold ${isSelected ? 'text-cyan-200' : 'text-slate-300'}`}>
-                            {option.name}
-                          </span>
-                          <span className="text-[11px] text-slate-500">
-                            {option.grossFloorArea.toFixed(0)} m² · {option.floors} floor{option.floors > 1 ? 's' : ''}
-                          </span>
-                          <span
-                            className={`mt-1 self-start rounded-md px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                              isSelected
-                                ? 'bg-cyan-500/20 text-cyan-300'
-                                : 'bg-amber-500/10 text-amber-400'
-                            }`}
-                          >
-                            {isSelected ? 'Selected' : 'Select'}
-                          </span>
-                          {isSelected && (
-                            <span className="mt-2 flex items-center gap-1 text-[11px] text-cyan-400">
-                              View 2D floor plan →
+                      {/* Cards grid */}
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {visibleDesignOptions.map((option) => {
+                          const isSelected = selectedDesignId === option.id;
+                          return (
+                            <button
+                              key={option.id}
+                              onClick={() => setSelectedDesignId(option.id)}
+                              className={`flex flex-col gap-1 rounded-xl border-2 p-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${
+                                isSelected
+                                  ? 'border-cyan-400/60 bg-cyan-500/15 shadow-md shadow-cyan-500/15'
+                                  : 'border-slate-700/60 bg-slate-800/80 hover:border-cyan-500/40 hover:bg-cyan-500/5'
+                              }`}
+                            >
+                              <span className={`text-sm font-bold ${isSelected ? 'text-cyan-200' : 'text-slate-200'}`}>
+                                {option.name}
+                              </span>
+                              <span className="text-xs text-slate-500">
+                                {option.grossFloorArea.toFixed(0)} m² · {option.floors} floor{option.floors > 1 ? 's' : ''}
+                              </span>
+                              <span className="mt-1 text-[10px] leading-relaxed text-slate-500">
+                                {option.elements.length} element{option.elements.length > 1 ? 's' : ''}
+                              </span>
+                              <span
+                                className={`mt-2 self-start rounded-md px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                                  isSelected
+                                    ? 'bg-cyan-500/20 text-cyan-300'
+                                    : 'bg-amber-500/10 text-amber-400'
+                                }`}
+                              >
+                                {isSelected ? 'Selected' : 'Select this design'}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* CTA after selection */}
+                      {selectedDesignId ? (
+                        <div className="mt-5 flex flex-col items-start gap-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20">
+                              <span className="text-[10px] text-emerald-400">✓</span>
+                            </div>
+                            <span className="text-sm text-cyan-200">
+                              <span className="font-semibold text-white">{selectedDesign?.name}</span> selected
                             </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                    <div className="flex items-end">
-                      <Button className="w-full gap-2" onClick={handleGenerate} disabled={isGenerating || !currentBrief}>
-                        {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
-                        {isGenerating ? 'Generating...' : 'Regenerate'}
-                      </Button>
-                    </div>
-                  </div>
+                          </div>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => {
+                              setActiveCanvasView('plan');
+                              designOptionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            }}
+                          >
+                            View 2D floor plan →
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="mt-5 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-center text-sm font-medium text-cyan-300">
+                          Select a design option to continue
+                        </div>
+                      )}
 
-                  {activeCanvasView === 'plan' ? (
-                    <PlanCanvas projectId={id ?? null} design={selectedDesign} persistedPlan={persistedPlan} onSavePlan={handleSavePlan} />
-                  ) : (
-                    <LazyBimViewer model={bimModel} height={480} />
-                  )}
-                  <PlanComparison designs={visibleDesignOptions} selectedDesignId={selectedDesign?.id} />
-                  <p className="max-w-xs text-[10px] text-stone-500">
-                    Mobile: review, estimates, exports supported. For best CAD editing, use a tablet or desktop.
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-1 flex-col items-center justify-center">
+                      {/* Regenerate button */}
+                      <div className="mt-4 flex justify-center sm:justify-end">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="gap-2"
+                          onClick={handleGenerate}
+                          disabled={isGenerating || !currentBrief}
+                        >
+                          {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
+                          {isGenerating ? 'Generating...' : 'Regenerate options'}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Canvas area */}
+                    {activeCanvasView === 'plan' ? (
+                      <PlanCanvas projectId={id ?? null} design={selectedDesign} persistedPlan={persistedPlan} onSavePlan={handleSavePlan} />
+                    ) : (
+                      <LazyBimViewer model={bimModel} height={480} />
+                    )}
+                    <PlanComparison designs={visibleDesignOptions} selectedDesignId={selectedDesign?.id} />
+                    <p className="max-w-xs text-[10px] text-stone-500">
+                      Mobile: review, estimates, exports supported. For best CAD editing, use a tablet or desktop.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-1 flex-col items-center justify-center">
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}

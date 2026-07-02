@@ -11,6 +11,12 @@
   - Auto-scroll to design options after generation
   - Removed automatic selection of first option — user must explicitly click a card
   - `selectedDesignId` moved from local Dashboard state to central uiStore for cross-component access
+- Prominent "Choose your design" section in main content area (Sprint 33):
+  - Full-width branded section with cyan border/shadow at the top of the canvas area
+  - Larger option cards with name, area, element count, and "Select this design" / "Selected" badge
+  - After selection: confirmation bar with "View 2D floor plan →" CTA button
+  - Regenerate options button at the bottom of the section
+  - Responsive grid: stacks vertically on mobile, 2–3 columns on larger screens
 
 ---
 
