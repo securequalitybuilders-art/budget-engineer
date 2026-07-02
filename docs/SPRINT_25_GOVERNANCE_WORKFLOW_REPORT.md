@@ -90,7 +90,7 @@
 | Command | Result |
 |---------|--------|
 | `npm run typecheck` (`tsc --noEmit`) | ✅ PASS (0 errors) |
-| `npm run lint` | ✅ PASS (0 errors, 6 pre-existing warnings) |
+| `npm run lint` | ✅ PASS (0 errors, 9 pre-existing warnings) |
 | `npm test` (`vitest run`) | ✅ PASS (159 tests, 14 files) |
 | `npm run build` (`tsc && vite build`) | ✅ PASS |
 
