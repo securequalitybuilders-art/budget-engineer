@@ -271,7 +271,7 @@ describe('planTo3d — pure adapter', () => {
   })
 
   it('empty/undefined openings -> walls render solid, no throw', () => {
-    const plan = makePlan({ openings: undefined as any })
+    const plan = makePlan({ openings: undefined })
     const result = planTo3d(plan, 1)
     expect(result.walls.length).toBe(5)
     expect(result.openings.length).toBe(0)

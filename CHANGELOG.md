@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Restore lint baseline to 9 warnings by typing the Sprint 38 test value (Sprint 38A)
 - Roof, multi-storey polish, and GLB export for the 3D BIM model (Sprint 38):
   - Pitched gable roof on topmost storey: ridge along the longer axis, pitch
     height 1.5 m, overhang 0.3 m, terracotta material (#a0522d)
