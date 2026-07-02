@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { planTo3d, DEFAULT_STOREY_HEIGHT, FALLBACK_WALL_THICKNESS, SLAB_THICKNESS, DOOR_DEFAULT_HEIGHT, DOOR_DEFAULT_SILL, WINDOW_DEFAULT_HEIGHT, WINDOW_DEFAULT_SILL, resolveOpeningPosition } from '@/adapters/planTo3d'
+import { planTo3d, DEFAULT_STOREY_HEIGHT, FALLBACK_WALL_THICKNESS, SLAB_THICKNESS, DOOR_DEFAULT_HEIGHT, DOOR_DEFAULT_SILL, WINDOW_DEFAULT_HEIGHT, WINDOW_DEFAULT_SILL, ROOF_PITCH_HEIGHT, ROOF_OVERHANG, resolveOpeningPosition } from '@/adapters/planTo3d'
 import { generatePlanModel } from '@/engine/plan-generator'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
@@ -310,5 +310,83 @@ describe('planTo3d — pure adapter', () => {
       expect(op.width).toBeGreaterThan(0)
       expect(op.height).toBeGreaterThan(0)
     }
+  })
+
+  // ── Roof tests ──
+
+  it('roof params computed: apex > eave and ridge above total building height', () => {
+    const plan = makePlan({ width: 12, height: 8 })
+    const result = planTo3d(plan, 1)
+    expect(result.roof).not.toBeNull()
+    const roof = result.roof!
+    // Eaves at top of top storey (storeyHeight for single storey)
+    expect(roof.eaveY).toBe(DEFAULT_STOREY_HEIGHT)
+    expect(roof.pitchHeight).toBe(ROOF_PITCH_HEIGHT)
+    // Ridge centre at building centre
+    expect(roof.ridgeCentreX).toBe(6)
+    expect(roof.ridgeCentreZ).toBe(4)
+    // Ridge along longer axis (width=12 > depth=8, so X axis)
+    expect(roof.ridgeAxis).toBe('x')
+  })
+
+  it('flat plan -> pitched roof defaults to X axis when width >= height', () => {
+    const plan = makePlan({ width: 15, height: 10 })
+    const result = planTo3d(plan, 1)
+    expect(result.roof?.ridgeAxis).toBe('x')
+  })
+
+  it('taller plan -> pitched roof defaults to Z axis when height > width', () => {
+    const plan = makePlan({ width: 8, height: 12 })
+    const result = planTo3d(plan, 1)
+    expect(result.roof?.ridgeAxis).toBe('z')
+  })
+
+  it('roof overhang extends past building bounds', () => {
+    const plan = makePlan({ width: 10, height: 6 })
+    const result = planTo3d(plan, 1)
+    const roof = result.roof!
+    // Ridge length includes overhang on both sides
+    const expectedRidgeLen = 10 + ROOF_OVERHANG * 2
+    expect(roof.ridgeLength).toBeCloseTo(expectedRidgeLen)
+    expect(roof.overhang).toBe(ROOF_OVERHANG)
+  })
+
+  it('multi-storey: 2 storeys produce exactly one roof on top at correct height', () => {
+    const plan = makePlan({ width: 12, height: 8 })
+    const result = planTo3d(plan, 2)
+    // 2 slabs + 2 storeys of walls + exactly ONE roof
+    expect(result.slabs.length).toBe(2)
+    expect(result.roof).not.toBeNull()
+    // Eaves at top of top storey = 2 * storeyHeight
+    expect(result.roof!.eaveY).toBe(2 * DEFAULT_STOREY_HEIGHT)
+    // ridgeCentreZ unchanged from single storey
+    expect(result.roof!.ridgeCentreX).toBe(6)
+    expect(result.roof!.ridgeCentreZ).toBe(4)
+  })
+
+  it('single storey roof sits at storeyHeight', () => {
+    const plan = makePlan()
+    const result = planTo3d(plan, 1)
+    expect(result.roof).not.toBeNull()
+    expect(result.roof!.eaveY).toBe(DEFAULT_STOREY_HEIGHT)
+  })
+
+  it('empty plan -> no roof, no throw', () => {
+    const result1 = planTo3d(null, 1)
+    expect(result1.roof).toBeNull()
+    const result2 = planTo3d(undefined, 1)
+    expect(result2.roof).toBeNull()
+  })
+
+  it('plan with no walls -> no roof, no throw', () => {
+    const plan = makePlan({ walls: [] })
+    const result = planTo3d(plan, 1)
+    expect(result.roof).toBeNull()
+  })
+
+  it('zero storeys -> no roof, no throw', () => {
+    const plan = makePlan()
+    const result = planTo3d(plan, 0)
+    expect(result.roof).toBeNull()
   })
 })

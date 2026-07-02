@@ -11,6 +11,10 @@ export const DOOR_DEFAULT_SILL = 0
 export const WINDOW_DEFAULT_HEIGHT = 1.5
 export const WINDOW_DEFAULT_SILL = 0.9
 
+// Roof constants (default pitched/gable — no roof-type field on DesignOption)
+export const ROOF_PITCH_HEIGHT = 1.5
+export const ROOF_OVERHANG = 0.3
+
 // — Output types (pure data, no three.js) —
 
 /** A continuous wall segment (pier) — may be part of a wall that was split for openings */
@@ -55,10 +59,32 @@ export interface Opening3d {
   wallThickness: number
 }
 
+export interface RoofParams {
+  /** Axis the ridge runs along */
+  ridgeAxis: 'x' | 'z'
+  /** Ridge centre X */
+  ridgeCentreX: number
+  /** Ridge centre Z */
+  ridgeCentreZ: number
+  /** Ridge length (including overhang) */
+  ridgeLength: number
+  /** Overhang past walls */
+  overhang: number
+  /** Y level of eaves (top of top storey) */
+  eaveY: number
+  /** Height of ridge above eaves */
+  pitchHeight: number
+  /** Building footprint width */
+  buildingWidth: number
+  /** Building footprint depth */
+  buildingDepth: number
+}
+
 export interface PlanTo3dResult {
   walls: WallPier[]
   slabs: FloorSlab[]
   openings: Opening3d[]
+  roof: RoofParams | null
   bounds: {
     width: number
     depth: number
@@ -217,7 +243,7 @@ export function planTo3d(
   storeyHeight: number = DEFAULT_STOREY_HEIGHT,
 ): PlanTo3dResult {
   if (!plan || plan.walls.length === 0 || numberOfStoreys < 1) {
-    return { walls: [], slabs: [], openings: [], bounds: { width: 0, depth: 0, totalHeight: 0 } }
+    return { walls: [], slabs: [], openings: [], roof: null, bounds: { width: 0, depth: 0, totalHeight: 0 } }
   }
 
   const walls: WallPier[] = []
@@ -246,14 +272,31 @@ export function planTo3d(
     }
   }
 
+  const totalHeight = numberOfStoreys * storeyHeight
+
+  // Roof — pitched gable on top of the topmost storey
+  const ridgeAxis = plan.width >= plan.height ? 'x' : 'z'
+  const roof: RoofParams = {
+    ridgeAxis,
+    ridgeCentreX: plan.width / 2,
+    ridgeCentreZ: plan.height / 2,
+    ridgeLength: (ridgeAxis === 'x' ? plan.width : plan.height) + ROOF_OVERHANG * 2,
+    overhang: ROOF_OVERHANG,
+    eaveY: totalHeight,
+    pitchHeight: ROOF_PITCH_HEIGHT,
+    buildingWidth: plan.width,
+    buildingDepth: plan.height,
+  }
+
   return {
     walls,
     slabs,
     openings,
+    roof,
     bounds: {
       width: plan.width,
       depth: plan.height,
-      totalHeight: numberOfStoreys * storeyHeight,
+      totalHeight,
     },
   }
 }

@@ -1,11 +1,13 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useCallback, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
 import { planTo3d, DEFAULT_STOREY_HEIGHT } from '@/adapters/planTo3d'
-import type { PlanTo3dResult, WallPier, FloorSlab, Opening3d } from '@/adapters/planTo3d'
+import type { PlanTo3dResult, WallPier, FloorSlab, Opening3d, RoofParams } from '@/adapters/planTo3d'
+import { Button } from '@/components/ui/Button'
+import { Download } from 'lucide-react'
 
 // ── Brand palette materials (PBR) ──
 const WALL_EXT_MAT = new THREE.MeshStandardMaterial({
@@ -29,6 +31,9 @@ const WINDOW_GLASS_MAT = new THREE.MeshStandardMaterial({
 })
 const WINDOW_FRAME_MAT = new THREE.MeshStandardMaterial({
   color: '#57534e', roughness: 0.7, metalness: 0.05,
+})
+const ROOF_MAT = new THREE.MeshStandardMaterial({
+  color: '#a0522d', roughness: 0.85, metalness: 0.0,
 })
 
 interface BimModel3DProps {
@@ -65,30 +70,23 @@ function SlabMesh({ slab }: { slab: FloorSlab }) {
 }
 
 function DoorMesh({ op }: { op: Opening3d }) {
-  // Door leaf: thin rectangle within the opening, floor to height
-  const leafH = op.height - 0.05 // small gap at top
+  const leafH = op.height - 0.05
   const leafW = op.width - 0.06
   const leafY = op.centerY + leafH / 2
-
-  // Frame: two vertical jambs + header
   const frameDepth = 0.05
   const jambW = 0.03
 
   return (
     <group position={[op.centerX, 0, op.centerZ]} rotation={[0, op.wallAngle, 0]}>
-      {/* Door leaf */}
       <mesh position={[0, leafY, 0]} castShadow material={DOOR_LEAF_MAT}>
         <boxGeometry args={[leafW, leafH, op.wallThickness * 0.9]} />
       </mesh>
-      {/* Left jamb */}
       <mesh position={[-op.width / 2 + jambW / 2, op.centerY + op.height / 2, 0]} material={DOOR_FRAME_MAT}>
         <boxGeometry args={[jambW, op.height, frameDepth]} />
       </mesh>
-      {/* Right jamb */}
       <mesh position={[op.width / 2 - jambW / 2, op.centerY + op.height / 2, 0]} material={DOOR_FRAME_MAT}>
         <boxGeometry args={[jambW, op.height, frameDepth]} />
       </mesh>
-      {/* Header */}
       <mesh position={[0, op.centerY + op.height - jambW / 2, 0]} material={DOOR_FRAME_MAT}>
         <boxGeometry args={[op.width, jambW, frameDepth]} />
       </mesh>
@@ -103,28 +101,86 @@ function WindowMesh({ op }: { op: Opening3d }) {
 
   return (
     <group position={[op.centerX, 0, op.centerZ]} rotation={[0, op.wallAngle, 0]}>
-      {/* Glass pane */}
       <mesh position={[0, glassY, 0]} material={WINDOW_GLASS_MAT}>
         <boxGeometry args={[op.width - 0.06, op.height - 0.06, op.wallThickness * 0.85]} />
       </mesh>
-      {/* Frame – left jamb */}
       <mesh position={[-op.width / 2 + frameW / 2, glassY, 0]} material={WINDOW_FRAME_MAT}>
         <boxGeometry args={[frameW, op.height, frameDepth]} />
       </mesh>
-      {/* Frame – right jamb */}
       <mesh position={[op.width / 2 - frameW / 2, glassY, 0]} material={WINDOW_FRAME_MAT}>
         <boxGeometry args={[frameW, op.height, frameDepth]} />
       </mesh>
-      {/* Frame – sill (bottom) */}
       <mesh position={[0, op.centerY + op.sillHeight + frameW / 2, 0]} material={WINDOW_FRAME_MAT}>
         <boxGeometry args={[op.width, frameW, frameDepth]} />
       </mesh>
-      {/* Frame – header (top) */}
       <mesh position={[0, op.centerY + op.sillHeight + op.height - frameW / 2, 0]} material={WINDOW_FRAME_MAT}>
         <boxGeometry args={[op.width, frameW, frameDepth]} />
       </mesh>
     </group>
   )
+}
+
+function RoofMesh({ roof }: { roof: RoofParams }) {
+  const geometry = useMemo(() => {
+    const { ridgeAxis, overhang, eaveY, pitchHeight, buildingWidth, buildingDepth } = roof
+    const apexY = eaveY + pitchHeight
+    const oh = overhang
+    const bw = buildingWidth
+    const bd = buildingDepth
+    const vertices: number[] = []
+    const indices: number[] = []
+
+    if (ridgeAxis === 'x') {
+      // Ridge runs along X axis at z = bd/2
+      const zRidge = bd / 2
+      // 6 vertices
+      const v = [
+        -oh, eaveY, -oh,        // 0: SW eave
+        bw + oh, eaveY, -oh,    // 1: SE eave
+        bw + oh, eaveY, bd + oh,// 2: NE eave
+        -oh, eaveY, bd + oh,    // 3: NW eave
+        -oh, apexY, zRidge,     // 4: ridge W end
+        bw + oh, apexY, zRidge, // 5: ridge E end
+      ]
+      vertices.push(...v)
+      // South roof
+      indices.push(0, 4, 1, 1, 4, 5)
+      // North roof
+      indices.push(3, 5, 2, 3, 4, 5)
+      // West gable
+      indices.push(0, 3, 4)
+      // East gable
+      indices.push(1, 5, 2)
+    } else {
+      // Ridge runs along Z axis at x = bw/2
+      const xRidge = bw / 2
+      const v = [
+        -oh, eaveY, -oh,        // 0: SW eave
+        bw + oh, eaveY, -oh,    // 1: SE eave
+        bw + oh, eaveY, bd + oh,// 2: NE eave
+        -oh, eaveY, bd + oh,    // 3: NW eave
+        xRidge, apexY, -oh,     // 4: ridge S end
+        xRidge, apexY, bd + oh, // 5: ridge N end
+      ]
+      vertices.push(...v)
+      // East roof
+      indices.push(1, 5, 2, 1, 4, 5)
+      // West roof
+      indices.push(0, 4, 3, 3, 4, 5)
+      // South gable
+      indices.push(0, 1, 4)
+      // North gable
+      indices.push(3, 5, 2)
+    }
+
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
+    geo.setIndex(indices)
+    geo.computeVertexNormals()
+    return geo
+  }, [roof])
+
+  return <mesh geometry={geometry} material={ROOF_MAT} castShadow receiveShadow />
 }
 
 function AccentEdges({ result }: { result: PlanTo3dResult }) {
@@ -166,7 +222,7 @@ function AccentEdges({ result }: { result: PlanTo3dResult }) {
 
 // — Scene —
 
-function Scene({ result }: { result: PlanTo3dResult }) {
+function Scene({ result, buildingRef }: { result: PlanTo3dResult; buildingRef: React.MutableRefObject<THREE.Group | null> }) {
   const target = useMemo(
     () => new THREE.Vector3(result.bounds.width / 2, result.bounds.totalHeight / 2, result.bounds.depth / 2),
     [result],
@@ -185,21 +241,27 @@ function Scene({ result }: { result: PlanTo3dResult }) {
         position={[result.bounds.width / 2, 0, result.bounds.depth / 2]}
       />
 
-      {/* Slabs */}
-      {result.slabs.map((s) => <SlabMesh key={`slab-${s.storeyIndex}`} slab={s} />)}
+      {/* All building meshes inside a single group for export */}
+      <group ref={buildingRef}>
+        {/* Slabs */}
+        {result.slabs.map((s) => <SlabMesh key={`slab-${s.storeyIndex}`} slab={s} />)}
 
-      {/* Wall piers (split to create openings) */}
-      {result.walls.map((w) => <WallPierMesh key={`${w.pierId}-${w.storeyIndex}`} pier={w} />)}
+        {/* Wall piers (split to create openings) */}
+        {result.walls.map((w) => <WallPierMesh key={`${w.pierId}-${w.storeyIndex}`} pier={w} />)}
 
-      {/* Doors */}
-      {result.openings.filter((o) => o.kind === 'door').map((o) => (
-        <DoorMesh key={`door-${o.openingId}`} op={o} />
-      ))}
+        {/* Doors */}
+        {result.openings.filter((o) => o.kind === 'door').map((o) => (
+          <DoorMesh key={`door-${o.openingId}`} op={o} />
+        ))}
 
-      {/* Windows */}
-      {result.openings.filter((o) => o.kind === 'window').map((o) => (
-        <WindowMesh key={`win-${o.openingId}`} op={o} />
-      ))}
+        {/* Windows */}
+        {result.openings.filter((o) => o.kind === 'window').map((o) => (
+          <WindowMesh key={`win-${o.openingId}`} op={o} />
+        ))}
+
+        {/* Roof (pitched gable on topmost storey) */}
+        {result.roof && <RoofMesh roof={result.roof} />}
+      </group>
 
       <AccentEdges result={result} />
 
@@ -220,8 +282,41 @@ function Scene({ result }: { result: PlanTo3dResult }) {
 
 export function BimModel3D({ plan, design, height = 480 }: BimModel3DProps) {
   const numberOfStoreys = design?.floors ?? 1
+  const buildingRef = useRef<THREE.Group | null>(null)
+  const [isExporting, setIsExporting] = useState(false)
 
   const result = useMemo(() => planTo3d(plan, numberOfStoreys), [plan, numberOfStoreys])
+
+  // Export handler — dynamically import GLTFExporter on click
+  const handleExport = useCallback(async () => {
+    if (!buildingRef.current) return
+    setIsExporting(true)
+    try {
+      const { GLTFExporter } = await import('three/examples/jsm/exporters/GLTFExporter')
+      const exporter = new GLTFExporter()
+      exporter.parse(
+        buildingRef.current,
+          (glb) => {
+            const blob = new Blob([glb as ArrayBuffer], { type: 'application/octet-stream' })
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `bim-model-${plan?.id ?? 'export'}.glb`
+          a.click()
+          URL.revokeObjectURL(url)
+          setIsExporting(false)
+        },
+        (error: Error) => {
+          console.error('GLTF export failed:', error)
+          setIsExporting(false)
+        },
+        { binary: true },
+      )
+    } catch (err) {
+      console.error('GLTFExporter load failed:', err)
+      setIsExporting(false)
+    }
+  }, [plan?.id])
 
   // Empty state
   if (!plan || result.walls.length === 0) {
@@ -252,8 +347,22 @@ export function BimModel3D({ plan, design, height = 480 }: BimModel3DProps) {
         style={{ height }}
         gl={{ antialias: true }}
       >
-        <Scene result={result} />
+        <Scene result={result} buildingRef={buildingRef} />
       </Canvas>
+      {/* Download button */}
+      <div className="flex items-center gap-2 border-t border-white/10 px-4 py-2">
+        <Button
+          variant="secondary"
+          size="sm"
+          className="gap-1.5 text-[11px]"
+          onClick={handleExport}
+          disabled={isExporting}
+          title="Download 3D BIM model (opens in Blender, Windows 3D Viewer, etc.)"
+        >
+          <Download size={14} />
+          {isExporting ? 'Preparing model...' : 'Download 3D model (.glb)'}
+        </Button>
+      </div>
     </div>
   )
 }

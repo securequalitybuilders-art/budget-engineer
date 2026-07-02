@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Roof, multi-storey polish, and GLB export for the 3D BIM model (Sprint 38):
+  - Pitched gable roof on topmost storey: ridge along the longer axis, pitch
+    height 1.5 m, overhang 0.3 m, terracotta material (#a0522d)
+  - Roof geometry computed in pure adapter (planTo3d.ts: RoofParams,
+    ridgeAxis, eaveY/apexY) with 9 unit tests
+  - RoofMesh component builds custom BufferGeometry (gable: 8 vertices,
+    6 triangles) — no CSG, no new deps
+  - All building meshes wrapped in a <group ref> for serialisation
+  - "Download 3D model (.glb)" button below the Canvas with "Preparing model..."
+    state; dynamically imports GLTFExporter (35 kB) on click, producing a
+    binary glTF for Blender / Windows 3D Viewer
+  - Caption updated: mentions roof + model downloadable as .glb
+  - 3D chunk +2.71 kB; GLTFExporter is a separate lazy-loaded chunk
 - Diagnosed Lighthouse NO_FCP audit failure on project route — root cause was a CSS-only spinner with no visible text rendered indefinitely for non-existent project IDs
 - Hardened Dashboard first paint: loading state now shows "Loading project…" text; non-existent projects show "Project not found" fallback with create-project link
 - Design option selection gating and stage progression UX:
