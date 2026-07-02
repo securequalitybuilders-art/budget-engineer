@@ -135,6 +135,7 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
 
           <g transform={`translate(24 ${canvasHeight - 36})`}>
             <text fill="#cbd5e1" fontSize="12">Scale {model.scaleLabel}</text>
+            <text x={0} y={16} fill="#94a3b8" fontSize="11">Dimensions in metres</text>
           </g>
         </svg>
       </div>

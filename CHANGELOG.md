@@ -17,6 +17,16 @@
   - After selection: confirmation bar with "View 2D floor plan →" CTA button
   - Regenerate options button at the bottom of the section
   - Responsive grid: stacks vertically on mobile, 2–3 columns on larger screens
+- Readable 2D floor plan labels (Sprint 34):
+  - Room labels now render each room's name centered inside its footprint with area in m² below
+  - Labels use Body Text (#e2e8f0) for names and Muted Text (#94a3b8) for areas
+  - Font sizes adjust automatically for very small rooms
+  - Fallback to "Room N" label if name is empty
+  - Overall building width shown as dimension text along the top edge
+  - Overall building height shown as dimension text along the left edge
+  - Dimension lines use dashed style with tick marks
+  - "Dimensions in metres" caption added below the scale label
+  - Uses the existing `roomArea()` helper for all area calculations (no duplicate formula)
 
 ---
 
