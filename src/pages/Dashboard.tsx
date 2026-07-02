@@ -16,8 +16,8 @@ import { Layers, Box, Ruler, FileSpreadsheet, Wand2, Loader2, Boxes, LayoutGrid 
 import { motion } from 'framer-motion';
 import { PlanCanvas } from '@/components/cad/PlanCanvas';
 import { PlanComparison } from '@/components/cad/PlanComparison';
-import { LazyBimViewer } from '@/components/bim/LazyBimViewer';
 import { LazyBimModel3D } from '@/components/bim/LazyBimModel3D';
+import { generatePlanModel } from '@/engine/plan-generator';
 import { BoqExportPanel } from '@/components/dashboard/BoqExportPanel';
 import { EngineeringAnalysisPanel } from '@/components/dashboard/EngineeringAnalysisPanel';
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
@@ -88,6 +88,12 @@ export function Dashboard() {
 
   const selectedDesign = visibleDesignOptions.find((d) => d.id === selectedDesignId) ?? visibleDesignOptions[0] ?? null;
   const bimModel = useMemo(() => designOptionToBimModel(selectedDesign), [selectedDesign]);
+
+  // Active PlanModel: prefer CAD-edited persisted plan, else generated from design
+  const activePlan = useMemo<PlanModel | null>(
+    () => persistedPlan ?? (selectedDesign ? generatePlanModel(selectedDesign) : null),
+    [persistedPlan, selectedDesign],
+  );
   const currentBoq = useMemo(() => {
     if (persistedPlan && selectedDesign) {
       return deriveBoqFromCadOrDesign({
@@ -340,21 +346,25 @@ export function Dashboard() {
 
               <Button
                 variant={activeCanvasView === 'plan' ? 'default' : 'ghost'}
-                size="icon"
-                className="h-8 w-8 rounded-full"
+                size="sm"
+                className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
                 aria-label="2D Plan View"
+                title="View 2D floor plan"
                 onClick={() => setActiveCanvasView('plan')}
               >
-                <LayoutGrid size={16} />
+                <LayoutGrid size={14} />
+                <span className="hidden sm:inline">2D</span>
               </Button>
               <Button
                 variant={activeCanvasView === 'bim' ? 'default' : 'ghost'}
-                size="icon"
-                className="h-8 w-8 rounded-full"
+                size="sm"
+                className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
                 aria-label="3D BIM View"
+                title="View 3D BIM model"
                 onClick={() => setActiveCanvasView('bim')}
               >
-                <Boxes size={16} />
+                <Boxes size={14} />
+                <span className="hidden sm:inline">3D</span>
               </Button>
             </div>
 
@@ -462,16 +472,14 @@ export function Dashboard() {
                     {/* Canvas area */}
                     {activeCanvasView === 'plan' ? (
                       <PlanCanvas projectId={id ?? null} design={selectedDesign} persistedPlan={persistedPlan} onSavePlan={handleSavePlan} />
-                    ) : persistedPlan ? (
-                      <LazyBimModel3D plan={persistedPlan} design={selectedDesign} height={480} />
                     ) : (
-                      <LazyBimViewer model={bimModel} height={480} />
+                      <LazyBimModel3D plan={activePlan} design={selectedDesign} height={480} />
                     )}
                     <PlanComparison designs={visibleDesignOptions} selectedDesignId={selectedDesign?.id} />
-                    {activeCanvasView === 'bim' && persistedPlan && (
+                    {activeCanvasView === 'bim' && activePlan && (
                       <p className="max-w-md text-[10px] text-stone-500 leading-relaxed">
                         3D BIM model — walls, slabs and storeys generated from your floor plan.
-                        Storey height 3.0&nbsp;m, wall thickness {(persistedPlan.wallThickness || 0.23).toFixed(2)}&nbsp;m.
+                        Storey height 3.0&nbsp;m, wall thickness {(activePlan.wallThickness || 0.23).toFixed(2)}&nbsp;m.
                         Doors, windows and roof are added in later stages.
                       </p>
                     )}

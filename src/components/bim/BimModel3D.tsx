@@ -196,12 +196,15 @@ export function BimModel3D({ plan, design, height = 480 }: BimModel3DProps) {
   if (!plan || result.walls.length === 0) {
     return (
       <div
-        className="flex items-center justify-center rounded-2xl border border-white/10 bg-slate-950/60"
+        className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-slate-950/60"
         style={{ height }}
       >
         <p className="max-w-md text-center text-sm text-slate-400">
           Select a design and generate a floor plan to view the 3D BIM model
         </p>
+        <span className="text-[10px] text-cyan-400/60">
+          Use the AI Brief panel to describe your project, then select a design option
+        </span>
       </div>
     )
   }

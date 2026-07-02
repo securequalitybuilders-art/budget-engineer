@@ -29,6 +29,12 @@
   - Falls back to existing BimViewer when no persistedPlan exists
   - 11 tests for planTo3d (perimeter walls, internal partitions, multi-storey stacking, bounds, edge cases)
   - Storey height 3.0 m (DEFAULT_STOREY_HEIGHT constant, matches existing FLOOR_HEIGHT), wall thickness from PlanModel or 0.23 m fallback, slab thickness 0.15 m
+- 3D BIM view always reachable: 2D/3D toggle always visible, 3D model generated from design when no CAD edits exist (Sprint 36A)
+  - Removed `persistedPlan`-only gating that hid the new 3D BIM model behind saved CAD edits
+  - `activePlan` derived as `persistedPlan ?? generatePlanModel(selectedDesign)` so the 3D view works immediately after design selection
+  - 2D/3D toggle buttons now show visible "2D" and "3D" labels + "View 3D BIM model" tooltip
+  - BIM caption (storey height / wall thickness) shows for both generated and CAD-edited plans
+  - Empty state enhanced with hint to use AI Brief panel
 - Readable 2D floor plan labels (Sprint 34):
   - Room labels now render each room's name centered inside its footprint with area in m² below
   - Labels use Body Text (#e2e8f0) for names and Muted Text (#94a3b8) for areas

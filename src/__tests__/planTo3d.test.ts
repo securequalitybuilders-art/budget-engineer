@@ -1,6 +1,30 @@
 import { describe, it, expect } from 'vitest'
 import { planTo3d, DEFAULT_STOREY_HEIGHT, FALLBACK_WALL_THICKNESS, SLAB_THICKNESS } from '@/adapters/planTo3d'
+import { generatePlanModel } from '@/engine/plan-generator'
 import type { PlanModel } from '@/domain/plan'
+import type { DesignOption } from '@/domain/boq'
+
+function makeDesign(overrides: Partial<DesignOption> = {}): DesignOption {
+  return {
+    id: 'test-des-1',
+    name: 'Test House',
+    grossFloorArea: 120,
+    floors: 1,
+    elements: [],
+    ...overrides,
+  }
+}
+
+/**
+ * Pure selector matching the activePlan logic in Dashboard.tsx:
+ * prefer persistedPlan, else generate from design.
+ */
+function pickActivePlan(
+  persistedPlan: PlanModel | null,
+  design: DesignOption | null,
+): PlanModel | null {
+  return persistedPlan ?? (design ? generatePlanModel(design) : null)
+}
 
 function makePlan(overrides: Partial<PlanModel> = {}): PlanModel {
   return {
@@ -143,5 +167,43 @@ describe('planTo3d — pure adapter', () => {
     const result = planTo3d(plan, 1)
     expect(result.slabs[0].centerX).toBe(10)
     expect(result.slabs[0].centerZ).toBe(5)
+  })
+
+  it('pickActivePlan returns persistedPlan when present', () => {
+    const persisted = makePlan({ id: 'persisted-1', width: 15 })
+    const design = makeDesign()
+    const result = pickActivePlan(persisted, design)
+    expect(result?.id).toBe('persisted-1')
+    expect(result?.width).toBe(15)
+  })
+
+  it('pickActivePlan generates from design when no persistedPlan', () => {
+    const design = makeDesign({ grossFloorArea: 80 })
+    const result = pickActivePlan(null, design)
+    expect(result).not.toBeNull()
+    expect(result!.walls.length).toBeGreaterThan(0)
+    expect(result!.rooms.length).toBeGreaterThan(0)
+  })
+
+  it('pickActivePlan returns null when no persistedPlan and no design', () => {
+    const result = pickActivePlan(null, null)
+    expect(result).toBeNull()
+  })
+
+  it('planTo3d produces non-empty scene from generated PlanModel', () => {
+    const design = makeDesign()
+    const plan = generatePlanModel(design)
+    const result = planTo3d(plan, design.floors)
+    expect(result.walls.length).toBeGreaterThan(0)
+    expect(result.slabs.length).toBe(design.floors)
+    expect(result.bounds.width).toBe(plan.width)
+    expect(result.bounds.depth).toBe(plan.height)
+  })
+
+  it('planTo3d empty when pickActivePlan returns null (no crash)', () => {
+    const plan = pickActivePlan(null, null)
+    const result = planTo3d(plan, 1)
+    expect(result.walls).toEqual([])
+    expect(result.slabs).toEqual([])
   })
 })
