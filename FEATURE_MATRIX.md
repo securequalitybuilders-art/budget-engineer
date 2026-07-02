@@ -153,3 +153,4 @@
 | ✅ Present (Sprint 22 — Mobile UX deep polish) | Hero text sizes, mobile messages, always-visible archive/restore on touch, larger tap targets, 4 files modified + 1 report |
 | ✅ Present (Sprint 23 — Better CAD room layout algorithm) | Strategy-based layout per building type, circulation corridors, wet-core grouping, multi-floor differentiation, improved opening placement, 18 new tests, 2 files changed |
 | ✅ Present (Sprint 25 — Governance approval actions and comments) | Local-first approval workflow: submit for review, approve, request changes, add comments, timeline, role selector, transaction logging, 15 new tests, 1 new service, 1 test file, 1 report |
+| ✅ Present (Sprint 26 — CAD persistence and sync tests) | 33 tests for cadPersistenceService (CRUD) and cadToDesignSyncAdapter (fallback adapters), 3 new files, 1 report |

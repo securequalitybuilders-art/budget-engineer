@@ -1,5 +1,23 @@
 # Changelog
 
+## Sprint 26 — CAD Persistence and Sync Tests
+
+**Date:** 2026-07-02
+
+### Added
+- `src/__tests__/fixtures/cadFixtures.ts` — reusable PlanModel and DesignOption factories
+- `src/__tests__/cadPersistenceService.test.ts` — 16 tests for save/load/has/delete with null safety, multiple design IDs, timestamp, mutation isolation
+- `src/__tests__/cadToDesignSyncAdapter.test.ts` — 17 tests for buildCadSyncMetadata, deriveBim/Boq/Analysis fallback, region param, NaN protection
+
+### Validation
+- Typecheck: 0 errors
+- Lint: 0 errors (9 pre-existing warnings)
+- Tests: 192 passed, 16 files
+- Build: success
+
+### Fixed
+- No bugs found — all tests passed against existing implementation
+
 ## Sprint 24 — CAD Editing Persistence and Export Sync
 
 **Date:** 2026-07-02

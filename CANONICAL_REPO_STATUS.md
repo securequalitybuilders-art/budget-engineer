@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-02  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 25 — Governance approval actions and comments. Turned governance from display-only into a local-first approval workflow: submit for review, approve, request changes, add reviewer comments, governance timeline, transaction logging. Added role selector (Owner/Reviewer/Viewer), permission-based action buttons, comment box with type selector (general/review/approval/change-request), timeline section, and local-only disclaimer. Uses existing IndexedDB governance table via Dexie. 15 new tests covering all workflow states, permissions, and edge cases. Current app includes local AI brief-to-design, generated CAD geometry with believable room layouts, 2D/3D BIM workflow, engineering analysis, regional geometry-derived BOQ, exports, IndexedDB persistence, governance approval workflow, RBAC role display, snapshots, portfolio dashboard, archive/restore, local-first feedback system, CI, mobile-optimised UX, and deterministic per-building-type layout strategies. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 9 pre-existing warnings), `npm test` (159 passed, 14 files), `npm run build` (success).
+> **Status:** Sprint 26 — CAD persistence and sync tests. Added 33 automated tests for CAD persistence service (CRUD operations, null safety, multiple design IDs, timestamp, mutation isolation) and CAD sync fallback adapter (buildCadSyncMetadata, deriveBim/Boq/Analysis fallback behavior, region parameter, NaN protection, null design handling). All 192 unit tests pass. Current app includes local AI brief-to-design, generated CAD geometry with believable room layouts, 2D/3D BIM workflow, engineering analysis, regional geometry-derived BOQ, exports, IndexedDB persistence, governance approval workflow, RBAC role display, snapshots, portfolio dashboard, archive/restore, local-first feedback system, CI, mobile-optimised UX, and deterministic per-building-type layout strategies. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 9 pre-existing warnings), `npm test` (192 passed, 16 files), `npm run build` (success).
 
 ---
 
@@ -154,7 +154,7 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
 - **Clinic:** Reception + waiting at front, 4 consultation rooms off corridor, pharmacy/toilets/storage at back
 - **Shop/commercial:** Open sales area at front, storage/office/Staff WC at back, shopfront windows
 - **Opening placement:** Main entrance on front wall, doors on passage walls connecting rooms, windows on external walls of key room types, shopfront display windows, all offsets clamped ≥0.3m from corners
-- **145 tests, 18 new** for layout strategies
+- **192 tests, 33 new** for CAD persistence/sync
 
 ### Feedback & Issue Reporting (Sprint 21)
 - **FeedbackPanel** — reusable form with category select (8 types), title, description, steps-to-reproduce, optional browser info
@@ -280,6 +280,8 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 - **Engineering Analysis Panel** (EngineeringAnalysisPanel) — sidebar panel for clash detection, solar analysis, MEP takeoff with recommendation cards
 - **Governance Panel** (GovernancePanel) — sidebar panel for project governance status, approval readiness, RBAC roles, audit trail, fingerprint, approval workflow actions, comment box, timeline
 - **Governance Workflow Service** (governanceWorkflowService) — workflow service with load, submit, approve, request changes, reset, add comment, permission checks, transaction logging
+- **CAD Persistence Service** (cadPersistenceService) — save/load/has/delete PlanModel from IndexedDB planModels table
+- **CAD Sync Adapter** (cadToDesignSyncAdapter) — fallback adapters for BIM/BOQ/analysis with GeometrySource metadata
 - **Snapshot History Panel** (SnapshotHistoryPanel) — sidebar panel for saving/listing/comparing design snapshots with cost and quantity deltas
 - **8 adapters** (`designGeometryAdapter.ts` + `geometryQuantitiesAdapter.ts` + `designToBim.ts` + `aiDesignAdapter.ts` + `designToBoq.ts` + `designToAnalysis.ts` + `rateCardAdapter.ts` + `governanceAdapter.ts`) — building geometry, geometry quantities, BIM model, AI design, BOQ generation, engineering analysis, rate card resolution, governance summary from DesignOption
 - **2D/3D toggle** in Dashboard toolbar — switches between PlanCanvas and LazyBimViewer
@@ -311,7 +313,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **External wall area missing in BOQ** | External walls were not costed separately | ✅ DONE (Sprint 13 — added as line item) |
 | **Partition/opening estimates in BOQ** | Used fixed m² estimates, not actual geometry | ✅ DONE (Sprint 13 — geometryQuantitiesAdapter provides derived quantities) |
 | **Web Workers** | No off-main-thread processing | Future |
-| **Tests** | 160 unit tests across 15 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 + Sprint 19 + Sprint 21 + Sprint 25 — vitest, all adapters tested, CI pipeline) |
+| **Tests** | 192 unit tests across 16 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 + Sprint 19 + Sprint 21 + Sprint 25 + Sprint 26 — vitest, all adapters tested, CI pipeline) |
 | **Deployment docs** | DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects | ✅ DONE (Sprint 10 — Vercel/Netlify/static hosting, SPA fallback, release checklist) |
 | **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |
 | **Room layout optimization** | Grid-based layout may produce self-intersecting wall rings | Improve geometry adapter with proper floorplan algorithm |

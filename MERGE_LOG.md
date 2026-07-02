@@ -35,6 +35,9 @@
 ```
 2026-07-02 13:37 | SPRINT-25 | Governance approval actions and comments                                | DONE (ee197fc)
 ```
+```
+2026-07-02 13:47 | SPRINT-26 | CAD persistence and downstream sync tests                               | DONE
+```
 
 ---
 
