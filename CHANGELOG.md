@@ -17,6 +17,18 @@
   - After selection: confirmation bar with "View 2D floor plan →" CTA button
   - Regenerate options button at the bottom of the section
   - Responsive grid: stacks vertically on mobile, 2–3 columns on larger screens
+- 3D BIM shell with thick walls, slabs, multi-storey, PBR materials and shadows (Sprint 36):
+  - New pure adapter `planTo3d.ts` converts PlanModel wall segments into 3D wall solids + floor slabs per storey (zero three.js imports, fully testable)
+  - New `BimModel3D.tsx` component using @react-three/fiber Canvas: walls with real thickness (BoxGeometry along segments), floor slabs, multi-storey stacking from DesignOption.floors
+  - PBR MeshStandardMaterial per element type (external walls #94a3b8, internal walls #cbd5e1, slabs #475569, BIM Violet #8B5CF6 accent edges)
+  - Ambient + directional light with 2048² shadow map, hemisphere light, ground plane receiving shadows, grid helper
+  - OrbitControls with damping, dynamic camera framing based on building size
+  - Lazy-loaded via React.lazy + Suspense with "Loading 3D BIM model..." text fallback (preserves Sprint 31A NO_FCP fix)
+  - Empty state: "Select a design and generate a floor plan to view the 3D BIM model"
+  - Caption with storey height, wall thickness, and note about doors/windows/roof in later stages
+  - Falls back to existing BimViewer when no persistedPlan exists
+  - 11 tests for planTo3d (perimeter walls, internal partitions, multi-storey stacking, bounds, edge cases)
+  - Storey height 3.0 m (DEFAULT_STOREY_HEIGHT constant, matches existing FLOOR_HEIGHT), wall thickness from PlanModel or 0.23 m fallback, slab thickness 0.15 m
 - Readable 2D floor plan labels (Sprint 34):
   - Room labels now render each room's name centered inside its footprint with area in m² below
   - Labels use Body Text (#e2e8f0) for names and Muted Text (#94a3b8) for areas

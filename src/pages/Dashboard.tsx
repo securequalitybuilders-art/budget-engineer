@@ -17,6 +17,7 @@ import { motion } from 'framer-motion';
 import { PlanCanvas } from '@/components/cad/PlanCanvas';
 import { PlanComparison } from '@/components/cad/PlanComparison';
 import { LazyBimViewer } from '@/components/bim/LazyBimViewer';
+import { LazyBimModel3D } from '@/components/bim/LazyBimModel3D';
 import { BoqExportPanel } from '@/components/dashboard/BoqExportPanel';
 import { EngineeringAnalysisPanel } from '@/components/dashboard/EngineeringAnalysisPanel';
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
@@ -461,10 +462,19 @@ export function Dashboard() {
                     {/* Canvas area */}
                     {activeCanvasView === 'plan' ? (
                       <PlanCanvas projectId={id ?? null} design={selectedDesign} persistedPlan={persistedPlan} onSavePlan={handleSavePlan} />
+                    ) : persistedPlan ? (
+                      <LazyBimModel3D plan={persistedPlan} design={selectedDesign} height={480} />
                     ) : (
                       <LazyBimViewer model={bimModel} height={480} />
                     )}
                     <PlanComparison designs={visibleDesignOptions} selectedDesignId={selectedDesign?.id} />
+                    {activeCanvasView === 'bim' && persistedPlan && (
+                      <p className="max-w-md text-[10px] text-stone-500 leading-relaxed">
+                        3D BIM model — walls, slabs and storeys generated from your floor plan.
+                        Storey height 3.0&nbsp;m, wall thickness {(persistedPlan.wallThickness || 0.23).toFixed(2)}&nbsp;m.
+                        Doors, windows and roof are added in later stages.
+                      </p>
+                    )}
                     <p className="max-w-xs text-[10px] text-stone-500">
                       Mobile: review, estimates, exports supported. For best CAD editing, use a tablet or desktop.
                     </p>
