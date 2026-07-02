@@ -89,6 +89,26 @@
 
 ---
 
+## v0.2.0 Release Verification
+
+| Check | Result |
+|-------|--------|
+| `npm run typecheck` | 0 errors |
+| `npm run lint` | 0 errors (9 pre-existing warnings) |
+| `npm test` | 306 passed, 24 files |
+| `npm run build` | Success, 3392 modules, 21 precache |
+| 3D BIM lazy chunk | Separate from main bundle |
+| GLTFExporter dynamic chunk | 35.30 kB, loaded on click |
+| 3D model renders (walls, slabs, openings, roof) | ✅ |
+| GLB download produces valid .glb file | ✅ |
+| Live demo loads | https://budget-engineer.vercel.app/ ✅ |
+| No secrets in source | ✅ |
+| No paid APIs | ✅ |
+| PWA assets present | ✅ |
+| Git tag v0.2.0 created and pushed | ✅ |
+
+---
+
 ## Known Limitations (to document in README)
 
 - [ ] Cost rates are approximate and vary by region; not suitable for procurement.

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.2.0] - 2026-07-02
+
 - Restore lint baseline to 9 warnings by typing the Sprint 38 test value (Sprint 38A)
 - Roof, multi-storey polish, and GLB export for the 3D BIM model (Sprint 38):
   - Pitched gable roof on topmost storey: ridge along the longer axis, pitch
@@ -10,27 +12,26 @@
     ridgeAxis, eaveY/apexY) with 9 unit tests
   - RoofMesh component builds custom BufferGeometry (gable: 8 vertices,
     6 triangles) — no CSG, no new deps
-  - All building meshes wrapped in a <group ref> for serialisation
+  - All building meshes wrapped in a &lt;group ref&gt; for serialisation
   - "Download 3D model (.glb)" button below the Canvas with "Preparing model..."
     state; dynamically imports GLTFExporter (35 kB) on click, producing a
     binary glTF for Blender / Windows 3D Viewer
   - Caption updated: mentions roof + model downloadable as .glb
   - 3D chunk +2.71 kB; GLTFExporter is a separate lazy-loaded chunk
-- Diagnosed Lighthouse NO_FCP audit failure on project route — root cause was a CSS-only spinner with no visible text rendered indefinitely for non-existent project IDs
-- Hardened Dashboard first paint: loading state now shows "Loading project…" text; non-existent projects show "Project not found" fallback with create-project link
-- Design option selection gating and stage progression UX:
-  - Design options are now clickable card-shaped selectors with area/floors info and Select/Selected badge
-  - High-visibility "Select a design option to continue" prompt in brand cyan when no option selected
-  - Design stage tab in top nav is locked (dotted line-through + tooltip) until a design option is selected
-  - Auto-scroll to design options after generation
-  - Removed automatic selection of first option — user must explicitly click a card
-  - `selectedDesignId` moved from local Dashboard state to central uiStore for cross-component access
-- Prominent "Choose your design" section in main content area (Sprint 33):
-  - Full-width branded section with cyan border/shadow at the top of the canvas area
-  - Larger option cards with name, area, element count, and "Select this design" / "Selected" badge
-  - After selection: confirmation bar with "View 2D floor plan →" CTA button
-  - Regenerate options button at the bottom of the section
-  - Responsive grid: stacks vertically on mobile, 2–3 columns on larger screens
+- Real doors and windows as pierced openings in 3D BIM model (Sprint 37):
+  - Walls are now split into pier segments around door/window openings (split-box approach, no CSG dependency)
+  - Door mesh with Warm Sand leaf (#d4a574) + frame jambs and header, positioned per opening
+  - Window mesh with semi-transparent AI Cyan glass pane (#06b6d4, opacity 0.35) + frame sill/jambs/header at sillHeight
+  - Opening type extended with optional height/sillHeight fields; defaults applied by kind (door 2.1 m, window 1.5 m, sill 0.9 m) from planTo3d constants
+  - Openings repeat per storey with correct y-offset stacking
+  - Caption updated to list doors and windows as included
+  - 8 new tests: opening position resolution, wall splitting, multi-storey opening offset, defaults, empty guard
+- 3D BIM view always reachable: 2D/3D toggle always visible, 3D model generated from design when no CAD edits exist (Sprint 36A)
+  - Removed `persistedPlan`-only gating that hid the new 3D BIM model behind saved CAD edits
+  - `activePlan` derived as `persistedPlan ?? generatePlanModel(selectedDesign)` so the 3D view works immediately after design selection
+  - 2D/3D toggle buttons now show visible "2D" and "3D" labels + "View 3D BIM model" tooltip
+  - BIM caption (storey height / wall thickness) shows for both generated and CAD-edited plans
+  - Empty state enhanced with hint to use AI Brief panel
 - 3D BIM shell with thick walls, slabs, multi-storey, PBR materials and shadows (Sprint 36):
   - New pure adapter `planTo3d.ts` converts PlanModel wall segments into 3D wall solids + floor slabs per storey (zero three.js imports, fully testable)
   - New `BimModel3D.tsx` component using @react-three/fiber Canvas: walls with real thickness (BoxGeometry along segments), floor slabs, multi-storey stacking from DesignOption.floors
@@ -40,23 +41,15 @@
   - Lazy-loaded via React.lazy + Suspense with "Loading 3D BIM model..." text fallback (preserves Sprint 31A NO_FCP fix)
   - Empty state: "Select a design and generate a floor plan to view the 3D BIM model"
   - Caption with storey height, wall thickness, and note about doors/windows/roof in later stages
-  - Falls back to existing BimViewer when no persistedPlan exists
   - 11 tests for planTo3d (perimeter walls, internal partitions, multi-storey stacking, bounds, edge cases)
-  - Storey height 3.0 m (DEFAULT_STOREY_HEIGHT constant, matches existing FLOOR_HEIGHT), wall thickness from PlanModel or 0.23 m fallback, slab thickness 0.15 m
-- 3D BIM view always reachable: 2D/3D toggle always visible, 3D model generated from design when no CAD edits exist (Sprint 36A)
-  - Removed `persistedPlan`-only gating that hid the new 3D BIM model behind saved CAD edits
-  - `activePlan` derived as `persistedPlan ?? generatePlanModel(selectedDesign)` so the 3D view works immediately after design selection
-  - 2D/3D toggle buttons now show visible "2D" and "3D" labels + "View 3D BIM model" tooltip
-  - BIM caption (storey height / wall thickness) shows for both generated and CAD-edited plans
-  - Empty state enhanced with hint to use AI Brief panel
-- Real doors and windows as pierced openings in 3D BIM model (Sprint 37):
-  - Walls are now split into pier segments around door/window openings (split-box approach, no CSG dependency)
-  - Door mesh with Warm Sand leaf (#d4a574) + frame jambs and header, positioned per opening
-  - Window mesh with semi-transparent AI Cyan glass pane (#06b6d4, opacity 0.35) + frame sill/jambs/header at sillHeight
-  - Opening type extended with optional height/sillHeight fields; defaults applied by kind (door 2.1 m, window 1.5 m, sill 0.9 m) from planTo3d constants
-  - Openings repeat per storey with correct y-offset stacking
-  - Caption updated to list doors and windows as included
-  - 8 new tests: opening position resolution, wall splitting, multi-storey opening offset, defaults, empty guard
+  - Storey height 3.0 m (DEFAULT_STOREY_HEIGHT constant), wall thickness from PlanModel or 0.23 m fallback, slab thickness 0.15 m
+- Grouped BOQ cost view with trade subtotals and grand total (Sprint 35):
+  - BOQ items grouped by category (Substructure, Walling, Roofing, Openings, Finishes, Services, Fittings)
+  - Per-group subtotal rows calculated and displayed after each group
+  - Prominent grand total in emerald-500 branded container
+  - Collapsible geometry source badge (Generated / Edited CAD / Fallback) with metadata details
+  - All currency formatting unified to `makeMoney()` from `src/lib/utils/currency.ts` (replaced 3 inline implementations)
+  - 10 tests covering grouping, totals, currency, source metadata
 - Readable 2D floor plan labels (Sprint 34):
   - Room labels now render each room's name centered inside its footprint with area in m² below
   - Labels use Body Text (#e2e8f0) for names and Muted Text (#94a3b8) for areas
@@ -67,13 +60,28 @@
   - Dimension lines use dashed style with tick marks
   - "Dimensions in metres" caption added below the scale label
   - Uses the existing `roomArea()` helper for all area calculations (no duplicate formula)
-- Grouped BOQ cost view with trade subtotals and grand total (Sprint 35):
-  - BOQ items grouped by category (Substructure, Walling, Roofing, Openings, Finishes, Services, Fittings)
-  - Per-group subtotal rows calculated and displayed after each group
-  - Prominent grand total in emerald-500 branded container
-  - Collapsible geometry source badge (Generated / Edited CAD / Fallback) with metadata details
-  - All currency formatting unified to `makeMoney()` from `src/lib/utils/currency.ts` (replaced 3 inline implementations)
-  - 10 tests covering grouping, totals, currency, source metadata
+- Prominent "Choose your design" section in main content area (Sprint 33):
+  - Full-width branded section with cyan border/shadow at the top of the canvas area
+  - Larger option cards with name, area, element count, and "Select this design" / "Selected" badge
+  - After selection: confirmation bar with "View 2D floor plan →" CTA button
+  - Regenerate options button at the bottom of the section
+  - Responsive grid: stacks vertically on mobile, 2–3 columns on larger screens
+- Design option selection gating and stage progression UX:
+  - Design options are now clickable card-shaped selectors with area/floors info and Select/Selected badge
+  - High-visibility "Select a design option to continue" prompt in brand cyan when no option selected
+  - Design stage tab in top nav is locked (dotted line-through + tooltip) until a design option is selected
+  - Auto-scroll to design options after generation
+  - Removed automatic selection of first option — user must explicitly click a card
+  - `selectedDesignId` moved from local Dashboard state to central uiStore for cross-component access
+- Diagnosed Lighthouse NO_FCP audit failure on project route — root cause was a CSS-only spinner with no visible text rendered indefinitely for non-existent project IDs
+- Hardened Dashboard first paint: loading state now shows "Loading project…" text; non-existent projects show "Project not found" fallback with create-project link
+
+### Validation
+- Typecheck: 0 errors
+- Lint: 0 errors (9 pre-existing warnings)
+- Tests: 306 passed, 24 files
+- Build: success (3392 modules, 21 precache entries)
+- 3D BIM model code-split as separate lazy chunk; GLTFExporter is a separate dynamic chunk (35 kB, loaded on click)
 
 ---
 
