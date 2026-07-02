@@ -32,6 +32,9 @@
 ```
 2026-07-02 08:36 | SPRINT-23 | Better CAD room layout algorithm                                       | DONE (PR #xx)
 ```
+```
+2026-07-02 13:37 | SPRINT-25 | Governance approval actions and comments                                | DONE (6729eec)
+```
 
 ---
 

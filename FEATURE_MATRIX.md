@@ -56,6 +56,7 @@
 | **CSV Export** (from BOQ panel) | ✅ Present, wired | Sprint 4 — `buildExportCsv()` + `downloadTextFile()` |
 | **HTML Dossier Export** (self-contained, with print-to-PDF) | ✅ Present, wired | Sprint 4 — `buildExportHtml()` + `downloadTextFile()` |
 | **Governance Workflow** | ✅ Present | WS3 types + lib — wired via Sprint 16 GovernancePanel |
+| **Governance Approval Workflow** | ✅ Present | Sprint 25 — local-first submit/approve/request-changes with comments, timeline, role selector, transaction logging |
 | **RBAC** (role-based access control) | ✅ Present | WS3 types + lib — displayed in GovernancePanel |
 | **Project Snapshots** (versioning) | ✅ Present | WS3 types + lib — wired via Sprint 17 SnapshotHistoryPanel panel (save, list, compare) |
 | **Snapshot Diff** | ✅ Present | WS3 lib — lightweight cost/quantity diff via Sprint 17 comparison |
@@ -151,3 +152,4 @@
 | ✅ Present (Sprint 21 — Feedback and issue reporting workflow) | 1 utility + 1 component + 1 page + 1 test file + 1 report + 4 files modified |
 | ✅ Present (Sprint 22 — Mobile UX deep polish) | Hero text sizes, mobile messages, always-visible archive/restore on touch, larger tap targets, 4 files modified + 1 report |
 | ✅ Present (Sprint 23 — Better CAD room layout algorithm) | Strategy-based layout per building type, circulation corridors, wet-core grouping, multi-floor differentiation, improved opening placement, 18 new tests, 2 files changed |
+| ✅ Present (Sprint 25 — Governance approval actions and comments) | Local-first approval workflow: submit for review, approve, request changes, add comments, timeline, role selector, transaction logging, 15 new tests, 1 new service, 1 test file, 1 report |

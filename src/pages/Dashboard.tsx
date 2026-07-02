@@ -340,6 +340,7 @@ export function Dashboard() {
               hasBim={(bimModel?.elements.length ?? 0) > 0}
               hasBoq={!!selectedDesign}
               hasAnalysis={!!selectedDesign}
+              projectId={id}
             />
             <SnapshotHistoryPanel
               projectId={id}
