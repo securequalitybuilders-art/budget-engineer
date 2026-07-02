@@ -27,6 +27,13 @@
   - Dimension lines use dashed style with tick marks
   - "Dimensions in metres" caption added below the scale label
   - Uses the existing `roomArea()` helper for all area calculations (no duplicate formula)
+- Grouped BOQ cost view with trade subtotals and grand total (Sprint 35):
+  - BOQ items grouped by category (Substructure, Walling, Roofing, Openings, Finishes, Services, Fittings)
+  - Per-group subtotal rows calculated and displayed after each group
+  - Prominent grand total in emerald-500 branded container
+  - Collapsible geometry source badge (Generated / Edited CAD / Fallback) with metadata details
+  - All currency formatting unified to `makeMoney()` from `src/lib/utils/currency.ts` (replaced 3 inline implementations)
+  - 10 tests covering grouping, totals, currency, source metadata
 
 ---
 

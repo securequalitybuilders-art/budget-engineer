@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, Fragment } from 'react'
 import type { DesignOption } from '@/domain/boq'
 import { buildBoqFromDesignOption, buildExportCsv, buildExportHtml, getCostPerM2, downloadTextFile } from '@/adapters/designToBoq'
 import type { BoqResult } from '@/adapters/designToBoq'
 import { getSupportedRegions, getDefaultRegionId } from '@/adapters/rateCardAdapter'
 import { Calculator, FileDown, FileText, Printer, Info, Shield } from 'lucide-react'
+import { makeMoney } from '@/lib/utils/currency'
 
 interface BoqExportPanelProps {
   selectedDesign: DesignOption | null
@@ -32,9 +33,60 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
   const floors = selectedDesign?.floors ?? 0
   const costPerM2 = useMemo(() => (boq ? getCostPerM2(boq, areaM2) : 0), [boq, areaM2])
   const currency = boq?.currency ?? 'USD'
-  const sym = currency === 'USD' ? '$' : currency === 'ZAR' ? 'R' : currency === 'KES' ? 'KSh' : '$'
+  const money = useMemo(() => makeMoney(currency), [currency])
 
   const currentRegion = regions.find((r) => r.id === regionId)
+
+  interface CategoryGroup {
+    name: string
+    items: { id: string; description: string; quantity: number; rate: number; total: number; unit?: string; category?: string }[]
+    subtotal: number
+  }
+
+  const groups = useMemo((): CategoryGroup[] => {
+    const CATEGORY_DISPLAY: Record<string, string> = {
+      Walls: 'Walling',
+      Slabs: 'Substructure',
+      Roof: 'Roofing',
+      Openings: 'Openings',
+      Finishes: 'Finishes',
+      MEP: 'Services',
+      Objects: 'Fittings',
+    }
+    const CATEGORY_ORDER = ['Slabs', 'Walls', 'Roof', 'Openings', 'Finishes', 'MEP', 'Objects']
+
+    if (!boq) return []
+    const grouped = new Map<string, CategoryGroup['items']>()
+    for (const item of boq.items) {
+      const cat = item.category || 'Other'
+      if (!grouped.has(cat)) grouped.set(cat, [])
+      grouped.get(cat)!.push({
+        id: item.id,
+        description: item.description,
+        quantity: item.quantity,
+        rate: item.rate,
+        total: item.total,
+        unit: item.unit,
+        category: item.category,
+      })
+    }
+    const result: CategoryGroup[] = []
+    for (const cat of CATEGORY_ORDER) {
+      const items = grouped.get(cat)
+      if (!items || items.length === 0) continue
+      result.push({
+        name: CATEGORY_DISPLAY[cat] ?? cat,
+        items,
+        subtotal: Math.round(items.reduce((s, i) => s + i.total, 0) * 100) / 100,
+      })
+    }
+    for (const [cat, items] of grouped) {
+      if (!CATEGORY_ORDER.includes(cat)) {
+        result.push({ name: CATEGORY_DISPLAY[cat] ?? cat, items, subtotal: Math.round(items.reduce((s, i) => s + i.total, 0) * 100) / 100 })
+      }
+    }
+    return result
+  }, [boq])
 
   const handleExportCsv = () => {
     if (!boq || !selectedDesign) return
@@ -66,9 +118,6 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
     }
     onExport?.('print')
   }
-
-  const money = (n: number) =>
-    `${sym}${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
   if (!selectedDesign) {
     return (
@@ -203,10 +252,10 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
           </div>
         )}
 
-        {/* BOQ table */}
+        {/* BOQ grouped table */}
         {boq ? (
-          <div className="mb-3 max-h-64 overflow-x-auto rounded-lg border border-stone-700/60">
-            <table className="w-full text-left text-[10px] min-w-[400px]">
+          <div className="mb-3 max-h-80 overflow-x-auto rounded-lg border border-stone-700/60">
+            <table className="w-full text-left text-[10px] min-w-[420px]">
               <thead className="sticky top-0 bg-stone-800 text-stone-400 uppercase">
                 <tr>
                   <th className="px-2 py-1.5">Item</th>
@@ -216,22 +265,45 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-800/60 text-stone-300">
-                {boq.items.map((item) => (
-                  <tr key={item.id} className="hover:bg-stone-800/40">
-                    <td className="px-2 py-1">
-                      <span className="text-stone-500">{item.category}</span>
-                      <span className="ml-1 text-stone-400">· {item.description}</span>
-                    </td>
-                    <td className="px-2 py-1 text-right font-mono tabular-nums text-stone-400">
-                      {item.quantity.toLocaleString()}
-                    </td>
-                    <td className="px-2 py-1 text-right font-mono tabular-nums text-stone-400">
-                      {money(item.rate)}
-                    </td>
-                    <td className="px-2 py-1 text-right font-mono tabular-nums text-cyan-300">
-                      {money(item.total)}
-                    </td>
-                  </tr>
+                {groups.map((group) => (
+                  <Fragment key={group.name}>
+                    {/* Group header */}
+                    <tr className="bg-stone-800/60">
+                      <td
+                        colSpan={4}
+                        className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-cyan-400"
+                      >
+                        {group.name}
+                      </td>
+                    </tr>
+                    {/* Group items */}
+                    {group.items.map((item) => (
+                      <tr key={item.id} className="hover:bg-stone-800/40">
+                        <td className="px-2 py-1 pl-4 text-stone-400">
+                          {item.description}
+                        </td>
+                        <td className="px-2 py-1 text-right font-mono tabular-nums text-stone-400">
+                          {item.quantity.toLocaleString()}
+                        </td>
+                        <td className="px-2 py-1 text-right font-mono tabular-nums text-stone-400">
+                          {money(item.rate)}
+                        </td>
+                        <td className="px-2 py-1 text-right font-mono tabular-nums text-cyan-300">
+                          {money(item.total)}
+                        </td>
+                      </tr>
+                    ))}
+                    {/* Group subtotal */}
+                    <tr className="bg-stone-800/20">
+                      <td className="px-2 py-1 pl-4 text-[10px] font-medium text-stone-300">
+                        {group.name} subtotal
+                      </td>
+                      <td colSpan={2} />
+                      <td className="px-2 py-1 text-right font-mono tabular-nums font-medium text-stone-200">
+                        {money(group.subtotal)}
+                      </td>
+                    </tr>
+                  </Fragment>
                 ))}
               </tbody>
             </table>
@@ -261,9 +333,9 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
               <span className="text-stone-500">VAT</span>
               <span className="text-stone-200 font-mono">{money(boq.summary.vat)}</span>
             </div>
-            <div className="flex justify-between border-t border-stone-700/60 pt-1">
-              <span className="text-stone-200 font-semibold">Grand Total</span>
-              <span className="text-emerald-400 font-mono font-bold">{money(boq.summary.grandTotal)}</span>
+            <div className="flex justify-between rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2 py-2">
+              <span className="text-sm font-bold text-emerald-300">Grand Total</span>
+              <span className="text-sm font-bold text-emerald-400 font-mono">{money(boq.summary.grandTotal)}</span>
             </div>
           </div>
         )}
