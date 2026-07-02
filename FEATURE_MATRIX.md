@@ -156,3 +156,4 @@
 | ✅ Present (Sprint 26 — CAD persistence and sync tests) | 33 tests for cadPersistenceService (CRUD) and cadToDesignSyncAdapter (fallback adapters), 3 new files, 1 report |
 | ✅ Present (Sprint 27 — PlanModel→CadDocument roundtrip) | PlanModel→CadDocument converter + fallback in sync adapter + 22 new tests (13 converter + 9 sync), 2 new files, 1 report |
 | ✅ Present (Sprint 28 — Export source metadata & CAD-edited BOQ sync) | Source metadata in BOQ/CSV/HTML exports, CAD-edited BOQ labels, cadQuantitiesAdapter, 21 new tests (10 cadQty + 8 designToBoq + 3 sync), 3 new files, 1 report |
+| ✅ Present (Sprint 29 — Manual CAD save/restore UI) | CadSyncControls dropdown (save/restore/reset), loadPlanModelMeta service, status message auto-dismiss, toolbar integration, 3 new tests, 2 new files, 1 report |

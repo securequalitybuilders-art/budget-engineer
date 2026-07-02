@@ -4,6 +4,7 @@ import { db } from '@/db/db'
 import {
   savePlanModel,
   loadPlanModel,
+  loadPlanModelMeta,
   hasSavedPlan,
   deletePlanModel,
 } from '@/services/cadPersistenceService'
@@ -108,6 +109,28 @@ describe('cadPersistenceService', () => {
   it('hasSavedPlan returns false for empty projectId', async () => {
     const exists = await hasSavedPlan('', 'design-any')
     expect(exists).toBe(false)
+  })
+
+  it('loadPlanModelMeta returns savedAt when plan exists', async () => {
+    const plan = createSamplePlanModel()
+    await savePlanModel('proj-meta', 'design-meta', plan)
+    const meta = await loadPlanModelMeta('proj-meta', 'design-meta')
+    expect(meta.hasSavedPlan).toBe(true)
+    expect(meta.savedAt).toBeDefined()
+    const parsed = new Date(meta.savedAt!)
+    expect(parsed.getTime()).not.toBeNaN()
+  })
+
+  it('loadPlanModelMeta returns hasSavedPlan false when no plan', async () => {
+    const meta = await loadPlanModelMeta('proj-absent', 'design-absent')
+    expect(meta.hasSavedPlan).toBe(false)
+    expect(meta.savedAt).toBeNull()
+  })
+
+  it('loadPlanModelMeta returns false for empty projectId', async () => {
+    const meta = await loadPlanModelMeta('', 'design-any')
+    expect(meta.hasSavedPlan).toBe(false)
+    expect(meta.savedAt).toBeNull()
   })
 
   it('deletePlanModel removes stored plan', async () => {

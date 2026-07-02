@@ -44,6 +44,9 @@
 ```
 2026-07-02 14:XX | SPRINT-28 | Export source metadata and CAD-edited BOQ sync                            | DONE
 ```
+```
+2026-07-02 14:XX | SPRINT-29 | Manual CAD save/restore UI controls                                      | DONE
+```
 
 ---
 

@@ -58,6 +58,7 @@ Then open http://localhost:5173.
 | **Sprint 26: CAD persistence & sync tests** | 33 tests for cadPersistenceService (CRUD) and cadToDesignSyncAdapter (fallback adapters), test fixtures, bug-free validation | Sprint 26 |
 | **Sprint 27: PlanModel→CadDocument roundtrip** | PlanModel→CadDocument converter (planModelToCadAdapter.ts), sync adapter fallback in deriveAnalysisFromCadOrDesign, 22 new tests (13 converter + 9 sync) | Sprint 27 |
 | **Sprint 28: Export source metadata & CAD-edited BOQ sync** | Source metadata in BOQ/CSV/HTML, CAD-edited labels, cadQuantitiesAdapter, 21 new tests | Sprint 28 |
+| **Sprint 29: Manual CAD save/restore UI** | CadSyncControls dropdown (save/restore/reset), loadPlanModelMeta service, status messages, 3 new tests | Sprint 29 |
 
 **Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Checks → Quantities → BOQ → Export (CSV / HTML / PDF)
 
@@ -95,7 +96,7 @@ Each push to `main` runs via GitHub Actions:
 1. `npm ci`
 2. `npm run typecheck`
 3. `npm run lint`
-4. `npm test` (235 tests, 18 files)
+4. `npm test` (238 tests, 18 files)
 5. `npm run build`
 
 ## Release
@@ -106,7 +107,7 @@ Each push to `main` runs via GitHub Actions:
 | Live demo | https://budget-engineer.vercel.app/ |
 | GitHub | https://github.com/securequalitybuilders-art/budget-engineer |
 | CI status | [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions) |
-| Tests | 235 across 18 files |
+| Tests | 238 across 18 files |
 | Architecture | Local-first, no paid APIs, no backend, no cloud LLM |
 
 See [CHANGELOG.md](CHANGELOG.md) for full release history.

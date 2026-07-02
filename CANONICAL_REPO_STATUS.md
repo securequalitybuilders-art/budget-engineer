@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-02  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 28 — Export source metadata and CAD-edited BOQ sync. Added source metadata (geometrySource, quantitySourceLabel, computedAt) to BOQ/CSV/HTML exports, CAD-edited BOQ labels via deriveBoqFromCadOrDesign, cadQuantitiesAdapter for wall/opening extraction from CadDocument, collapsible source badge in BoqExportPanel, and 21 new tests. All 235 unit tests pass. Current app includes local AI brief-to-design, generated CAD geometry, 2D/3D BIM, engineering analysis, regional BOQ, exports, IndexedDB persistence, governance/RBAC/approval, snapshots, portfolio, feedback, CI, mobile UX, building-type layout strategies, PlanModel→CadDocument roundtrip, and BOQ source traceability. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (235 passed, 18 files).
+> **Status:** Sprint 29 — Manual CAD save/restore UI. Added CadSyncControls dropdown in toolbar with Save CAD Now, Restore Saved CAD, Reset to Generated buttons, last-saved timestamp, source badge, and auto-dismissing status messages. Added loadPlanModelMeta service for safe savedAt metadata retrieval. All 238 unit tests pass. Current app includes local AI brief-to-design, generated CAD geometry, 2D/3D BIM, engineering analysis, regional BOQ, exports, IndexedDB persistence, CAD auto-save + manual save/restore/reset, governance/RBAC/approval, snapshots, portfolio, feedback, CI, mobile UX, building-type layout strategies, PlanModel→CadDocument roundtrip, and BOQ source traceability. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (238 passed, 18 files).
 
 ---
 
@@ -280,7 +280,8 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 - **Engineering Analysis Panel** (EngineeringAnalysisPanel) — sidebar panel for clash detection, solar analysis, MEP takeoff with recommendation cards
 - **Governance Panel** (GovernancePanel) — sidebar panel for project governance status, approval readiness, RBAC roles, audit trail, fingerprint, approval workflow actions, comment box, timeline
 - **Governance Workflow Service** (governanceWorkflowService) — workflow service with load, submit, approve, request changes, reset, add comment, permission checks, transaction logging
-- **CAD Persistence Service** (cadPersistenceService) — save/load/has/delete PlanModel from IndexedDB planModels table
+- **CAD Persistence Service** (cadPersistenceService) — save/load/has/delete/metadata PlanModel from IndexedDB planModels table
+- **CAD Sync Controls** (CadSyncControls) — toolbar dropdown for manual save/restore/reset with status messages and timestamp
 - **CAD Sync Adapter** (cadToDesignSyncAdapter) — fallback adapters for BIM/BOQ/analysis with GeometrySource metadata, PlanModel→CadDocument conversion path for analysis
 - **PlanModel→CadDocument Adapter** (planModelToCadAdapter) — converts persisted PlanModel to canonical CadDocument with NaN clamping, default floor, offsetRatio mapping
 - **Snapshot History Panel** (SnapshotHistoryPanel) — sidebar panel for saving/listing/comparing design snapshots with cost and quantity deltas
@@ -314,7 +315,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **External wall area missing in BOQ** | External walls were not costed separately | ✅ DONE (Sprint 13 — added as line item) |
 | **Partition/opening estimates in BOQ** | Used fixed m² estimates, not actual geometry | ✅ DONE (Sprint 13 — geometryQuantitiesAdapter provides derived quantities) |
 | **Web Workers** | No off-main-thread processing | Future |
-| **Tests** | 235 unit tests across 18 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 + Sprint 19 + Sprint 21 + Sprint 25 + Sprint 26 + Sprint 27 + Sprint 28 — vitest, all adapters tested, CI pipeline) |
+| **Tests** | 238 unit tests across 18 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 + Sprint 19 + Sprint 21 + Sprint 25 + Sprint 26 + Sprint 27 + Sprint 28 + Sprint 29 — vitest, all adapters tested, CI pipeline) |
 | **Deployment docs** | DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects | ✅ DONE (Sprint 10 — Vercel/Netlify/static hosting, SPA fallback, release checklist) |
 | **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |
 | **Room layout optimization** | Grid-based layout may produce self-intersecting wall rings | Improve geometry adapter with proper floorplan algorithm |

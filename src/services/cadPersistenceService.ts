@@ -40,6 +40,22 @@ export async function hasSavedPlan(projectId: string, designId: string): Promise
   }
 }
 
+export interface PlanModelMeta {
+  hasSavedPlan: boolean
+  savedAt: string | null
+}
+
+export async function loadPlanModelMeta(projectId: string, designId: string): Promise<PlanModelMeta> {
+  if (!projectId || !designId) return { hasSavedPlan: false, savedAt: null }
+  try {
+    const stored = await db.planModels.get(`plan-${projectId}-${designId}`)
+    if (!stored) return { hasSavedPlan: false, savedAt: null }
+    return { hasSavedPlan: true, savedAt: stored.savedAt ?? null }
+  } catch {
+    return { hasSavedPlan: false, savedAt: null }
+  }
+}
+
 export async function deletePlanModel(projectId: string, designId: string): Promise<void> {
   if (!projectId || !designId) return
   await safeAsync(async () => {

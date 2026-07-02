@@ -10,8 +10,9 @@ import { TransactionPanel } from '@/components/layout/TransactionPanel';
 import { AIChatPanel } from '@/components/layout/AIChatPanel';
 import { EngineeringStudioPanel } from '@/components/dashboard/EngineeringStudioPanel';
 import { BuilderJourneyGuide } from '@/components/dashboard/BuilderJourneyGuide';
+import { CadSyncControls } from '@/components/dashboard/CadSyncControls';
 import { Button } from '@/components/ui/Button';
-import { Layers, Box, Ruler, FileSpreadsheet, Wand2, Loader2, Boxes, LayoutGrid, Save, Check } from 'lucide-react';
+import { Layers, Box, Ruler, FileSpreadsheet, Wand2, Loader2, Boxes, LayoutGrid } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PlanCanvas } from '@/components/cad/PlanCanvas';
 import { PlanComparison } from '@/components/cad/PlanComparison';
@@ -25,7 +26,7 @@ import { designOptionToBimModel } from '@/adapters/designToBim';
 import { buildBoqFromDesignOption } from '@/adapters/designToBoq';
 import { deriveBoqFromCadOrDesign, buildCadSyncMetadata } from '@/adapters/cadToDesignSyncAdapter';
 import { persistDesigns, persistBimModel, persistBoq, logTransaction, loadPersistedProjectWork } from '@/services/projectPersistenceService';
-import { savePlanModel, loadPlanModel } from '@/services/cadPersistenceService';
+import { savePlanModel, loadPlanModel, loadPlanModelMeta, deletePlanModel } from '@/services/cadPersistenceService';
 import type { DesignOption } from '@/domain/boq';
 import type { PlanModel } from '@/domain/plan';
 import type { GeometrySource } from '@/adapters/cadToDesignSyncAdapter';
@@ -40,10 +41,25 @@ export function Dashboard() {
   const [aiDesignOptions, setAiDesignOptions] = useState<DesignOption[]>([]);
   const [persistedPlan, setPersistedPlan] = useState<PlanModel | null>(null);
   const [cadSyncSource, setCadSyncSource] = useState<GeometrySource>('generated-design');
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [statusType, setStatusType] = useState<'success' | 'error' | 'info' | null>(null);
+  const [isManualSaving, setIsManualSaving] = useState(false);
+  const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadedPersistenceRef = useRef(false);
   const loadedCadRef = useRef<string | null>(null);
   const loggedBimRef = useRef<string | null>(null);
   const loggedBoqRef = useRef<string | null>(null);
+
+  function showStatus(msg: string, type: 'success' | 'error' | 'info') {
+    if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+    setStatusMessage(msg);
+    setStatusType(type);
+    statusTimerRef.current = setTimeout(() => {
+      setStatusMessage(null);
+      setStatusType(null);
+    }, 3000);
+  }
 
   const designOptions = useMemo<DesignOption[]>(
     () =>
@@ -127,6 +143,9 @@ export function Dashboard() {
       );
       setCadSyncSource(syncMeta.source);
     });
+    loadPlanModelMeta(id, selectedDesign.id).then((meta) => {
+      setLastSavedAt(meta.savedAt);
+    });
   }, [id, selectedDesign?.id]);
 
   // ── CAD Persistence: auto-save PlanModel on edit commit ──
@@ -139,6 +158,55 @@ export function Dashboard() {
     },
     [],
   );
+
+  // ── CAD Persistence: manual save/restore/reset ──
+  const handleManualSavePlan = useCallback(async () => {
+    if (!id || !selectedDesign?.id || !persistedPlan) {
+      showStatus('Nothing to save — no edits made', 'error')
+      return
+    }
+    setIsManualSaving(true)
+    try {
+      await savePlanModel(id, selectedDesign.id, persistedPlan)
+      setLastSavedAt(new Date().toISOString())
+      setCadSyncSource('persisted-cad')
+      logTransaction(id, 'UPDATE', 'design', selectedDesign.id, 'CAD plan manually saved')
+      showStatus('Saved successfully', 'success')
+    } catch {
+      showStatus('Save failed — please try again', 'error')
+    } finally {
+      setIsManualSaving(false)
+    }
+  }, [id, selectedDesign?.id, persistedPlan])
+
+  const handleRestoreSavedPlan = useCallback(async () => {
+    if (!id || !selectedDesign?.id) return
+    try {
+      const plan = await loadPlanModel(id, selectedDesign.id)
+      if (plan) {
+        setPersistedPlan(plan)
+        setCadSyncSource('persisted-cad')
+        const meta = await loadPlanModelMeta(id, selectedDesign.id)
+        setLastSavedAt(meta.savedAt)
+        logTransaction(id, 'UPDATE', 'design', selectedDesign.id, 'CAD plan restored from saved')
+        showStatus('Restored saved CAD', 'success')
+      } else {
+        showStatus('No saved CAD found', 'info')
+      }
+    } catch {
+      showStatus('Restore failed — please try again', 'error')
+    }
+  }, [id, selectedDesign?.id])
+
+  const handleResetToGeneratedPlan = useCallback(() => {
+    if (!id || !selectedDesign?.id) return
+    setPersistedPlan(null)
+    setCadSyncSource('generated-design')
+    setLastSavedAt(null)
+    deletePlanModel(id, selectedDesign.id).catch(() => {})
+    logTransaction(id, 'UPDATE', 'design', selectedDesign.id, 'CAD plan reset to generated design')
+    showStatus('Reset to generated design', 'info')
+  }, [id, selectedDesign?.id])
 
   // ── Persistence: save BIM model when it changes ──
   useEffect(() => {
@@ -223,18 +291,21 @@ export function Dashboard() {
 
               <span className="mx-1 h-5 w-px bg-white/10" />
 
-              {cadSyncSource === 'persisted-cad' && (
-                <span className="flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-400">
-                  <Save size={12} />
-                  CAD edited
-                </span>
-              )}
-              {cadSyncSource === 'generated-design' && persistedPlan && (
-                <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400">
-                  <Check size={12} />
-                  Synced
-                </span>
-              )}
+              <CadSyncControls
+                sourceLabel={
+                  cadSyncSource === 'persisted-cad' ? 'Edited CAD' :
+                  cadSyncSource === 'fallback-generated' ? 'Fallback' :
+                  'Generated'
+                }
+                lastSavedAt={lastSavedAt}
+                isSaving={isManualSaving}
+                disabled={!id || !selectedDesign?.id}
+                statusMessage={statusMessage}
+                statusType={statusType}
+                onSave={handleManualSavePlan}
+                onRestore={handleRestoreSavedPlan}
+                onReset={handleResetToGeneratedPlan}
+              />
 
               <Button
                 variant={activeCanvasView === 'plan' ? 'default' : 'ghost'}
