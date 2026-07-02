@@ -8,6 +8,7 @@ import { designOptionToBimModel } from '@/adapters/designToBim'
 import { buildCadFromDesignOption } from '@/adapters/designToAnalysis'
 import { buildBoqFromDesignOption } from '@/adapters/designToBoq'
 import { convertPlanModelToCadDocument } from '@/adapters/planModelToCadAdapter'
+import { extractCadDocumentQuantities } from '@/adapters/cadQuantitiesAdapter'
 import { detectBimClashes } from '@/lib/analysis/clash-checker'
 import { computeSolarAnalysis } from '@/lib/analysis/solar-analyzer'
 import { computeMepTakeoff } from '@/lib/quantities/mep-takeoff'
@@ -56,6 +57,7 @@ export function deriveBoqFromCadOrDesign(input: {
   const sourceWarnings: string[] = []
   let geometrySource: GeometrySource = source
   let quantitySourceLabel = 'Generated design geometry'
+  let cadQuantities: import('@/adapters/cadQuantitiesAdapter').CadQuantities | null = null
 
   if (plan) {
     const result = convertPlanModelToCadDocument({ plan, projectId, designId: design.id })
@@ -63,6 +65,7 @@ export function deriveBoqFromCadOrDesign(input: {
       cad = result.cad
       geometrySource = 'persisted-cad'
       quantitySourceLabel = 'Edited CAD / persisted plan'
+      cadQuantities = extractCadDocumentQuantities(cad)
     } else {
       sourceWarnings.push(...result.warnings)
     }
@@ -86,33 +89,7 @@ export function deriveBoqFromCadOrDesign(input: {
     cadDocumentId: cad?.id,
   }
 
-  const boq = buildBoqFromDesignOption(design, region, sourceMetadata)
-
-  if (boq && geometrySource === 'persisted-cad' && cad) {
-    const updatedAssumptions = boq.assumptions.map((a) => {
-      const label = a.label
-        .replace(/from generated geometry/g, 'from edited CAD')
-        .replace(/from generated openings/g, 'from edited CAD openings')
-        .replace(/from generated rooms/g, 'from edited CAD rooms')
-        .replace(/from generated zones/g, 'from edited CAD zones')
-      if (label !== a.label) {
-        return { ...a, label }
-      }
-      return a
-    })
-    const updatedItems = boq.items.map((item) => {
-      const desc = item.description
-        .replace(/from generated geometry/g, 'from edited CAD')
-        .replace(/from generated openings/g, 'from edited CAD openings')
-        .replace(/from generated rooms/g, 'from edited CAD rooms')
-        .replace(/from generated zones/g, 'from edited CAD zones')
-      if (desc !== item.description) {
-        return { ...item, description: desc }
-      }
-      return item
-    })
-    return { ...boq, assumptions: updatedAssumptions, items: updatedItems }
-  }
+  const boq = buildBoqFromDesignOption(design, region, sourceMetadata, cadQuantities)
 
   return boq
 }

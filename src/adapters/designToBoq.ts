@@ -6,6 +6,7 @@ import { resolveBoqRate, getContingencyRate, getFeesRate, getVatRate } from './r
 import { getRegionRateCard } from './rateCardAdapter'
 import type { RateAssumption } from './rateCardAdapter'
 import { extractGeometryQuantities, type GeometryQuantities } from './geometryQuantitiesAdapter'
+import type { CadQuantities } from './cadQuantitiesAdapter'
 
 function safe<T>(fn: () => T, fallback: T): T {
   try { return fn() } catch { return fallback }
@@ -29,14 +30,35 @@ export interface BoqResult extends BOQ {
   sourceMetadata?: BoqSourceMetadata
 }
 
+const QTY_SOURCE_GENERATED = 'generated geometry'
+const QTY_SOURCE_EDITED_CAD = 'edited CAD'
+
+function applyCadQuantityOverrides(qty: GeometryQuantities, cadQuantities: CadQuantities | null): { qty: GeometryQuantities; sourceLabel: string } {
+  if (!cadQuantities) return { qty, sourceLabel: QTY_SOURCE_GENERATED }
+  const overrides: Partial<GeometryQuantities> = {}
+  if (cadQuantities.externalWallLength > 0) overrides.externalWallLength = cadQuantities.externalWallLength
+  if (cadQuantities.internalWallLength > 0) overrides.internalWallLength = cadQuantities.internalWallLength
+  if (cadQuantities.externalWallArea > 0) overrides.externalWallArea = cadQuantities.externalWallArea
+  if (cadQuantities.internalWallArea > 0) {
+    overrides.internalWallArea = cadQuantities.internalWallArea
+    overrides.partitionArea = cadQuantities.internalWallArea
+  }
+  if (cadQuantities.doorCount > 0) overrides.doorCount = cadQuantities.doorCount
+  if (cadQuantities.windowCount > 0) overrides.windowCount = cadQuantities.windowCount
+  if (cadQuantities.openingArea > 0) overrides.openingArea = cadQuantities.openingArea
+  return { qty: { ...qty, ...overrides }, sourceLabel: QTY_SOURCE_EDITED_CAD }
+}
+
 export function buildBoqFromDesignOption(
   design: DesignOption | null,
   region = 'zimbabwe',
   sourceMetadata?: BoqSourceMetadata,
+  cadQuantities?: CadQuantities | null,
 ): BoqResult | null {
   if (!design || design.grossFloorArea <= 0) return null
 
-  const qty = extractGeometryQuantities(design)
+  const baseQty = extractGeometryQuantities(design)
+  const { qty: qty, sourceLabel: qtySourceLabel } = applyCadQuantityOverrides(baseQty, cadQuantities ?? null)
 
   const bim = designOptionToBimModel(design)
   if (!bim) return null
@@ -46,13 +68,19 @@ export function buildBoqFromDesignOption(
 
   const card = getRegionRateCard(region)
 
+  const isCad = qtySourceLabel === QTY_SOURCE_EDITED_CAD
+  const wallLabel = isCad ? `External walls (${qty.externalWallArea.toFixed(0)} m² from ${qtySourceLabel})` : `External walls (${qty.externalWallArea.toFixed(0)} m² from generated geometry)`
+  const partitionLabel = isCad ? `Internal partitions (${qty.partitionArea.toFixed(0)} m² from ${qtySourceLabel})` : `Internal partitions (${qty.partitionArea.toFixed(0)} m² from generated geometry)`
+  const doorLabel = isCad ? `Doors (${qty.doorCount} nr from ${qtySourceLabel})` : `Doors (${qty.doorCount} nr from generated openings)`
+  const windowLabel = isCad ? `Windows (${qty.windowCount} nr from ${qtySourceLabel})` : `Windows (${qty.windowCount} nr from generated openings)`
+
   const assumptions: RateAssumption[] = [
-    { ...resolveBoqRate(region, 'wall', 85), itemKey: 'wall', label: `External walls (${qty.externalWallArea.toFixed(0)} m² from generated geometry)` },
+    { ...resolveBoqRate(region, 'wall', 85), itemKey: 'wall', label: wallLabel },
     { ...resolveBoqRate(region, 'slab', 110), itemKey: 'slab', label: 'Floor slabs' },
     { ...resolveBoqRate(region, 'roof', 75), itemKey: 'roof', label: 'Roof' },
-    { ...resolveBoqRate(region, 'partition', 65), itemKey: 'partition', label: `Internal partitions (${qty.partitionArea.toFixed(0)} m² from generated geometry)` },
-    { ...resolveBoqRate(region, 'door', 180), itemKey: 'door', label: `Doors (${qty.doorCount} nr from generated openings)` },
-    { ...resolveBoqRate(region, 'window', 320), itemKey: 'window', label: `Windows (${qty.windowCount} nr from generated openings)` },
+    { ...resolveBoqRate(region, 'partition', 65), itemKey: 'partition', label: partitionLabel },
+    { ...resolveBoqRate(region, 'door', 180), itemKey: 'door', label: doorLabel },
+    { ...resolveBoqRate(region, 'window', 320), itemKey: 'window', label: windowLabel },
     { ...resolveBoqRate(region, 'opening', 250), itemKey: 'opening', label: 'Generic openings' },
     { itemKey: 'finishes', label: `Finishes allowance (${qty.finishFloorArea.toFixed(0)} m² from generated rooms)`, rate: 35, currency: card.currency, source: 'fallback' as const, warning: 'Finishes rate is a fixed estimate, not from rate card' },
     { itemKey: 'services', label: `Services allowance (${qty.serviceZoneArea.toFixed(0)} m² from generated zones)`, rate: 45, currency: card.currency, source: 'fallback' as const, warning: 'Services rate is a fixed estimate, not from rate card' },
@@ -94,7 +122,7 @@ export function buildBoqFromDesignOption(
       id: 'boq-extra-doors',
       quantityRef: 'doors',
       category: 'Openings',
-      description: `Internal doors (${qty.doorCount} nr) — from generated geometry`,
+      description: `Internal doors (${qty.doorCount} nr) — from ${qtySourceLabel}`,
       unit: 'each',
       quantity: qty.doorCount,
       rate: r.rate,
@@ -108,7 +136,7 @@ export function buildBoqFromDesignOption(
       id: 'boq-extra-windows',
       quantityRef: 'windows',
       category: 'Openings',
-      description: `Windows with glazing (${qty.windowCount} nr) — from generated geometry`,
+      description: `Windows with glazing (${qty.windowCount} nr) — from ${qtySourceLabel}`,
       unit: 'each',
       quantity: qty.windowCount,
       rate: r.rate,
@@ -122,7 +150,7 @@ export function buildBoqFromDesignOption(
       id: 'boq-extra-partitions',
       quantityRef: 'partitions',
       category: 'Walls',
-      description: `Internal partitions (${qty.partitionArea.toFixed(0)} m²) — from generated geometry`,
+      description: `Internal partitions (${qty.partitionArea.toFixed(0)} m²) — from ${qtySourceLabel}`,
       unit: 'm²',
       quantity: Math.round(qty.partitionArea * 100) / 100,
       rate: r.rate,
@@ -136,7 +164,7 @@ export function buildBoqFromDesignOption(
       id: 'boq-extra-ext-walls',
       quantityRef: 'external-walls',
       category: 'Walls',
-      description: `External wall area (${qty.externalWallArea.toFixed(0)} m²) — from generated geometry`,
+      description: `External wall area (${qty.externalWallArea.toFixed(0)} m²) — from ${qtySourceLabel}`,
       unit: 'm²',
       quantity: Math.round(qty.externalWallArea * 100) / 100,
       rate: r.rate,
