@@ -1,25 +1,32 @@
 import { useMemo, useState } from 'react'
 import type { DesignOption } from '@/domain/boq'
 import { buildBoqFromDesignOption, buildExportCsv, buildExportHtml, getCostPerM2, downloadTextFile } from '@/adapters/designToBoq'
+import type { BoqResult } from '@/adapters/designToBoq'
 import { getSupportedRegions, getDefaultRegionId } from '@/adapters/rateCardAdapter'
-import { Calculator, FileDown, FileText, Printer, Info } from 'lucide-react'
+import { Calculator, FileDown, FileText, Printer, Info, Shield } from 'lucide-react'
 
 interface BoqExportPanelProps {
   selectedDesign: DesignOption | null
+  boq?: BoqResult | null
   onExport?: (type: 'csv' | 'html' | 'print') => void
 }
 
 const regions = getSupportedRegions()
 
-export function BoqExportPanel({ selectedDesign, onExport }: BoqExportPanelProps) {
+export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: BoqExportPanelProps) {
   const [exported, setExported] = useState(false)
   const [regionId, setRegionId] = useState(getDefaultRegionId())
   const [showAssumptions, setShowAssumptions] = useState(false)
+  const [showSource, setShowSource] = useState(false)
 
-  const boq = useMemo(
-    () => buildBoqFromDesignOption(selectedDesign, regionId),
-    [selectedDesign, regionId],
+  const computedBoq = useMemo(
+    () => externalBoq !== undefined ? externalBoq : buildBoqFromDesignOption(selectedDesign, regionId),
+    [selectedDesign, regionId, externalBoq],
   )
+
+  const boq = computedBoq
+
+  const sourceMeta = boq?.sourceMetadata
 
   const areaM2 = selectedDesign?.grossFloorArea ?? 0
   const floors = selectedDesign?.floors ?? 0
@@ -31,7 +38,7 @@ export function BoqExportPanel({ selectedDesign, onExport }: BoqExportPanelProps
 
   const handleExportCsv = () => {
     if (!boq || !selectedDesign) return
-    const csv = buildExportCsv(boq, currentRegion?.label, boq.quantities)
+    const csv = buildExportCsv(boq, currentRegion?.label, boq.quantities, boq.sourceMetadata)
     const slug = selectedDesign.name.toLowerCase().replace(/\s+/g, '-')
     downloadTextFile(`boq-${slug}.csv`, csv, 'text/csv')
     setExported(true)
@@ -41,7 +48,7 @@ export function BoqExportPanel({ selectedDesign, onExport }: BoqExportPanelProps
 
   const handleExportHtml = () => {
     if (!boq || !selectedDesign) return
-    const html = buildExportHtml(selectedDesign.name, boq, areaM2, floors, currentRegion?.label, boq.assumptions)
+    const html = buildExportHtml(selectedDesign.name, boq, areaM2, floors, currentRegion?.label, boq.assumptions, boq.sourceMetadata)
     const slug = selectedDesign.name.toLowerCase().replace(/\s+/g, '-')
     downloadTextFile(`boq-${slug}.html`, html, 'text/html')
     setExported(true)
@@ -120,7 +127,62 @@ export function BoqExportPanel({ selectedDesign, onExport }: BoqExportPanelProps
           )}
         </div>
 
-        {/* Quantity basis */}
+        {/* Geometry source badge */}
+        {sourceMeta && (
+          <div className="mb-3 rounded-lg border border-stone-700/60 bg-stone-900/80 p-2.5">
+            <button
+              onClick={() => setShowSource(!showSource)}
+              aria-expanded={showSource}
+              className="flex w-full items-center gap-2 text-[10px]"
+            >
+              <Shield size={12} className="text-cyan-400" />
+              <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold ${
+                sourceMeta.geometrySource === 'persisted-cad'
+                  ? 'bg-amber-500/20 text-amber-300'
+                  : sourceMeta.geometrySource === 'fallback-generated'
+                    ? 'bg-red-500/20 text-red-300'
+                    : 'bg-emerald-500/20 text-emerald-300'
+              }`}>
+                {sourceMeta.geometrySource === 'persisted-cad' ? 'Edited CAD' :
+                 sourceMeta.geometrySource === 'fallback-generated' ? 'Fallback' : 'Generated'}
+              </span>
+              <span className="text-stone-400">{sourceMeta.quantitySourceLabel}</span>
+              <span className="ml-auto">{showSource ? '▲' : '▼'}</span>
+            </button>
+            {showSource && (
+              <div className="mt-1 space-y-1 border-t border-stone-700/60 pt-2 text-[9px] text-stone-400">
+                <div className="flex justify-between">
+                  <span>Source</span>
+                  <span className="text-stone-300">{sourceMeta.geometrySource}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Computed</span>
+                  <span className="text-stone-300">{new Date(sourceMeta.computedAt).toLocaleString()}</span>
+                </div>
+                {sourceMeta.designId && (
+                  <div className="flex justify-between">
+                    <span>Design ID</span>
+                    <span className="text-stone-300 font-mono">{sourceMeta.designId.slice(0, 12)}...</span>
+                  </div>
+                )}
+                {sourceMeta.cadDocumentId && (
+                  <div className="flex justify-between">
+                    <span>CAD ID</span>
+                    <span className="text-stone-300 font-mono">{sourceMeta.cadDocumentId.slice(0, 12)}...</span>
+                  </div>
+                )}
+                {sourceMeta.sourceWarnings && sourceMeta.sourceWarnings.length > 0 && (
+                  <div className="mt-1 space-y-0.5 rounded bg-red-500/10 p-1.5">
+                    {sourceMeta.sourceWarnings.map((w, i) => (
+                      <p key={i} className="text-red-400">⚠ {w}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {boq?.quantities && (
           <div className="mb-3 rounded-lg border border-stone-700/60 bg-stone-900/80 p-2.5 text-[10px]">
             <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider text-cyan-400">Quantity Basis</div>

@@ -110,10 +110,41 @@ describe('cadToDesignSyncAdapter', () => {
       }
     })
 
-    it('source metadata reflects fallback-generated when no plan', () => {
+    it('source metadata reflects generated-design when no plan', () => {
       const design = createSampleDesignOption()
-      const boq = deriveBoqFromCadOrDesign({ plan: null, design, source: 'fallback-generated' })
+      const boq = deriveBoqFromCadOrDesign({ plan: null, design, source: 'generated-design' })
       expect(boq).not.toBeNull()
+      expect(boq!.sourceMetadata).toBeDefined()
+      expect(boq!.sourceMetadata!.geometrySource).toBe('generated-design')
+      expect(boq!.sourceMetadata!.quantitySourceLabel).toBe('Generated design geometry')
+    })
+
+    it('source metadata reflects persisted-cad when plan available', () => {
+      const design = createSampleDesignOption()
+      const plan = createSamplePlanModel()
+      const boq = deriveBoqFromCadOrDesign({ plan, design, source: 'persisted-cad' })
+      expect(boq).not.toBeNull()
+      expect(boq!.sourceMetadata).toBeDefined()
+      expect(boq!.sourceMetadata!.geometrySource).toBe('persisted-cad')
+      expect(boq!.sourceMetadata!.quantitySourceLabel).toBe('Edited CAD / persisted plan')
+    })
+
+    it('source metadata includes computedAt timestamp', () => {
+      const design = createSampleDesignOption()
+      const boq = deriveBoqFromCadOrDesign({ plan: null, design, source: 'generated-design' })
+      expect(boq!.sourceMetadata!.computedAt).toBeTruthy()
+      expect(() => new Date(boq!.sourceMetadata!.computedAt)).not.toThrow()
+    })
+
+    it('BOQ labels updated to edited CAD when plan available', () => {
+      const design = createSampleDesignOption()
+      const plan = createSamplePlanModel()
+      const boq = deriveBoqFromCadOrDesign({ plan, design, source: 'persisted-cad' })
+      expect(boq).not.toBeNull()
+      const assumptionsJoined = boq!.assumptions.map((a) => a.label).join(' ')
+      expect(assumptionsJoined).toContain('edited CAD')
+      const itemsJoined = boq!.items.map((i) => i.description).join(' ')
+      expect(itemsJoined).toContain('edited CAD')
     })
   })
 

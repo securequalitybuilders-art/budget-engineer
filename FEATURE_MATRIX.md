@@ -155,3 +155,4 @@
 | ✅ Present (Sprint 25 — Governance approval actions and comments) | Local-first approval workflow: submit for review, approve, request changes, add comments, timeline, role selector, transaction logging, 15 new tests, 1 new service, 1 test file, 1 report |
 | ✅ Present (Sprint 26 — CAD persistence and sync tests) | 33 tests for cadPersistenceService (CRUD) and cadToDesignSyncAdapter (fallback adapters), 3 new files, 1 report |
 | ✅ Present (Sprint 27 — PlanModel→CadDocument roundtrip) | PlanModel→CadDocument converter + fallback in sync adapter + 22 new tests (13 converter + 9 sync), 2 new files, 1 report |
+| ✅ Present (Sprint 28 — Export source metadata & CAD-edited BOQ sync) | Source metadata in BOQ/CSV/HTML exports, CAD-edited BOQ labels, cadQuantitiesAdapter, 21 new tests (10 cadQty + 8 designToBoq + 3 sync), 3 new files, 1 report |

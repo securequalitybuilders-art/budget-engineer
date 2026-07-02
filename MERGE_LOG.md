@@ -41,6 +41,9 @@
 ```
 2026-07-02 14:XX | SPRINT-27 | PlanModel→CadDocument roundtrip                                          | DONE
 ```
+```
+2026-07-02 14:XX | SPRINT-28 | Export source metadata and CAD-edited BOQ sync                            | DONE
+```
 
 ---
 

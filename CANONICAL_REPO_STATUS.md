@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-02  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 27 — PlanModel→CadDocument roundtrip. Added PlanModel→CadDocument converter (planModelToCadAdapter.ts) + sync adapter fallback in deriveAnalysisFromCadOrDesign. 22 new tests (13 converter + 9 sync). All 214 unit tests pass. Current app includes local AI brief-to-design, generated CAD geometry with believable room layouts, 2D/3D BIM workflow, engineering analysis, regional geometry-derived BOQ, exports, IndexedDB persistence, governance approval workflow, RBAC role display, snapshots, portfolio dashboard, archive/restore, local-first feedback system, CI, mobile-optimised UX, deterministic per-building-type layout strategies, and PlanModel→CadDocument roundtrip for downstream analysis. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 9 pre-existing warnings), `npm test` (214 passed, 17 files), `npm run build` (success).
+> **Status:** Sprint 28 — Export source metadata and CAD-edited BOQ sync. Added source metadata (geometrySource, quantitySourceLabel, computedAt) to BOQ/CSV/HTML exports, CAD-edited BOQ labels via deriveBoqFromCadOrDesign, cadQuantitiesAdapter for wall/opening extraction from CadDocument, collapsible source badge in BoqExportPanel, and 21 new tests. All 235 unit tests pass. Current app includes local AI brief-to-design, generated CAD geometry, 2D/3D BIM, engineering analysis, regional BOQ, exports, IndexedDB persistence, governance/RBAC/approval, snapshots, portfolio, feedback, CI, mobile UX, building-type layout strategies, PlanModel→CadDocument roundtrip, and BOQ source traceability. `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (235 passed, 18 files).
 
 ---
 
@@ -284,7 +284,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 - **CAD Sync Adapter** (cadToDesignSyncAdapter) — fallback adapters for BIM/BOQ/analysis with GeometrySource metadata, PlanModel→CadDocument conversion path for analysis
 - **PlanModel→CadDocument Adapter** (planModelToCadAdapter) — converts persisted PlanModel to canonical CadDocument with NaN clamping, default floor, offsetRatio mapping
 - **Snapshot History Panel** (SnapshotHistoryPanel) — sidebar panel for saving/listing/comparing design snapshots with cost and quantity deltas
-- **9 adapters** (`designGeometryAdapter.ts` + `geometryQuantitiesAdapter.ts` + `designToBim.ts` + `aiDesignAdapter.ts` + `designToBoq.ts` + `designToAnalysis.ts` + `rateCardAdapter.ts` + `governanceAdapter.ts` + `planModelToCadAdapter.ts`) — building geometry, geometry quantities, BIM model, AI design, BOQ generation, engineering analysis, rate card resolution, governance summary from DesignOption, PlanModel→CadDocument roundtrip
+- **10 adapters** (`designGeometryAdapter.ts` + `geometryQuantitiesAdapter.ts` + `designToBim.ts` + `aiDesignAdapter.ts` + `designToBoq.ts` + `designToAnalysis.ts` + `rateCardAdapter.ts` + `governanceAdapter.ts` + `planModelToCadAdapter.ts` + `cadQuantitiesAdapter.ts`) — building geometry, geometry quantities, BIM model, AI design, BOQ generation, engineering analysis, rate card resolution, governance summary from DesignOption, PlanModel→CadDocument roundtrip, CAD document quantity extraction
 - **2D/3D toggle** in Dashboard toolbar — switches between PlanCanvas and LazyBimViewer
 
 ---
@@ -314,7 +314,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **External wall area missing in BOQ** | External walls were not costed separately | ✅ DONE (Sprint 13 — added as line item) |
 | **Partition/opening estimates in BOQ** | Used fixed m² estimates, not actual geometry | ✅ DONE (Sprint 13 — geometryQuantitiesAdapter provides derived quantities) |
 | **Web Workers** | No off-main-thread processing | Future |
-| **Tests** | 214 unit tests across 17 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 + Sprint 19 + Sprint 21 + Sprint 25 + Sprint 26 + Sprint 27 — vitest, all adapters tested, CI pipeline) |
+| **Tests** | 235 unit tests across 18 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 + Sprint 19 + Sprint 21 + Sprint 25 + Sprint 26 + Sprint 27 + Sprint 28 — vitest, all adapters tested, CI pipeline) |
 | **Deployment docs** | DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects | ✅ DONE (Sprint 10 — Vercel/Netlify/static hosting, SPA fallback, release checklist) |
 | **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |
 | **Room layout optimization** | Grid-based layout may produce self-intersecting wall rings | Improve geometry adapter with proper floorplan algorithm |

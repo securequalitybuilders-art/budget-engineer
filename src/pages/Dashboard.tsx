@@ -23,9 +23,9 @@ import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPane
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
 import { designOptionToBimModel } from '@/adapters/designToBim';
 import { buildBoqFromDesignOption } from '@/adapters/designToBoq';
+import { deriveBoqFromCadOrDesign, buildCadSyncMetadata } from '@/adapters/cadToDesignSyncAdapter';
 import { persistDesigns, persistBimModel, persistBoq, logTransaction, loadPersistedProjectWork } from '@/services/projectPersistenceService';
 import { savePlanModel, loadPlanModel } from '@/services/cadPersistenceService';
-import { buildCadSyncMetadata } from '@/adapters/cadToDesignSyncAdapter';
 import type { DesignOption } from '@/domain/boq';
 import type { PlanModel } from '@/domain/plan';
 import type { GeometrySource } from '@/adapters/cadToDesignSyncAdapter';
@@ -71,7 +71,17 @@ export function Dashboard() {
 
   const selectedDesign = visibleDesignOptions.find((d) => d.id === selectedDesignId) ?? visibleDesignOptions[0] ?? null;
   const bimModel = useMemo(() => designOptionToBimModel(selectedDesign), [selectedDesign]);
-  const currentBoq = useMemo(() => buildBoqFromDesignOption(selectedDesign), [selectedDesign]);
+  const currentBoq = useMemo(() => {
+    if (persistedPlan && selectedDesign) {
+      return deriveBoqFromCadOrDesign({
+        plan: persistedPlan,
+        design: selectedDesign,
+        source: cadSyncSource,
+        projectId: id,
+      })
+    }
+    return buildBoqFromDesignOption(selectedDesign)
+  }, [selectedDesign, persistedPlan, cadSyncSource, id])
 
   // ── Persistence: load saved AI designs on mount ──
   useEffect(() => {
@@ -333,7 +343,7 @@ export function Dashboard() {
             <PropertiesPanel />
             <TransactionPanel />
             <EngineeringStudioPanel selectedDesign={selectedDesign} onDesignOptionsGenerated={handleAiDesignOptions} />
-            <BoqExportPanel selectedDesign={selectedDesign} onExport={handleExport} />
+            <BoqExportPanel selectedDesign={selectedDesign} boq={currentBoq} onExport={handleExport} />
             <EngineeringAnalysisPanel selectedDesign={selectedDesign} />
             <GovernancePanel
               selectedDesign={selectedDesign}
