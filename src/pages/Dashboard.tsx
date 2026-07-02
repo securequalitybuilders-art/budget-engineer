@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
 import { BentoShell } from '@/components/layout/BentoShell';
@@ -258,10 +258,36 @@ export function Dashboard() {
     logTransaction(id, 'EXPORT', 'export', selectedDesign.id, `BOQ exported as ${label}`)
   }
 
-  if (isLoading || !currentProject) {
+  if (isLoading) {
     return (
-      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-2 border-[var(--border-default)] border-t-[var(--brand-accent)]" />
+      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center bg-[var(--bg-primary)]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-12 w-12 animate-spin rounded-full border-2 border-[var(--border-default)] border-t-[var(--brand-accent)]" />
+          <p className="text-sm text-[var(--text-muted)]">Loading project…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentProject) {
+    return (
+      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center bg-[var(--bg-primary)]">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--border-default)] bg-[var(--bg-secondary)]">
+            <Box size={32} className="text-[var(--text-muted)]" />
+          </div>
+          <h2 className="font-display text-xl font-bold text-[var(--text-primary)]">Project not found</h2>
+          <p className="max-w-xs text-sm text-[var(--text-muted)]">
+            This project does not exist or may have been removed. Start a new project to begin.
+          </p>
+          <Link
+            to="/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-cyan-600/20 px-4 py-2 text-sm text-cyan-300 transition-colors hover:bg-cyan-600/30"
+          >
+            <FileSpreadsheet size={16} />
+            Create new project
+          </Link>
+        </div>
       </div>
     );
   }

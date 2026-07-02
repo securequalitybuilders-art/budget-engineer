@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Diagnosed Lighthouse NO_FCP audit failure on project route — root cause was a CSS-only spinner with no visible text rendered indefinitely for non-existent project IDs
+- Hardened Dashboard first paint: loading state now shows "Loading project…" text; non-existent projects show "Project not found" fallback with create-project link
+
+---
+
 ## v0.1.1 — Public Demo Patch Release
 
 **Date:** 2026-07-02
