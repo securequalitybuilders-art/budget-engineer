@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -11,7 +11,7 @@ import { AIChatPanel } from '@/components/layout/AIChatPanel';
 import { EngineeringStudioPanel } from '@/components/dashboard/EngineeringStudioPanel';
 import { BuilderJourneyGuide } from '@/components/dashboard/BuilderJourneyGuide';
 import { Button } from '@/components/ui/Button';
-import { Layers, Box, Ruler, FileSpreadsheet, Wand2, Loader2, Boxes, LayoutGrid } from 'lucide-react';
+import { Layers, Box, Ruler, FileSpreadsheet, Wand2, Loader2, Boxes, LayoutGrid, Save, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PlanCanvas } from '@/components/cad/PlanCanvas';
 import { PlanComparison } from '@/components/cad/PlanComparison';
@@ -24,7 +24,11 @@ import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
 import { designOptionToBimModel } from '@/adapters/designToBim';
 import { buildBoqFromDesignOption } from '@/adapters/designToBoq';
 import { persistDesigns, persistBimModel, persistBoq, logTransaction, loadPersistedProjectWork } from '@/services/projectPersistenceService';
+import { savePlanModel, loadPlanModel } from '@/services/cadPersistenceService';
+import { buildCadSyncMetadata } from '@/adapters/cadToDesignSyncAdapter';
 import type { DesignOption } from '@/domain/boq';
+import type { PlanModel } from '@/domain/plan';
+import type { GeometrySource } from '@/adapters/cadToDesignSyncAdapter';
 
 export function Dashboard() {
   const { id } = useParams<{ id: string }>();
@@ -34,7 +38,10 @@ export function Dashboard() {
   const [selectedDesignId, setSelectedDesignId] = useState<string | null>(null);
   const [activeCanvasView, setActiveCanvasView] = useState<'plan' | 'bim'>('plan');
   const [aiDesignOptions, setAiDesignOptions] = useState<DesignOption[]>([]);
+  const [persistedPlan, setPersistedPlan] = useState<PlanModel | null>(null);
+  const [cadSyncSource, setCadSyncSource] = useState<GeometrySource>('generated-design');
   const loadedPersistenceRef = useRef(false);
+  const loadedCadRef = useRef<string | null>(null);
   const loggedBimRef = useRef<string | null>(null);
   const loggedBoqRef = useRef<string | null>(null);
 
@@ -95,6 +102,33 @@ export function Dashboard() {
       setActiveStage(stageMap[currentProject.status] || 1);
     }
   }, [currentProject, setActiveStage]);
+
+  // ── CAD Persistence: load saved PlanModel on design selection change ──
+  useEffect(() => {
+    if (!id || !selectedDesign?.id) return;
+    if (loadedCadRef.current === selectedDesign.id) return;
+    loadedCadRef.current = selectedDesign.id;
+
+    loadPlanModel(id, selectedDesign.id).then((plan) => {
+      setPersistedPlan(plan ?? null);
+      const syncMeta = buildCadSyncMetadata(
+        !!plan,
+        false,
+      );
+      setCadSyncSource(syncMeta.source);
+    });
+  }, [id, selectedDesign?.id]);
+
+  // ── CAD Persistence: auto-save PlanModel on edit commit ──
+  const handleSavePlan = useCallback(
+    async (projectId: string, designId: string, plan: PlanModel) => {
+      setPersistedPlan(plan);
+      await savePlanModel(projectId, designId, plan);
+      setCadSyncSource('persisted-cad');
+      logTransaction(projectId, 'UPDATE', 'design', designId, 'CAD plan saved');
+    },
+    [],
+  );
 
   // ── Persistence: save BIM model when it changes ──
   useEffect(() => {
@@ -179,6 +213,19 @@ export function Dashboard() {
 
               <span className="mx-1 h-5 w-px bg-white/10" />
 
+              {cadSyncSource === 'persisted-cad' && (
+                <span className="flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-400">
+                  <Save size={12} />
+                  CAD edited
+                </span>
+              )}
+              {cadSyncSource === 'generated-design' && persistedPlan && (
+                <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400">
+                  <Check size={12} />
+                  Synced
+                </span>
+              )}
+
               <Button
                 variant={activeCanvasView === 'plan' ? 'default' : 'ghost'}
                 size="icon"
@@ -224,7 +271,7 @@ export function Dashboard() {
                     </Button>
                   </div>
                   {activeCanvasView === 'plan' ? (
-                    <PlanCanvas projectId={id ?? null} design={selectedDesign} />
+                    <PlanCanvas projectId={id ?? null} design={selectedDesign} persistedPlan={persistedPlan} onSavePlan={handleSavePlan} />
                   ) : (
                     <LazyBimViewer model={bimModel} height={480} />
                   )}

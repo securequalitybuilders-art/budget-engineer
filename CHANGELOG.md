@@ -1,5 +1,27 @@
 # Changelog
 
+## Sprint 24 — CAD Editing Persistence and Export Sync
+
+**Date:** 2026-07-02
+
+### Added
+- `cadPersistenceService.ts` — save/load/delete PlanModel from IndexedDB `planModels` table
+- `cadToDesignSyncAdapter.ts` — fallback wrappers for BIM/BOQ/analysis with GeometrySource metadata (generated-design | persisted-cad | fallback-generated)
+- Dexie v4 migration: new `planModels` table (additive, no schema break)
+- Dashboard integration: load persisted PlanModel on design selection, auto-save on edit commit, CAD sync status badges in toolbar
+
+### Validation
+- Typecheck: 0 errors
+- Lint: 0 errors (9 pre-existing warnings)
+- Tests: 145 passed, 13 files
+- Build: 20 precache entries
+
+### Known Limitations
+- Downstream adapters still read from DesignOption (not persisted PlanModel)
+- No PlanModel → CadDocument roundtrip wired
+- No test coverage for new services/adapter
+- No export sync for CAD-edited data
+
 ## v0.1.0 — Public MVP Release
 
 **Date:** 2026-07-01

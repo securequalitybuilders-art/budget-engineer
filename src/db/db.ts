@@ -4,6 +4,7 @@ import type { CadDocument } from '@/domain/cad';
 import type { BimModel } from '@/domain/bim';
 import type { GovernanceRecord } from '@/domain/governance';
 import type { ProjectSnapshot } from '@/domain/versioning';
+import type { PlanModel } from '@/domain/plan';
 
 export class BudgetEngineerDB extends Dexie {
   projects!: Table<Project, string>;
@@ -16,6 +17,7 @@ export class BudgetEngineerDB extends Dexie {
   bimModels!: Table<BimModel, string>;
   governance!: Table<GovernanceRecord, string>;
   snapshots!: Table<ProjectSnapshot, string>;
+  planModels!: Table<PlanModel & { projectId: string; designId: string; savedAt: string }, string>;
 
   constructor() {
     super('BudgetEngineerDB');
@@ -48,6 +50,19 @@ export class BudgetEngineerDB extends Dexie {
       bimModels: 'id,name,projectId',
       governance: 'projectId,approvalState,lastUpdated',
       snapshots: 'id,timestamp,name,projectId',
+    });
+    this.version(4).stores({
+      projects: 'id, [ownerId+status], updatedAt',
+      briefs: 'projectId',
+      designs: 'id, projectId, [projectId+optionIndex]',
+      boqs: 'id, projectId, designId',
+      transactions: 'id, [projectId+createdAt], entityType',
+      rates: 'id, [region+code], source',
+      cadDocs: 'id,name,projectId',
+      bimModels: 'id,name,projectId',
+      governance: 'projectId,approvalState,lastUpdated',
+      snapshots: 'id,timestamp,name,projectId',
+      planModels: 'id,projectId,designId,savedAt',
     });
   }
 }
