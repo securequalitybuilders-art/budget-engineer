@@ -6,7 +6,7 @@
 > AI-powered computational design → 2D CAD → 3D BIM → engineering checks → quantities → BOQ → export.
 > Offline-first, open-source, Africa-focused.
 >
-> **Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, geometry-derived BOQ quantities (door/window/partition/finish quantities from actual CAD geometry — not GFA estimates), guided first-time builder journey with 6-step progress and template briefs, governance/audit readiness panel with approval checklist and RBAC roles, snapshot history panel with save/compare/cost and quantity deltas, portfolio dashboard with executive metrics and cross-project overview, portfolio filters (search, active/archived, sort by cost/name), archive/restore actions on project cards, mobile review support (review, estimates, exports on phone — CAD editing best on tablet/desktop), 117 automated tests across the full pipeline.** CI validates typecheck, lint, tests, and production build on every push.
+> **Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, geometry-derived BOQ quantities (door/window/partition/finish quantities from actual CAD geometry — not GFA estimates), guided first-time builder journey with 6-step progress and template briefs, governance/audit readiness panel with approval checklist and RBAC roles, snapshot history panel with save/compare/cost and quantity deltas, portfolio dashboard with executive metrics and cross-project overview, portfolio filters (search, active/archived, sort by cost/name), archive/restore actions on project cards, mobile review support (review, estimates, exports on phone — CAD editing best on tablet/desktop), per-building-type room layout strategies (single-storey/duplex/clinic/shop) with circulation corridors and wet-core grouping, 145 automated tests across the full pipeline.** CI validates typecheck, lint, tests, and production build on every push.
 
 **Live demo:** [budget-engineer.vercel.app](https://budget-engineer.vercel.app/)
 
@@ -52,6 +52,7 @@ Then open http://localhost:5173.
 | **Sprint 20: v0.1.0 public MVP release** | Package version → 0.1.0, CHANGELOG.md, release notes, tag v0.1.0, final validation | Sprint 20 |
 | **Sprint 21: Feedback & issue reporting** | FeedbackPanel, `/feedback` route, copy/GitHub/email actions, privacy-first, 127 tests | Sprint 21 |
 | **Sprint 22: Mobile UX deep polish** | Hero text sizes, mobile messages, always-visible archive/restore on touch, larger tap targets | Sprint 22 |
+| **Sprint 23: Better CAD room layout** | Per-building-type layout strategies (single-storey, duplex/2-storey, clinic, commercial/shop), circulation corridors, wet-core grouping, improved opening placement | Sprint 23 |
 
 **Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Checks → Quantities → BOQ → Export (CSV / HTML / PDF)
 
@@ -89,7 +90,7 @@ Each push to `main` runs via GitHub Actions:
 1. `npm ci`
 2. `npm run typecheck`
 3. `npm run lint`
-4. `npm test` (127 tests, 13 files)
+4. `npm test` (145 tests, 13 files)
 5. `npm run build`
 
 ## Release
@@ -100,7 +101,7 @@ Each push to `main` runs via GitHub Actions:
 | Live demo | https://budget-engineer.vercel.app/ |
 | GitHub | https://github.com/securequalitybuilders-art/budget-engineer |
 | CI status | [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions) |
-| Tests | 127 across 13 files |
+| Tests | 145 across 13 files |
 | Architecture | Local-first, no paid APIs, no backend, no cloud LLM |
 
 See [CHANGELOG.md](CHANGELOG.md) for full release history.
@@ -109,7 +110,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full release history.
 
 - **Approximate cost rates** — BOQ totals are based on regional rate cards with default assumptions. Not suitable for procurement or final budgeting.
 - **No structural engineer sign-off** — generated designs are concept/feasibility only. Always engage a registered structural engineer for detailed design.
-- **Early-stage CAD** — generated geometry is deterministic and grid-based. Manual editing in the 2D CAD canvas is recommended for real projects.
+- **Early-stage CAD** — generated room layouts are deterministic with per-building-type strategies (residential, clinic, commercial). Manual editing in the 2D CAD canvas is recommended for real projects.
 - **WebLLM not installed** — `@mlc-ai/web-llm` is opt-in. The app works fully offline without it using the deterministic local-rules engine.
 - **Not a replacement for professional review** — this tool aids early-stage design and cost estimation. It does not replace qualified quantity surveyors, structural engineers, or architects.
 - **Same room template per floor** — multi-floor designs use the same room layout for all levels (no ground/upper variation).

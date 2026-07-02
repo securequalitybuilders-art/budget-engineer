@@ -150,3 +150,4 @@
 | ✅ Present (Sprint 19 — Portfolio filters, search, sort, archive/restore) | 2 services + 1 adapter + 2 test files + 2 reports + 7 files modified |
 | ✅ Present (Sprint 21 — Feedback and issue reporting workflow) | 1 utility + 1 component + 1 page + 1 test file + 1 report + 4 files modified |
 | ✅ Present (Sprint 22 — Mobile UX deep polish) | Hero text sizes, mobile messages, always-visible archive/restore on touch, larger tap targets, 4 files modified + 1 report |
+| ✅ Present (Sprint 23 — Better CAD room layout algorithm) | Strategy-based layout per building type, circulation corridors, wet-core grouping, multi-floor differentiation, improved opening placement, 18 new tests, 2 files changed |

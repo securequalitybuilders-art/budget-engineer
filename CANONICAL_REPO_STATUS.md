@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-02  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 22 — Mobile UX deep polish. Hero text sizes, mobile-friendly messages on Home and Dashboard, archive/restore always visible on touch devices, larger tap targets on template buttons. All changes conservative Tailwind-only — no new features, no Dashboard rewrite, desktop appearance unchanged. Current app includes local AI brief-to-design, generated CAD geometry, 2D/3D BIM workflow, engineering analysis, regional geometry-derived BOQ, exports, IndexedDB persistence, governance/audit, snapshots, portfolio dashboard, archive/restore, local-first feedback system, CI, 127 tests, live Vercel demo, and mobile-optimised UX. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (127 passed, 13 files), `npm run build` (success).
+> **Status:** Sprint 23 — Better CAD room layout algorithm. Replaced grid-based room templates with strategy-based per-building-type layouts: residential single-storey (3-zone: public/passage/private), residential two-storey (ground floor lounge/kitchen, upper floor bedrooms/bathrooms, staircase zone), clinic (reception/waiting/consultation/pharmacy/toilets), shop (sales/storage/office/WC). Improved opening placement with main entrance, passage-corridor doors, windows on key room external walls, shopfront display windows. 145 tests (18 new). Current app includes local AI brief-to-design, generated CAD geometry with believable room layouts, 2D/3D BIM workflow, engineering analysis, regional geometry-derived BOQ, exports, IndexedDB persistence, governance/audit, snapshots, portfolio dashboard, archive/restore, local-first feedback system, CI, mobile-optimised UX, and deterministic per-building-type layout strategies. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (145 passed, 13 files), `npm run build` (success).
 
 ---
 
@@ -65,6 +65,8 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
 | `/` | `Home.tsx` | Landing page |
 | `/new` | `ProjectWizard.tsx` | 3-step wizard |
 | `/project/:id` | `Dashboard.tsx` | Main workspace with PlanCanvas |
+| `/portfolio` | `PortfolioPage.tsx` | Executive portfolio dashboard |
+| `/feedback` | `FeedbackPage.tsx` | Feedback form |
 
 ---
 
@@ -143,6 +145,15 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
 - **Status filter** — All / Active / Archived toggle
 - **Sort** — Newest / Name / Highest Cost / Lowest Cost
 - **Archive/Restore** — hover button on project card, local-first via IndexedDB, transaction logging, instant metric refresh
+
+### Improved CAD Room Layout (Sprint 23)
+- Replaced grid-based room templates with per-building-type layout strategies
+- **Residential single-storey:** 3-zone layout (public left, private right, centre passage), lounge/dining/kitchen wet-core, bathrooms grouped near bedrooms
+- **Duplex/2-storey:** Different ground and upper floor layouts, staircase zone, ground has lounge/kitchen/guest WC, upper has bedrooms/bathrooms/retreat
+- **Clinic:** Reception + waiting at front, 4 consultation rooms off corridor, pharmacy/toilets/storage at back
+- **Shop/commercial:** Open sales area at front, storage/office/Staff WC at back, shopfront windows
+- **Opening placement:** Main entrance on front wall, doors on passage walls connecting rooms, windows on external walls of key room types, shopfront display windows, all offsets clamped ≥0.3m from corners
+- **145 tests, 18 new** for layout strategies
 
 ### Feedback & Issue Reporting (Sprint 21)
 - **FeedbackPanel** — reusable form with category select (8 types), title, description, steps-to-reproduce, optional browser info

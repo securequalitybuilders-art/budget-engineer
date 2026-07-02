@@ -27,7 +27,10 @@
 2026-07-01 16:05 | SPRINT-21 | Feedback and issue reporting workflow                                | DONE
 ```
 ```
-2026-07-02 08:22 | SPRINT-22 | Mobile UX deep polish                                                 | DONE (PR #xx)
+2026-07-02 08:22 | SPRINT-22 | Mobile UX deep polish                                                 | DONE (6c3469e)
+```
+```
+2026-07-02 08:36 | SPRINT-23 | Better CAD room layout algorithm                                       | DONE (PR #xx)
 ```
 
 ---
