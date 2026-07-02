@@ -1,5 +1,41 @@
 # Changelog
 
+## v0.1.1 — Public Demo Patch Release
+
+**Date:** 2026-07-02
+
+**Live demo:** https://budget-engineer.vercel.app/
+**Repository:** https://github.com/securequalitybuilders-art/budget-engineer
+
+### Added since v0.1.0
+- Feedback workflow and `/feedback` route (Sprint 21)
+- Mobile UX deep polish — hero text sizes, tap targets, always-visible archive/restore, mobile messages (Sprint 22)
+- Better CAD room layout algorithm — per-building-type strategies (single-storey, duplex, clinic, commercial) with circulation corridors and wet-core grouping (Sprint 23)
+- CAD editing persistence — PlanModel saved/loaded from IndexedDB, auto-save on edit commit, CAD sync status in toolbar (Sprint 24)
+- Governance approval workflow — submit/approve/request-changes with comments, timeline, role selector, transaction logging (Sprint 25)
+- CAD persistence and sync tests — 33 tests for cadPersistenceService and cadToDesignSyncAdapter (Sprint 26)
+- PlanModel→CadDocument roundtrip — conversion adapter for downstream analysis (Sprint 27)
+- BOQ source metadata and CAD quantity sync — geometry source, quantity source label, CAD-edited labels, cadQuantitiesAdapter for wall/opening extraction (Sprint 28)
+- Manual CAD save/restore UI — CadSyncControls dropdown with Save/Restore/Reset buttons, timestamp, source badge, auto-dismiss status messages (Sprint 29)
+
+### Validation
+- Typecheck: 0 errors
+- Lint: 0 errors (9 pre-existing warnings)
+- Tests: 238 passed, 18 files
+- Build: success (3388 modules, 20 precache entries)
+
+### Known Limitations
+- Downstream adapters still use generated quantities for most line items (CAD-edited labels, not full CAD-derived quantities)
+- Snapshot source metadata not yet stored
+- No export sync for WS6 boq-export.ts (drawing register + plan SVGs)
+- Same room template per floor (no ground/upper variation)
+- Finishes and services are percentage-based estimates
+- Mobile review supported; CAD editing best on tablet/desktop
+- No cloud sync or multi-user support
+- WebLLM parser is opt-in (`@mlc-ai/web-llm` not pre-installed)
+
+---
+
 ## Sprint 26 — CAD Persistence and Sync Tests
 
 **Date:** 2026-07-02

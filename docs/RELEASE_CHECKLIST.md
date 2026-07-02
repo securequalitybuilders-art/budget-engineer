@@ -68,6 +68,27 @@
 
 ---
 
+## v0.1.1 Release Verification
+
+| Check | Result |
+|-------|--------|
+| `npm run typecheck` | 0 errors |
+| `npm run lint` | 0 errors (9 pre-existing warnings) |
+| `npm test` | 238 passed, 18 files |
+| `npm run build` | Success, 3388 modules, 20 precache |
+| Live demo loads | https://budget-engineer.vercel.app/ ✅ |
+| `/new` loads | ✅ |
+| `/portfolio` loads | ✅ |
+| `/feedback` loads | ✅ |
+| `/project/demo` loads (SPA fallback) | ✅ |
+| `manifest.webmanifest` loads | ✅ |
+| No secrets in source | ✅ |
+| No paid APIs | ✅ |
+| PWA assets present | ✅ |
+| Git tag v0.1.1 created and pushed | ✅ |
+
+---
+
 ## Known Limitations (to document in README)
 
 - [ ] Cost rates are approximate and vary by region; not suitable for procurement.
