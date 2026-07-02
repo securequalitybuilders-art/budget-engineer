@@ -13,7 +13,7 @@ function safe<T>(fn: () => T, fallback: T): T {
   try { return fn() } catch { return fallback }
 }
 
-function buildCadFromDesignOption(design: DesignOption): CadDocument | null {
+export function buildCadFromDesignOption(design: DesignOption): CadDocument | null {
   if (!design || design.grossFloorArea <= 0) return null
 
   const geo = buildDesignGeometry(design)

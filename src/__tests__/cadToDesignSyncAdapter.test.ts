@@ -4,6 +4,7 @@ import {
   deriveBimFromCadOrDesign,
   deriveBoqFromCadOrDesign,
   deriveAnalysisFromCadOrDesign,
+  deriveCadFromPlan,
 } from '@/adapters/cadToDesignSyncAdapter'
 import { createSampleDesignOption, createSamplePlanModel } from './fixtures/cadFixtures'
 
@@ -125,7 +126,7 @@ describe('cadToDesignSyncAdapter', () => {
       expect(analysis.clashes).not.toBeNull()
       expect(analysis.solar).not.toBeNull()
       expect(analysis.mep).not.toBeNull()
-      expect(analysis.warnings).toEqual([])
+      expect(analysis.warnings).toContain('Using generated-design fallback for CAD geometry')
     })
 
     it('returns analysis from design fallback when cad is provided', () => {
@@ -150,6 +151,89 @@ describe('cadToDesignSyncAdapter', () => {
       const plan = createSamplePlanModel()
       const analysis = deriveAnalysisFromCadOrDesign({ plan, design, source: 'persisted-cad' })
       expect(analysis).toBeDefined()
+    })
+
+    it('persisted PlanModel path is preferred over generated design when valid', () => {
+      const design = createSampleDesignOption()
+      const plan = createSamplePlanModel()
+      const noPlanAnalysis = deriveAnalysisFromCadOrDesign({ plan: null, design, source: 'generated-design' })
+      const withPlanAnalysis = deriveAnalysisFromCadOrDesign({ plan, design, source: 'persisted-cad' })
+      expect(withPlanAnalysis.cad).not.toBeNull()
+      expect(withPlanAnalysis.cad!.walls.length).toBe(plan.walls.length)
+      expect(withPlanAnalysis.cad!.walls[0].id).toBe(plan.walls[0].id)
+      expect(noPlanAnalysis.cad!.walls.length).toBeGreaterThan(0)
+    })
+
+    it('invalid PlanModel falls back to generated design', () => {
+      const design = createSampleDesignOption()
+      const emptyPlan = createSamplePlanModel({ walls: [], rooms: [], openings: [] })
+      const analysis = deriveAnalysisFromCadOrDesign({ plan: emptyPlan, design, source: 'persisted-cad' })
+      expect(analysis.cad).not.toBeNull()
+      expect(analysis.bim).not.toBeNull()
+      expect(analysis.warnings.some((w) => w.includes('no walls'))).toBe(true)
+      expect(analysis.warnings.some((w) => w.includes('Using generated-design fallback'))).toBe(true)
+    })
+
+    it('source metadata reflects persisted-cad path', () => {
+      const design = createSampleDesignOption()
+      const plan = createSamplePlanModel()
+      const analysis = deriveAnalysisFromCadOrDesign({ plan, design, source: 'persisted-cad' })
+      expect(analysis.cad).not.toBeNull()
+    })
+
+    it('BOQ still positive when plan available', () => {
+      const design = createSampleDesignOption()
+      const plan = createSamplePlanModel()
+      const boq = deriveBoqFromCadOrDesign({ plan, design, source: 'persisted-cad' })
+      expect(boq).not.toBeNull()
+      expect(boq!.summary.grandTotal).toBeGreaterThan(0)
+    })
+
+    it('analysis safe when plan available', () => {
+      const design = createSampleDesignOption()
+      const plan = createSamplePlanModel()
+      const analysis = deriveAnalysisFromCadOrDesign({ plan, design, source: 'persisted-cad' })
+      expect(analysis).toBeDefined()
+      expect(typeof analysis.bim).toBe(typeof {})
+      expect(typeof analysis.clashes).not.toBe('undefined')
+    })
+
+    it('no NaN when plan available', () => {
+      const design = createSampleDesignOption()
+      const plan = createSamplePlanModel()
+      const analysis = deriveAnalysisFromCadOrDesign({ plan, design, source: 'persisted-cad' })
+      expect(analysis.cad).not.toBeNull()
+      const allNums: number[] = []
+      for (const w of analysis.cad!.walls) {
+        allNums.push(w.start.x, w.start.y, w.end.x, w.end.y, w.thickness)
+      }
+      for (const o of analysis.cad!.openings) {
+        allNums.push(o.offsetRatio, o.width)
+      }
+      for (const n of allNums) {
+        expect(Number.isNaN(n)).toBe(false)
+      }
+    })
+  })
+
+  describe('deriveCadFromPlan', () => {
+    it('returns CadDocument when valid PlanModel provided', () => {
+      const plan = createSamplePlanModel()
+      const cad = deriveCadFromPlan(plan, 'design-1')
+      expect(cad).not.toBeNull()
+      expect(cad!.walls.length).toBe(plan.walls.length)
+      expect(cad!.openings.length).toBe(plan.openings.length)
+    })
+
+    it('returns null when PlanModel is null', () => {
+      const cad = deriveCadFromPlan(null, 'design-1')
+      expect(cad).toBeNull()
+    })
+
+    it('returns null when PlanModel has no walls', () => {
+      const plan = createSamplePlanModel({ walls: [], rooms: [], openings: [] })
+      const cad = deriveCadFromPlan(plan, 'design-1')
+      expect(cad).toBeNull()
     })
   })
 })

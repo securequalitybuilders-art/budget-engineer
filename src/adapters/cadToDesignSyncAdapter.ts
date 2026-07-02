@@ -1,11 +1,16 @@
 import type { DesignOption } from '@/domain/boq'
 import type { PlanModel } from '@/domain/plan'
+import type { CadDocument } from '@/domain/cad'
 import type { BimModel } from '@/domain/bim'
 import type { AnalysisResult } from '@/adapters/designToAnalysis'
 import type { BoqResult } from '@/adapters/designToBoq'
 import { designOptionToBimModel } from '@/adapters/designToBim'
-import { buildAnalysisFromDesignOption } from '@/adapters/designToAnalysis'
+import { buildCadFromDesignOption } from '@/adapters/designToAnalysis'
 import { buildBoqFromDesignOption } from '@/adapters/designToBoq'
+import { convertPlanModelToCadDocument } from '@/adapters/planModelToCadAdapter'
+import { detectBimClashes } from '@/lib/analysis/clash-checker'
+import { computeSolarAnalysis } from '@/lib/analysis/solar-analyzer'
+import { computeMepTakeoff } from '@/lib/quantities/mep-takeoff'
 
 export type GeometrySource = 'generated-design' | 'persisted-cad' | 'fallback-generated'
 
@@ -50,5 +55,73 @@ export function deriveAnalysisFromCadOrDesign(input: {
   design: DesignOption | null
   source: GeometrySource
 }): AnalysisResult {
-  return buildAnalysisFromDesignOption(input.design)
+  const { plan, design } = input
+
+  if (!design || design.grossFloorArea <= 0) {
+    return { bim: null, cad: null, clashes: null, solar: null, mep: null, warnings: [] }
+  }
+
+  const bim = designOptionToBimModel(design)
+  const warnings: string[] = []
+
+  let cad: CadDocument | null = null
+
+  if (plan) {
+    const result = convertPlanModelToCadDocument({ plan, projectId: '', designId: design.id })
+    if (result.cad && result.source === 'persisted-cad') {
+      cad = result.cad
+      warnings.push(...result.warnings)
+    } else {
+      warnings.push(...result.warnings)
+    }
+  }
+
+  if (!cad) {
+    try {
+      const fallbackCad = buildCadFromDesignOption(design)
+      if (fallbackCad) {
+        cad = fallbackCad
+        warnings.push('Using generated-design fallback for CAD geometry')
+      } else {
+        warnings.push('Could not build CAD model for clash/solar analysis')
+      }
+    } catch {
+      warnings.push('Error building CAD model from design')
+    }
+  }
+
+  const enrichedBim = bim
+    ? { ...bim, elements: [...bim.elements] }
+    : null
+
+  const clashes = bim && cad
+    ? (() => { try { return detectBimClashes(cad) } catch { return null } })()
+    : null
+
+  const solar = cad
+    ? (() => { try { return computeSolarAnalysis(cad) } catch { return null } })()
+    : null
+
+  const mep = enrichedBim
+    ? (() => { try { return computeMepTakeoff(enrichedBim) } catch { return null } })()
+    : null
+
+  if (!bim) warnings.push('Could not build BIM model for analysis')
+  if (clashes === null && cad) warnings.push('Clash detection encountered an error')
+  if (solar === null && cad) warnings.push('Solar analysis encountered an error')
+  if (mep === null) warnings.push('MEP takeoff encountered an error')
+
+  return {
+    bim,
+    cad,
+    clashes,
+    solar,
+    mep,
+    warnings,
+  }
+}
+
+export function deriveCadFromPlan(plan: PlanModel | null, designId?: string): CadDocument | null {
+  const result = convertPlanModelToCadDocument({ plan, designId })
+  return result.source === 'persisted-cad' ? result.cad : null
 }

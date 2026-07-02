@@ -38,6 +38,9 @@
 ```
 2026-07-02 13:47 | SPRINT-26 | CAD persistence and downstream sync tests                               | DONE (f346cb8)
 ```
+```
+2026-07-02 14:XX | SPRINT-27 | PlanModel→CadDocument roundtrip                                          | DONE
+```
 
 ---
 

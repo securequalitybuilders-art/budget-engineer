@@ -6,7 +6,7 @@
 > AI-powered computational design → 2D CAD → 3D BIM → engineering checks → quantities → BOQ → export.
 > Offline-first, open-source, Africa-focused.
 >
-> **Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, geometry-derived BOQ quantities (door/window/partition/finish quantities from actual CAD geometry — not GFA estimates), guided first-time builder journey with 6-step progress and template briefs, governance/audit readiness panel with approval checklist and RBAC roles, local governance approval workflow with submit/approve/request-changes/comments/timeline, snapshot history panel with save/compare/cost and quantity deltas, portfolio dashboard with executive metrics and cross-project overview, portfolio filters (search, active/archived, sort by cost/name), archive/restore actions on project cards, mobile review support (review, estimates, exports on phone — CAD editing best on tablet/desktop), per-building-type room layout strategies (single-storey/duplex/clinic/shop) with circulation corridors and wet-core grouping, CAD editing persisted to IndexDB with auto-save and downstream sync metadata, 192 automated tests across the full pipeline.** CI validates typecheck, lint, tests, and production build on every push.
+> **Local AI brief-to-design flow, 3D BIM viewer with 2D/3D toggle, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, geometry-derived BOQ quantities (door/window/partition/finish quantities from actual CAD geometry — not GFA estimates), guided first-time builder journey with 6-step progress and template briefs, governance/audit readiness panel with approval checklist and RBAC roles, local governance approval workflow with submit/approve/request-changes/comments/timeline, snapshot history panel with save/compare/cost and quantity deltas, portfolio dashboard with executive metrics and cross-project overview, portfolio filters (search, active/archived, sort by cost/name), archive/restore actions on project cards, mobile review support (review, estimates, exports on phone — CAD editing best on tablet/desktop), per-building-type room layout strategies (single-storey/duplex/clinic/shop) with circulation corridors and wet-core grouping, CAD editing persisted to IndexDB with auto-save and downstream sync metadata, PlanModel→CadDocument roundtrip for downstream analysis, 214 automated tests across the full pipeline.** CI validates typecheck, lint, tests, and production build on every push.
 
 **Live demo:** [budget-engineer.vercel.app](https://budget-engineer.vercel.app/)
 
@@ -56,6 +56,7 @@ Then open http://localhost:5173.
 | **Sprint 24: CAD editing persistence & export sync** | PlanModel saved/loaded from IndexedDB (Dexie v4), auto-save on edit commit, CAD sync status in toolbar, fallback sync adapter for BIM/BOQ/analysis with GeometrySource metadata | Sprint 24 |
 | **Sprint 25: Governance approval actions & comments** | Local-first approval workflow: submit for review, approve, request changes, add reviewer comments with type selector, governance timeline, role selector (Owner/Reviewer/Viewer), permission-based controls, transaction logging | Sprint 25 |
 | **Sprint 26: CAD persistence & sync tests** | 33 tests for cadPersistenceService (CRUD) and cadToDesignSyncAdapter (fallback adapters), test fixtures, bug-free validation | Sprint 26 |
+| **Sprint 27: PlanModel→CadDocument roundtrip** | PlanModel→CadDocument converter (planModelToCadAdapter.ts), sync adapter fallback in deriveAnalysisFromCadOrDesign, 22 new tests (13 converter + 9 sync) | Sprint 27 |
 
 **Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Checks → Quantities → BOQ → Export (CSV / HTML / PDF)
 
@@ -93,7 +94,7 @@ Each push to `main` runs via GitHub Actions:
 1. `npm ci`
 2. `npm run typecheck`
 3. `npm run lint`
-4. `npm test` (192 tests, 16 files)
+4. `npm test` (214 tests, 17 files)
 5. `npm run build`
 
 ## Release
@@ -104,7 +105,7 @@ Each push to `main` runs via GitHub Actions:
 | Live demo | https://budget-engineer.vercel.app/ |
 | GitHub | https://github.com/securequalitybuilders-art/budget-engineer |
 | CI status | [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions) |
-| Tests | 192 across 16 files |
+| Tests | 214 across 17 files |
 | Architecture | Local-first, no paid APIs, no backend, no cloud LLM |
 
 See [CHANGELOG.md](CHANGELOG.md) for full release history.
