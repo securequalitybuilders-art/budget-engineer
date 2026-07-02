@@ -40,11 +40,14 @@ export function Home() {
 
       <div className="relative mx-auto max-w-7xl px-4 py-12 lg:px-8">
         <div className="mb-10 text-center">
-          <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
+          <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
             Design your building. <span className="text-[var(--brand-accent)]">See the cost.</span>
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-[var(--text-secondary)]">
+          <p className="mx-auto mt-4 max-w-2xl text-base text-[var(--text-secondary)] sm:text-lg">
             AI-powered computational design → 2D CAD → 3D BIM → engineering quantities → BOQ. All in your browser, offline-first.
+          </p>
+          <p className="mx-auto mt-2 max-w-lg text-xs text-[var(--text-muted)] sm:text-sm">
+            Mobile is great for review and estimates. Tablet or desktop is best for detailed CAD editing.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link to="/new">

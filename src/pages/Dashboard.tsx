@@ -229,6 +229,9 @@ export function Dashboard() {
                     <LazyBimViewer model={bimModel} height={480} />
                   )}
                   <PlanComparison designs={visibleDesignOptions} selectedDesignId={selectedDesign?.id} />
+                  <p className="max-w-xs text-[10px] text-stone-500">
+                    Mobile: review, estimates, exports supported. For best CAD editing, use a tablet or desktop.
+                  </p>
                 </div>
               ) : (
                 <div className="flex flex-1 flex-col items-center justify-center">

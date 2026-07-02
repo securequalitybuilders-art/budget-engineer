@@ -1,8 +1,8 @@
 # Canonical Repo Status — Budget Engineer OS
 
-> **Date:** 2026-07-01  
+> **Date:** 2026-07-02  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** Sprint 21 — Feedback and issue reporting workflow. Current app includes local AI brief-to-design, generated CAD geometry, 2D/3D BIM workflow, engineering analysis, regional geometry-derived BOQ, exports, IndexedDB persistence, governance/audit, snapshots, portfolio dashboard, archive/restore, local-first feedback system (copy report, GitHub issue, email), CI, 127 tests, and live Vercel demo. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (127 passed, 13 files), `npm run build` (success).
+> **Status:** Sprint 22 — Mobile UX deep polish. Hero text sizes, mobile-friendly messages on Home and Dashboard, archive/restore always visible on touch devices, larger tap targets on template buttons. All changes conservative Tailwind-only — no new features, no Dashboard rewrite, desktop appearance unchanged. Current app includes local AI brief-to-design, generated CAD geometry, 2D/3D BIM workflow, engineering analysis, regional geometry-derived BOQ, exports, IndexedDB persistence, governance/audit, snapshots, portfolio dashboard, archive/restore, local-first feedback system, CI, 127 tests, live Vercel demo, and mobile-optimised UX. `npm run typecheck` (0 errors), `npm run lint` (0 errors, 6 pre-existing warnings), `npm test` (127 passed, 13 files), `npm run build` (success).
 
 ---
 

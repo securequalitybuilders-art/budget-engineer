@@ -190,7 +190,7 @@ export function BuilderJourneyGuide({
                     <button
                       key={t.label}
                       onClick={() => navigate('/new')}
-                      className="block w-full rounded-md border border-stone-700/50 px-2 py-1.5 text-left text-[11px] text-stone-300 hover:border-cyan-600/40 hover:bg-cyan-500/5 hover:text-white"
+                      className="block w-full rounded-md border border-stone-700/50 px-3 py-2 text-left text-[11px] text-stone-300 hover:border-cyan-600/40 hover:bg-cyan-500/5 hover:text-white"
                     >
                       <span className="text-[10px] font-medium text-cyan-400">{t.label}</span>
                       <p className="mt-0.5 text-[10px] text-stone-500 line-clamp-2">{t.brief}</p>

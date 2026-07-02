@@ -106,7 +106,7 @@ function SchemeCard({
           </CardContent>
         </Card>
       </Link>
-      <div className="absolute right-3 top-3 z-10 opacity-0 transition-opacity group-hover:opacity-100">
+      <div className="absolute right-3 top-3 z-10 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
         {scheme.isArchived ? (
           <button
             onClick={(e) => handleAction(e, 'restore')}

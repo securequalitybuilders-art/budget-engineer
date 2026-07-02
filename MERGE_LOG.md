@@ -26,6 +26,9 @@
 2026-07-01 16:05 | SPRINT-20 | Public MVP v0.1.0 release (tag v0.1.0)                               | DONE (bcc1f5a)
 2026-07-01 16:05 | SPRINT-21 | Feedback and issue reporting workflow                                | DONE
 ```
+```
+2026-07-02 08:22 | SPRINT-22 | Mobile UX deep polish                                                 | DONE (PR #xx)
+```
 
 ---
 

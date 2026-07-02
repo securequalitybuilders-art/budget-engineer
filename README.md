@@ -51,6 +51,7 @@ Then open http://localhost:5173.
 | **Sprint 19: Portfolio filters & archive** | Search, status filter (All/Active/Archived), sort (newest/name/cost), archive/restore buttons, status messages, 117 tests | Sprint 19 |
 | **Sprint 20: v0.1.0 public MVP release** | Package version → 0.1.0, CHANGELOG.md, release notes, tag v0.1.0, final validation | Sprint 20 |
 | **Sprint 21: Feedback & issue reporting** | FeedbackPanel, `/feedback` route, copy/GitHub/email actions, privacy-first, 127 tests | Sprint 21 |
+| **Sprint 22: Mobile UX deep polish** | Hero text sizes, mobile messages, always-visible archive/restore on touch, larger tap targets | Sprint 22 |
 
 **Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Checks → Quantities → BOQ → Export (CSV / HTML / PDF)
 
