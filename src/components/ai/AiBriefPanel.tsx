@@ -3,6 +3,17 @@ import { AiEngine, ParseResult, parseWithEngine } from '@/lib/ai/ai-provider';
 import { generateDesignOptionsFromBriefText } from '@/adapters/aiDesignAdapter';
 import type { DesignOption } from '@/domain/boq';
 
+const BUILDING_TYPES = [
+  { value: 'house', label: 'House / Residential' },
+  { value: 'apartment', label: 'Apartment / Flat' },
+  { value: 'townhouse', label: 'Townhouse' },
+  { value: 'clinic', label: 'Clinic / Health Centre' },
+  { value: 'school', label: 'School / Classroom Block' },
+  { value: 'commercial', label: 'Commercial / Shop' },
+  { value: 'office', label: 'Office' },
+  { value: 'other', label: 'Other' },
+]
+
 const ENGINES: { id: AiEngine; label: string; disabled?: boolean; hint?: string }[] = [
   { id: 'local-rules', label: 'Rules (instant)' },
   { id: 'webllm', label: 'WebLLM — not installed', disabled: true, hint: 'npm install @mlc-ai/web-llm' },
@@ -16,6 +27,7 @@ interface AiBriefPanelProps {
 export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPanelProps) {
   const [briefText, setBriefText] = useState('');
   const [aiEngine, setAiEngine] = useState<AiEngine>('local-rules');
+  const [buildingType, setBuildingType] = useState('house');
   const [aiStatus, setAiStatus] = useState<string | null>(null);
 
   const handleGenerate = async () => {
@@ -23,7 +35,7 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
     setAiStatus('Parsing…');
     try {
       const result = await parseWithEngine(briefText, aiEngine);
-      const optionsResult = generateDesignOptionsFromBriefText(briefText);
+      const optionsResult = generateDesignOptionsFromBriefText(briefText, 'zimbabwe', buildingType);
       const count = optionsResult.designOptions.length;
       setAiStatus(
         `✅ Generated ${count} design option${count > 1 ? 's' : ''} via local rules`
@@ -39,6 +51,17 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
     <div className="rounded-lg border border-stone-700/60 bg-stone-900/80 p-4">
       <h3 className="font-semibold text-stone-100">Enterprise AI — Brief to Design</h3>
       <p className="mb-3 text-xs text-stone-400">Local &amp; offline · no paid API</p>
+
+      <label className="mb-1 block text-xs font-medium text-stone-400">Building type</label>
+      <select
+        value={buildingType}
+        onChange={(e) => setBuildingType(e.target.value)}
+        className="mb-3 w-full rounded border border-stone-700 bg-stone-800 p-2 text-sm text-stone-200 focus:border-cyan-600 focus:outline-none"
+      >
+        {BUILDING_TYPES.map((t) => (
+          <option key={t.value} value={t.value}>{t.label}</option>
+        ))}
+      </select>
 
       <label className="mb-1 block text-xs font-medium text-stone-400">AI engine</label>
       <div className="mb-3 flex gap-2">
@@ -87,8 +110,8 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
       <p className="mt-2 text-xs text-stone-500">
         <span className="text-emerald-400">✅ Local rules active by default</span> — instant, offline, no dependencies.
         WebLLM requires <code className="text-amber-400">npm install @mlc-ai/web-llm</code>.
-        Extracts building type, bedrooms, bathrooms, floors, area &amp; features, then the
-        parametric engine builds the 2D plan → BIM → BOQ.
+        Select a building type above or let the parser detect it from your text. The
+        parametric engine then builds the 2D plan → BIM → BOQ for that type.
       </p>
     </div>
   );

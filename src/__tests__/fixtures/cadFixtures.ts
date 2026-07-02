@@ -7,6 +7,7 @@ export function createSampleDesignOption(overrides?: Partial<DesignOption>): Des
     name: 'Fixture House',
     grossFloorArea: 150,
     floors: 1,
+    buildingType: 'house',
     elements: [
       { id: 'el-wall', type: 'wall', category: 'wall', name: 'External wall', unit: 'm2', quantity: 96 },
       { id: 'el-slab', type: 'slab', category: 'slab', name: 'Floor slab', unit: 'm2', quantity: 150 },

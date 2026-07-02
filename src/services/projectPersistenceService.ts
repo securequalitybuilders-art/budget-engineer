@@ -63,6 +63,7 @@ export async function loadPersistedDesignOptions(projectId: string): Promise<Des
       name: d.name,
       grossFloorArea: d.parameters.areaM2 ?? 150,
       floors: d.parameters.floors ?? 1,
+      buildingType: 'house',
       elements: mapStoreElementsToDesignOption(d.elements),
     }))
   } catch {

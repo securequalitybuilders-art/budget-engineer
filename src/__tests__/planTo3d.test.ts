@@ -10,6 +10,7 @@ function makeDesign(overrides: Partial<DesignOption> = {}): DesignOption {
     name: 'Test House',
     grossFloorArea: 120,
     floors: 1,
+    buildingType: 'house',
     elements: [],
     ...overrides,
   }

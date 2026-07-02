@@ -62,6 +62,8 @@ export function Dashboard() {
     }, 3000);
   }
 
+  const buildingType = currentBrief?.parsed?.buildingType ?? 'house'
+
   const designOptions = useMemo<DesignOption[]>(
     () =>
       currentDesigns.map((design) => ({
@@ -69,6 +71,7 @@ export function Dashboard() {
         name: design.name,
         grossFloorArea: design.parameters.areaM2 ?? 150,
         floors: design.parameters.floors ?? 1,
+        buildingType,
         elements: design.elements.map((el) => ({
           id: el.id,
           type: el.category,
@@ -78,7 +81,7 @@ export function Dashboard() {
           quantity: el.quantity.value,
         })),
       })),
-    [currentDesigns],
+    [currentDesigns, buildingType],
   );
 
   const visibleDesignOptions = useMemo(

@@ -1,6 +1,7 @@
 import { parseBrief } from '@/ai/briefParser'
 import { generateDesignOptions } from '@/ai/designEngine'
 import type { DesignOption } from '@/domain/boq'
+import type { ParsedBrief } from '@/ai/schema'
 import { uuid } from '@/lib/utils'
 
 export interface AiDesignResult {
@@ -11,11 +12,15 @@ export interface AiDesignResult {
 
 export function generateDesignOptionsFromBriefText(
   briefText: string,
-  region = 'zimbabwe'
+  region = 'zimbabwe',
+  buildingTypeOverride?: string,
 ): AiDesignResult {
   const diagnostics: string[] = []
 
   const parsed = parseBrief(briefText, region)
+  if (buildingTypeOverride) {
+    parsed.buildingType = buildingTypeOverride as ParsedBrief['buildingType']
+  }
   diagnostics.push(`Building type: ${parsed.buildingType}`)
   diagnostics.push(`Bedrooms: ${parsed.bedrooms ?? '?'}, Bathrooms: ${parsed.bathrooms ?? '?'}`)
   diagnostics.push(`Floors: ${parsed.floors}, Area: ${parsed.areaM2 ?? 'auto'} m²`)
@@ -34,6 +39,7 @@ export function generateDesignOptionsFromBriefText(
     name: design.name,
     grossFloorArea: design.parameters.totalAreaM2 ?? parsed.areaM2 ?? 150,
     floors: design.parameters.floors ?? parsed.floors ?? 1,
+    buildingType: parsed.buildingType,
     elements: design.elements.map((el) => ({
       id: el.id,
       type: el.category,
@@ -57,6 +63,7 @@ export function generateDefaultDesignOption(region = 'zimbabwe'): DesignOption {
     name: 'Standard House',
     grossFloorArea: 120,
     floors: 1,
+    buildingType: 'house',
     elements: [],
   }
 }

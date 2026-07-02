@@ -15,6 +15,7 @@ function makeDesign(overrides?: Partial<DesignOption>): DesignOption {
     name: 'Test House',
     grossFloorArea: 120,
     floors: 1,
+    buildingType: 'house',
     elements: [
       { id: 'e1', type: 'wall', category: 'wall', name: 'External wall', unit: 'm2', quantity: 96 },
       { id: 'e2', type: 'wall', category: 'wall', name: 'Internal wall', unit: 'm2', quantity: 40 },
@@ -29,6 +30,7 @@ function makeDesign2(): DesignOption {
     name: 'Test House v2',
     grossFloorArea: 150,
     floors: 2,
+    buildingType: 'house',
     elements: [
       { id: 'e1', type: 'wall', category: 'wall', name: 'External wall', unit: 'm2', quantity: 120 },
       { id: 'e2', type: 'wall', category: 'wall', name: 'Internal wall', unit: 'm2', quantity: 60 },

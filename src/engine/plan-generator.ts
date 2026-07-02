@@ -1,5 +1,6 @@
 import type { DesignOption } from '../domain/boq'
 import type { Opening, PlanModel, RoomRect, WallSegment } from '../domain/plan'
+import { getRoomProgram } from './roomPrograms'
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 
@@ -14,7 +15,17 @@ function normalizeFootprint(area: number) {
   }
 }
 
-function programFromArea(area: number): Array<{ name: string; ratio: number }> {
+/**
+ * Area-tiers only for residential types. Other types use the fixed program from roomPrograms.
+ */
+function programFromArea(area: number, buildingType: string): Array<{ name: string; ratio: number }> {
+  // Non-residential types use their fixed room program
+  const residential = ['house', 'apartment', 'townhouse']
+  if (!residential.includes(buildingType)) {
+    return getRoomProgram(buildingType)
+  }
+
+  // Residential area-based tiers
   if (area <= 100) {
     return [
       { name: 'Lounge / Dining', ratio: 0.22 },
@@ -60,8 +71,8 @@ function programFromArea(area: number): Array<{ name: string; ratio: number }> {
   ]
 }
 
-function layoutRooms(width: number, height: number, area: number): RoomRect[] {
-  const program = programFromArea(area)
+function layoutRooms(width: number, height: number, area: number, buildingType: string): RoomRect[] {
+  const program = programFromArea(area, buildingType)
   const bands = [0.36, 0.34, 0.3]
   const bandHeights = bands.map((ratio) => height * ratio)
   const grouped = [program.slice(0, 3), program.slice(3, 7), program.slice(7)]
@@ -143,9 +154,10 @@ function defaultOpenings(walls: WallSegment[]): Opening[] {
 
 export function generatePlanModel(design: DesignOption): PlanModel {
   const area = design.grossFloorArea
+  const buildingType = design.buildingType || 'house'
   const footprint = normalizeFootprint(area)
   const wallThickness = 0.2
-  const rooms = layoutRooms(footprint.width, footprint.height, area)
+  const rooms = layoutRooms(footprint.width, footprint.height, area, buildingType)
   const walls = [...outerWalls(footprint.width, footprint.height, wallThickness), ...internalWalls(rooms, 0.12)]
   const openings = defaultOpenings(walls)
 

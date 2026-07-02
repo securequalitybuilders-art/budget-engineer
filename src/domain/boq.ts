@@ -29,6 +29,7 @@ export interface DesignOption {
   name: string
   grossFloorArea: number
   floors: number
+  buildingType: string
   elements: BuildingElement[]
 }
 
