@@ -1,28 +1,26 @@
-import type { PlanModel } from '@/domain/plan'
+import type { PlanModel, WallSegment } from '@/domain/plan'
 
 // ── Constants ──
-// Storey height reused from designGeometryAdapter.ts (FLOOR_HEIGHT = 3)
 export const DEFAULT_STOREY_HEIGHT = 3
-
-// Wall thickness uses PlanModel.wallThickness; this fallback matches
-// designGeometryAdapter.ts WALL_THICKNESS = 0.23
 export const FALLBACK_WALL_THICKNESS = 0.23
-
-// Slab thickness constant
 export const SLAB_THICKNESS = 0.15
 
-// ── Output types (pure data, no three.js) ──
+// Opening default constants (reusing values from designGeometryAdapter.ts)
+export const DOOR_DEFAULT_HEIGHT = 2.1
+export const DOOR_DEFAULT_SILL = 0
+export const WINDOW_DEFAULT_HEIGHT = 1.5
+export const WINDOW_DEFAULT_SILL = 0.9
 
-export interface WallSolid {
+// — Output types (pure data, no three.js) —
+
+/** A continuous wall segment (pier) — may be part of a wall that was split for openings */
+export interface WallPier {
+  pierId: string
   wallId: string
   storeyIndex: number
-  /** 2D start point x (PlanModel x → 3D x) */
   startX: number
-  /** 2D start point y (PlanModel y → 3D z) */
   startZ: number
-  /** 2D end point x */
   endX: number
-  /** 2D end point y */
   endZ: number
   thickness: number
   height: number
@@ -39,9 +37,28 @@ export interface FloorSlab {
   yOffset: number
 }
 
+export interface Opening3d {
+  openingId: string
+  wallId: string
+  kind: 'door' | 'window'
+  storeyIndex: number
+  /** 3D centre position */
+  centerX: number
+  centerY: number
+  centerZ: number
+  width: number
+  height: number
+  sillHeight: number
+  /** Direction the wall faces (rotation angle around Y) */
+  wallAngle: number
+  /** Wall thickness at this opening */
+  wallThickness: number
+}
+
 export interface PlanTo3dResult {
-  walls: WallSolid[]
+  walls: WallPier[]
   slabs: FloorSlab[]
+  openings: Opening3d[]
   bounds: {
     width: number
     depth: number
@@ -49,24 +66,163 @@ export interface PlanTo3dResult {
   }
 }
 
+// — Helpers —
+
+function wallLength2D(w: WallSegment): number {
+  return Math.hypot(w.end.x - w.start.x, w.end.y - w.start.y)
+}
+
+function wallLength3D(sx: number, sz: number, ex: number, ez: number): number {
+  return Math.hypot(ex - sx, ez - sz) || 0.001
+}
+
 /**
- * Convert a PlanModel (+ storey settings) into pure 3D geometry data.
+ * Resolve openings on a single wall and produce pier segments + opening placements.
  *
- * The 2D y-axis in PlanModel maps to the 3D z-axis (depth).
- * Wall segments produce solid extrusions per storey.
- * Each storey gets a floor slab matching the building footprint.
+ * offset is a ratio (0–1) from wall start to the opening centre.
+ * Returns the wall split into piers and the resolved opening data.
  */
+function splitWall(
+  wall: WallSegment,
+  plan: PlanModel,
+  storeyIndex: number,
+  storeyHeight: number,
+): { piers: WallPier[]; openings: Opening3d[] } {
+  const wallId = wall.id
+  const wl = wallLength2D(wall)
+  const thickness = wall.thickness || plan.wallThickness || FALLBACK_WALL_THICKNESS
+
+  // Map PlanModel (x,y) → 3D (x,z)
+  const sx = wall.start.x
+  const sz = wall.start.y
+  const ex = wall.end.x
+  const ez = wall.end.y
+
+  const dx = ex - sx
+  const dz = ez - sz
+  const angle = -Math.atan2(dx, dz)
+
+  // All openings on this wall, sorted by offset (centre ratio)
+  const wallOpenings = (plan.openings ?? []).filter((o) => o.wallId === wallId)
+  if (wallOpenings.length === 0) {
+    return {
+      piers: [{
+        pierId: `${wallId}-full`,
+        wallId,
+        storeyIndex,
+        startX: sx, startZ: sz,
+        endX: ex, endZ: ez,
+        thickness,
+        height: storeyHeight,
+        type: wall.type,
+      }],
+      openings: [],
+    }
+  }
+
+  const resolved: Opening3d[] = []
+  const cutRanges: { lo: number; hi: number }[] = []
+
+  for (const op of wallOpenings) {
+    // Centre position along the wall as a ratio 0–1
+    const centreRatio = Math.max(0, Math.min(1, op.offset))
+    // Opening half-width along the wall direction
+    const halfW = (op.width || 0.9) / 2
+    // Left/right edges as ratios along the wall
+    const loRatio = Math.max(0, centreRatio - halfW / wl)
+    const hiRatio = Math.min(1, centreRatio + halfW / wl)
+
+    // Skip if opening is off the wall or zero-width
+    if (hiRatio <= loRatio) continue
+
+    cutRanges.push({ lo: loRatio, hi: hiRatio })
+
+    // Centre position in 3D
+    const cx = sx + dx * centreRatio
+    const cz = sz + dz * centreRatio
+    const cy = storeyIndex * storeyHeight
+
+    const opHeight = op.height ?? (op.kind === 'door' ? DOOR_DEFAULT_HEIGHT : WINDOW_DEFAULT_HEIGHT)
+    const opSill = op.sillHeight ?? (op.kind === 'door' ? DOOR_DEFAULT_SILL : WINDOW_DEFAULT_SILL)
+
+    resolved.push({
+      openingId: op.id,
+      wallId,
+      kind: op.kind,
+      storeyIndex,
+      centerX: cx,
+      centerY: cy,
+      centerZ: cz,
+      width: op.width,
+      height: opHeight,
+      sillHeight: opSill,
+      wallAngle: angle,
+      wallThickness: thickness,
+    })
+  }
+
+  // Build pier segments between cuts
+  const piers: WallPier[] = []
+  let prevHi = 0
+  for (const cut of cutRanges) {
+    // Pier before the cut
+    if (cut.lo > prevHi) {
+      const pSx = sx + dx * prevHi
+      const pSz = sz + dz * prevHi
+      const pEx = sx + dx * cut.lo
+      const pEz = sz + dz * cut.lo
+      if (wallLength3D(pSx, pSz, pEx, pEz) > 0.01) {
+        piers.push({
+          pierId: `${wallId}-pier-${prevHi.toFixed(3)}`,
+          wallId,
+          storeyIndex,
+          startX: pSx, startZ: pSz,
+          endX: pEx, endZ: pEz,
+          thickness,
+          height: storeyHeight,
+          type: wall.type,
+        })
+      }
+    }
+    prevHi = cut.hi
+  }
+  // Pier after the last cut
+  if (prevHi < 1) {
+    const pSx = sx + dx * prevHi
+    const pSz = sz + dz * prevHi
+    const pEx = ex
+    const pEz = ez
+    if (wallLength3D(pSx, pSz, pEx, pEz) > 0.01) {
+      piers.push({
+        pierId: `${wallId}-pier-${prevHi.toFixed(3)}-end`,
+        wallId,
+        storeyIndex,
+        startX: pSx, startZ: pSz,
+        endX: pEx, endZ: pEz,
+        thickness,
+        height: storeyHeight,
+        type: wall.type,
+      })
+    }
+  }
+
+  return { piers, openings: resolved }
+}
+
+// — Main function —
+
 export function planTo3d(
   plan: PlanModel | null | undefined,
   numberOfStoreys: number,
   storeyHeight: number = DEFAULT_STOREY_HEIGHT,
 ): PlanTo3dResult {
   if (!plan || plan.walls.length === 0 || numberOfStoreys < 1) {
-    return { walls: [], slabs: [], bounds: { width: 0, depth: 0, totalHeight: 0 } }
+    return { walls: [], slabs: [], openings: [], bounds: { width: 0, depth: 0, totalHeight: 0 } }
   }
 
-  const walls: WallSolid[] = []
+  const walls: WallPier[] = []
   const slabs: FloorSlab[] = []
+  const openings: Opening3d[] = []
 
   for (let si = 0; si < numberOfStoreys; si++) {
     const yOffset = si * storeyHeight
@@ -82,29 +238,55 @@ export function planTo3d(
       yOffset,
     })
 
-    // Walls for this storey
+    // Walls for this storey — split by openings
     for (const w of plan.walls) {
-      walls.push({
-        wallId: w.id,
-        storeyIndex: si,
-        startX: w.start.x,
-        startZ: w.start.y,
-        endX: w.end.x,
-        endZ: w.end.y,
-        thickness: w.thickness || plan.wallThickness || FALLBACK_WALL_THICKNESS,
-        height: storeyHeight,
-        type: w.type,
-      })
+      const { piers, openings: ops } = splitWall(w, plan, si, storeyHeight)
+      walls.push(...piers)
+      openings.push(...ops)
     }
   }
 
   return {
     walls,
     slabs,
+    openings,
     bounds: {
       width: plan.width,
       depth: plan.height,
       totalHeight: numberOfStoreys * storeyHeight,
     },
+  }
+}
+
+// — Pure helpers for tests —
+
+export function resolveOpeningPosition(
+  wall: { startX: number; startZ: number; endX: number; endZ: number; thickness: number },
+  opening: { kind: 'door' | 'window'; offset: number; width: number; height?: number; sillHeight?: number },
+  storeyIndex: number,
+  storeyHeight: number,
+): Opening3d {
+  const dx = wall.endX - wall.startX
+  const dz = wall.endZ - wall.startZ
+  const centreRatio = Math.max(0, Math.min(1, opening.offset))
+  const cx = wall.startX + dx * centreRatio
+  const cz = wall.startZ + dz * centreRatio
+  const cy = storeyIndex * storeyHeight
+  const angle = -Math.atan2(dx, dz)
+  const opHeight = opening.height ?? (opening.kind === 'door' ? DOOR_DEFAULT_HEIGHT : WINDOW_DEFAULT_HEIGHT)
+  const opSill = opening.sillHeight ?? (opening.kind === 'door' ? DOOR_DEFAULT_SILL : WINDOW_DEFAULT_SILL)
+  return {
+    openingId: 'test',
+    wallId: 'test',
+    kind: opening.kind,
+    storeyIndex,
+    centerX: cx,
+    centerY: cy,
+    centerZ: cz,
+    width: opening.width,
+    height: opHeight,
+    sillHeight: opSill,
+    wallAngle: angle,
+    wallThickness: wall.thickness,
   }
 }

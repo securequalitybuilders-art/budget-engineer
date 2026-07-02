@@ -25,8 +25,14 @@ export interface Opening {
   id: string
   wallId: string
   kind: 'door' | 'window'
+  /** Ratio (0–1) from wall start to opening centre */
   offset: number
+  /** Opening width in metres */
   width: number
+  /** Opening height in metres (defaults by kind in planTo3d) */
+  height?: number
+  /** Sill height above floor in metres (defaults by kind) */
+  sillHeight?: number
 }
 
 export interface PlanModel {

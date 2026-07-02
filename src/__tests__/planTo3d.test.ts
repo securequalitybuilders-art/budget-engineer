@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { planTo3d, DEFAULT_STOREY_HEIGHT, FALLBACK_WALL_THICKNESS, SLAB_THICKNESS } from '@/adapters/planTo3d'
+import { planTo3d, DEFAULT_STOREY_HEIGHT, FALLBACK_WALL_THICKNESS, SLAB_THICKNESS, DOOR_DEFAULT_HEIGHT, DOOR_DEFAULT_SILL, WINDOW_DEFAULT_HEIGHT, WINDOW_DEFAULT_SILL, resolveOpeningPosition } from '@/adapters/planTo3d'
 import { generatePlanModel } from '@/engine/plan-generator'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
@@ -193,9 +193,10 @@ describe('planTo3d — pure adapter', () => {
   it('planTo3d produces non-empty scene from generated PlanModel', () => {
     const design = makeDesign()
     const plan = generatePlanModel(design)
-    const result = planTo3d(plan, design.floors)
+    const floors = design.floors || 1
+    const result = planTo3d(plan, floors)
     expect(result.walls.length).toBeGreaterThan(0)
-    expect(result.slabs.length).toBe(design.floors)
+    expect(result.slabs.length).toBe(floors)
     expect(result.bounds.width).toBe(plan.width)
     expect(result.bounds.depth).toBe(plan.height)
   })
@@ -205,5 +206,109 @@ describe('planTo3d — pure adapter', () => {
     const result = planTo3d(plan, 1)
     expect(result.walls).toEqual([])
     expect(result.slabs).toEqual([])
+  })
+
+  // ── Opening tests ──
+
+  it('resolveOpeningPosition places a door at correct centre on horizontal wall', () => {
+    const wall = { startX: 0, startZ: 0, endX: 10, endZ: 0, thickness: 0.25 }
+    const op = resolveOpeningPosition(wall, { kind: 'door', offset: 0.5, width: 0.9 }, 0, 3)
+    // Centre at x=5, z=0
+    expect(op.centerX).toBe(5)
+    expect(op.centerZ).toBe(0)
+    // Door defaults
+    expect(op.height).toBe(DOOR_DEFAULT_HEIGHT)
+    expect(op.sillHeight).toBe(DOOR_DEFAULT_SILL)
+    // Wall direction angle: horizontal wall (dx=10, dz=0) => atan2(10,0) = PI/2, negated
+    expect(op.wallAngle).toBeCloseTo(-Math.PI / 2)
+    expect(op.wallThickness).toBe(0.25)
+  })
+
+  it('resolveOpeningPosition places a window on vertical wall', () => {
+    const wall = { startX: 5, startZ: 0, endX: 5, endZ: 8, thickness: 0.25 }
+    const op = resolveOpeningPosition(wall, { kind: 'window', offset: 0.3, width: 1.2 }, 0, 3)
+    // Centre at x=5, z=0.3*8=2.4
+    expect(op.centerX).toBe(5)
+    expect(op.centerZ).toBeCloseTo(2.4)
+    // Window defaults
+    expect(op.height).toBe(WINDOW_DEFAULT_HEIGHT)
+    expect(op.sillHeight).toBe(WINDOW_DEFAULT_SILL)
+  })
+
+  it('opening with explicit height/sillHeight overrides defaults', () => {
+    const wall = { startX: 0, startZ: 0, endX: 6, endZ: 0, thickness: 0.2 }
+    const op = resolveOpeningPosition(wall, { kind: 'door', offset: 0.5, width: 1, height: 2.0, sillHeight: 0.1 }, 0, 3)
+    expect(op.height).toBe(2.0)
+    expect(op.sillHeight).toBe(0.1)
+  })
+
+  it('wall with one opening splits into 2 piers with a gap the width of the opening', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'o1', wallId: 'w1', kind: 'door' as const, offset: 0.5, width: 1.0 },
+      ],
+    })
+    const result = planTo3d(plan, 1)
+    // w1 is the bottom horizontal wall (0,0)-(12,0). Opening at centre 0.5, width 1.0
+    // Should produce 2 piers (left and right of opening)
+    const w1Piers = result.walls.filter((w) => w.wallId === 'w1')
+    expect(w1Piers.length).toBe(2)
+    // The gap between the piers should approximately equal the opening width
+    // Left pier ends at approx 5.5 (6 - 0.5), right pier starts at approx 6.5 (6 + 0.5)
+    // Actually: centre=0.5 means centre x=6. halfW=0.5, so gap from 5.5 to 6.5
+    expect(w1Piers[0].endX).toBeCloseTo(5.5, 1)
+    expect(w1Piers[1].startX).toBeCloseTo(6.5, 1)
+  })
+
+  it('wall without openings stays as single solid pier', () => {
+    const plan = makePlan({ openings: [] })
+    const result = planTo3d(plan, 1)
+    // w1 should be a single pier
+    const w1Piers = result.walls.filter((w) => w.wallId === 'w1')
+    expect(w1Piers.length).toBe(1)
+    expect(w1Piers[0].startX).toBe(0)
+    expect(w1Piers[0].endX).toBe(12)
+  })
+
+  it('empty/undefined openings -> walls render solid, no throw', () => {
+    const plan = makePlan({ openings: undefined as any })
+    const result = planTo3d(plan, 1)
+    expect(result.walls.length).toBe(5)
+    expect(result.openings.length).toBe(0)
+  })
+
+  it('opening resolves to correct storey y offset with multi-storey', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'o1', wallId: 'w1', kind: 'door' as const, offset: 0.5, width: 0.9 },
+      ],
+    })
+    const result = planTo3d(plan, 2)
+    // Storey 0: y=0; Storey 1: y=3
+    const storey0Openings = result.openings.filter((o) => o.storeyIndex === 0)
+    const storey1Openings = result.openings.filter((o) => o.storeyIndex === 1)
+    expect(storey0Openings.length).toBe(1)
+    expect(storey1Openings.length).toBe(1)
+    expect(storey0Openings[0].centerY).toBe(0)
+    expect(storey1Openings[0].centerY).toBe(DEFAULT_STOREY_HEIGHT)
+    // Opening present on each storey at correct offset
+    expect(storey0Openings[0].centerX).toBe(6)
+    expect(storey1Openings[0].centerX).toBe(6)
+  })
+
+  it('generated PlanModel produces openings in 3D output', () => {
+    const design = makeDesign()
+    const plan = generatePlanModel(design)
+    const floors = design.floors || 1
+    const result = planTo3d(plan, floors)
+    // Generated plan has openings from defaultOpenings
+    expect(plan.openings.length).toBeGreaterThan(0)
+    expect(result.openings.length).toBeGreaterThan(0)
+    expect(result.openings.length).toBe(plan.openings.length * floors)
+    // All openings resolved
+    for (const op of result.openings) {
+      expect(op.width).toBeGreaterThan(0)
+      expect(op.height).toBeGreaterThan(0)
+    }
   })
 })

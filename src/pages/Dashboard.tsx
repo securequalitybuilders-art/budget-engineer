@@ -478,9 +478,9 @@ export function Dashboard() {
                     <PlanComparison designs={visibleDesignOptions} selectedDesignId={selectedDesign?.id} />
                     {activeCanvasView === 'bim' && activePlan && (
                       <p className="max-w-md text-[10px] text-stone-500 leading-relaxed">
-                        3D BIM model — walls, slabs and storeys generated from your floor plan.
+                        3D BIM model — walls, slabs, storeys, doors and windows generated from your floor plan.
                         Storey height 3.0&nbsp;m, wall thickness {(activePlan.wallThickness || 0.23).toFixed(2)}&nbsp;m.
-                        Doors, windows and roof are added in later stages.
+                        Roof to be added in a later stage.
                       </p>
                     )}
                     <p className="max-w-xs text-[10px] text-stone-500">

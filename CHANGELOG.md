@@ -35,6 +35,14 @@
   - 2D/3D toggle buttons now show visible "2D" and "3D" labels + "View 3D BIM model" tooltip
   - BIM caption (storey height / wall thickness) shows for both generated and CAD-edited plans
   - Empty state enhanced with hint to use AI Brief panel
+- Real doors and windows as pierced openings in 3D BIM model (Sprint 37):
+  - Walls are now split into pier segments around door/window openings (split-box approach, no CSG dependency)
+  - Door mesh with Warm Sand leaf (#d4a574) + frame jambs and header, positioned per opening
+  - Window mesh with semi-transparent AI Cyan glass pane (#06b6d4, opacity 0.35) + frame sill/jambs/header at sillHeight
+  - Opening type extended with optional height/sillHeight fields; defaults applied by kind (door 2.1 m, window 1.5 m, sill 0.9 m) from planTo3d constants
+  - Openings repeat per storey with correct y-offset stacking
+  - Caption updated to list doors and windows as included
+  - 8 new tests: opening position resolution, wall splitting, multi-storey opening offset, defaults, empty guard
 - Readable 2D floor plan labels (Sprint 34):
   - Room labels now render each room's name centered inside its footprint with area in m² below
   - Labels use Body Text (#e2e8f0) for names and Muted Text (#94a3b8) for areas
