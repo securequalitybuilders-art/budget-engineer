@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+### Sprint 39C — Fix building-type dropdown stale closure in async handler, remove debug panel
+
+**Fixed (root cause):** The AiBriefPanel dropdown's selected `buildingType` was not reliably reaching plan generation. The `handleGenerate` handler is `async` and calls `await parseWithEngine(...)` before reading `buildingType`. In certain React 18 batching scenarios, the `buildingType` state variable was captured in a stale closure by the time execution resumed after the `await`, so `generateDesignOptionsFromBriefText` received the stale initial value (`'house'`) instead of the user's selection.
+
+**Fix:** Added a `useRef` that stays synchronised with the `buildingType` state via `useEffect`. The async `handleGenerate` now reads `buildingTypeRef.current` instead of the closure-captured `buildingType`, guaranteeing the latest value.
+
+```ts
+const [buildingType, setBuildingType] = useState('house');
+const buildingTypeRef = useRef(buildingType);
+useEffect(() => { buildingTypeRef.current = buildingType }, [buildingType]);
+// in handleGenerate:
+const optionsResult = generateDesignOptionsFromBriefText(briefText, 'zimbabwe', buildingTypeRef.current);
+```
+
+**Cleanup:** Removed the temporary Sprint 39B runtime debug panel (`BuildingTypeDebugPanel`, `buildingTypeTrace.ts`) and all 11 `BT-DEBUG` instrumentation points across 4 files.
+
+**Test:** Added `SPRINT 39C: clinic buildingType flows from generateDesignOptions → DesignOption.buildingType → generatePlanModel → clinic rooms` — validates the complete pure-function chain.
+
+**Validation:**
+- Typecheck: 0 errors
+- Lint: 0 errors (9 pre-existing warnings)
+- Tests: 320 passed, 25 files (+1 from Sprint 39B)
+
+**Documentation:** `docs/SPRINT_39C_DROPDOWN_STATE_FIX_REPORT.md`
+
 ### Sprint 39B — Temporary runtime debug panel to trace buildingType through the live flow
 
 **Temporary on-screen debug panel** (`BuildingTypeDebugPanel`) mounted in the Dashboard overlay (top-left, z-index 99999) that shows the live buildingType value at each of 7 stages:

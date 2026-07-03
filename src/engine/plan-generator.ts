@@ -2,8 +2,6 @@ import type { DesignOption } from '../domain/boq'
 import type { Opening, PlanModel, RoomRect, WallSegment } from '../domain/plan'
 import { getRoomProgram } from './roomPrograms'
 import { isResidential } from './buildingTypes'
-// TEMPORARY DEBUG — Sprint 39B
-import { setBtTrace } from '../lib/debug/buildingTypeTrace'
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 
@@ -24,13 +22,8 @@ function normalizeFootprint(area: number) {
 function programFromArea(area: number, buildingType: string): Array<{ name: string; ratio: number }> {
   // Non-residential types use their fixed room program
   if (!isResidential(buildingType)) {
-    const program = getRoomProgram(buildingType)
-    // TEMPORARY DEBUG — Sprint 39B
-    setBtTrace('programKeyUsed', buildingType + ' (non-residential branch)')
-    return program
+    return getRoomProgram(buildingType)
   }
-  // TEMPORARY DEBUG — Sprint 39B
-  setBtTrace('programKeyUsed', buildingType + ' (residential branch)')
 
   // Residential area-based tiers
   if (area <= 100) {
@@ -164,11 +157,7 @@ export function generatePlanModel(design: DesignOption): PlanModel {
   const buildingType = design.buildingType || 'house'
   const footprint = normalizeFootprint(area)
   const wallThickness = 0.2
-  // TEMPORARY DEBUG — Sprint 39B
-  setBtTrace('planGenBuildingType', buildingType)
   const rooms = layoutRooms(footprint.width, footprint.height, area, buildingType)
-  // TEMPORARY DEBUG — Sprint 39B
-  setBtTrace('firstThreeRoomNames', rooms.slice(0, 3).map((r) => r.name))
   const walls = [...outerWalls(footprint.width, footprint.height, wallThickness), ...internalWalls(rooms, 0.12)]
   const openings = defaultOpenings(walls)
 

@@ -1,9 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { AiEngine, ParseResult, parseWithEngine } from '@/lib/ai/ai-provider';
 import { generateDesignOptionsFromBriefText } from '@/adapters/aiDesignAdapter';
 import type { DesignOption } from '@/domain/boq';
-// TEMPORARY DEBUG — Sprint 39B
-import { setBtTrace } from '@/lib/debug/buildingTypeTrace';
 
 const BUILDING_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: 'house', label: 'House / Residential' },
@@ -30,6 +28,9 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
   const [briefText, setBriefText] = useState('');
   const [aiEngine, setAiEngine] = useState<AiEngine>('local-rules');
   const [buildingType, setBuildingType] = useState('house');
+  // useRef avoids stale closure in async handleGenerate (Sprint 39C)
+  const buildingTypeRef = useRef(buildingType);
+  useEffect(() => { buildingTypeRef.current = buildingType }, [buildingType]);
   const [aiStatus, setAiStatus] = useState<string | null>(null);
 
   const handleGenerate = async () => {
@@ -37,14 +38,11 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
     setAiStatus('Parsing…');
     try {
       const result = await parseWithEngine(briefText, aiEngine);
-      const optionsResult = generateDesignOptionsFromBriefText(briefText, 'zimbabwe', buildingType);
+      const optionsResult = generateDesignOptionsFromBriefText(briefText, 'zimbabwe', buildingTypeRef.current);
       const count = optionsResult.designOptions.length;
       setAiStatus(
         `✅ Generated ${count} design option${count > 1 ? 's' : ''} via local rules`
       );
-      // TEMPORARY DEBUG — Sprint 39B
-      setBtTrace('briefBuildingType', optionsResult.parsed.buildingType ?? 'house')
-      setBtTrace('optionsBuildingTypes', optionsResult.designOptions.map((o) => o.buildingType))
       onParsed?.(result);
       onDesignOptionsGenerated?.(optionsResult.designOptions);
     } catch (err) {
@@ -60,11 +58,7 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
       <label className="mb-1 block text-xs font-medium text-stone-400">Building type</label>
       <select
         value={buildingType}
-        onChange={(e) => {
-          const next = e.target.value
-          setBuildingType(next)
-          setBtTrace('dropdownValue', next)
-        }}
+        onChange={(e) => setBuildingType(e.target.value)}
         className="mb-3 w-full rounded border border-stone-700 bg-stone-800 p-2 text-sm text-stone-200 focus:border-cyan-600 focus:outline-none"
       >
         {BUILDING_TYPE_OPTIONS.map((t) => (

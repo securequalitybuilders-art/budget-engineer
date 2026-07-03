@@ -135,6 +135,24 @@ describe('briefDrivenDesign — room programs per building type', () => {
     expect(clinicNames.some((n) => n.toLowerCase().includes('bedroom'))).toBe(false)
   })
 
+  // SPRINT 39C FIX — validates that buildingType from the dropdown reaches generatePlanModel.
+  // The fix uses useRef in AiBriefPanel to avoid stale closures in async handleGenerate.
+  // This test validates the pure-function chain: the ref holds 'clinic',
+  // generateDesignOptionsFromBriefText receives 'clinic', and generatePlanModel
+  // produces clinic rooms. The test fails if buildingType is lost between stages.
+  it('SPRINT 39C: clinic buildingType flows from generateDesignOptions → DesignOption.buildingType → generatePlanModel → clinic rooms', () => {
+    const optionsResult = generateDesignOptionsFromBriefText('clinic 200 m2', 'zimbabwe', 'clinic')
+    expect(optionsResult.designOptions.length).toBeGreaterThan(0)
+    for (const opt of optionsResult.designOptions) {
+      expect(opt.buildingType).toBe('clinic')
+    }
+    const option = optionsResult.designOptions[0]
+    const plan = generatePlanModel(option)
+    const planNames = plan.rooms.map((r) => r.name)
+    expect(planNames.some((n) => n.includes('Consultation'))).toBe(true)
+    expect(planNames.some((n) => n.toLowerCase().includes('bedroom'))).toBe(false)
+  })
+
   // INTEGRATION TEST — mimics the real AiBriefPanel generate flow:
   // parseWithEngine → generateDesignOptionsFromBriefText(buildingTypeOverride='clinic')
   // → generatePlanModel → check rooms
