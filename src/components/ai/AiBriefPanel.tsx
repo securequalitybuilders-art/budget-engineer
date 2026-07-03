@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { AiEngine, ParseResult, parseWithEngine } from '@/lib/ai/ai-provider';
 import { generateDesignOptionsFromBriefText } from '@/adapters/aiDesignAdapter';
 import type { DesignOption } from '@/domain/boq';
+import type { Tier1ParsedBrief } from '@/engine/tier1-types';
+import { Tier1Readout } from './Tier1Readout';
 
 const BUILDING_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: 'house', label: 'House / Residential' },
@@ -32,6 +34,7 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
   const buildingTypeRef = useRef(buildingType);
   useEffect(() => { buildingTypeRef.current = buildingType }, [buildingType]);
   const [aiStatus, setAiStatus] = useState<string | null>(null);
+  const [tier1Parsed, setTier1Parsed] = useState<Tier1ParsedBrief | null>(null);
 
   const handleGenerate = async () => {
     if (!briefText.trim()) return;
@@ -45,6 +48,14 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
       );
       onParsed?.(result);
       onDesignOptionsGenerated?.(optionsResult.designOptions);
+      // Tier 1 intelligence (layered — never blocks the main flow)
+      try {
+        const { parseBrief } = await import('@/engine/parseBrief')
+        const parsed = parseBrief(briefText, { buildingType: buildingTypeRef.current })
+        setTier1Parsed(parsed)
+      } catch {
+        // Tier 1 failure is non-fatal; just won't show readout
+      }
     } catch (err) {
       setAiStatus(`❌ ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
@@ -109,6 +120,8 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
           {aiStatus}
         </p>
       )}
+
+      <Tier1Readout parsed={tier1Parsed} />
 
       <p className="mt-2 text-xs text-stone-500">
         <span className="text-emerald-400">✅ Local rules active by default</span> — instant, offline, no dependencies.

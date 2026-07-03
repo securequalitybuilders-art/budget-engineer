@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+### Sprint 44 — Tier 1: Design Brief Intelligence (enterprise architectural intelligence)
+
+**New modules** (layered, non-breaking — existing generator unchanged):
+1. **14 building typologies** (`src/engine/typology-kb.ts`): house, apartment, clinic, school, hotel, office, retail, restaurant, church, warehouse, community hall, market, petrol station, mixed-use — each with aliases, SANS 10400/ZBC class mapping, default room program, min room dimensions, and notes.
+2. **Climate zones** (`src/engine/climate-kb.ts`): Harare Highveld, Victoria Falls Lowveld, Mutare Eastern Highlands, Bulawayo Midlands, Generic Zimbabwe — with orientation/shading/thermal mass/ventilation strategy per zone.
+3. **Heritage patterns** (`src/engine/heritage-kb.ts`): Kraal, Rondavel, Veranda, Courtyard-as-Hearth, Great Zimbabwe Enclosure — with cultural context and design implications.
+4. **Tier 1 parser** (`src/engine/parseBrief.ts`): `parseBrief(text, uiOverrides?)` — detects typology, climate zone, heritage pattern; extracts site dimensions, budget, room program; produces quality gate with score (0–100), issues, and recommendations.
+5. **Collapsible UI readout** (`Tier1Readout.tsx`): shown on the AiBriefPanel after generation — displays detected typology + confidence, climate zone, heritage pattern, quality score, issues, and recommendations. Brand-styled, non-intrusive.
+
+**Layering / Fallback**: Tier 1 runs in a separate try/catch after the existing generation pipeline. If it fails, the main flow (brief → design → plan → BIM → BOQ → PDF) continues unchanged. Existing `parseBrief` from `@/ai/briefParser.ts` still drives plan generation.
+
+**Validation:**
+- Typecheck: 0 errors
+- Lint: 0 errors (9 pre-existing warnings — unchanged)
+- Tests: 368 passed (27 files, +22 new Tier 1 tests)
+- Build: success — 3D still code-split; Tier 1 engine lazy-loaded (20 kB chunk)
+
+**Documentation:** `docs/SPRINT_44_TIER1_BRIEF_INTELLIGENCE_REPORT.md`
+
 ### Sprint 43 — Print-friendly PDF BOQ + Cost Report (free/offline)
 
 **Additive feature**: `Download PDF Report` button on the Cost & Deliver panel generates a professional PDF entirely client-side (no server, no paid API).
