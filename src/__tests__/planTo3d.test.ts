@@ -682,4 +682,83 @@ describe('planTo3d — pure adapter', () => {
     const result = planTo3d(plan, 1)
     expect(result.ceilings).toEqual([])
   })
+
+  // ── Sprint 42: Window-specific tests ──
+
+  it('splitWall produces a pier gap for a WINDOW opening equal to the window width', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'w1', wallId: 'w1', kind: 'window', offset: 0.4, width: 1.8 },
+      ],
+    })
+    const result = planTo3d(plan, 1)
+    // w1 is the bottom horizontal wall (0,0)-(12,0)
+    const w1Piers = result.walls.filter((w) => w.wallId === 'w1')
+    // One opening splits into 2 piers
+    expect(w1Piers.length).toBe(2)
+    // Centre at offset 0.4 => centre x = 4.8, halfW = 0.9
+    // lo = 0.4 - 0.9/12 = 0.325, hi = 0.4 + 0.9/12 = 0.475
+    // Gap from x = 0.325*12 = 3.9 to x = 0.475*12 = 5.7 => width 1.8
+    const gapWidth = w1Piers[1].startX - w1Piers[0].endX
+    expect(gapWidth).toBeCloseTo(1.8, 1)
+    // Opening placement exists with correct kind
+    const windowOp = result.openings.find((o) => o.openingId === 'w1')!
+    expect(windowOp.kind).toBe('window')
+    expect(windowOp.width).toBe(1.8)
+    expect(windowOp.centerX).toBeCloseTo(4.8)
+  })
+
+  it('window placement has sillHeight > 0 and height > 0 and lies on its wall segment', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'ow1', wallId: 'w1', kind: 'window', offset: 0.3, width: 1.5 },
+        { id: 'ow2', wallId: 'w2', kind: 'window', offset: 0.5, width: 1.2 },
+      ],
+    })
+    const result = planTo3d(plan, 1)
+    const win1 = result.openings.find((o) => o.openingId === 'ow1')!
+    const win2 = result.openings.find((o) => o.openingId === 'ow2')!
+    // Both are windows with sill > 0
+    expect(win1.kind).toBe('window')
+    expect(win1.sillHeight).toBeGreaterThan(0)
+    expect(win1.height).toBeGreaterThan(0)
+    expect(win2.kind).toBe('window')
+    expect(win2.sillHeight).toBeGreaterThan(0)
+    expect(win2.height).toBeGreaterThan(0)
+    // Sill defaults to WINDOW_DEFAULT_SILL (0.9)
+    expect(win1.sillHeight).toBe(WINDOW_DEFAULT_SILL)
+    expect(win2.sillHeight).toBe(WINDOW_DEFAULT_SILL)
+    // Height defaults to WINDOW_DEFAULT_HEIGHT (1.5)
+    expect(win1.height).toBe(WINDOW_DEFAULT_HEIGHT)
+    expect(win2.height).toBe(WINDOW_DEFAULT_HEIGHT)
+    // Positions on their wall segments
+    // win1: w1 (0,0)->(12,0), offset=0.3 => x=3.6, z=0
+    expect(win1.centerX).toBeCloseTo(3.6)
+    expect(win1.centerZ).toBe(0)
+    // win2: w2 (12,0)->(12,8), offset=0.5 => x=12, z=4
+    expect(win2.centerX).toBe(12)
+    expect(win2.centerZ).toBe(4)
+    // Both at storey floor
+    expect(win1.centerY).toBe(0)
+    expect(win2.centerY).toBe(0)
+  })
+
+  it('window count matches window openings in the plan', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'ow1', wallId: 'w1', kind: 'window', offset: 0.3, width: 1.5 },
+        { id: 'ow2', wallId: 'w2', kind: 'window', offset: 0.6, width: 1.2 },
+        { id: 'od1', wallId: 'w3', kind: 'door', offset: 0.5, width: 1.0 },
+      ],
+    })
+    const result = planTo3d(plan, 1)
+    const windows = result.openings.filter((o) => o.kind === 'window')
+    const doors = result.openings.filter((o) => o.kind === 'door')
+    expect(windows.length).toBe(2)
+    expect(doors.length).toBe(1)
+    // Multi-storey: 2 storeys
+    const result2 = planTo3d(plan, 2)
+    expect(result2.openings.filter((o) => o.kind === 'window').length).toBe(4)
+    expect(result2.openings.filter((o) => o.kind === 'door').length).toBe(2)
+  })
 })

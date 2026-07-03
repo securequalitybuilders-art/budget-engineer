@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+### Sprint 42 — Fix window rendering so all windows are visible in 3D BIM model
+
+**Root cause:** The `WindowMesh` glass material used `transparent: true` with `opacity: 0.35` but without `depthWrite: false` or `side: THREE.DoubleSide`. The glass box was a thin slab inside the wall gap, but with `depthWrite: true` on a transparent material, the glass wrote to the depth buffer and interacted poorly with the opaque wall piers around it, making the glass effectively invisible. Additionally, the window frame jambs were only 3cm wide — far too thin to resolve at typical camera distances, so even the opaque frame didn't provide a visible window outline.
+
+**Fix (BimModel3D.tsx):**
+1. **Glass material** (line 28-32): Added `depthWrite: false` and `side: THREE.DoubleSide`, bumped `opacity` from 0.35 to 0.45. `depthWrite: false` prevents the transparent glass from corrupting the depth buffer. `DoubleSide` ensures the glass is visible from any angle.
+2. **Frame width** (line 109-110): Increased `frameW` from 0.03m to 0.06m and `frameDepth` from 0.04m to 0.06m (both now 6cm). This makes the frame reliably visible at typical viewing distances.
+3. **Door frame consistency** (line 86-87): Increased door `frameDepth` from 0.05m to 0.06m and `jambW` from 0.03m to 0.06m for consistent visual weight.
+
+**Tests** (`src/__tests__/planTo3d.test.ts`): Added 3 tests — `splitWall` produces a pier gap for a WINDOW opening equal to the window width, window placements have correct sillHeight > 0 and height > 0 and lie on their wall segment, and window count matches window openings in the plan.
+
+**Before:** Most windows invisible (glass transparent-but-depth-corrupted, frame too thin to resolve at camera distance).
+
+**After:** All windows render as clearly visible cyan-tinted panes with visible dark frames, seated at correct sill height inside wall gaps.
+
+**Validation:**
+- Typecheck: 0 errors
+- Lint: 0 errors (9 pre-existing warnings)
+- Tests: 345 passed (26 files) — +3 window-specific tests
+- Build: success — 3D code-split chunk, GLTFExporter lazy-loaded
+
+**Documentation:** `docs/SPRINT_42_WINDOWS_RENDER_FIX_REPORT.md`
+
 ### Sprint 41 — Fix 3D roof coverage, render all doors/windows, add room ceilings
 
 **Root cause (roof):** The pitched gable roof BufferGeometry used wrong triangle indices — roof surface triangles were split diagonally across the building instead of forming proper rectangular quads, causing degenerate/zero-area triangles that collapsed to a narrow sliver at one corner.

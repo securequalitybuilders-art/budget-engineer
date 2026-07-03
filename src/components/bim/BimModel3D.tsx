@@ -27,7 +27,9 @@ const DOOR_FRAME_MAT = new THREE.MeshStandardMaterial({
 })
 const WINDOW_GLASS_MAT = new THREE.MeshStandardMaterial({
   color: '#06b6d4', roughness: 0.1, metalness: 0.0,
-  transparent: true, opacity: 0.35,
+  transparent: true, opacity: 0.45,
+  depthWrite: false,
+  side: THREE.DoubleSide,
 })
 const WINDOW_FRAME_MAT = new THREE.MeshStandardMaterial({
   color: '#57534e', roughness: 0.7, metalness: 0.05,
@@ -83,8 +85,8 @@ function CeilingMesh({ ceiling }: { ceiling: CeilingSlab }) {
 function DoorMesh({ op }: { op: Opening3d }) {
   const leafH = op.height - 0.05
   const leafW = op.width - 0.06
-  const frameDepth = 0.05
-  const jambW = 0.03
+  const frameDepth = 0.06
+  const jambW = 0.06
 
   return (
     <group position={[op.centerX, op.centerY, op.centerZ]} rotation={[0, op.wallAngle, 0]}>
@@ -105,8 +107,8 @@ function DoorMesh({ op }: { op: Opening3d }) {
 }
 
 function WindowMesh({ op }: { op: Opening3d }) {
-  const frameDepth = 0.04
-  const frameW = 0.03
+  const frameDepth = 0.06
+  const frameW = 0.06
 
   return (
     <group position={[op.centerX, op.centerY, op.centerZ]} rotation={[0, op.wallAngle, 0]}>
