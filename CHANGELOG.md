@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+### Sprint 39D — Fix PWA service worker auto-update so deployments reach users (not stale cached app)
+
+**Root cause:** The service worker registration script (`registerSW.js`) was a bare-bones `navigator.serviceWorker.register(...)` call with **no `updatefound` listener**. When a new deployment produced a new `sw.js`, the browser detected it but the new SW stayed in "waiting" state forever — the old SW continued serving the old cached `index.html` and JS bundles indefinitely. Users never received any deployed fixes until they manually unregistered the SW and cleared site data.
+
+**Fix:**
+1. Added explicit `workbox` options in `vite.config.ts`: `skipWaiting: true`, `clientsClaim: true`, `cleanupOutdatedCaches: true`.
+2. Imported `registerSW` from `virtual:pwa-register` in `src/main.tsx` and called `registerSW({ immediate: true })`. This replaces the generated bare‑bones `registerSW.js` with the plugin's client template that:
+   - Listens for the `activated` event → auto‑reloads the page when a new SW takes over
+   - Fires `onOfflineReady` on first install
+   - Preserves offline-first caching
+3. Added `src/pwa-register.d.ts` — TypeScript declaration for the virtual module.
+4. Added 5 documented‑config tests (`src/__tests__/pwaConfig.test.ts`) asserting critical SW settings.
+
+**Impact:** Future deployments will auto‑update within one page-reload cycle. The `workbox-window` library (5.71 kB) is now bundled for registration lifecycle management.
+
+**Note:** This explains why prior clinic‑fix deployments (Sprint 39A/B/C) appeared to fail live — the old SW cached the app shell before the fixes, and users never received the updated JavaScript.
+
+**Validation:**
+- Typecheck: 0 errors
+- Lint: 0 errors (9 pre‑existing warnings)
+- Tests: 325 passed (26 files) — +5 PWA config tests +1 file
+- Build: success (3396 modules, 21 precache entries, `sw.js` emitted, no `registerSW.js`)
+
+**Documentation:** `docs/SPRINT_39D_SERVICE_WORKER_UPDATE_REPORT.md`
+
 ### Sprint 39C — Fix building-type dropdown stale closure in async handler, remove debug panel
 
 **Fixed (root cause):** The AiBriefPanel dropdown's selected `buildingType` was not reliably reaching plan generation. The `handleGenerate` handler is `async` and calls `await parseWithEngine(...)` before reading `buildingType`. In certain React 18 batching scenarios, the `buildingType` state variable was captured in a stale closure by the time execution resumed after the `await`, so `generateDesignOptionsFromBriefText` received the stale initial value (`'house'`) instead of the user's selection.
