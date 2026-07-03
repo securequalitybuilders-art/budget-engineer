@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
 import { planTo3d, DEFAULT_STOREY_HEIGHT } from '@/adapters/planTo3d'
-import type { PlanTo3dResult, WallPier, FloorSlab, Opening3d, RoofParams } from '@/adapters/planTo3d'
+import type { PlanTo3dResult, WallPier, FloorSlab, Opening3d, RoofParams, CeilingSlab } from '@/adapters/planTo3d'
 import { Button } from '@/components/ui/Button'
 import { Download } from 'lucide-react'
 
@@ -34,6 +34,9 @@ const WINDOW_FRAME_MAT = new THREE.MeshStandardMaterial({
 })
 const ROOF_MAT = new THREE.MeshStandardMaterial({
   color: '#a0522d', roughness: 0.85, metalness: 0.0,
+})
+const CEILING_MAT = new THREE.MeshStandardMaterial({
+  color: '#334155', roughness: 0.9, metalness: 0.0,
 })
 
 interface BimModel3DProps {
@@ -69,25 +72,32 @@ function SlabMesh({ slab }: { slab: FloorSlab }) {
   )
 }
 
+function CeilingMesh({ ceiling }: { ceiling: CeilingSlab }) {
+  return (
+    <mesh position={[ceiling.centerX, ceiling.yOffset + ceiling.thickness / 2, ceiling.centerZ]} material={CEILING_MAT}>
+      <boxGeometry args={[ceiling.width, ceiling.thickness, ceiling.depth]} />
+    </mesh>
+  )
+}
+
 function DoorMesh({ op }: { op: Opening3d }) {
   const leafH = op.height - 0.05
   const leafW = op.width - 0.06
-  const leafY = op.centerY + leafH / 2
   const frameDepth = 0.05
   const jambW = 0.03
 
   return (
-    <group position={[op.centerX, 0, op.centerZ]} rotation={[0, op.wallAngle, 0]}>
-      <mesh position={[0, leafY, 0]} castShadow material={DOOR_LEAF_MAT}>
+    <group position={[op.centerX, op.centerY, op.centerZ]} rotation={[0, op.wallAngle, 0]}>
+      <mesh position={[0, leafH / 2, 0]} castShadow material={DOOR_LEAF_MAT}>
         <boxGeometry args={[leafW, leafH, op.wallThickness * 0.9]} />
       </mesh>
-      <mesh position={[-op.width / 2 + jambW / 2, op.centerY + op.height / 2, 0]} material={DOOR_FRAME_MAT}>
+      <mesh position={[-op.width / 2 + jambW / 2, op.height / 2, 0]} material={DOOR_FRAME_MAT}>
         <boxGeometry args={[jambW, op.height, frameDepth]} />
       </mesh>
-      <mesh position={[op.width / 2 - jambW / 2, op.centerY + op.height / 2, 0]} material={DOOR_FRAME_MAT}>
+      <mesh position={[op.width / 2 - jambW / 2, op.height / 2, 0]} material={DOOR_FRAME_MAT}>
         <boxGeometry args={[jambW, op.height, frameDepth]} />
       </mesh>
-      <mesh position={[0, op.centerY + op.height - jambW / 2, 0]} material={DOOR_FRAME_MAT}>
+      <mesh position={[0, op.height - jambW / 2, 0]} material={DOOR_FRAME_MAT}>
         <boxGeometry args={[op.width, jambW, frameDepth]} />
       </mesh>
     </group>
@@ -95,25 +105,24 @@ function DoorMesh({ op }: { op: Opening3d }) {
 }
 
 function WindowMesh({ op }: { op: Opening3d }) {
-  const glassY = op.centerY + op.sillHeight + op.height / 2
   const frameDepth = 0.04
   const frameW = 0.03
 
   return (
-    <group position={[op.centerX, 0, op.centerZ]} rotation={[0, op.wallAngle, 0]}>
-      <mesh position={[0, glassY, 0]} material={WINDOW_GLASS_MAT}>
+    <group position={[op.centerX, op.centerY, op.centerZ]} rotation={[0, op.wallAngle, 0]}>
+      <mesh position={[0, op.sillHeight + op.height / 2, 0]} material={WINDOW_GLASS_MAT}>
         <boxGeometry args={[op.width - 0.06, op.height - 0.06, op.wallThickness * 0.85]} />
       </mesh>
-      <mesh position={[-op.width / 2 + frameW / 2, glassY, 0]} material={WINDOW_FRAME_MAT}>
+      <mesh position={[-op.width / 2 + frameW / 2, op.sillHeight + op.height / 2, 0]} material={WINDOW_FRAME_MAT}>
         <boxGeometry args={[frameW, op.height, frameDepth]} />
       </mesh>
-      <mesh position={[op.width / 2 - frameW / 2, glassY, 0]} material={WINDOW_FRAME_MAT}>
+      <mesh position={[op.width / 2 - frameW / 2, op.sillHeight + op.height / 2, 0]} material={WINDOW_FRAME_MAT}>
         <boxGeometry args={[frameW, op.height, frameDepth]} />
       </mesh>
-      <mesh position={[0, op.centerY + op.sillHeight + frameW / 2, 0]} material={WINDOW_FRAME_MAT}>
+      <mesh position={[0, op.sillHeight + frameW / 2, 0]} material={WINDOW_FRAME_MAT}>
         <boxGeometry args={[op.width, frameW, frameDepth]} />
       </mesh>
-      <mesh position={[0, op.centerY + op.sillHeight + op.height - frameW / 2, 0]} material={WINDOW_FRAME_MAT}>
+      <mesh position={[0, op.sillHeight + op.height - frameW / 2, 0]} material={WINDOW_FRAME_MAT}>
         <boxGeometry args={[op.width, frameW, frameDepth]} />
       </mesh>
     </group>
@@ -143,14 +152,14 @@ function RoofMesh({ roof }: { roof: RoofParams }) {
         bw + oh, apexY, zRidge, // 5: ridge E end
       ]
       vertices.push(...v)
-      // South roof
-      indices.push(0, 4, 1, 1, 4, 5)
-      // North roof
-      indices.push(3, 5, 2, 3, 4, 5)
-      // West gable
+      // South roof plane (quad: 0,1,5,4)
+      indices.push(0, 1, 5, 0, 5, 4)
+      // North roof plane (quad: 3,2,5,4)
+      indices.push(3, 2, 5, 3, 5, 4)
+      // West gable (vertical triangle: 0,3,4)
       indices.push(0, 3, 4)
-      // East gable
-      indices.push(1, 5, 2)
+      // East gable (vertical triangle: 1,2,5)
+      indices.push(1, 2, 5)
     } else {
       // Ridge runs along Z axis at x = bw/2
       const xRidge = bw / 2
@@ -163,14 +172,14 @@ function RoofMesh({ roof }: { roof: RoofParams }) {
         xRidge, apexY, bd + oh, // 5: ridge N end
       ]
       vertices.push(...v)
-      // East roof
-      indices.push(1, 5, 2, 1, 4, 5)
-      // West roof
-      indices.push(0, 4, 3, 3, 4, 5)
-      // South gable
+      // East roof plane (quad: 1,2,5,4)
+      indices.push(1, 2, 5, 1, 5, 4)
+      // West roof plane (quad: 0,3,5,4)
+      indices.push(0, 3, 5, 0, 5, 4)
+      // South gable (vertical triangle: 0,1,4)
       indices.push(0, 1, 4)
-      // North gable
-      indices.push(3, 5, 2)
+      // North gable (vertical triangle: 3,2,5)
+      indices.push(3, 2, 5)
     }
 
     const geo = new THREE.BufferGeometry()
@@ -245,6 +254,9 @@ function Scene({ result, buildingRef }: { result: PlanTo3dResult; buildingRef: R
       <group ref={buildingRef}>
         {/* Slabs */}
         {result.slabs.map((s) => <SlabMesh key={`slab-${s.storeyIndex}`} slab={s} />)}
+
+        {/* Ceilings (one per room per storey) */}
+        {result.ceilings.map((c) => <CeilingMesh key={`ceil-${c.roomId}-${c.storeyIndex}`} ceiling={c} />)}
 
         {/* Wall piers (split to create openings) */}
         {result.walls.map((w) => <WallPierMesh key={`${w.pierId}-${w.storeyIndex}`} pier={w} />)}

@@ -523,8 +523,163 @@ describe('planTo3d — pure adapter', () => {
     expect(result.walls).toEqual([])
     expect(result.slabs).toEqual([])
     expect(result.openings).toEqual([])
+    expect(result.ceilings).toEqual([])
     expect(result.roof).toBeNull()
     expect(result.bounds.width).toBe(0)
     expect(result.bounds.depth).toBe(0)
+  })
+
+  // ── Sprint 41: Roof coherency, opening count parity, ceilings ──
+
+  it('roof eave corners span full building bounds with overhang (not collapsed to corner)', () => {
+    const plan = makePlan({ width: 12, height: 8 })
+    const result = planTo3d(plan, 1)
+    const roof = result.roof!
+    // ridgeAxis should be 'x' since width >= height
+    expect(roof.ridgeAxis).toBe('x')
+    // Ridge length includes overhang
+    expect(roof.ridgeLength).toBeCloseTo(12 + ROOF_OVERHANG * 2)
+    // Eave sits on top of walls
+    expect(roof.eaveY).toBe(DEFAULT_STOREY_HEIGHT)
+    // Apex above eave
+    expect(roof.pitchHeight).toBe(ROOF_PITCH_HEIGHT)
+    // The roof covers the building: ridge centre is at building centre
+    expect(roof.ridgeCentreX).toBe(6)
+    expect(roof.ridgeCentreZ).toBe(4)
+    // Building bounds are preserved
+    expect(roof.buildingWidth).toBe(12)
+    expect(roof.buildingDepth).toBe(8)
+    // Roof area > 0 (catches zero-area collapsed roof)
+    const roofArea = roof.ridgeLength * (roof.buildingDepth + ROOF_OVERHANG * 2)
+    expect(roofArea).toBeGreaterThan(0)
+  })
+
+  it('roof with ridgeAxis=z spans full bounds', () => {
+    const plan = makePlan({ width: 8, height: 12 })
+    const result = planTo3d(plan, 1)
+    const roof = result.roof!
+    expect(roof.ridgeAxis).toBe('z')
+    expect(roof.ridgeLength).toBeCloseTo(12 + ROOF_OVERHANG * 2)
+    expect(roof.ridgeCentreX).toBe(4)
+    expect(roof.ridgeCentreZ).toBe(6)
+    expect(roof.eaveY).toBe(DEFAULT_STOREY_HEIGHT)
+    expect(roof.eaveY + roof.pitchHeight).toBe(DEFAULT_STOREY_HEIGHT + ROOF_PITCH_HEIGHT)
+  })
+
+  it('number of opening placements equals number of plan openings per storey', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'o1', wallId: 'w1', kind: 'door', offset: 0.3, width: 1.0 },
+        { id: 'o2', wallId: 'w2', kind: 'window', offset: 0.5, width: 1.2 },
+        { id: 'o3', wallId: 'w3', kind: 'window', offset: 0.7, width: 1.5 },
+        { id: 'o4', wallId: 'w4', kind: 'door', offset: 0.2, width: 0.9 },
+        { id: 'o5', wallId: 'w5', kind: 'door', offset: 0.5, width: 0.9 },
+      ],
+    })
+    const result = planTo3d(plan, 1)
+    // All 5 openings resolved (on 4 external + 1 internal walls)
+    expect(result.openings.length).toBe(5)
+    // Count by kind
+    const doors = result.openings.filter((o) => o.kind === 'door')
+    const windows = result.openings.filter((o) => o.kind === 'window')
+    expect(doors.length).toBe(3)
+    expect(windows.length).toBe(2)
+    // Multi-storey: 2 storeys -> 10 openings
+    const result2 = planTo3d(plan, 2)
+    expect(result2.openings.length).toBe(10)
+    // Each storey has identical openings
+    const storey0 = result2.openings.filter((o) => o.storeyIndex === 0)
+    const storey1 = result2.openings.filter((o) => o.storeyIndex === 1)
+    expect(storey0.length).toBe(5)
+    expect(storey1.length).toBe(5)
+  })
+
+  it('generated PlanModel opening count parity (all openings become 3D placements)', () => {
+    const design = makeDesign()
+    const plan = generatePlanModel(design)
+    const floors = design.floors || 1
+    const result = planTo3d(plan, floors)
+    // Every plan opening appears on every storey
+    expect(result.openings.length).toBe(plan.openings.length * floors)
+    // All have valid dimensions
+    for (const op of result.openings) {
+      expect(op.width).toBeGreaterThan(0)
+      expect(op.height).toBeGreaterThan(0)
+      expect(op.wallThickness).toBeGreaterThan(0)
+    }
+  })
+
+  it('each opening placement lies on its wall segment at correct sill and height', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'o1', wallId: 'w1', kind: 'door', offset: 0.5, width: 1.0 },
+      ],
+    })
+    const result = planTo3d(plan, 1)
+    const op = result.openings[0]
+    // w1: (0,0)->(12,0), offset=0.5 => centre x=6, z=0
+    expect(op.centerX).toBe(6)
+    expect(op.centerZ).toBe(0)
+    expect(op.centerY).toBe(0)
+    // Door sits on wall with sill at floor level
+    expect(op.sillHeight).toBe(DOOR_DEFAULT_SILL)
+    expect(op.height).toBe(DOOR_DEFAULT_HEIGHT)
+    expect(op.wallThickness).toBe(0.25)
+    // Wall angle for horizontal wall is 0
+    expect(op.wallAngle).toBe(0)
+  })
+
+  it('ceilings: one per room per storey at correct height covering room footprint', () => {
+    const plan = makePlan()
+    // 2 rooms, 1 storey -> 2 ceilings
+    const result = planTo3d(plan, 1)
+    expect(result.ceilings.length).toBe(2)
+    // r1: x=0,y=0, w=6,h=8 => center (3,4)
+    const ceilR1 = result.ceilings.find((c) => c.roomId === 'r1')!
+    expect(ceilR1.centerX).toBe(3)
+    expect(ceilR1.centerZ).toBe(4)
+    expect(ceilR1.width).toBeCloseTo(6 - 0.1)
+    expect(ceilR1.depth).toBeCloseTo(8 - 0.1)
+    // r2: x=6,y=0, w=6,h=8 => center (9,4)
+    const ceilR2 = result.ceilings.find((c) => c.roomId === 'r2')!
+    expect(ceilR2.centerX).toBe(9)
+    expect(ceilR2.centerZ).toBe(4)
+    expect(ceilR2.width).toBeCloseTo(6 - 0.1)
+    expect(ceilR2.depth).toBeCloseTo(8 - 0.1)
+    // Ceilings at top of storey: yOffset = storeyHeight - thickness
+    expect(ceilR1.yOffset).toBeCloseTo(DEFAULT_STOREY_HEIGHT - 0.05)
+    expect(ceilR2.yOffset).toBeCloseTo(DEFAULT_STOREY_HEIGHT - 0.05)
+    expect(ceilR1.thickness).toBe(0.05)
+    expect(ceilR2.thickness).toBe(0.05)
+  })
+
+  it('ceilings: multi-storey produces ceilings per storey', () => {
+    const plan = makePlan()
+    const result = planTo3d(plan, 2)
+    // 2 rooms * 2 storeys = 4 ceilings
+    expect(result.ceilings.length).toBe(4)
+    // Storey 0 ceilings at yOffset = storeyHeight - thickness
+    const s0Ceils = result.ceilings.filter((c) => c.storeyIndex === 0)
+    expect(s0Ceils.length).toBe(2)
+    for (const c of s0Ceils) {
+      expect(c.yOffset).toBeCloseTo(DEFAULT_STOREY_HEIGHT - 0.05)
+    }
+    // Storey 1 ceilings at yOffset = 2*storeyHeight - thickness
+    const s1Ceils = result.ceilings.filter((c) => c.storeyIndex === 1)
+    expect(s1Ceils.length).toBe(2)
+    for (const c of s1Ceils) {
+      expect(c.yOffset).toBeCloseTo(2 * DEFAULT_STOREY_HEIGHT - 0.05)
+    }
+  })
+
+  it('empty plan -> no ceilings', () => {
+    const result = planTo3d(null, 1)
+    expect(result.ceilings).toEqual([])
+  })
+
+  it('plan with no rooms -> no ceilings', () => {
+    const plan = makePlan({ rooms: [] })
+    const result = planTo3d(plan, 1)
+    expect(result.ceilings).toEqual([])
   })
 })

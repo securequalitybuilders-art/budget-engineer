@@ -59,6 +59,17 @@ export interface Opening3d {
   wallThickness: number
 }
 
+export interface CeilingSlab {
+  roomId: string
+  storeyIndex: number
+  centerX: number
+  centerZ: number
+  width: number
+  depth: number
+  thickness: number
+  yOffset: number
+}
+
 export interface RoofParams {
   /** Axis the ridge runs along */
   ridgeAxis: 'x' | 'z'
@@ -84,6 +95,7 @@ export interface PlanTo3dResult {
   walls: WallPier[]
   slabs: FloorSlab[]
   openings: Opening3d[]
+  ceilings: CeilingSlab[]
   roof: RoofParams | null
   bounds: {
     width: number
@@ -243,12 +255,13 @@ export function planTo3d(
   storeyHeight: number = DEFAULT_STOREY_HEIGHT,
 ): PlanTo3dResult {
   if (!plan || plan.walls.length === 0 || numberOfStoreys < 1) {
-    return { walls: [], slabs: [], openings: [], roof: null, bounds: { width: 0, depth: 0, totalHeight: 0 } }
+    return { walls: [], slabs: [], openings: [], ceilings: [], roof: null, bounds: { width: 0, depth: 0, totalHeight: 0 } }
   }
 
   const walls: WallPier[] = []
   const slabs: FloorSlab[] = []
   const openings: Opening3d[] = []
+  const ceilings: CeilingSlab[] = []
 
   for (let si = 0; si < numberOfStoreys; si++) {
     const yOffset = si * storeyHeight
@@ -263,6 +276,22 @@ export function planTo3d(
       thickness: SLAB_THICKNESS,
       yOffset,
     })
+
+    // Ceilings: one per room at the top of this storey (thin slab at roomTop - small inset)
+    const ceilingInset = 0.05
+    const ceilingThickness = 0.05
+    for (const room of plan.rooms) {
+      ceilings.push({
+        roomId: room.id,
+        storeyIndex: si,
+        centerX: room.x + room.width / 2,
+        centerZ: room.y + room.height / 2,
+        width: room.width - ceilingInset * 2,
+        depth: room.height - ceilingInset * 2,
+        thickness: ceilingThickness,
+        yOffset: (si + 1) * storeyHeight - ceilingThickness,
+      })
+    }
 
     // Walls for this storey — split by openings
     for (const w of plan.walls) {
@@ -292,6 +321,7 @@ export function planTo3d(
     walls,
     slabs,
     openings,
+    ceilings,
     roof,
     bounds: {
       width: plan.width,

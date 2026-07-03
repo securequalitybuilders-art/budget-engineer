@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+### Sprint 41 — Fix 3D roof coverage, render all doors/windows, add room ceilings
+
+**Root cause (roof):** The pitched gable roof BufferGeometry used wrong triangle indices — roof surface triangles were split diagonally across the building instead of forming proper rectangular quads, causing degenerate/zero-area triangles that collapsed to a narrow sliver at one corner.
+
+**Root cause (openings):** Openings data was correct (all resolved in planTo3d), but DoorMesh and WindowMesh used inconsistent Y positioning (group at Y=0 with leaf/sill in world space) making some doors/windows appear at wrong heights relative to walls. Fixed by setting group Y to `op.centerY` so all sub-meshes use local storey-relative coords.
+
+**Fixes:**
+1. **Roof** (`src/components/bim/BimModel3D.tsx:RoofMesh`): Corrected triangle indices for both ridgeAxis='x' and 'z'. South roof now forms quad (0,1,5,4) instead of degenerate (0,4,1)+(1,4,5). North roof quad (3,2,5,4). East/west gable triangles corrected. Roof now covers the full building footprint with overhang, no collapse.
+2. **Doors/windows** (`BimModel3D.tsx:DoorMesh,WindowMesh`): Changed group position Y from `0` to `op.centerY`, simplified local positions to be storey-relative. Every opening in PlanModel now produces a visible door or window mesh.
+3. **Ceilings** (`src/adapters/planTo3d.ts` + `BimModel3D.tsx`): Added `CeilingSlab` interface, one ceiling per room per storey at (`storey+1`)*storeyHeight - inset, spanning the room footprint (slightly inset). Thin slab (0.05m), brand slate material. Rooms are now enclosed at top.
+4. **Tests** (`src/__tests__/planTo3d.test.ts`): Added 9 tests — roof eave corners span full bounds (both axes), opening count parity (all openings resolve), ceilings per room/storey at correct height, empty plan returns empty ceilings.
+
+**Before:** Roof collapsed to a thin triangular sliver at one corner (wrong indices). Only some doors/windows appeared visible. Rooms open at top.
+
+**After:** Roof spans the full building footprint with overhang (pitched gable). All openings render as visible door/window meshes. Ceilings enclose each room.
+
+**Validation:**
+- Typecheck: 0 errors
+- Lint: 0 errors (9 pre-existing warnings)
+- Tests: 342 passed (26 files) — +9 roof/opening/ceiling tests
+- Build: success — 3D code-split into `BimModel3D-*.js` chunk, GLTFExporter lazy-loaded as separate chunk
+
+**Documentation:** `docs/SPRINT_41_ROOF_OPENINGS_CEILINGS_REPORT.md`
+
 ### Sprint 40 — Fix 3D BIM geometry: connected walls, seated roof, seated doors and windows
 
 **Root cause:** A single axis-swap bug in the wall rotation formula `-Math.atan2(dx, dz)` (should be `Math.atan2(dz, dx)`) caused ALL walls to be rotated 90° from their correct direction, producing disjointed floating fins instead of a coherent connected building. Doors and windows inherited the wrong angle, making them float in space. The roof used correct world coordinates but appeared misaligned because walls were wrong.
