@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+### Sprint 42B — Debug sprint: expose windows with bright debug material + render-count readout
+
+**Temporary diagnostic changes** to make windows impossible to miss:
+1. **Glass material**: Replaced `WINDOW_GLASS_MAT` with bright opaque magenta (`#ff00ff`) with emissive glow — cannot be confused with walls or doors.
+2. **Window geometry**: Simplified `WindowMesh` to a single solid box protruding both sides of the wall (`wallThickness * 1.5`), no frame elements.
+3. **On-screen overlay**: Fixed top-left div showing `[WIN-42B] placed: X | rendered: Y` — window placements vs mesh count.
+4. **Console.log**: `[WIN-42B]` log with per-window position, angle, sill, height, width, wallId, storey for every render.
+
+**Investigation findings** (see report for full detail):
+- Render loop at `BimModel3D.tsx:265-274` is straightforward: `.filter(kind==='window').map()` with key `win-${openingId}`. No conditionals, no early returns, no group nesting issues.
+- Multi-storey: openingId is identical across storeys => React keys `win-${id}` collide for same opening on different storeys, causing React to only render the last one. This would lose windows on storey 0 for multi-storey plans.
+- Window Y positions: all within wall height (`centerY + sillHeight + height/2` = 1.65 for single storey, wall top = 3.0). No off-range.
+- Same building group as walls/doors — not in a separate group.
+
+**Revert after this sprint:** The Sprint 42 permanent fix (cyan DoubleSide glass + thicker frames) should be restored after the user confirms whether windows are now visible in magenta.
+
+**Validation:**
+- Typecheck: 0 errors
+- Lint: 0 errors (9 pre-existing warnings)
+- Tests: 345 passed (26 files)
+- Build: success — 3D code-split chunk, GLTFExporter lazy-loaded
+
+**Documentation:** `docs/SPRINT_42B_WINDOW_DEBUG_REPORT.md`
+
 ### Sprint 42 — Fix window rendering so all windows are visible in 3D BIM model
 
 **Root cause:** The `WindowMesh` glass material used `transparent: true` with `opacity: 0.35` but without `depthWrite: false` or `side: THREE.DoubleSide`. The glass box was a thin slab inside the wall gap, but with `depthWrite: true` on a transparent material, the glass wrote to the depth buffer and interacted poorly with the opaque wall piers around it, making the glass effectively invisible. Additionally, the window frame jambs were only 3cm wide — far too thin to resolve at typical camera distances, so even the opaque frame didn't provide a visible window outline.
