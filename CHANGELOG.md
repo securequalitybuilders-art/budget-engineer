@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Sprint 42C — Final window fix: visible glazing + frames, fix multi-storey key collision, remove debug
+
+**Permanent fix** after Sprint 42B confirmed meshes render correctly:
+1. **Glass material**: Replaced debug magenta with proper sky-cyan (`#7dd3fc`) transparent glass (`opacity: 0.5`, `side: DoubleSide`, `depthWrite: false`, subtle cyan emissive glow `emissiveIntensity: 0.15`).
+2. **Frame**: Added 4-bar frame (head, sill, left/right jambs) in brand Muted `#cbd5e1`, thickness 0.06 — guarantees window visibility from any angle.
+3. **Multi-storey key collision fixed**: React keys for doors and windows now include `storeyIndex` (`door-${id}-s${si}`, `win-${id}-s${si}`) — 2-storey plans now render all 6 window placements (was 3).
+4. **Debug removed**: All 42B instrumentation (magenta material, overlay, console.log) fully removed — confirmed 0 matches in src/.
+
+**Tests extended**: `planTo3d.test.ts` — new test asserts every opening placement has a `storeyIndex` and unique composite identity across storeys; 2-storey plans yield 2x openings with distinct identities.
+
+**Validation:**
+- Typecheck: 0 errors
+- Lint: 0 errors (9 pre-existing warnings — unchanged)
+- Tests: 346 passed (26 files, +1 new test)
+- Build: success — 3D code-split chunk preserved
+
+**Documentation:** `docs/SPRINT_42C_WINDOW_FINAL_FIX_REPORT.md`
+
 ### Sprint 42B — Debug sprint: expose windows with bright debug material + render-count readout
 
 **Temporary diagnostic changes** to make windows impossible to miss:

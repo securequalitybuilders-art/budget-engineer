@@ -761,4 +761,32 @@ describe('planTo3d — pure adapter', () => {
     expect(result2.openings.filter((o) => o.kind === 'window').length).toBe(4)
     expect(result2.openings.filter((o) => o.kind === 'door').length).toBe(2)
   })
+
+  it('each opening placement has storeyIndex and unique composite identity per storey', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'w1', wallId: 'w1', kind: 'window', offset: 0.3, width: 1.5 },
+        { id: 'd1', wallId: 'w2', kind: 'door', offset: 0.5, width: 1.0 },
+      ],
+    })
+    const result = planTo3d(plan, 2)
+    const all = result.openings
+    expect(all.length).toBe(4)
+    // Every opening has storeyIndex defined
+    for (const op of all) {
+      expect(op).toHaveProperty('storeyIndex')
+      expect(typeof op.storeyIndex).toBe('number')
+    }
+    // No two placements share the same kind+openingId+storeyIndex
+    const identities = all.map((o) => `${o.kind}-${o.openingId}-s${o.storeyIndex}`)
+    const unique = new Set(identities)
+    expect(unique.size).toBe(all.length)
+    // 2 storeys: each opening appears exactly twice with different storeyIndex
+    const w1s = all.filter((o) => o.openingId === 'w1')
+    expect(w1s.length).toBe(2)
+    expect(w1s[0].storeyIndex).not.toBe(w1s[1].storeyIndex)
+    const d1s = all.filter((o) => o.openingId === 'd1')
+    expect(d1s.length).toBe(2)
+    expect(d1s[0].storeyIndex).not.toBe(d1s[1].storeyIndex)
+  })
 })

@@ -8,21 +8,6 @@ import { planTo3d, DEFAULT_STOREY_HEIGHT } from '@/adapters/planTo3d'
 import type { PlanTo3dResult, WallPier, FloorSlab, Opening3d, RoofParams, CeilingSlab } from '@/adapters/planTo3d'
 import { Button } from '@/components/ui/Button'
 import { Download } from 'lucide-react'
-// SPRINT 42B DEBUG: on-screen window count readout
-const DEBUG_WINDOW_OVERLAY_STYLE: React.CSSProperties = {
-  position: 'fixed',
-  top: 8,
-  left: 8,
-  zIndex: 9999,
-  background: 'rgba(0,0,0,0.85)',
-  color: '#ff00ff',
-  padding: '8px 12px',
-  borderRadius: 6,
-  fontFamily: 'monospace',
-  fontSize: 14,
-  fontWeight: 700,
-  pointerEvents: 'none',
-}
 
 // ── Brand palette materials (PBR) ──
 const WALL_EXT_MAT = new THREE.MeshStandardMaterial({
@@ -40,13 +25,21 @@ const DOOR_LEAF_MAT = new THREE.MeshStandardMaterial({
 const DOOR_FRAME_MAT = new THREE.MeshStandardMaterial({
   color: '#78716c', roughness: 0.7, metalness: 0.0,
 })
-// SPRINT 42B DEBUG: bright opaque magenta, protrudes through wall, cannot be hidden
 const WINDOW_GLASS_MAT = new THREE.MeshStandardMaterial({
-  color: '#ff00ff',
-  transparent: false,
+  color: '#7dd3fc',
+  transparent: true,
+  opacity: 0.5,
+  depthWrite: false,
   side: THREE.DoubleSide,
-  emissive: '#ff00ff',
-  emissiveIntensity: 0.6,
+  roughness: 0.1,
+  metalness: 0.0,
+  emissive: '#06b6d4',
+  emissiveIntensity: 0.15,
+})
+const WINDOW_FRAME_MAT = new THREE.MeshStandardMaterial({
+  color: '#cbd5e1',
+  roughness: 0.7,
+  metalness: 0.0,
 })
 const ROOF_MAT = new THREE.MeshStandardMaterial({
   color: '#a0522d', roughness: 0.85, metalness: 0.0,
@@ -120,13 +113,34 @@ function DoorMesh({ op }: { op: Opening3d }) {
   )
 }
 
-// SPRINT 42B DEBUG: bright protruding box no frame elements — MAXIMALLY VISIBLE
 function WindowMesh({ op }: { op: Opening3d }) {
-  const paneDepth = op.wallThickness * 1.5
+  const glassZ = op.wallThickness * 0.5
+  const glassY = op.sillHeight + op.height / 2
+  const ft = 0.06
+  const hh = op.height
+  const ww = op.width
+  const ss = op.sillHeight
   return (
     <group position={[op.centerX, op.centerY, op.centerZ]} rotation={[0, op.wallAngle, 0]}>
-      <mesh position={[0, op.sillHeight + op.height / 2, 0]} renderOrder={999} material={WINDOW_GLASS_MAT}>
-        <boxGeometry args={[op.width, op.height, paneDepth]} />
+      {/* Glass pane — thin box inside the wall */}
+      <mesh position={[0, glassY, 0]} renderOrder={1} material={WINDOW_GLASS_MAT}>
+        <boxGeometry args={[ww, hh, glassZ]} />
+      </mesh>
+      {/* Frame: head — top horizontal bar */}
+      <mesh position={[0, ss + hh - ft / 2, 0]} material={WINDOW_FRAME_MAT}>
+        <boxGeometry args={[ww + ft * 2, ft, ft]} />
+      </mesh>
+      {/* Frame: sill — bottom horizontal bar */}
+      <mesh position={[0, ss + ft / 2, 0]} material={WINDOW_FRAME_MAT}>
+        <boxGeometry args={[ww + ft * 2, ft, ft]} />
+      </mesh>
+      {/* Frame: left jamb */}
+      <mesh position={[-ww / 2 - ft / 2, ss + hh / 2, 0]} material={WINDOW_FRAME_MAT}>
+        <boxGeometry args={[ft, hh + ft * 2, ft]} />
+      </mesh>
+      {/* Frame: right jamb */}
+      <mesh position={[ww / 2 + ft / 2, ss + hh / 2, 0]} material={WINDOW_FRAME_MAT}>
+        <boxGeometry args={[ft, hh + ft * 2, ft]} />
       </mesh>
     </group>
   )
@@ -266,12 +280,12 @@ function Scene({ result, buildingRef }: { result: PlanTo3dResult; buildingRef: R
 
         {/* Doors */}
         {result.openings.filter((o) => o.kind === 'door').map((o) => (
-          <DoorMesh key={`door-${o.openingId}`} op={o} />
+          <DoorMesh key={`door-${o.openingId}-s${o.storeyIndex}`} op={o} />
         ))}
 
         {/* Windows */}
         {result.openings.filter((o) => o.kind === 'window').map((o) => (
-          <WindowMesh key={`win-${o.openingId}`} op={o} />
+          <WindowMesh key={`win-${o.openingId}-s${o.storeyIndex}`} op={o} />
         ))}
 
         {/* Roof (pitched gable on topmost storey) */}
@@ -301,29 +315,6 @@ export function BimModel3D({ plan, design, height = 480 }: BimModel3DProps) {
   const [isExporting, setIsExporting] = useState(false)
 
   const result = useMemo(() => planTo3d(plan, numberOfStoreys), [plan, numberOfStoreys])
-
-  // SPRINT 42B DEBUG: log window placement details
-  const windowPlacements = result.openings.filter((o) => o.kind === 'window')
-  const windowRenderCount = windowPlacements.length
-  // console.log every render (dev only)
-  if (windowPlacements.length > 0) {
-    // eslint-disable-next-line no-console
-    console.log(
-      '[WIN-42B] placed=', windowPlacements.length,
-      'rendered=', windowRenderCount,
-      'details=', windowPlacements.map((w) => ({
-        id: w.openingId,
-        storey: w.storeyIndex,
-        pos: [w.centerX.toFixed(2), w.centerY.toFixed(2), w.centerZ.toFixed(2)],
-        angle: (w.wallAngle * 180 / Math.PI).toFixed(1) + 'deg',
-        sill: w.sillHeight,
-        h: w.height,
-        w: w.width,
-        wallThick: w.wallThickness,
-        wallId: w.wallId,
-      })),
-    )
-  }
 
   // Export handler — dynamically import GLTFExporter on click
   const handleExport = useCallback(async () => {
@@ -376,10 +367,6 @@ export function BimModel3D({ plan, design, height = 480 }: BimModel3DProps) {
 
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10">
-      {/* SPRINT 42B DEBUG: on-screen window count readout */}
-      <div style={DEBUG_WINDOW_OVERLAY_STYLE}>
-        [WIN-42B] placed: {windowPlacements.length} | rendered: {windowRenderCount}
-      </div>
       <Canvas
         camera={{
           position: [result.bounds.width / 2 + camDist * 0.6, camHeight, result.bounds.depth / 2 + camDist * 0.6],
