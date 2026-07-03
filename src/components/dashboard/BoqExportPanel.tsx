@@ -1,9 +1,9 @@
-import { useMemo, useState, Fragment } from 'react'
+import { useMemo, useState, Fragment, useCallback } from 'react'
 import type { DesignOption } from '@/domain/boq'
 import { buildBoqFromDesignOption, buildExportCsv, buildExportHtml, getCostPerM2, downloadTextFile } from '@/adapters/designToBoq'
 import type { BoqResult } from '@/adapters/designToBoq'
 import { getSupportedRegions, getDefaultRegionId } from '@/adapters/rateCardAdapter'
-import { Calculator, FileDown, FileText, Printer, Info, Shield } from 'lucide-react'
+import { Calculator, FileDown, FileText, FilePieChart, Printer, Info, Shield } from 'lucide-react'
 import { makeMoney } from '@/lib/utils/currency'
 
 interface BoqExportPanelProps {
@@ -118,6 +118,24 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
     }
     onExport?.('print')
   }
+
+  const [pdfExporting, setPdfExporting] = useState(false)
+
+  const handleExportPdf = useCallback(async () => {
+    if (!boq || !selectedDesign) return
+    setPdfExporting(true)
+    try {
+      const { generatePdfReport } = await import('@/adapters/boqToPdf')
+      await generatePdfReport(selectedDesign, boq)
+      setExported(true)
+      onExport?.('print')
+    } catch (err) {
+      console.error('PDF export failed:', err)
+    } finally {
+      setPdfExporting(false)
+      setTimeout(() => setExported(false), 3000)
+    }
+  }, [boq, selectedDesign, onExport])
 
   if (!selectedDesign) {
     return (
@@ -382,6 +400,14 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
           >
             <FileDown size={14} />
             Export BOQ CSV
+          </button>
+          <button
+            onClick={handleExportPdf}
+            disabled={!boq || pdfExporting}
+            className="flex items-center gap-2 rounded-lg border border-stone-700/60 bg-stone-900/80 px-3 py-2 text-xs text-stone-300 transition-colors hover:border-cyan-600/40 hover:bg-cyan-500/5 hover:text-cyan-200 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <FilePieChart size={14} />
+            {pdfExporting ? 'Preparing PDF\u2026' : 'Download PDF Report'}
           </button>
           <button
             onClick={handleExportHtml}

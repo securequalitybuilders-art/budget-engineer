@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+### Sprint 43 — Print-friendly PDF BOQ + Cost Report (free/offline)
+
+**Additive feature**: `Download PDF Report` button on the Cost & Deliver panel generates a professional PDF entirely client-side (no server, no paid API).
+
+1. **Lazy-loaded PDF generation**: Uses jsPDF + jspdf-autotable (both MIT), dynamically imported on button click (`async import()`). Shows `Preparing PDF...` state during generation. Does NOT bloat initial bundle — pdf libs are separate chunks (boqToPdf=5kB, jspdf=391kB, autotable=31kB).
+2. **PDF contents**:
+   - Header: `Budget Engineer — Cost Report` with Deep Cobalt brand bar, project name, date
+   - Project summary: building type, area (m2), storeys, design option name, quantity source label
+   - Disclaimer: "Early estimate — consult a registered professional for final construction."
+   - BOQ table grouped by trade (reuses same grouping logic as on-screen panel: Substructure, Walling, Roofing, Openings, Finishes, Services, Fittings), with group subtotals
+   - Grand total breakdown: subtotal, contingency, professional fees, VAT, grand total (with green highlight)
+   - Footer: page numbers + repo URL on every page
+3. **Currency**: Reuses existing `currencySymbol` helper for formatting.
+4. **Optional 3D snapshot**: Adapter accepts optional `snapshotDataUrl` param; gracefully skips if unavailable. Not wired yet (requires WebGL context ref exposure in BimModel3D — deferred).
+5. **Existing CSV/HTML/Print exports preserved**.
+6. **Filename**: `BudgetEngineer-<projectname>-BOQ.pdf`.
+
+**Validation:**
+- Typecheck: 0 errors
+- Lint: 0 errors (9 pre-existing warnings)
+- Tests: 346 passed (26 files)
+- Build: success — 3D chunk still code-split; PDF libs in separate chunks
+
+**Documentation:** `docs/SPRINT_43_PDF_BOQ_REPORT.md`
+
 ### Sprint 42C — Final window fix: visible glazing + frames, fix multi-storey key collision, remove debug
 
 **Permanent fix** after Sprint 42B confirmed meshes render correctly:
