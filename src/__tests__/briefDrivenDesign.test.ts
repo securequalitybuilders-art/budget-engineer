@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { generatePlanModel } from '@/engine/plan-generator'
 import { getRoomProgram, ROOM_PROGRAMS } from '@/engine/roomPrograms'
+import { BUILDING_TYPES, isResidential } from '@/engine/buildingTypes'
 import type { DesignOption } from '@/domain/boq'
 
 function makeDesign(overrides: Partial<DesignOption> = {}): DesignOption {
@@ -103,5 +104,32 @@ describe('briefDrivenDesign — room programs per building type', () => {
       const totalRatio = program.reduce((sum, r) => sum + r.ratio, 0)
       expect(totalRatio).toBeCloseTo(1.0, 1)
     }
+  })
+
+  it('every BUILDING_TYPE has an entry in ROOM_PROGRAMS', () => {
+    for (const t of BUILDING_TYPES) {
+      expect(ROOM_PROGRAMS[t], `ROOM_PROGRAMS missing key '${t}'`).toBeDefined()
+    }
+  })
+
+  it('residential types are correctly identified by isResidential', () => {
+    expect(isResidential('house')).toBe(true)
+    expect(isResidential('apartment')).toBe(true)
+    expect(isResidential('townhouse')).toBe(true)
+    expect(isResidential('clinic')).toBe(false)
+    expect(isResidential('school')).toBe(false)
+    expect(isResidential('commercial')).toBe(false)
+    expect(isResidential('office')).toBe(false)
+    expect(isResidential('other')).toBe(false)
+    expect(isResidential('')).toBe(false)
+    expect(isResidential('residential')).toBe(false)
+  })
+
+  it('programFromArea routes non-residential types to roomPrograms (not fallback)', () => {
+    const clinicPlan = generatePlanModel(makeDesign({ buildingType: 'clinic', grossFloorArea: 150 }))
+    const clinicNames = clinicPlan.rooms.map((r) => r.name)
+    // Has consultation rooms (clinic program), not bedrooms (would be house fallback)
+    expect(clinicNames.some((n) => n.includes('Consultation'))).toBe(true)
+    expect(clinicNames.some((n) => n.toLowerCase().includes('bedroom'))).toBe(false)
   })
 })

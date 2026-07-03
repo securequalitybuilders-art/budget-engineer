@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+### Sprint 39A — Brief wiring fix: selected building type reaches plan generation (clinic != house)
+
+**Fixed (persistence):** Building type was lost during IndexedDB save/load — all persisted designs loaded as `'house'`.
+- Added `buildingType` field to `Design` type so it is stored and retrieved correctly
+- `loadPersistedDesignOptions` now reads `d.buildingType || 'house'` instead of hardcoding `'house'`
+
+**Fixed (wiring):** The AI Brief Panel's `onParsed` callback was not connected, so the store's `currentBrief.buildingType` was never updated from the dropdown selection.
+- `EngineeringStudioPanel` now passes `onParsed` prop through to `AiBriefPanel`
+- Dashboard tracks `latestBuildingType` from the AI parse result
+
+**Fixed (default):** Project store's `updateBrief` default `buildingType: 'residential'` fell through to house in `getRoomProgram` because `ROOM_PROGRAMS` has no 'residential' key.
+- Changed default `buildingType` from `'residential'` to `'house'`
+
+**Added:** Shared `BUILDING_TYPES` constant in `src/engine/buildingTypes.ts` so dropdown values, room program keys, and residential-check all reference the same canonical enum.
+
+**Tests:** +4 tests (318 total, 25 files) — persistence round-trip preserves clinic buildingType, every BUILDING_TYPE has a ROOM_PROGRAMS entry, isResidential() correctly classifies all types, programFromArea routes non-residential correctly.
+
+**Files:**
+- `src/engine/buildingTypes.ts` (new)
+- `src/types/index.ts`, `src/ai/designEngine.ts`, `src/services/projectPersistenceService.ts`
+- `src/stores/projectStore.ts`, `src/engine/plan-generator.ts`
+- `src/components/dashboard/EngineeringStudioPanel.tsx`, `src/pages/Dashboard.tsx`
+- `src/components/ai/AiBriefPanel.tsx`, `src/engine/roomPrograms.ts`
+- `src/__tests__/briefDrivenDesign.test.ts`, `src/__tests__/projectPersistenceService.test.ts`
+
 ## [0.2.0] - 2026-07-02
 
 - Restore lint baseline to 9 warnings by typing the Sprint 38 test value (Sprint 38A)

@@ -39,6 +39,7 @@ export function Dashboard() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeCanvasView, setActiveCanvasView] = useState<'plan' | 'bim'>('plan');
   const [aiDesignOptions, setAiDesignOptions] = useState<DesignOption[]>([]);
+  const [latestBuildingType, setLatestBuildingType] = useState<string | null>(null);
   const [persistedPlan, setPersistedPlan] = useState<PlanModel | null>(null);
   const [cadSyncSource, setCadSyncSource] = useState<GeometrySource>('generated-design');
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
@@ -62,7 +63,7 @@ export function Dashboard() {
     }, 3000);
   }
 
-  const buildingType = currentBrief?.parsed?.buildingType ?? 'house'
+  const buildingType = latestBuildingType ?? currentBrief?.parsed?.buildingType ?? 'house'
 
   const designOptions = useMemo<DesignOption[]>(
     () =>
@@ -542,7 +543,7 @@ export function Dashboard() {
             />
             <PropertiesPanel />
             <TransactionPanel />
-            <EngineeringStudioPanel selectedDesign={selectedDesign} onDesignOptionsGenerated={handleAiDesignOptions} />
+            <EngineeringStudioPanel selectedDesign={selectedDesign} onDesignOptionsGenerated={handleAiDesignOptions} onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }} />
             <BoqExportPanel selectedDesign={selectedDesign} boq={currentBoq} onExport={handleExport} />
             <EngineeringAnalysisPanel selectedDesign={selectedDesign} />
             <GovernancePanel

@@ -3,7 +3,7 @@ import { AiEngine, ParseResult, parseWithEngine } from '@/lib/ai/ai-provider';
 import { generateDesignOptionsFromBriefText } from '@/adapters/aiDesignAdapter';
 import type { DesignOption } from '@/domain/boq';
 
-const BUILDING_TYPES = [
+const BUILDING_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: 'house', label: 'House / Residential' },
   { value: 'apartment', label: 'Apartment / Flat' },
   { value: 'townhouse', label: 'Townhouse' },
@@ -58,7 +58,7 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
         onChange={(e) => setBuildingType(e.target.value)}
         className="mb-3 w-full rounded border border-stone-700 bg-stone-800 p-2 text-sm text-stone-200 focus:border-cyan-600 focus:outline-none"
       >
-        {BUILDING_TYPES.map((t) => (
+        {BUILDING_TYPE_OPTIONS.map((t) => (
           <option key={t.value} value={t.value}>{t.label}</option>
         ))}
       </select>

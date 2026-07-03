@@ -1,6 +1,7 @@
 import type { DesignOption } from '../domain/boq'
 import type { Opening, PlanModel, RoomRect, WallSegment } from '../domain/plan'
 import { getRoomProgram } from './roomPrograms'
+import { isResidential } from './buildingTypes'
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 
@@ -20,8 +21,7 @@ function normalizeFootprint(area: number) {
  */
 function programFromArea(area: number, buildingType: string): Array<{ name: string; ratio: number }> {
   // Non-residential types use their fixed room program
-  const residential = ['house', 'apartment', 'townhouse']
-  if (!residential.includes(buildingType)) {
+  if (!isResidential(buildingType)) {
     return getRoomProgram(buildingType)
   }
 

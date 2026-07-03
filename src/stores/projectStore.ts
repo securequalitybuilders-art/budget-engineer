@@ -147,7 +147,7 @@ export const useProjectStore = create<ProjectState>()(
             projectId,
             rawText,
             parsed: {
-              buildingType: 'residential',
+              buildingType: 'house',
               floors: 1,
               location: 'zimbabwe',
               standards: ['ZBC 1996'],

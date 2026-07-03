@@ -40,6 +40,7 @@ function designOptionToStoreDesign(projectId: string, opt: DesignOption, index: 
     optionIndex: index,
     parameters: { areaM2: opt.grossFloorArea, floors: opt.floors },
     elements: mapDesignOptionElementsToStore(opt.elements),
+    buildingType: opt.buildingType || 'house',
     generatedAt: new Date().toISOString(),
   }
 }
@@ -63,7 +64,7 @@ export async function loadPersistedDesignOptions(projectId: string): Promise<Des
       name: d.name,
       grossFloorArea: d.parameters.areaM2 ?? 150,
       floors: d.parameters.floors ?? 1,
-      buildingType: 'house',
+      buildingType: d.buildingType || 'house',
       elements: mapStoreElementsToDesignOption(d.elements),
     }))
   } catch {

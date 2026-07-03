@@ -185,7 +185,7 @@ function buildDesignSchema(brief: ParsedBrief, style: DesignSchema['style'], opt
   });
 }
 
-function schemaToDesign(projectId: string, schema: DesignSchema): Design {
+function schemaToDesign(projectId: string, schema: DesignSchema, buildingType: string): Design {
   return {
     id: uuid(),
     projectId,
@@ -198,6 +198,7 @@ function schemaToDesign(projectId: string, schema: DesignSchema): Design {
       totalAreaM2: schema.totalAreaM2,
     },
     elements: buildElements(schema.rooms, schema.floors, schema.features),
+    buildingType,
     generatedAt: new Date().toISOString(),
   };
 }
@@ -213,7 +214,7 @@ export function generateDesignOptions(
   const styles: DesignSchema['style'][] = ['compact', 'standard', 'spacious'];
   return styles.map((style, idx) => {
     const schema = buildDesignSchema(brief, style, idx);
-    return schemaToDesign(projectId, schema);
+    return schemaToDesign(projectId, schema, brief.buildingType);
   });
 }
 
@@ -223,10 +224,11 @@ export function generateDesignOptions(
 export function generateDesignOptionsFromBrief(
   projectId: string,
   rawText: string,
-  baseRegion = 'zimbabwe'
+  baseRegion = 'zimbabwe',
+  buildingType = 'house',
 ): Design[] {
   const brief = parsedBriefSchema.parse({
-    buildingType: 'house',
+    buildingType,
     floors: 1,
     bedrooms: 2,
     bathrooms: 1,

@@ -8,6 +8,7 @@ import { SectionView } from '@/components/drawings/SectionView';
 import { RATE_CARDS } from '@/lib/rates/rate-card';
 import type { DesignOption } from '@/domain/boq';
 import type { BimModel, CadDocument, CadFloor } from '@/domain/ws6-types';
+import type { ParseResult } from '@/lib/ai/ai-provider';
 
 function EmptyState({ message }: { message: string }) {
   return (
@@ -81,9 +82,10 @@ function buildSampleBim(design: DesignOption | null): BimModel | null {
 interface EngineeringStudioPanelProps {
   selectedDesign: DesignOption | null;
   onDesignOptionsGenerated?: (options: DesignOption[]) => void;
+  onParsed?: (result: ParseResult) => void;
 }
 
-export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerated }: EngineeringStudioPanelProps) {
+export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerated, onParsed }: EngineeringStudioPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('ai');
 
   const sampleCad = useMemo(() => buildSampleCad(selectedDesign), [selectedDesign]);
@@ -118,7 +120,7 @@ export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerate
       </div>
 
       <div className="flex-1 overflow-y-auto p-3">
-        <div id="ai-panel" role="tabpanel" aria-labelledby="ai-tab" hidden={activeTab !== 'ai'}>{activeTab === 'ai' && <AiBriefPanel onDesignOptionsGenerated={onDesignOptionsGenerated} />}</div>
+        <div id="ai-panel" role="tabpanel" aria-labelledby="ai-tab" hidden={activeTab !== 'ai'}>{activeTab === 'ai' && <AiBriefPanel onParsed={onParsed} onDesignOptionsGenerated={onDesignOptionsGenerated} />}</div>
 
         <div id="rates-panel" role="tabpanel" aria-labelledby="rates-tab" hidden={activeTab !== 'rates'}>{activeTab === 'rates' && <RateCardPanel card={RATE_CARDS.zimbabwe} />}</div>
 

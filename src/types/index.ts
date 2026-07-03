@@ -94,6 +94,7 @@ export interface Design {
   optionIndex: number;
   parameters: Record<string, number>;
   elements: BuildingElement[];
+  buildingType: string;
   generatedAt: string;
 }
 

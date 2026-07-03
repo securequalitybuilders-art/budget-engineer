@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import 'fake-indexeddb/auto'
 import { db } from '@/db/db'
+import { persistDesigns, loadPersistedProjectWork } from '@/services/projectPersistenceService'
 
 describe('projectPersistenceService (Dexie smoke)', () => {
   beforeAll(async () => {
@@ -24,11 +25,12 @@ describe('projectPersistenceService (Dexie smoke)', () => {
   it('can write and read a design', async () => {
     const design = {
       id: 'test-design-1',
-      projectId: 'test-project-1',
+      projectId: 'test-project',
       name: 'Test Design',
       optionIndex: 0,
       parameters: { areaM2: 150, floors: 1 },
       elements: [],
+      buildingType: 'house',
       generatedAt: new Date().toISOString(),
     }
     await db.designs.put(design)
@@ -56,12 +58,26 @@ describe('projectPersistenceService (Dexie smoke)', () => {
   })
 
   it('can query designs by projectId', async () => {
-    const designs = await db.designs.where({ projectId: 'test-project-1' }).toArray()
+    const designs = await db.designs.where({ projectId: 'test-project' }).toArray()
     expect(designs.length).toBeGreaterThanOrEqual(1)
   })
 
   it('can count boqs', async () => {
     const count = await db.boqs.count()
     expect(count).toBeGreaterThanOrEqual(0)
+  })
+
+  it('persistDesigns + loadPersistedProjectWork round-trip preserves buildingType', async () => {
+    const options = [
+      { id: 'rt-1', name: 'Clinic A', grossFloorArea: 120, floors: 1, buildingType: 'clinic', elements: [] },
+      { id: 'rt-2', name: 'School B', grossFloorArea: 200, floors: 2, buildingType: 'school', elements: [] },
+    ]
+    await persistDesigns('rt-project', options)
+    const loaded = await loadPersistedProjectWork('rt-project')
+    expect(loaded.designs).toHaveLength(2)
+    const clinic = loaded.designs.find((d) => d.id === 'rt-1')
+    const school = loaded.designs.find((d) => d.id === 'rt-2')
+    expect(clinic?.buildingType).toBe('clinic')
+    expect(school?.buildingType).toBe('school')
   })
 })
