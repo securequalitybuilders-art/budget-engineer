@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { AiEngine, ParseResult, parseWithEngine } from '@/lib/ai/ai-provider';
 import { generateDesignOptionsFromBriefText } from '@/adapters/aiDesignAdapter';
 import type { DesignOption } from '@/domain/boq';
+// TEMPORARY DEBUG — Sprint 39B
+import { setBtTrace } from '@/lib/debug/buildingTypeTrace';
 
 const BUILDING_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: 'house', label: 'House / Residential' },
@@ -40,6 +42,9 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
       setAiStatus(
         `✅ Generated ${count} design option${count > 1 ? 's' : ''} via local rules`
       );
+      // TEMPORARY DEBUG — Sprint 39B
+      setBtTrace('briefBuildingType', optionsResult.parsed.buildingType ?? 'house')
+      setBtTrace('optionsBuildingTypes', optionsResult.designOptions.map((o) => o.buildingType))
       onParsed?.(result);
       onDesignOptionsGenerated?.(optionsResult.designOptions);
     } catch (err) {
@@ -55,7 +60,11 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
       <label className="mb-1 block text-xs font-medium text-stone-400">Building type</label>
       <select
         value={buildingType}
-        onChange={(e) => setBuildingType(e.target.value)}
+        onChange={(e) => {
+          const next = e.target.value
+          setBuildingType(next)
+          setBtTrace('dropdownValue', next)
+        }}
         className="mb-3 w-full rounded border border-stone-700 bg-stone-800 p-2 text-sm text-stone-200 focus:border-cyan-600 focus:outline-none"
       >
         {BUILDING_TYPE_OPTIONS.map((t) => (

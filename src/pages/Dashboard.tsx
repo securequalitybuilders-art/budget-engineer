@@ -1,4 +1,6 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+// TEMPORARY DEBUG — Sprint 39B
+import { BuildingTypeDebugPanel } from '@/components/debug/BuildingTypeDebugPanel';
 import { useParams, Link } from 'react-router-dom';
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -31,6 +33,8 @@ import { savePlanModel, loadPlanModel, loadPlanModelMeta, deletePlanModel } from
 import type { DesignOption } from '@/domain/boq';
 import type { PlanModel } from '@/domain/plan';
 import type { GeometrySource } from '@/adapters/cadToDesignSyncAdapter';
+// TEMPORARY DEBUG — Sprint 39B
+import { setBtTrace } from '@/lib/debug/buildingTypeTrace';
 
 export function Dashboard() {
   const { id } = useParams<{ id: string }>();
@@ -91,6 +95,10 @@ export function Dashboard() {
   );
 
   const selectedDesign = visibleDesignOptions.find((d) => d.id === selectedDesignId) ?? visibleDesignOptions[0] ?? null;
+  // TEMPORARY DEBUG — Sprint 39B
+  useEffect(() => {
+    setBtTrace('selectedDesignBuildingType', selectedDesign?.buildingType ?? 'null')
+  }, [selectedDesign])
   const bimModel = useMemo(() => designOptionToBimModel(selectedDesign), [selectedDesign]);
 
   // Active PlanModel: prefer CAD-edited persisted plan, else generated from design
@@ -308,7 +316,9 @@ export function Dashboard() {
   }
 
   return (
-    <BentoShell>
+    <>
+      <BuildingTypeDebugPanel />
+      <BentoShell>
       <Sidebar />
 
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -567,5 +577,6 @@ export function Dashboard() {
 
       <AIChatPanel />
     </BentoShell>
+    </>
   );
 }

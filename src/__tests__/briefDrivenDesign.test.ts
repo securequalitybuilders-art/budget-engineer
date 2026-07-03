@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { generatePlanModel } from '@/engine/plan-generator'
 import { getRoomProgram, ROOM_PROGRAMS } from '@/engine/roomPrograms'
 import { BUILDING_TYPES, isResidential } from '@/engine/buildingTypes'
+import { generateDesignOptionsFromBriefText } from '@/adapters/aiDesignAdapter'
+import { parseWithEngine } from '@/lib/ai/ai-provider'
 import type { DesignOption } from '@/domain/boq'
 
 function makeDesign(overrides: Partial<DesignOption> = {}): DesignOption {
@@ -131,5 +133,23 @@ describe('briefDrivenDesign — room programs per building type', () => {
     // Has consultation rooms (clinic program), not bedrooms (would be house fallback)
     expect(clinicNames.some((n) => n.includes('Consultation'))).toBe(true)
     expect(clinicNames.some((n) => n.toLowerCase().includes('bedroom'))).toBe(false)
+  })
+
+  // INTEGRATION TEST — mimics the real AiBriefPanel generate flow:
+  // parseWithEngine → generateDesignOptionsFromBriefText(buildingTypeOverride='clinic')
+  // → generatePlanModel → check rooms
+  it('REAL FLOW: generateDesignOptionsFromBriefText with clinic override + generatePlanModel yields clinic rooms', async () => {
+    const briefText = 'clinic 200 m2'
+    await parseWithEngine(briefText, 'local-rules')
+    const optionsResult = generateDesignOptionsFromBriefText(briefText, 'zimbabwe', 'clinic')
+    expect(optionsResult.designOptions.length).toBeGreaterThan(0)
+    for (const opt of optionsResult.designOptions) {
+      expect(opt.buildingType).toBe('clinic')
+    }
+    const firstOption = optionsResult.designOptions[0]
+    const plan = generatePlanModel(firstOption)
+    const planNames = plan.rooms.map((r) => r.name)
+    expect(planNames.some((n) => n.includes('Consultation'))).toBe(true)
+    expect(planNames.some((n) => n.toLowerCase().includes('bedroom'))).toBe(false)
   })
 })

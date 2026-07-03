@@ -98,6 +98,12 @@ export const ROOM_PROGRAMS: Record<string, RoomDef[]> = {
  * Falls back to 'house' for unknown/empty types.
  */
 export function getRoomProgram(type: string | undefined | null): RoomDef[] {
-  if (type && ROOM_PROGRAMS[type]) return ROOM_PROGRAMS[type]
+  if (type && ROOM_PROGRAMS[type]) {
+    // TEMPORARY DEBUG — Sprint 39B
+    console.log('[BT-DEBUG] getRoomProgram key =', type, 'FOUND in ROOM_PROGRAMS')
+    return ROOM_PROGRAMS[type]
+  }
+  // TEMPORARY DEBUG — Sprint 39B
+  console.log('[BT-DEBUG] getRoomProgram key =', type, 'NOT FOUND — falling back to house')
   return ROOM_PROGRAMS.house
 }

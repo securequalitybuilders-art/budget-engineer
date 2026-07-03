@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+### Sprint 39B — Temporary runtime debug panel to trace buildingType through the live flow
+
+**Temporary on-screen debug panel** (`BuildingTypeDebugPanel`) mounted in the Dashboard overlay (top-left, z-index 99999) that shows the live buildingType value at each of 7 stages:
+1. `dropdownValue` — the current dropdown selection
+2. `briefBuildingType` — parsed buildingType after override
+3. `optionsBuildingTypes` — buildingType on each generated DesignOption
+4. `selectedDesignBuildingType` — buildingType on the currently selected design
+5. `planGenBuildingType` — value inside `generatePlanModel()` right before room layout
+6. `programKeyUsed` — which ROOM_PROGRAMS key getRoomProgram resolved to
+7. `firstThreeRoomNames` — first 3 room names from the resulting PlanModel
+
+Each stage also `console.log`s with prefix `[BT-DEBUG]`.
+
+**Integration test** added: `REAL FLOW: generateDesignOptionsFromBriefText with clinic override + generatePlanModel yields clinic rooms` — calls the exact same chain as the live button click (`parseWithEngine` → `generateDesignOptionsFromBriefText` with override → `generatePlanModel`). **This test PASSES**, confirming the pure function chain is correct — the bug lies in React state wiring, persistence, or timing, not in the adapter/engine functions.
+
+**Documentation:** `docs/SPRINT_39B_RUNTIME_DEBUG_REPORT.md`
+
 ### Sprint 39A — Brief wiring fix: selected building type reaches plan generation (clinic != house)
 
 **Fixed (persistence):** Building type was lost during IndexedDB save/load — all persisted designs loaded as `'house'`.
