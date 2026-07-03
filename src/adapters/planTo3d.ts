@@ -126,7 +126,7 @@ function splitWall(
 
   const dx = ex - sx
   const dz = ez - sz
-  const angle = -Math.atan2(dx, dz)
+  const angle = Math.atan2(dz, dx)
 
   // All openings on this wall, sorted by offset (centre ratio)
   const wallOpenings = (plan.openings ?? []).filter((o) => o.wallId === wallId)
@@ -315,7 +315,7 @@ export function resolveOpeningPosition(
   const cx = wall.startX + dx * centreRatio
   const cz = wall.startZ + dz * centreRatio
   const cy = storeyIndex * storeyHeight
-  const angle = -Math.atan2(dx, dz)
+  const angle = Math.atan2(dz, dx)
   const opHeight = opening.height ?? (opening.kind === 'door' ? DOOR_DEFAULT_HEIGHT : WINDOW_DEFAULT_HEIGHT)
   const opSill = opening.sillHeight ?? (opening.kind === 'door' ? DOOR_DEFAULT_SILL : WINDOW_DEFAULT_SILL)
   return {

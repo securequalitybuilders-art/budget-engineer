@@ -51,7 +51,7 @@ function WallPierMesh({ pier }: { pier: WallPier }) {
   const midX = (pier.startX + pier.endX) / 2
   const midZ = (pier.startZ + pier.endZ) / 2
   const midY = pier.height / 2 + pier.storeyIndex * DEFAULT_STOREY_HEIGHT
-  const angle = -Math.atan2(dx, dz)
+  const angle = Math.atan2(dz, dx)
   const mat = pier.type === 'external' ? WALL_EXT_MAT : WALL_INT_MAT
 
   return (

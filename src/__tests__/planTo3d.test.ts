@@ -220,8 +220,8 @@ describe('planTo3d — pure adapter', () => {
     // Door defaults
     expect(op.height).toBe(DOOR_DEFAULT_HEIGHT)
     expect(op.sillHeight).toBe(DOOR_DEFAULT_SILL)
-    // Wall direction angle: horizontal wall (dx=10, dz=0) => atan2(10,0) = PI/2, negated
-    expect(op.wallAngle).toBeCloseTo(-Math.PI / 2)
+    // Wall direction angle: horizontal wall (dx=10, dz=0) => atan2(0,10) = 0
+    expect(op.wallAngle).toBeCloseTo(0)
     expect(op.wallThickness).toBe(0.25)
   })
 
@@ -389,5 +389,142 @@ describe('planTo3d — pure adapter', () => {
     const plan = makePlan()
     const result = planTo3d(plan, 0)
     expect(result.roof).toBeNull()
+  })
+
+  // ── Geometric coherency tests ──
+
+  it('adjacent perimeter walls share endpoints (corners connect)', () => {
+    const plan = makePlan()
+    const result = planTo3d(plan, 1)
+    // w1: (0,0)->(12,0), w2: (12,0)->(12,8), w3: (12,8)->(0,8), w4: (0,8)->(0,0)
+    const w1 = result.walls.find((w) => w.wallId === 'w1')!
+    const w2 = result.walls.find((w) => w.wallId === 'w2')!
+    const w3 = result.walls.find((w) => w.wallId === 'w3')!
+    const w4 = result.walls.find((w) => w.wallId === 'w4')!
+    expect(w1.endX).toBe(w2.startX)
+    expect(w1.endZ).toBe(w2.startZ)
+    expect(w2.endX).toBe(w3.startX)
+    expect(w2.endZ).toBe(w3.startZ)
+    expect(w3.endX).toBe(w4.startX)
+    expect(w3.endZ).toBe(w4.startZ)
+    expect(w4.endX).toBe(w1.startX)
+    expect(w4.endZ).toBe(w1.startZ)
+  })
+
+  it('wall box position and rotation match segment midpoint and direction', () => {
+    const plan = makePlan()
+    const result = planTo3d(plan, 1)
+    const w1 = result.walls.find((w) => w.wallId === 'w1')!
+    // Segment (0,0)->(12,0): midpoint=(6,0), dx=12, dz=0 => angle=atan2(0,12)=0
+    expect(w1.startX).toBe(0)
+    expect(w1.startZ).toBe(0)
+    expect(w1.endX).toBe(12)
+    expect(w1.endZ).toBe(0)
+    // BimModel3D computes: midX=(0+12)/2=6, midZ=0, angle=atan2(0,12)=0
+    // Box: length=12, height=3, thickness=0.25, rotation around Y=0 => aligns with +X
+    // WallPierMesh position: [6, 1.5, 0] rotation [0, 0, 0]
+    const midX = (w1.startX + w1.endX) / 2
+    const midZ = (w1.startZ + w1.endZ) / 2
+    expect(midX).toBe(6)
+    expect(midZ).toBe(0)
+    const dx = w1.endX - w1.startX
+    const dz = w1.endZ - w1.startZ
+    const angle = Math.atan2(dz, dx)
+    expect(angle).toBe(0)
+  })
+
+  it('roof eave height exactly equals top of top-storey walls (no gap)', () => {
+    const plan = makePlan()
+    const result = planTo3d(plan, 2)
+    expect(result.roof).not.toBeNull()
+    const roof = result.roof!
+    const wallTopY = 2 * DEFAULT_STOREY_HEIGHT
+    expect(roof.eaveY).toBe(wallTopY)
+    expect(roof.eaveY).toBe(result.bounds.totalHeight)
+    expect(roof.pitchHeight).toBe(ROOF_PITCH_HEIGHT)
+    expect(roof.eaveY + roof.pitchHeight).toBe(wallTopY + roof.pitchHeight)
+  })
+
+  it('roof footprint covers building bounds with overhang', () => {
+    const plan = makePlan({ width: 10, height: 6 })
+    const result = planTo3d(plan, 1)
+    const roof = result.roof!
+    // Roof spans -overhang to width+overhang along ridge axis
+    expect(roof.ridgeAxis).toBe('x')
+    expect(roof.ridgeLength).toBe(10 + ROOF_OVERHANG * 2)
+    expect(roof.buildingWidth).toBe(10)
+    expect(roof.buildingDepth).toBe(6)
+    // Eave vertices: from -oh to bw+oh and -oh to bd+oh
+    // Walls are at z=0..6, roof eaves at z=-0.3..6.3 => covers
+    expect(roof.overhang).toBe(ROOF_OVERHANG)
+  })
+
+  it('opening 3D center lies on its wall segment at the offset ratio and correct height', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'o1', wallId: 'w1', kind: 'door', offset: 0.5, width: 1.0 },
+        { id: 'o2', wallId: 'w4', kind: 'window', offset: 0.3, width: 1.5 },
+      ],
+    })
+    const result = planTo3d(plan, 1)
+    const door = result.openings.find((o) => o.openingId === 'o1')!
+    const win = result.openings.find((o) => o.openingId === 'o2')!
+    // w1: (0,0)->(12,0), offset=0.5 => centre at x=6, z=0
+    expect(door.centerX).toBe(6)
+    expect(door.centerZ).toBe(0)
+    expect(door.centerY).toBe(0)
+    expect(door.kind).toBe('door')
+    expect(door.height).toBe(DOOR_DEFAULT_HEIGHT)
+    expect(door.sillHeight).toBe(DOOR_DEFAULT_SILL)
+    // w4: (0,8)->(0,0), offset=0.3 => along segment from start (0,8) toward end (0,0)
+    // 0.3 from start => z = 8 + (0-8)*0.3 = 8 - 2.4 = 5.6
+    expect(win.centerX).toBe(0)
+    expect(win.centerZ).toBeCloseTo(5.6)
+    expect(win.centerY).toBe(0)
+  })
+
+  it('opening wallAngle matches its wall direction', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'o1', wallId: 'w1', kind: 'door', offset: 0.5, width: 1.0 },
+        { id: 'o2', wallId: 'w2', kind: 'window', offset: 0.5, width: 1.2 },
+      ],
+    })
+    const result = planTo3d(plan, 1)
+    const door = result.openings.find((o) => o.openingId === 'o1')!
+    const win = result.openings.find((o) => o.openingId === 'o2')!
+    // w1: horizontal (dx=12, dz=0) => angle=0
+    expect(door.wallAngle).toBe(0)
+    // w2: vertical (dx=0, dz=8) => angle=atan2(8,0)=PI/2
+    expect(win.wallAngle).toBeCloseTo(Math.PI / 2)
+    // wall thickness preserved
+    expect(door.wallThickness).toBe(0.25)
+    expect(win.wallThickness).toBe(0.25)
+  })
+
+  it('multi-storey still stacks correctly — walls at each storey', () => {
+    const plan = makePlan()
+    const result = planTo3d(plan, 3)
+    expect(result.slabs.length).toBe(3)
+    // 5 walls * 3 storeys = 15 wall entries
+    expect(result.walls.length).toBe(15)
+    // Slab y-offsets stacked
+    expect(result.slabs[0].yOffset).toBe(0)
+    expect(result.slabs[1].yOffset).toBe(DEFAULT_STOREY_HEIGHT)
+    expect(result.slabs[2].yOffset).toBe(2 * DEFAULT_STOREY_HEIGHT)
+    // Roof eave at top
+    expect(result.roof!.eaveY).toBe(3 * DEFAULT_STOREY_HEIGHT)
+    expect(result.roof!.eaveY + result.roof!.pitchHeight)
+      .toBe(3 * DEFAULT_STOREY_HEIGHT + ROOF_PITCH_HEIGHT)
+  })
+
+  it('empty plan -> nothing, no throw', () => {
+    const result = planTo3d(null, 1)
+    expect(result.walls).toEqual([])
+    expect(result.slabs).toEqual([])
+    expect(result.openings).toEqual([])
+    expect(result.roof).toBeNull()
+    expect(result.bounds.width).toBe(0)
+    expect(result.bounds.depth).toBe(0)
   })
 })

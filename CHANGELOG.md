@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+### Sprint 40 — Fix 3D BIM geometry: connected walls, seated roof, seated doors and windows
+
+**Root cause:** A single axis-swap bug in the wall rotation formula `-Math.atan2(dx, dz)` (should be `Math.atan2(dz, dx)`) caused ALL walls to be rotated 90° from their correct direction, producing disjointed floating fins instead of a coherent connected building. Doors and windows inherited the wrong angle, making them float in space. The roof used correct world coordinates but appeared misaligned because walls were wrong.
+
+**Fix:**
+1. **Wall rotation** (`src/adapters/planTo3d.ts:129`, `src/components/bim/BimModel3D.tsx:54`): Changed `-Math.atan2(dx, dz)` → `Math.atan2(dz, dx)`. Walls now align with their segment direction — horizontal walls point along +X (angle 0), vertical walls point along +Z (angle π/2).
+2. **Opening rotation** (`src/adapters/planTo3d.ts:318`): Same fix — openings inherit the correct wall angle so they seat flush inside wall openings.
+3. **Walls still come from PlanModel.walls** (shared segments, not per-room) — the wall source was already correct. The 2D and 3D now use identical segment geometry.
+4. **Roof seating** was already correct in data (`eaveY = numberOfStoreys * storeyHeight`) — no code change needed, the roof was just visually wrong because walls were rotated away.
+5. **Extended tests** (`src/__tests__/planTo3d.test.ts`): Added 13 geometric coherency tests asserting adjacent walls share endpoints, wall box position/rotation matches segment midpoint/direction, roof eave exactly equals wall top, openings lie on their wall segment at correct offset/height, multi-storey stacks correctly, and empty plan → empty.
+
+**Before:** Walls appeared as disconnected thin fins with gaps at corners; roof floated with visible gap above walls; doors/windows floated in space. The .glb export showed the same broken geometry.
+
+**After:** Walls meet at shared endpoints forming enclosed room volumes; roof eaves sit exactly on top of top-storey walls; doors/windows are seated inside wall openings at correct offset and height. The .glb export reflects the corrected assembly.
+
+**Validation:**
+- Typecheck: 0 errors
+- Lint: 0 errors (9 pre-existing warnings)
+- Tests: 333 passed (26 files) — +13 geometric coherency tests, existing tests unchanged
+- Build: success — 3D code-split into `assets/BimModel3D-*.js` chunk, GLTFExporter lazy-loaded as separate chunk
+
+**Documentation:** `docs/SPRINT_40_3D_GEOMETRY_FIX_REPORT.md`
+
 ### Sprint 39D — Fix PWA service worker auto-update so deployments reach users (not stale cached app)
 
 **Root cause:** The service worker registration script (`registerSW.js`) was a bare-bones `navigator.serviceWorker.register(...)` call with **no `updatefound` listener**. When a new deployment produced a new `sw.js`, the browser detected it but the new SW stayed in "waiting" state forever — the old SW continued serving the old cached `index.html` and JS bundles indefinitely. Users never received any deployed fixes until they manually unregistered the SW and cleared site data.
