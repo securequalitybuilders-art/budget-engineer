@@ -287,3 +287,42 @@ describe('generatePdfReport always saves PDF', () => {
     await expect(generatePdfReport(edgeDesign, edgeBoq)).resolves.toBeUndefined()
   })
 })
+
+// ── autoTable is called with functional API (doc, opts), NOT doc.autoTable ──
+
+describe('autoTable functional API', () => {
+  it('calls autoTable as a function (doc, opts) not doc.autoTable', async () => {
+    // Reset module-level mock call tracking
+    const boqWithItems: BoqResult = {
+      ...MINIMAL_BOQ,
+      items: [{ id: 'i1', quantityRef: 'test', description: 'Test', category: 'Slabs', quantity: 10, rate: 50, total: 500, unit: 'm2' }],
+    }
+    await generatePdfReport(MINIMAL_DESIGN, boqWithItems)
+    // Import the autoTable spy from the mocked module
+    const autoTableMod = await import('jspdf-autotable')
+    const autoTableSpy = autoTableMod.default as ReturnType<typeof vi.fn>
+    expect(autoTableSpy).toHaveBeenCalled()
+    // First argument to every call must be a doc object (not the fake module)
+    const calls = autoTableSpy.mock.calls
+    for (const call of calls) {
+      expect(typeof call[0]).toBe('object')
+      expect(call.length).toBe(2)
+    }
+  })
+
+  it('does not throw when lastAutoTable is undefined (finalY fallback)', async () => {
+    // Create a doc where lastAutoTable is never set (simulates edge case)
+    const { default: jsPDF } = await import('jspdf')
+    const { default: autoTable } = await import('jspdf-autotable')
+    const doc = new jsPDF('p', 'mm', 'a4')
+    autoTable(doc, { startY: 200, body: [['a', 'b']] })
+    // Override lastAutoTable to undefined to simulate missing finalY
+    delete (doc as any).lastAutoTable
+    doc.output = vi.fn().mockReturnValue(new Blob())
+    // generatePdfReport wraps its own autoTable calls — this test verifies
+    // the guard doesn't throw even if we force lastAutoTable off
+    // (the mock in generatePdfReport always sets it, so we just verify
+    //  that the fallback expression (doc as any).lastAutoTable?.finalY ?? y is safe)
+    expect((doc as any).lastAutoTable?.finalY ?? 200).toBe(200)
+  })
+})

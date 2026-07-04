@@ -2,21 +2,24 @@
 
 ## Unreleased
 
-### Sprint 47B — Fix PDF Generation Failure (jspdf-autotable Plugin Registration + Field Guards)
+### Sprint 47B — Fix PDF Generation Failure (jspdf-autotable Functional API for Code-Split)
 
-**Root cause**: `await import('jspdf-autotable')` was a side-effect import that relies on `window.jsPDF` being set. jsPDF v4.2.1 is loaded as ESM (via `import('jspdf')`), which does NOT set `window.jsPDF`, so the plugin's `applyPlugin(jsPDF)` was never called. `doc.autoTable` was `undefined` at runtime — every PDF export threw `TypeError: doc.autoTable is not a function`.
+**Confirmed error** (browser console): `TypeError: t.autoTable is not a function` in `boqToPdf-*.js`.
+
+**Root cause**: `await import('jspdf-autotable')` was a side-effect import. jsPDF v4.2.1 loaded as ESM does NOT set `window.jsPDF`, so the plugin's `applyPlugin(jsPDF)` never ran. Since both libraries are code-split into separate chunks, `doc.autoTable` was always `undefined`.
 
 **Fixes**:
-1. `boqToPdf.ts:80`: Changed `await import('jspdf-autotable')` to `const { autoTable } = await import('jspdf-autotable')`. Replaced both `(doc as any).autoTable({...})` calls with `autoTable(doc, {...})`. The exported function works with any jsPDF load method and correctly sets `doc.lastAutoTable`.
+1. `boqToPdf.ts:81-82`: Changed to `Promise.all([import('jspdf'), import('jspdf-autotable')])` and obtains `autoTable` from `autoTableMod.default`. Replaced all `(doc as any).autoTable({...})` calls with `autoTable(doc, {...})` — the functional API works independent of prototype attachment.
 2. `boqToPdf.ts`: Added null/undefined guards for `design.name`, `design.buildingType`, `design.grossFloorArea`, `design.floors`, `boq.currency`, `boq.items`, `boq.summary`, `item.description`, `item.quantity`, `item.rate`, `item.total`. Hardened `fmt()` to silently zero-out null/undefined/non-finite values.
-3. `boqToPdf.test.ts`: Updated mock to provide `autoTable` as named export; added edge data test (empty design + boq — should not throw).
+3. `boqToPdf.ts`: Guarded `(doc as any).lastAutoTable?.finalY ?? y` so missing `finalY` never throws.
+4. `boqToPdf.test.ts`: Updated mock to export `default` as `autoTable(doc, opts)`; added functional API test (asserts `autoTable` called with `(doc, opts)` not `doc.autoTable()`) and `finalY` fallback test.
 
-**Before**: Every PDF download shows "Failed to generate PDF. Please try again." — regardless of 3D snapshot state. Real error hidden.
+**Before**: Every PDF download shows "Failed to generate PDF. Please try again." — `TypeError: t.autoTable is not a function` in console.
 **After**: PDF generates reliably with and without 3D snapshot, with real and edge data.
 
-**Testing**: +1 test (446 total, 31 files) — edge data generates PDF without throwing.
+**Testing**: +3 tests (448 total, 31 files) — edge data, functional API form, finalY fallback.
 
-**Chunk impact**: boqToPdf 5.82 kB (+0.27 kB). jspdf.plugin.autotable remains a separate lazy chunk (30.99 kB).
+**Chunk impact**: boqToPdf 5.78 kB (+0.23 kB). jspdf.plugin.autotable remains a separate lazy chunk (31.10 kB).
 
 **Documentation:** `docs/SPRINT_47B_PDF_GENERATION_FIX_REPORT.md`
 

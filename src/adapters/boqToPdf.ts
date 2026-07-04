@@ -78,8 +78,8 @@ export async function generatePdfReport(
   boq: BoqResult,
   snapshotDataUrl?: string,
 ): Promise<void> {
-  const { default: jsPDF } = await import('jspdf')
-  const { autoTable } = await import('jspdf-autotable')
+  const [{ default: jsPDF }, autoTableMod] = await Promise.all([import('jspdf'), import('jspdf-autotable')])
+  const autoTable = autoTableMod.default
 
   const sym = currencySymbol(boq.currency || 'USD')
   const doc = new jsPDF('p', 'mm', 'a4')
@@ -213,7 +213,7 @@ export async function generatePdfReport(
       },
     })
 
-    y = (doc as any).lastAutoTable.finalY + 4
+    y = (doc as any).lastAutoTable?.finalY ?? y + 4
   }
 
   // ── Grand total section ──
@@ -259,7 +259,7 @@ export async function generatePdfReport(
     },
   })
 
-  y = (doc as any).lastAutoTable.finalY + 10
+  y = ((doc as any).lastAutoTable?.finalY ?? y) + 10
 
   // ── Footer with page numbers ──
   const pageCount = doc.getNumberOfPages()
