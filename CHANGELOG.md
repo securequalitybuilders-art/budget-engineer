@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.3.0] - 2026-07-04
+
 ### Sprint 46B — Unify Design Options: Remove Stale Panel, Fix Duplicate Accumulation
 
 **Root cause**: Two separate sources rendered design options. (a) The top prominent selector (`Dashboard.tsx`) used `visibleDesignOptions` (Tier 3 topology names — working correctly after 46A). (b) The right-hand Properties sidebar (`PropertiesPanel.tsx`) read `currentDesigns` directly from the Dexie store, which contained old "Compact/Standard/Spacious Option" records from the `@/ai/designEngine` path. Additionally, `generateDesigns` in `projectStore.ts` used `db.designs.bulkAdd` which **appended** without deleting old records — every "Regenerate" added 3 more, accumulating to 6, 9, 12+ cards.

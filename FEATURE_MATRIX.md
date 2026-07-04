@@ -1,6 +1,6 @@
 # Feature Matrix — Budget Engineer OS Canonical
 
-> **Date:** 2026-06-30  
+> **Date:** 2026-07-04  
 > **Base:** WS1 (`workspace-chart 1`)  
 > **Legend:** ✅ Present | ❌ Missing | 🔄 Staged (not wired)
 > **Phase E (WS6 AI + Drawing Management) merged.**  
