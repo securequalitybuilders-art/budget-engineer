@@ -200,6 +200,8 @@ export const useProjectStore = create<ProjectState>()(
 
           const designs = generateDesignOptions(projectId, parsed);
 
+          // Replace old designs — never append (prevents duplicate accumulation)
+          await db.designs.where({ projectId }).delete();
           await db.designs.bulkAdd(designs);
 
           await db.projects.update(projectId, {

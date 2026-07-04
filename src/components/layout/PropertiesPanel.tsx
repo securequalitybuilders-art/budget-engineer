@@ -1,11 +1,11 @@
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
 import { Button } from '@/components/ui/Button';
-import { PanelRight, X, Box, Ruler, Layers } from 'lucide-react';
+import { PanelRight, X } from 'lucide-react';
 
 
 export function PropertiesPanel() {
-  const { currentProject, currentBrief, currentDesigns } = useProjectStore();
+  const { currentProject, currentBrief } = useProjectStore();
   const { propertiesPanelOpen, togglePropertiesPanel } = useUIStore();
 
   if (!propertiesPanelOpen) {
@@ -78,41 +78,7 @@ export function PropertiesPanel() {
             </ul>
           </div>
 
-          <div className="rounded-lg border border-[var(--border-default)] p-3">
-            <span className="text-xs uppercase tracking-wider text-[var(--text-muted)]">Design Options</span>
-            {currentDesigns.length === 0 ? (
-              <p className="mt-1 text-sm text-[var(--text-muted)]">
-                Generate designs from the brief to see options here.
-              </p>
-            ) : (
-              <div className="mt-2 space-y-2">
-                {currentDesigns.map((design) => (
-                  <button
-                    key={design.id}
-                    className="w-full rounded-lg bg-[var(--bg-tertiary)] p-3 text-left transition-colors hover:bg-[var(--bg-secondary)] hover:ring-1 hover:ring-[var(--brand-accent)]"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-[var(--text-primary)]">{design.name}</span>
-                      <Box size={14} className="text-[var(--brand-accent)]" />
-                    </div>
-                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-[var(--text-secondary)]">
-                      <span className="flex items-center gap-1">
-                        <Ruler size={12} />
-                        {design.parameters.totalAreaM2} m²
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Layers size={12} />
-                        {design.parameters.floors} floor{design.parameters.floors > 1 ? 's' : ''}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        {design.elements.length} elements
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+
         </div>
       )}
     </div>

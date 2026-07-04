@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Sprint 46B — Unify Design Options: Remove Stale Panel, Fix Duplicate Accumulation
+
+**Root cause**: Two separate sources rendered design options. (a) The top prominent selector (`Dashboard.tsx`) used `visibleDesignOptions` (Tier 3 topology names — working correctly after 46A). (b) The right-hand Properties sidebar (`PropertiesPanel.tsx`) read `currentDesigns` directly from the Dexie store, which contained old "Compact/Standard/Spacious Option" records from the `@/ai/designEngine` path. Additionally, `generateDesigns` in `projectStore.ts` used `db.designs.bulkAdd` which **appended** without deleting old records — every "Regenerate" added 3 more, accumulating to 6, 9, 12+ cards.
+
+**Fixes**:
+1. `projectStore.ts:203`: Added `await db.designs.where({ projectId }).delete()` before `bulkAdd` — always exactly 3 records, never accumulates.
+2. `PropertiesPanel.tsx:81-115`: Removed the stale "Design Options" section entirely. The top prominent selector is the single source of truth (interactive, topology-labeled, drives the pipeline). Also removed unused `currentDesigns` import and unused lucide-react icons.
+3. Tests: +3 tests for regenerate idempotency (calling twice returns 3 each), distinct room layout signatures per topology, and finite positive coordinates in all plans.
+
+**Before**: Right sidebar shows old "Compact/Standard/Spacious" labels + 6+ duplicate cards after 2 regens.
+**After**: Single unified top selector with exactly 3 topology-labeled cards, no duplicates anywhere.
+
+**Documentation:** `docs/SPRINT_46B_UNIFY_OPTIONS_REPORT.md`
+
 ### Sprint 46A — Tier 3 Wiring Fix: Topology Labels in Design Option Cards
 
 **Root cause**: Two bugs prevented Tier 3 topology names from appearing on the 3 design-option cards. (a) The "Regenerate options" button (`handleGenerate`) only called the old `@/ai/designEngine` engine, producing "Compact/Standard/Spacious". (b) The AI Brief panel path used a stale closure over `aiDesignOptions` in `handleTier3Plans`, causing the topology remap guard to fail silently (`0 >= 3 → false`).

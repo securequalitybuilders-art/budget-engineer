@@ -300,3 +300,46 @@ describe('Tier 3 — degrade safety (zero-area program, small site)', () => {
     }
   })
 })
+
+describe('Tier 3 — regenerate idempotency (no duplicates)', () => {
+  it('calling generateFloorPlans twice returns same count (3 each)', () => {
+    const brief = parseBrief('Build a 3-bedroom house in Harare on a 20x25 site', { buildingType: 'house' })
+    const concept = generateDesignConcept(brief)
+    const params = generateLayoutParameters(concept, brief)
+    const first = generateFloorPlans(params, brief)
+    const second = generateFloorPlans(params, brief)
+    expect(first.length).toBe(3)
+    expect(second.length).toBe(3)
+    // Distinct call, same params: same topology set
+    expect(first.map(p => p.topology).sort()).toEqual(second.map(p => p.topology).sort())
+  })
+})
+
+describe('Tier 3 — distinct plans per topology', () => {
+  const brief = parseBrief('Build a 3-bedroom house in Harare on a 20x25 site', { buildingType: 'house' })
+  const concept = generateDesignConcept(brief)
+  const params = generateLayoutParameters(concept, brief)
+  const plans = generateFloorPlans(params, brief)
+
+  it('each topology produces a different room layout signature', () => {
+    const keys = plans.map(p => p.rooms.map(r => `${r.name}@${r.x.toFixed(1)},${r.y.toFixed(1)}`).join('|'))
+    for (let i = 0; i < keys.length; i++) {
+      for (let j = i + 1; j < keys.length; j++) {
+        expect(keys[i]).not.toBe(keys[j])
+      }
+    }
+  })
+
+  it('each room in every plan has finite positive coordinates', () => {
+    for (const p of plans) {
+      for (const r of p.rooms) {
+        expect(Number.isFinite(r.x)).toBe(true)
+        expect(Number.isFinite(r.y)).toBe(true)
+        expect(Number.isFinite(r.width)).toBe(true)
+        expect(Number.isFinite(r.height)).toBe(true)
+        expect(r.width).toBeGreaterThan(0)
+        expect(r.height).toBeGreaterThan(0)
+      }
+    }
+  })
+})
