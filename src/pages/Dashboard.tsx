@@ -18,6 +18,8 @@ import { PlanCanvas } from '@/components/cad/PlanCanvas';
 import { PlanComparison } from '@/components/cad/PlanComparison';
 import { LazyBimModel3D } from '@/components/bim/LazyBimModel3D';
 import { generatePlanModel } from '@/engine/plan-generator';
+import { floorPlanToPlanModel } from '@/adapters/floorPlanToPlanModel';
+import type { FloorPlan } from '@/engine/tier3/layoutEngine';
 import { BoqExportPanel } from '@/components/dashboard/BoqExportPanel';
 import { EngineeringAnalysisPanel } from '@/components/dashboard/EngineeringAnalysisPanel';
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
@@ -39,6 +41,7 @@ export function Dashboard() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeCanvasView, setActiveCanvasView] = useState<'plan' | 'bim'>('plan');
   const [aiDesignOptions, setAiDesignOptions] = useState<DesignOption[]>([]);
+  const [tier3Plans, setTier3Plans] = useState<FloorPlan[]>([]);
   const [latestBuildingType, setLatestBuildingType] = useState<string | null>(null);
   const [persistedPlan, setPersistedPlan] = useState<PlanModel | null>(null);
   const [cadSyncSource, setCadSyncSource] = useState<GeometrySource>('generated-design');
@@ -93,11 +96,21 @@ export function Dashboard() {
   const selectedDesign = visibleDesignOptions.find((d) => d.id === selectedDesignId) ?? visibleDesignOptions[0] ?? null;
   const bimModel = useMemo(() => designOptionToBimModel(selectedDesign), [selectedDesign]);
 
-  // Active PlanModel: prefer CAD-edited persisted plan, else generated from design
-  const activePlan = useMemo<PlanModel | null>(
-    () => persistedPlan ?? (selectedDesign ? generatePlanModel(selectedDesign) : null),
-    [persistedPlan, selectedDesign],
-  );
+  // Tier 3: find the plan matching the selected design
+  const selectedTier3Plan = useMemo<FloorPlan | null>(() => {
+    if (tier3Plans.length === 0) return null
+    const idx = tier3Plans.findIndex((_, i) => selectedDesign?.id?.endsWith(`-t3-${i}`))
+    return idx >= 0 ? tier3Plans[idx] : tier3Plans[0]
+  }, [tier3Plans, selectedDesign?.id])
+
+  // Active PlanModel: prefer CAD-edited persisted plan, else Tier 3 floorPlan, else generic
+  const activePlan = useMemo<PlanModel | null>(() => {
+    if (persistedPlan) return persistedPlan
+    if (selectedTier3Plan && selectedDesign) {
+      return floorPlanToPlanModel(selectedTier3Plan, selectedDesign)
+    }
+    return selectedDesign ? generatePlanModel(selectedDesign) : null
+  }, [persistedPlan, selectedDesign, selectedTier3Plan]);
   const currentBoq = useMemo(() => {
     if (persistedPlan && selectedDesign) {
       return deriveBoqFromCadOrDesign({
@@ -264,6 +277,21 @@ export function Dashboard() {
       await logTransaction(id, 'AI_GENERATE', 'design', id, 'AI design options generated from brief', {
         after: { count: options.length, options: options.map((o) => o.name) },
       })
+    }
+  };
+
+  const handleTier3Plans = (plans: FloorPlan[]) => {
+    setTier3Plans(plans)
+    // Remap the first N design option names to topology names
+    if (aiDesignOptions.length >= plans.length) {
+      const updated = aiDesignOptions.map((opt, i) => {
+        if (i < plans.length) {
+          return { ...opt, name: plans[i].name, id: opt.id + `-t3-${i}` }
+        }
+        return opt
+      })
+      setAiDesignOptions(updated)
+      setSelectedDesignId(updated[0]?.id ?? null)
     }
   };
 
@@ -544,7 +572,7 @@ export function Dashboard() {
             />
             <PropertiesPanel />
             <TransactionPanel />
-            <EngineeringStudioPanel selectedDesign={selectedDesign} onDesignOptionsGenerated={handleAiDesignOptions} onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }} />
+            <EngineeringStudioPanel selectedDesign={selectedDesign} onDesignOptionsGenerated={handleAiDesignOptions} onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }} onTier3Plans={handleTier3Plans} />
             <BoqExportPanel selectedDesign={selectedDesign} boq={currentBoq} onExport={handleExport} />
             <EngineeringAnalysisPanel selectedDesign={selectedDesign} />
             <GovernancePanel

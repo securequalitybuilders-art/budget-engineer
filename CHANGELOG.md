@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+### Sprint 46 — Tier 3: Layout Engine (Room-by-Room Floor Plan Generation)
+
+**New modules** (layered, non-breaking — existing generator unchanged):
+1. **3+1 topology generators** (`src/engine/tier3/layoutEngine.ts`): Rectangle (public front / corridor / private back), L-Shape (vertical wing + horizontal wing + corner courtyard), Split-Wing (two pavilions + central gallery), Courtyard (rooms distributed across 4 wings around central void — for hotel/townhouse/heritage typologies). Each produces real non-overlapping coordinates with ZBC minimum dimensions enforced per room type.
+2. **Graceful degradation**: Each topology wraps in try/catch + `hasOverlaps` check. On failure/overlap, substitutes a safe banded rectangle + `console.warn`. `generateFloorPlans` never throws.
+3. **FloorPlan→PlanModel adapter** (`src/adapters/floorPlanToPlanModel.ts`): Converts to existing `PlanModel` (rooms → RoomRect[], walls derived, openings present, scaleLabel). NaN guard: `assertFiniteSize` throws clear error on non-finite width/height.
+4. **Dashboard integration**: `AiBriefPanel` triggers Tier 3 after Tier 2, hands `FloorPlan[]` via `onTier3Plans`. `activePlan` useMemo: Tier 3 → `floorPlanToPlanModel` → `generatePlanModel` fallback. User always gets a working plan.
+
+**Bug fixes:**
+- `pickSiteDims`: NaN crash on zero-area program fixed (early return `{30,30}`)
+- Room-corridor overlap in rectangle: rooms clipped to band depth after zbcEnforce
+- Corridor ZBC violations: widths/heights raised to ≥2 m
+- L-shape overlap: redesigned so horizontal wing sits below vertical wing
+- Test expectations aligned with actual parsed program output
+
+**Documentation:** `docs/SPRINT_46_TIER3_LAYOUT_ENGINE_REPORT.md`
+
 ### Sprint 44 — Tier 1: Design Brief Intelligence (enterprise architectural intelligence)
 
 **New modules** (layered, non-breaking — existing generator unchanged):

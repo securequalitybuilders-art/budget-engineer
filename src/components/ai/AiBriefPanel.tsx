@@ -4,6 +4,7 @@ import { generateDesignOptionsFromBriefText } from '@/adapters/aiDesignAdapter';
 import type { DesignOption } from '@/domain/boq';
 import type { Tier1ParsedBrief } from '@/engine/tier1-types';
 import type { DesignConcept } from '@/engine/tier2/conceptEngine';
+import type { FloorPlan } from '@/engine/tier3/layoutEngine';
 import { Tier1Readout } from './Tier1Readout';
 import { ConceptPanel } from '@/components/dashboard/ConceptPanel';
 
@@ -26,9 +27,10 @@ const ENGINES: { id: AiEngine; label: string; disabled?: boolean; hint?: string 
 interface AiBriefPanelProps {
   onParsed?: (result: ParseResult) => void;
   onDesignOptionsGenerated?: (options: DesignOption[]) => void;
+  onTier3Plans?: (plans: FloorPlan[]) => void;
 }
 
-export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPanelProps) {
+export function AiBriefPanel({ onParsed, onDesignOptionsGenerated, onTier3Plans }: AiBriefPanelProps) {
   const [briefText, setBriefText] = useState('');
   const [aiEngine, setAiEngine] = useState<AiEngine>('local-rules');
   const [buildingType, setBuildingType] = useState('house');
@@ -58,12 +60,24 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
         const parsed = parseBrief(briefText, { buildingType: buildingTypeRef.current })
         setTier1Parsed(parsed)
         // Tier 2 concept engine (layered on Tier 1 — never blocks main flow)
+        let concept: DesignConcept | null = null
         try {
           const { generateDesignConcept } = await import('@/engine/tier2/conceptEngine')
-          const concept = generateDesignConcept(parsed)
+          concept = generateDesignConcept(parsed)
           setTier2Concept(concept)
         } catch {
           // Tier 2 failure is non-fatal; concept panel just won't show
+        }
+        // Tier 3 layout engine (layered on Tier 1+2 — fallback protected)
+        try {
+          if (concept) {
+            const { generateLayoutParameters, generateFloorPlans } = await import('@/engine/tier3/layoutEngine')
+            const params = generateLayoutParameters(concept, parsed)
+            const plans = generateFloorPlans(params, parsed)
+            onTier3Plans?.(plans)
+          }
+        } catch {
+          console.warn('[Tier 3] Layout engine failed — falling back to generic plan generation')
         }
       } catch {
         // Tier 1 failure is non-fatal; just won't show readout

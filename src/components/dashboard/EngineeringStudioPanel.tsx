@@ -79,13 +79,16 @@ function buildSampleBim(design: DesignOption | null): BimModel | null {
   };
 }
 
+import type { FloorPlan } from '@/engine/tier3/layoutEngine';
+
 interface EngineeringStudioPanelProps {
   selectedDesign: DesignOption | null;
   onDesignOptionsGenerated?: (options: DesignOption[]) => void;
   onParsed?: (result: ParseResult) => void;
+  onTier3Plans?: (plans: FloorPlan[]) => void;
 }
 
-export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerated, onParsed }: EngineeringStudioPanelProps) {
+export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerated, onParsed, onTier3Plans }: EngineeringStudioPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('ai');
 
   const sampleCad = useMemo(() => buildSampleCad(selectedDesign), [selectedDesign]);
@@ -120,7 +123,7 @@ export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerate
       </div>
 
       <div className="flex-1 overflow-y-auto p-3">
-        <div id="ai-panel" role="tabpanel" aria-labelledby="ai-tab" hidden={activeTab !== 'ai'}>{activeTab === 'ai' && <AiBriefPanel onParsed={onParsed} onDesignOptionsGenerated={onDesignOptionsGenerated} />}</div>
+        <div id="ai-panel" role="tabpanel" aria-labelledby="ai-tab" hidden={activeTab !== 'ai'}>{activeTab === 'ai' && <AiBriefPanel onParsed={onParsed} onDesignOptionsGenerated={onDesignOptionsGenerated} onTier3Plans={onTier3Plans} />}</div>
 
         <div id="rates-panel" role="tabpanel" aria-labelledby="rates-tab" hidden={activeTab !== 'rates'}>{activeTab === 'rates' && <RateCardPanel card={RATE_CARDS.zimbabwe} />}</div>
 
