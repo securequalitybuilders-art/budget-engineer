@@ -3,7 +3,9 @@ import { AiEngine, ParseResult, parseWithEngine } from '@/lib/ai/ai-provider';
 import { generateDesignOptionsFromBriefText } from '@/adapters/aiDesignAdapter';
 import type { DesignOption } from '@/domain/boq';
 import type { Tier1ParsedBrief } from '@/engine/tier1-types';
+import type { DesignConcept } from '@/engine/tier2/conceptEngine';
 import { Tier1Readout } from './Tier1Readout';
+import { ConceptPanel } from '@/components/dashboard/ConceptPanel';
 
 const BUILDING_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: 'house', label: 'House / Residential' },
@@ -35,10 +37,12 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
   useEffect(() => { buildingTypeRef.current = buildingType }, [buildingType]);
   const [aiStatus, setAiStatus] = useState<string | null>(null);
   const [tier1Parsed, setTier1Parsed] = useState<Tier1ParsedBrief | null>(null);
+  const [tier2Concept, setTier2Concept] = useState<DesignConcept | null>(null);
 
   const handleGenerate = async () => {
     if (!briefText.trim()) return;
     setAiStatus('Parsing…');
+    setTier2Concept(null);
     try {
       const result = await parseWithEngine(briefText, aiEngine);
       const optionsResult = generateDesignOptionsFromBriefText(briefText, 'zimbabwe', buildingTypeRef.current);
@@ -53,6 +57,14 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
         const { parseBrief } = await import('@/engine/parseBrief')
         const parsed = parseBrief(briefText, { buildingType: buildingTypeRef.current })
         setTier1Parsed(parsed)
+        // Tier 2 concept engine (layered on Tier 1 — never blocks main flow)
+        try {
+          const { generateDesignConcept } = await import('@/engine/tier2/conceptEngine')
+          const concept = generateDesignConcept(parsed)
+          setTier2Concept(concept)
+        } catch {
+          // Tier 2 failure is non-fatal; concept panel just won't show
+        }
       } catch {
         // Tier 1 failure is non-fatal; just won't show readout
       }
@@ -122,6 +134,7 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated }: AiBriefPane
       )}
 
       <Tier1Readout parsed={tier1Parsed} />
+      <ConceptPanel concept={tier2Concept} />
 
       <p className="mt-2 text-xs text-stone-500">
         <span className="text-emerald-400">✅ Local rules active by default</span> — instant, offline, no dependencies.
