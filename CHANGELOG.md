@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Sprint 47A — Fix PDF Download Regression: Isolate 3D Snapshot So PDF Always Generates
+
+**Root cause**: `captureSnapshot()` in `BoqExportPanel.handleExportPdf` ran BEFORE the dynamic import and could throw (WebGL context loss, disposed canvas, render error). The entire PDF handler aborted — user clicked "Download PDF Report" and nothing happened. The outer catch only logged to console.
+
+**Fixes**:
+1. `BoqExportPanel.tsx`: Wrapped `captureSnapshot()` in its own try/catch — `snapshot` is always `undefined` on failure. PDF generation always proceeds.
+2. `BoqExportPanel.tsx`: Added `pdfError` state — red inline "Failed to generate PDF. Please try again." message on genuine PDF failures. Auto-clears after 6 seconds.
+3. `boqToPdf.ts`: Added `console.warn` inside `embedSnapshotInPdf` catch so addImage failures are visible in dev tools.
+
+**Before**: WebGL context loss or render error during snapshot capture silently blocks PDF download — user sees "nothing happens".
+**After**: PDF always generates. If capture fails, PDF omits snapshot but has everything else. Genuine PDF failures show a visible red error.
+
+**Testing**: +15 tests (445 total, 31 files) — embed resilience (never throws for any input), capture isolation, generatePdfReport always saves regardless of snapshot validity.
+
+**Documentation:** `docs/SPRINT_47A_PDF_DOWNLOAD_FIX_REPORT.md`
+
 ### Sprint 47 — Embed 3D Model Snapshot into PDF Cost Report
 
 **Root cause**: The WebGL canvas in `BimModel3D` was created without `preserveDrawingBuffer: true`, so `gl.domElement.toDataURL()` returned a blank/transparent image. The optional `snapshotDataUrl` parameter existed in `boqToPdf.ts` (from Sprint 43) but was never populated.

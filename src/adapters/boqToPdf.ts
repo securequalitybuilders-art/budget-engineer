@@ -61,7 +61,8 @@ export function embedSnapshotInPdf(doc: any, snapshotDataUrl: string | undefined
     const imgX = margin + (contentW - imgW) / 2
     doc.addImage(snapshotDataUrl, 'PNG', imgX, y, imgW, imgH)
     return y + imgH + 6
-  } catch {
+  } catch (e) {
+    console.warn('Failed to embed 3D snapshot in PDF', e)
     return y
   }
 }

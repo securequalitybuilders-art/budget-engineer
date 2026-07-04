@@ -5,7 +5,7 @@ import type { BoqResult } from '@/adapters/designToBoq'
 import { getSupportedRegions, getDefaultRegionId } from '@/adapters/rateCardAdapter'
 import { Calculator, FileDown, FileText, FilePieChart, Printer, Info, Shield } from 'lucide-react'
 import { makeMoney } from '@/lib/utils/currency'
-import { captureSnapshot } from '@/lib/3d-snapshot'
+import { captureSnapshot, isValidPngDataUrl } from '@/lib/3d-snapshot'
 
 interface BoqExportPanelProps {
   selectedDesign: DesignOption | null
@@ -121,21 +121,38 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
   }
 
   const [pdfExporting, setPdfExporting] = useState(false)
+  const [pdfError, setPdfError] = useState<string | null>(null)
 
   const handleExportPdf = useCallback(async () => {
     if (!boq || !selectedDesign) return
     setPdfExporting(true)
+    setPdfError(null)
+
+    // Isolate snapshot capture — never block PDF generation
+    let snapshot: string | undefined
     try {
-      const snapshot = captureSnapshot()
+      const result = captureSnapshot()
+      snapshot = result ?? undefined
+      if (snapshot && !isValidPngDataUrl(snapshot)) {
+        snapshot = undefined
+      }
+    } catch (e) {
+      console.warn('3D snapshot capture failed, generating PDF without it', e)
+      snapshot = undefined
+    }
+
+    try {
       const { generatePdfReport } = await import('@/adapters/boqToPdf')
-      await generatePdfReport(selectedDesign, boq, snapshot ?? undefined)
+      await generatePdfReport(selectedDesign, boq, snapshot)
       setExported(true)
       onExport?.('print')
     } catch (err) {
       console.error('PDF export failed:', err)
+      setPdfError('Failed to generate PDF. Please try again.')
     } finally {
       setPdfExporting(false)
       setTimeout(() => setExported(false), 3000)
+      setTimeout(() => setPdfError(null), 6000)
     }
   }, [boq, selectedDesign, onExport])
 
@@ -429,7 +446,12 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
           </button>
         </div>
 
-        {exported && (
+        {pdfError && (
+          <p className="mt-2 text-center text-xs text-red-400" role="alert">
+            {pdfError}
+          </p>
+        )}
+        {exported && !pdfError && (
           <p className="mt-2 text-center text-xs text-emerald-400">
             BOQ exported locally.
           </p>
