@@ -228,6 +228,29 @@ describe('Tier 3 — generateFloorPlans (hotel with courtyard)', () => {
     }
   })
 
+  it('courtyard has a central void (real courtyard, not rectangle degrade)', () => {
+    const plans = getPlans()
+    const courtyard = plans.find(p => p.topology === 'courtyard')
+    expect(courtyard).toBeDefined()
+    if (!courtyard) return
+    // Should be a real courtyard, not a fallback rectangle
+    expect(courtyard.name).not.toMatch(/Fallback Rectangle/i)
+    // Must have a courtyard void room
+    const voidRoom = courtyard.rooms.find(r => r.name === 'Courtyard')
+    expect(voidRoom, 'Courtyard plan should have a Courtyard void room').toBeDefined()
+    if (voidRoom) {
+      expect(voidRoom.width).toBeGreaterThan(2)
+      expect(voidRoom.height).toBeGreaterThan(2)
+    }
+    // Rooms should surround the void: some at y=0 (north wing), some at y=outerD-wingDepth (south wing),
+    // some at x=planWidth-wingDepth (east wing), some at x=0 (west wing)
+    const outerH = courtyard.height
+    const hasNorthRow = courtyard.rooms.some(r => r.y === 0 && r.height >= 4)
+    const hasSouthRow = courtyard.rooms.some(r => r.y + r.height === outerH && r.height >= 4)
+    // At least one horizontal wing should exist
+    expect(hasNorthRow || hasSouthRow).toBe(true)
+  })
+
   it('all plans have finite positive dimensions', () => {
     const plans = getPlans()
     for (const p of plans) {
@@ -244,14 +267,12 @@ describe('Tier 3 — generateFloorPlans (hotel with courtyard)', () => {
     }
   })
 
-  it('fallback rectangle from courtyard degrade has no NaN dimensions', () => {
+  it('courtyard rooms meet ZBC minimums', () => {
     const plans = getPlans()
-    const degrade = plans.find(p => p.topology === 'courtyard' && p.name.startsWith('Fallback Rectangle'))
-    expect(degrade).toBeDefined()
-    if (degrade) {
-      checkFiniteDimensions(degrade.rooms, 'Hotel courtyard degrade')
-      assertNoOverlaps(degrade.rooms, 'Hotel courtyard degrade')
-      expect(degrade.rooms.length).toBeGreaterThan(0)
+    const courtyard = plans.find(p => p.topology === 'courtyard')
+    expect(courtyard).toBeDefined()
+    if (courtyard) {
+      checkZbcMinimums(courtyard.rooms, 'Hotel courtyard')
     }
   })
 
@@ -262,6 +283,77 @@ describe('Tier 3 — generateFloorPlans (hotel with courtyard)', () => {
         expect(p.name.toLowerCase()).toContain(p.topology === 'l-shape' ? 'l-shape' : p.topology)
         expect(p.name).not.toMatch(/compact|standard|spacious/i)
       }
+    }
+  })
+
+  it('courtyard room signature differs from rectangle option', () => {
+    const plans = getPlans()
+    const courtyard = plans.find(p => p.topology === 'courtyard')
+    const rect = plans.find(p => p.topology === 'rectangle')
+    expect(courtyard).toBeDefined()
+    expect(rect).toBeDefined()
+    if (!courtyard || !rect) return
+    const courtyardKey = courtyard.rooms.map(r => `${r.name}@${r.x.toFixed(1)},${r.y.toFixed(1)}`).join('|')
+    const rectKey = rect.rooms.map(r => `${r.name}@${r.x.toFixed(1)},${r.y.toFixed(1)}`).join('|')
+    expect(courtyardKey).not.toBe(rectKey)
+    // Courtyard has rooms at the edges forming a ring; verify at least one room touches the top edge
+    const hasTopEdge = courtyard.rooms.some(r => r.y === 0)
+    expect(hasTopEdge, 'Courtyard should have rooms on the top edge (north wing)').toBe(true)
+  })
+})
+
+describe('Tier 3 — generateFloorPlans (small courtyard — 6 rooms)', () => {
+  const getPlans = () => {
+    const brief = parseBrief('Build a 6-room boutique hotel in Victoria Falls on a 30x30 site', { buildingType: 'hotel' })
+    const concept = generateDesignConcept(brief)
+    const params = generateLayoutParameters(concept, brief)
+    return generateFloorPlans(params, brief)
+  }
+
+  it('returns 4 plans including courtyard without throwing', () => {
+    const plans = getPlans()
+    expect(plans.length).toBe(4)
+    expect(plans.map(p => p.topology)).toContain('courtyard')
+  })
+
+  it('small courtyard has no overlapping rooms', () => {
+    const plans = getPlans()
+    const courtyard = plans.find(p => p.topology === 'courtyard')
+    expect(courtyard).toBeDefined()
+    if (courtyard) {
+      assertNoOverlaps(courtyard.rooms, 'Small courtyard')
+    }
+  })
+
+  it('small courtyard all rooms have finite positive dimensions', () => {
+    const plans = getPlans()
+    const courtyard = plans.find(p => p.topology === 'courtyard')
+    expect(courtyard).toBeDefined()
+    if (courtyard) {
+      checkFiniteDimensions(courtyard.rooms, 'Small courtyard')
+    }
+  })
+
+  it('small courtyard rooms meet ZBC minimums', () => {
+    const plans = getPlans()
+    const courtyard = plans.find(p => p.topology === 'courtyard')
+    expect(courtyard).toBeDefined()
+    if (courtyard) {
+      checkZbcMinimums(courtyard.rooms, 'Small courtyard')
+    }
+  })
+
+  it('small courtyard is real (not degraded rectangle)', () => {
+    const plans = getPlans()
+    const courtyard = plans.find(p => p.topology === 'courtyard')
+    expect(courtyard).toBeDefined()
+    if (!courtyard) return
+    expect(courtyard.name).not.toMatch(/Fallback Rectangle/i)
+    // Should have a central void if there are enough rooms for 3+ wings
+    const voidRoom = courtyard.rooms.find(r => r.name === 'Courtyard')
+    if (voidRoom) {
+      expect(voidRoom.width).toBeGreaterThan(2)
+      expect(voidRoom.height).toBeGreaterThan(2)
     }
   })
 })

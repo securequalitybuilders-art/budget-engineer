@@ -314,96 +314,150 @@ function generateCourtyard(program: ProgramItem[], siteW: number, siteD: number,
     return { id: uid(), name: 'Courtyard — Rooms Around Central Space', topology: 'courtyard', width: 10, height: 10, rooms: [] }
   }
 
-  const perWing = Math.max(1, Math.ceil(count / 4))
-  const northItems = items.slice(0, Math.min(perWing, count))
-  const eastItems = items.slice(northItems.length, Math.min(northItems.length + perWing, count))
-  const southItems = items.slice(northItems.length + eastItems.length, Math.min(northItems.length + eastItems.length + perWing, count))
-  const westItems = items.slice(northItems.length + eastItems.length + southItems.length)
-
-  const wingDepth = Math.max(3.5, 4.0)
   const gutter = 0.3
 
-  function measureSideSpan(wing: { name: string; area: number }[]): number {
-    if (wing.length === 0) return 3
-    let span = 0
-    for (const item of wing) {
-      const minW = dimForRoom(item.name, minDims).minWidth
-      span += Math.max(minW, item.area / wingDepth) + gutter
+  // For each item, compute the ZBC-enforced minimum dimensions once
+  interface SizedRoom {
+    name: string
+    area: number
+    minW: number
+    minD: number
+  }
+  const sized: SizedRoom[] = items.map(item => {
+    const d = dimForRoom(item.name, minDims)
+    return { name: item.name, area: item.area, minW: d.minWidth, minD: d.minDepth }
+  })
+
+  // Choose wingDepth so that NO room's minDepth or minWidth exceeds it.
+  // This guarantees zbcEnforce never changes planned dimensions.
+  let maxDim = 4.0
+  for (const r of sized) {
+    maxDim = Math.max(maxDim, r.minW, r.minD)
+  }
+  const wingDepth = maxDim
+
+  // Distribute rooms evenly across wings (handle <4 by using fewer wings)
+  function distributeEven(arr: SizedRoom[], wings: number): SizedRoom[][] {
+    const result: SizedRoom[][] = Array.from({ length: wings }, () => [])
+    for (let i = 0; i < arr.length; i++) {
+      result[i % wings].push(arr[i])
     }
-    return span
+    return result
   }
 
-  function measureVertSpan(wing: { name: string; area: number }[]): number {
-    if (wing.length === 0) return 3
-    let span = 0
-    for (const item of wing) {
-      const minD = dimForRoom(item.name, minDims).minDepth
-      span += Math.max(minD, item.area / wingDepth) + gutter
-    }
-    return span
+  const numWings = count < 4 ? count : 4
+  const wings = distributeEven(sized, numWings)
+
+  // Helper: for a horizontal wing (north/south), room height = wingDepth, width = area/wingDepth clamped to minW
+  function hSize(r: SizedRoom): number {
+    return Math.max(r.minW, r.area / wingDepth)
+  }
+  // Helper: for a vertical wing (east/west), room width = wingDepth, height = area/wingDepth clamped to minD
+  function vSize(r: SizedRoom): number {
+    return Math.max(r.minD, r.area / wingDepth)
   }
 
-  const northSpan = measureSideSpan(northItems)
-  const eastSpan = measureVertSpan(eastItems)
-  const southSpan = measureSideSpan(southItems)
-  const westSpan = measureVertSpan(westItems)
+  function horizontalSpan(w: SizedRoom[]): number {
+    if (w.length === 0) return 3
+    return w.reduce((s, r) => s + hSize(r) + gutter, 0)
+  }
 
-  const reqW = Math.max(northSpan, southSpan) + wingDepth * 2
-  const reqD = Math.max(eastSpan, westSpan) + wingDepth * 2
+  function verticalSpan(w: SizedRoom[]): number {
+    if (w.length === 0) return 3
+    return w.reduce((s, r) => s + vSize(r) + gutter, 0)
+  }
+
+  // Compute spans for each of the 4 cardinal wings (or fewer)
+  const hSpan0 = horizontalSpan(wings[0] || [])  // north
+  const vSpan1 = verticalSpan(wings[1] || [])    // east
+  const hSpan2 = horizontalSpan(wings[2] || [])  // south
+  const vSpan3 = verticalSpan(wings[3] || [])    // west
+
+  // For N-wing layouts, pad missing wings with 0 span
+  const reqW = Math.max(hSpan0, hSpan2) + (wings.length > 1 ? wingDepth * 2 : 0)
+  const reqD = Math.max(vSpan1, vSpan3) + (wings.length > 1 ? wingDepth * 2 : 0)
 
   const outerW = Math.min(Math.max(siteW * 0.9, reqW), Math.max(siteW, reqW))
   const outerD = Math.min(Math.max(siteD * 0.9, reqD), Math.max(siteD, reqD))
 
-  const availSide = Math.max(3, outerW - wingDepth * 2)
-  const availVert = Math.max(3, outerD - wingDepth * 2)
-
   const rooms: PlacedRoom[] = []
 
-  // North wing (top, rooms side-by-side)
-  let x = (outerW - availSide) / 2
-  for (const item of northItems) {
-    const minW = dimForRoom(item.name, minDims).minWidth
-    const w = Math.max(minW, item.area / wingDepth)
-    const room: PlacedRoom = zbcEnforce({ name: item.name, x, y: 0, width: w, height: wingDepth }, minDims)
-    rooms.push(room)
-    x += room.width + gutter
-  }
+  if (numWings === 1) {
+    // Single row — place all rooms side-by-side
+    let x = 0
+    for (const r of wings[0]) {
+      const w = hSize(r)
+      rooms.push({ name: r.name, x, y: 0, width: w, height: wingDepth })
+      x += w + gutter
+    }
+  } else if (numWings === 2) {
+    // Two wings — place north row then south row (or left column + right)
+    const midIdx = Math.ceil(count / 2)
+    const top = sized.slice(0, midIdx)
+    const bottom = sized.slice(midIdx)
+    let x = 0
+    for (const r of top) {
+      const rw = hSize(r)
+      rooms.push({ name: r.name, x, y: 0, width: rw, height: wingDepth })
+      x += rw + gutter
+    }
+    x = 0
+    for (const r of bottom) {
+      const rw = hSize(r)
+      rooms.push({ name: r.name, x, y: outerD - wingDepth, width: rw, height: wingDepth })
+      x += rw + gutter
+    }
+  } else {
+    // 3 or 4 wings — full ring
+    const availSide = Math.max(3, outerW - wingDepth * 2)
+    const availVert = Math.max(3, outerD - wingDepth * 2)
 
-  // East wing (right, rooms stacked)
-  let y = (outerD - availVert) / 2
-  for (const item of eastItems) {
-    const minD = dimForRoom(item.name, minDims).minDepth
-    const d = Math.max(minD, item.area / wingDepth)
-    const room: PlacedRoom = zbcEnforce({ name: item.name, x: outerW - wingDepth, y, width: wingDepth, height: d }, minDims)
-    rooms.push(room)
-    y += room.height + gutter
-  }
+    // North wing (top, rooms side-by-side)
+    const northStartX = wings.length >= 4 ? (outerW - availSide) / 2 : 0
+    let x = northStartX
+    for (const r of wings[0]) {
+      const w = hSize(r)
+      rooms.push({ name: r.name, x, y: 0, width: w, height: wingDepth })
+      x += w + gutter
+    }
 
-  // South wing (bottom, rooms side-by-side)
-  x = (outerW - availSide) / 2
-  for (const item of southItems) {
-    const minW = dimForRoom(item.name, minDims).minWidth
-    const w = Math.max(minW, item.area / wingDepth)
-    const room: PlacedRoom = zbcEnforce({ name: item.name, x, y: outerD - wingDepth, width: w, height: wingDepth }, minDims)
-    rooms.push(room)
-    x += room.width + gutter
-  }
+    // East wing (right, rooms stacked)
+    const eastStartY = wings.length >= 4 ? (outerD - availVert) / 2 : 0
+    let y = eastStartY
+    if (wings[1]) {
+      for (const r of wings[1]) {
+        const d = vSize(r)
+        rooms.push({ name: r.name, x: outerW - wingDepth, y, width: wingDepth, height: d })
+        y += d + gutter
+      }
+    }
 
-  // West wing (left, rooms stacked)
-  y = (outerD - availVert) / 2
-  for (const item of westItems) {
-    const minD = dimForRoom(item.name, minDims).minDepth
-    const d = Math.max(minD, item.area / wingDepth)
-    const room: PlacedRoom = zbcEnforce({ name: item.name, x: 0, y, width: wingDepth, height: d }, minDims)
-    rooms.push(room)
-    y += room.height + gutter
-  }
+    // South wing (bottom, rooms side-by-side)
+    x = northStartX
+    for (const r of wings[2]) {
+      const w = hSize(r)
+      rooms.push({ name: r.name, x, y: outerD - wingDepth, width: w, height: wingDepth })
+      x += w + gutter
+    }
 
-  // Courtyard void
-  const cw = outerW - wingDepth * 2
-  const cd = outerD - wingDepth * 2
-  if (cw > 2 && cd > 2) {
-    rooms.push({ name: 'Courtyard', x: wingDepth, y: wingDepth, width: cw, height: cd })
+    // West wing (left, rooms stacked)
+    y = eastStartY
+    if (wings[3]) {
+      for (const r of wings[3]) {
+        const d = vSize(r)
+        rooms.push({ name: r.name, x: 0, y, width: wingDepth, height: d })
+        y += d + gutter
+      }
+    }
+
+    // Courtyard void (center)
+    if (wings.length >= 4) {
+      const cw = outerW - wingDepth * 2
+      const cd = outerD - wingDepth * 2
+      if (cw > 2 && cd > 2) {
+        rooms.push({ name: 'Courtyard', x: wingDepth, y: wingDepth, width: cw, height: cd })
+      }
+    }
   }
 
   const { w: planW, d: planD } = computePlanBounds(rooms)
