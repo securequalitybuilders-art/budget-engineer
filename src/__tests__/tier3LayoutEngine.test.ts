@@ -142,6 +142,14 @@ describe('Tier 3 — generateFloorPlans (house)', () => {
       checkNamesMatchProgram(p.rooms, `House ${p.topology}`, programNames)
     }
   })
+
+  it('plan names contain topology keywords not Compact/Standard/Spacious', () => {
+    const plans = getPlans()
+    for (const p of plans) {
+      expect(p.name.toLowerCase()).toContain(p.topology === 'l-shape' ? 'l-shape' : p.topology)
+      expect(p.name).not.toMatch(/compact|standard|spacious/i)
+    }
+  })
 })
 
 describe('Tier 3 — generateFloorPlans (clinic)', () => {
@@ -176,6 +184,14 @@ describe('Tier 3 — generateFloorPlans (clinic)', () => {
     const programNames = ['Consultation Room']
     for (const p of plans) {
       checkNamesMatchProgram(p.rooms, `Clinic ${p.topology}`, programNames)
+    }
+  })
+
+  it('plan names contain topology keywords not Compact/Standard/Spacious', () => {
+    const plans = getPlans()
+    for (const p of plans) {
+      expect(p.name.toLowerCase()).toContain(p.topology === 'l-shape' ? 'l-shape' : p.topology)
+      expect(p.name).not.toMatch(/compact|standard|spacious/i)
     }
   })
 })
@@ -236,6 +252,16 @@ describe('Tier 3 — generateFloorPlans (hotel with courtyard)', () => {
       checkFiniteDimensions(degrade.rooms, 'Hotel courtyard degrade')
       assertNoOverlaps(degrade.rooms, 'Hotel courtyard degrade')
       expect(degrade.rooms.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('non-courtyard plan names contain topology keywords not Compact/Standard/Spacious', () => {
+    const plans = getPlans()
+    for (const p of plans) {
+      if (p.topology !== 'courtyard') {
+        expect(p.name.toLowerCase()).toContain(p.topology === 'l-shape' ? 'l-shape' : p.topology)
+        expect(p.name).not.toMatch(/compact|standard|spacious/i)
+      }
     }
   })
 })

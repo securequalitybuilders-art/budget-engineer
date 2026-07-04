@@ -264,6 +264,33 @@ export function Dashboard() {
     setIsGenerating(true);
     try {
       await generateDesigns(id);
+      // Run Tier 3 on the generated brief to produce topology-labeled options
+      const brief = (await import('@/stores/projectStore')).useProjectStore.getState().currentBrief
+      if (brief?.rawText) {
+        try {
+          const { parseBrief } = await import('@/engine/parseBrief')
+          const parsed = parseBrief(brief.rawText, { buildingType: brief.parsed.buildingType ?? 'house' })
+          const { generateDesignConcept } = await import('@/engine/tier2/conceptEngine')
+          const concept = generateDesignConcept(parsed)
+          const { generateLayoutParameters, generateFloorPlans } = await import('@/engine/tier3/layoutEngine')
+          const params = generateLayoutParameters(concept, parsed)
+          const plans = generateFloorPlans(params, parsed)
+          if (plans.length > 0) {
+            setTier3Plans(plans)
+            setAiDesignOptions((prev) => {
+              const updated = prev.map((opt, i) => {
+                if (i < plans.length) {
+                  return { ...opt, name: plans[i].name, id: opt.id + `-t3-${i}` }
+                }
+                return opt
+              })
+              return updated
+            })
+          }
+        } catch {
+          console.warn('[Tier 3] Layout engine in regenerate path — falling back to generic options')
+        }
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -282,17 +309,20 @@ export function Dashboard() {
 
   const handleTier3Plans = (plans: FloorPlan[]) => {
     setTier3Plans(plans)
-    // Remap the first N design option names to topology names
-    if (aiDesignOptions.length >= plans.length) {
-      const updated = aiDesignOptions.map((opt, i) => {
-        if (i < plans.length) {
-          return { ...opt, name: plans[i].name, id: opt.id + `-t3-${i}` }
-        }
-        return opt
-      })
-      setAiDesignOptions(updated)
-      setSelectedDesignId(updated[0]?.id ?? null)
-    }
+    // Use the ref to avoid stale closure: plans arrive after re-render
+    setAiDesignOptions((prev) => {
+      if (prev.length >= plans.length) {
+        const updated = prev.map((opt, i) => {
+          if (i < plans.length) {
+            return { ...opt, name: plans[i].name, id: opt.id + `-t3-${i}` }
+          }
+          return opt
+        })
+        setSelectedDesignId(updated[0]?.id ?? null)
+        return updated
+      }
+      return prev
+    })
   };
 
   const handleExport = (type: 'csv' | 'html' | 'print') => {

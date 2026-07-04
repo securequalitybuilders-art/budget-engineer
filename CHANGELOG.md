@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Sprint 46A — Tier 3 Wiring Fix: Topology Labels in Design Option Cards
+
+**Root cause**: Two bugs prevented Tier 3 topology names from appearing on the 3 design-option cards. (a) The "Regenerate options" button (`handleGenerate`) only called the old `@/ai/designEngine` engine, producing "Compact/Standard/Spacious". (b) The AI Brief panel path used a stale closure over `aiDesignOptions` in `handleTier3Plans`, causing the topology remap guard to fail silently (`0 >= 3 → false`).
+
+**Fixes**:
+1. `handleTier3Plans` (`Dashboard.tsx:283`): Changed from direct `aiDesignOptions` closure read to functional `setAiDesignOptions((prev) => ...)` — reads the latest state.
+2. `handleGenerate` (`Dashboard.tsx:262`): After store's `generateDesigns(id)`, dynamically imports Tier 1/2/3 engines, runs `generateFloorPlans`, remaps option names to topology names. Falls back to `console.warn` on failure — old labels preserved.
+3. Tests: +3 tests asserting plan names contain topology keywords (Rectangle/L-Shape/Split-Wing/Courtyard) and never "Compact" / "Standard" / "Spacious".
+
+**Before**: 3 cards show "Compact Option / Standard Option / Spacious Option" (old engine names).
+**After**: 3 cards show "Rectangle — ... / L-Shape — ... / Split-Wing — ..." (Tier 3 topology names).
+
+**Documentation:** `docs/SPRINT_46A_TIER3_WIRING_FIX_REPORT.md`
+
 ### Sprint 46 — Tier 3: Layout Engine (Room-by-Room Floor Plan Generation)
 
 **New modules** (layered, non-breaking — existing generator unchanged):
