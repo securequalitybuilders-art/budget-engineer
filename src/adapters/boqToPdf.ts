@@ -2,6 +2,7 @@
 import type { DesignOption } from '@/domain/boq'
 import type { BoqResult } from './designToBoq'
 import { currencySymbol } from '@/lib/utils/currency'
+import { isValidPngDataUrl } from '@/lib/3d-snapshot'
 const CATEGORY_DISPLAY: Record<string, string> = {
   Walls: 'Walling',
   Slabs: 'Substructure',
@@ -50,6 +51,19 @@ function groupBoqItems(boq: BoqResult): CategoryGroup[] {
     }
   }
   return result
+}
+
+export function embedSnapshotInPdf(doc: any, snapshotDataUrl: string | undefined, y: number, margin: number, contentW: number): number {
+  if (!snapshotDataUrl || !isValidPngDataUrl(snapshotDataUrl)) return y
+  try {
+    const imgW = contentW * 0.7
+    const imgH = imgW * 0.6
+    const imgX = margin + (contentW - imgW) / 2
+    doc.addImage(snapshotDataUrl, 'PNG', imgX, y, imgW, imgH)
+    return y + imgH + 6
+  } catch {
+    return y
+  }
 }
 
 function fmt(n: number, sym: string, dp = 2): string {
@@ -112,18 +126,8 @@ export async function generatePdfReport(
   }
 
   // ── 3D snapshot (if available) ──
-  if (snapshotDataUrl) {
-    y += 3
-    try {
-      const imgW = contentW * 0.7
-      const imgH = imgW * 0.6
-      const imgX = margin + (contentW - imgW) / 2
-      doc.addImage(snapshotDataUrl, 'PNG', imgX, y, imgW, imgH)
-      y += imgH + 6
-    } catch {
-      // skip gracefully
-    }
-  }
+  y += 3
+  y = embedSnapshotInPdf(doc, snapshotDataUrl, y, margin, contentW)
 
   // ── Disclaimer ──
   y += 2

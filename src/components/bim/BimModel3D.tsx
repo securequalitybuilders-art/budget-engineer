@@ -1,7 +1,8 @@
-import { useMemo, useRef, useCallback, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { useMemo, useRef, useCallback, useState, useEffect } from 'react'
+import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
+import { registerSnapshotCapture, unregisterSnapshotCapture } from '@/lib/3d-snapshot'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
 import { planTo3d, DEFAULT_STOREY_HEIGHT } from '@/adapters/planTo3d'
@@ -209,6 +210,20 @@ function RoofMesh({ roof }: { roof: RoofParams }) {
   return <mesh geometry={geometry} material={ROOF_MAT} castShadow receiveShadow />
 }
 
+function SnapshotCapture() {
+  const { gl, scene, camera } = useThree()
+
+  useEffect(() => {
+    registerSnapshotCapture(() => {
+      gl.render(scene, camera)
+      return gl.domElement.toDataURL('image/png')
+    })
+    return () => unregisterSnapshotCapture()
+  }, [gl, scene, camera])
+
+  return null
+}
+
 function AccentEdges({ result }: { result: PlanTo3dResult }) {
   const edgesRef = useRef<THREE.LineSegments>(null)
 
@@ -374,9 +389,10 @@ export function BimModel3D({ plan, design, height = 480 }: BimModel3DProps) {
         }}
         shadows
         style={{ height }}
-        gl={{ antialias: true }}
+        gl={{ antialias: true, preserveDrawingBuffer: true }}
       >
         <Scene result={result} buildingRef={buildingRef} />
+        <SnapshotCapture />
       </Canvas>
       {/* Download button */}
       <div className="flex items-center gap-2 border-t border-white/10 px-4 py-2">

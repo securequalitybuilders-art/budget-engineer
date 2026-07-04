@@ -5,6 +5,7 @@ import type { BoqResult } from '@/adapters/designToBoq'
 import { getSupportedRegions, getDefaultRegionId } from '@/adapters/rateCardAdapter'
 import { Calculator, FileDown, FileText, FilePieChart, Printer, Info, Shield } from 'lucide-react'
 import { makeMoney } from '@/lib/utils/currency'
+import { captureSnapshot } from '@/lib/3d-snapshot'
 
 interface BoqExportPanelProps {
   selectedDesign: DesignOption | null
@@ -125,8 +126,9 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
     if (!boq || !selectedDesign) return
     setPdfExporting(true)
     try {
+      const snapshot = captureSnapshot()
       const { generatePdfReport } = await import('@/adapters/boqToPdf')
-      await generatePdfReport(selectedDesign, boq)
+      await generatePdfReport(selectedDesign, boq, snapshot ?? undefined)
       setExported(true)
       onExport?.('print')
     } catch (err) {

@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+### Sprint 47 — Embed 3D Model Snapshot into PDF Cost Report
+
+**Root cause**: The WebGL canvas in `BimModel3D` was created without `preserveDrawingBuffer: true`, so `gl.domElement.toDataURL()` returned a blank/transparent image. The optional `snapshotDataUrl` parameter existed in `boqToPdf.ts` (from Sprint 43) but was never populated.
+
+**Fixes**:
+1. `BimModel3D.tsx:392`: Added `preserveDrawingBuffer: true` to the Canvas `gl` config — enables WebGL readback via `toDataURL('image/png')`.
+2. `BimModel3D.tsx:213-225`: Added `<SnapshotCapture />` component inside the Canvas that uses `useThree()` to obtain `gl`, `scene`, `camera` and registers a capture function. Before capturing, it calls `gl.render(scene, camera)` for a fresh frame.
+3. `src/lib/3d-snapshot.ts` (new): Module-level capture registry (`registerSnapshotCapture`/`unregisterSnapshotCapture`/`captureSnapshot`) + `isValidPngDataUrl` guard function.
+4. `boqToPdf.ts:56-67`: Extracted `embedSnapshotInPdf` function using `isValidPngDataUrl` guard + try/catch. Called from `generatePdfReport`.
+5. `BoqExportPanel.tsx:129-131`: Calls `captureSnapshot()` before `generatePdfReport`, passes result as third argument.
+
+**Graceful skip**: If the 3D view was never opened (`captureSnapshot()` returns `null`), the PDF still generates without the image — no errors, no blank placeholders.
+
+**Before**: PDF cost report had an unused optional snapshot parameter — no image could be captured.
+**After**: PDF includes a "3D Model Preview" section with a PNG snapshot of the current 3D BIM model when available; gracefully skips when not.
+
+**Testing**: +16 tests (430 total, 31 files) — `isValidPngDataUrl` with valid/invalid/empty/null/undefined inputs, `embedSnapshotInPdf` with mock doc asserting `addImage` called/not-called and y-position advancement, capture registry lifecycle.
+
+**Chunk impact**: boqToPdf +0.10 kB, BimModel3D +0.40 kB. Both still lazy-loaded.
+
+**Documentation:** `docs/SPRINT_47_PDF_3D_SNAPSHOT_REPORT.md`
+
 ## [0.3.0] - 2026-07-04
 
 ### Sprint 46B — Unify Design Options: Remove Stale Panel, Fix Duplicate Accumulation
