@@ -42,7 +42,14 @@ vi.mock('jspdf', () => {
   return { default: MockDoc }
 })
 
-vi.mock('jspdf-autotable', () => ({ default: vi.fn() }))
+vi.mock('jspdf-autotable', () => {
+  let autoTableY = 200
+  const autoTable = vi.fn().mockImplementation((doc: any, opts: any) => {
+    autoTableY = (opts?.startY || 200) + 50
+    doc.lastAutoTable = { finalY: autoTableY }
+  })
+  return { default: autoTable, autoTable }
+})
 
 const MINIMAL_DESIGN: DesignOption = {
   id: 'test-1',
@@ -265,7 +272,18 @@ describe('generatePdfReport always saves PDF', () => {
   })
 
   it('saves PDF even when addImage throws on a valid-looking URL', async () => {
-    // The mocked jsPDF will use our spy — we verify addImage doesn't break the flow
     await expect(generatePdfReport(MINIMAL_DESIGN, MINIMAL_BOQ, VALID_PNG)).resolves.toBeUndefined()
+  })
+
+  it('saves PDF with minimal edge data (missing optional fields)', async () => {
+    const edgeDesign = { } as unknown as DesignOption
+    const edgeBoq = {
+      id: 'edge-boq', projectId: 'edge-proj',
+      currency: '', items: undefined, summary: undefined,
+      assumptions: [],
+      sourceMetadata: undefined,
+      quantities: undefined,
+    } as unknown as BoqResult
+    await expect(generatePdfReport(edgeDesign, edgeBoq)).resolves.toBeUndefined()
   })
 })

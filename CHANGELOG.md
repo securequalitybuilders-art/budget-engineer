@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Sprint 47B — Fix PDF Generation Failure (jspdf-autotable Plugin Registration + Field Guards)
+
+**Root cause**: `await import('jspdf-autotable')` was a side-effect import that relies on `window.jsPDF` being set. jsPDF v4.2.1 is loaded as ESM (via `import('jspdf')`), which does NOT set `window.jsPDF`, so the plugin's `applyPlugin(jsPDF)` was never called. `doc.autoTable` was `undefined` at runtime — every PDF export threw `TypeError: doc.autoTable is not a function`.
+
+**Fixes**:
+1. `boqToPdf.ts:80`: Changed `await import('jspdf-autotable')` to `const { autoTable } = await import('jspdf-autotable')`. Replaced both `(doc as any).autoTable({...})` calls with `autoTable(doc, {...})`. The exported function works with any jsPDF load method and correctly sets `doc.lastAutoTable`.
+2. `boqToPdf.ts`: Added null/undefined guards for `design.name`, `design.buildingType`, `design.grossFloorArea`, `design.floors`, `boq.currency`, `boq.items`, `boq.summary`, `item.description`, `item.quantity`, `item.rate`, `item.total`. Hardened `fmt()` to silently zero-out null/undefined/non-finite values.
+3. `boqToPdf.test.ts`: Updated mock to provide `autoTable` as named export; added edge data test (empty design + boq — should not throw).
+
+**Before**: Every PDF download shows "Failed to generate PDF. Please try again." — regardless of 3D snapshot state. Real error hidden.
+**After**: PDF generates reliably with and without 3D snapshot, with real and edge data.
+
+**Testing**: +1 test (446 total, 31 files) — edge data generates PDF without throwing.
+
+**Chunk impact**: boqToPdf 5.82 kB (+0.27 kB). jspdf.plugin.autotable remains a separate lazy chunk (30.99 kB).
+
+**Documentation:** `docs/SPRINT_47B_PDF_GENERATION_FIX_REPORT.md`
+
 ### Sprint 47A — Fix PDF Download Regression: Isolate 3D Snapshot So PDF Always Generates
 
 **Root cause**: `captureSnapshot()` in `BoqExportPanel.handleExportPdf` ran BEFORE the dynamic import and could throw (WebGL context loss, disposed canvas, render error). The entire PDF handler aborted — user clicked "Download PDF Report" and nothing happened. The outer catch only logged to console.

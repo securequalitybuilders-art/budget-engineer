@@ -22,7 +22,8 @@ interface CategoryGroup {
 
 function groupBoqItems(boq: BoqResult): CategoryGroup[] {
   const grouped = new Map<string, CategoryGroup['items']>()
-  for (const item of boq.items) {
+  const items = boq.items || []
+  for (const item of items) {
     const cat = item.category || 'Other'
     if (!grouped.has(cat)) grouped.set(cat, [])
     grouped.get(cat)!.push({
@@ -67,7 +68,8 @@ export function embedSnapshotInPdf(doc: any, snapshotDataUrl: string | undefined
   }
 }
 
-function fmt(n: number, sym: string, dp = 2): string {
+function fmt(n: number | null | undefined, sym: string, dp = 2): string {
+  if (n == null || typeof n !== 'number' || !Number.isFinite(n)) n = 0
   return sym + n.toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp })
 }
 
@@ -77,16 +79,16 @@ export async function generatePdfReport(
   snapshotDataUrl?: string,
 ): Promise<void> {
   const { default: jsPDF } = await import('jspdf')
-  await import('jspdf-autotable')
+  const { autoTable } = await import('jspdf-autotable')
 
-  const sym = currencySymbol(boq.currency)
+  const sym = currencySymbol(boq.currency || 'USD')
   const doc = new jsPDF('p', 'mm', 'a4')
   const pageW = 210
   const margin = 14
   const contentW = pageW - margin * 2
   let y = margin
 
-  const projectName = design.name
+  const projectName = design.name || 'Project'
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 
   // ── Header bar (Deep Cobalt brand) ──
@@ -113,10 +115,10 @@ export async function generatePdfReport(
   doc.setTextColor(80, 80, 80)
   const infoLines = [
     `Project: ${projectName}`,
-    `Building Type: ${design.buildingType}`,
-    `Total Area: ${design.grossFloorArea.toFixed(0)} m\u00B2`,
-    `Storeys: ${design.floors}`,
-    `Currency: ${boq.currency}`,
+    `Building Type: ${design.buildingType || 'N/A'}`,
+    `Total Area: ${(design.grossFloorArea ?? 0).toFixed(0)} m\u00B2`,
+    `Storeys: ${design.floors ?? 1}`,
+    `Currency: ${boq.currency || 'USD'}`,
   ]
   if (boq.sourceMetadata?.quantitySourceLabel) {
     infoLines.push(`Quantity Source: ${boq.sourceMetadata.quantitySourceLabel}`)
@@ -160,8 +162,8 @@ export async function generatePdfReport(
     }
 
     const body: AutoTableRow[] = group.items.map((item) => ({
-      description: item.description,
-      qty: item.quantity.toLocaleString(),
+      description: item.description || '',
+      qty: (item.quantity ?? 0).toLocaleString(),
       rate: fmt(item.rate, sym),
       total: fmt(item.total, sym),
     }))
@@ -173,7 +175,7 @@ export async function generatePdfReport(
       total: fmt(group.subtotal, sym),
     })
 
-    ;(doc as any).autoTable({
+    autoTable(doc, {
       startY: y,
       margin: { left: margin, right: margin },
       tableWidth: contentW,
@@ -222,15 +224,16 @@ export async function generatePdfReport(
     y += 2
   }
 
+  const s = boq.summary || { subtotal: 0, contingency: 0, professionalFees: 0, vat: 0, grandTotal: 0 }
   const totalsRows = [
-    ['Subtotal', fmt(boq.summary.subtotal, sym)],
-    ['Contingency', fmt(boq.summary.contingency, sym)],
-    ['Professional Fees', fmt(boq.summary.professionalFees, sym)],
-    ['VAT', fmt(boq.summary.vat, sym)],
-    ['Grand Total', fmt(boq.summary.grandTotal, sym)],
+    ['Subtotal', fmt(s.subtotal, sym)],
+    ['Contingency', fmt(s.contingency, sym)],
+    ['Professional Fees', fmt(s.professionalFees, sym)],
+    ['VAT', fmt(s.vat, sym)],
+    ['Grand Total', fmt(s.grandTotal, sym)],
   ]
 
-  ;(doc as any).autoTable({
+  autoTable(doc, {
     startY: y,
     margin: { left: margin + contentW * 0.45, right: margin },
     tableWidth: contentW * 0.55,
@@ -270,7 +273,7 @@ export async function generatePdfReport(
   }
 
   // ── Download ──
-  const slug = design.name.toLowerCase().replace(/\s+/g, '-')
+  const slug = (design.name || 'project').toLowerCase().replace(/\s+/g, '-')
   const filename = `BudgetEngineer-${slug}-BOQ.pdf`
   const pdfBlob = doc.output('blob')
   const url = URL.createObjectURL(pdfBlob)
