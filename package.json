@@ -10,7 +10,8 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 10",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lighthouse": "npm run build && lhci autorun"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",
@@ -37,6 +38,7 @@
     "zustand": "^4.5.4"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^7.15.0",

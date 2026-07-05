@@ -84,6 +84,19 @@ No analytics, no telemetry, no automatic data collection. You choose what to sha
 | `npm run lint` | ESLint |
 | `npm test` | Run all tests (vitest) |
 | `npm run test:watch` | Run tests in watch mode |
+| `npm run lighthouse` | Build + audit with Lighthouse CI (requires Chrome) |
+
+## Quality / Lighthouse
+
+Repeatable Lighthouse audits can be run locally against the production build:
+
+```bash
+npm run lighthouse
+```
+
+This builds the app, serves it via `vite preview` on port 4173, and runs Lighthouse CI (3 runs per route, median). Reports are saved to `./lighthouse-report/` as HTML files.
+
+Audited routes: `/`, `/portfolio`, `/feedback` (static routes that render without project data). All assertions are set to `"warn"` (baseline mode) — the command reports scores without failing. See [docs/SPRINT_51_LIGHTHOUSE_TOOLING_REPORT.md](docs/SPRINT_51_LIGHTHOUSE_TOOLING_REPORT.md) for full details.
 
 ## Deploy
 

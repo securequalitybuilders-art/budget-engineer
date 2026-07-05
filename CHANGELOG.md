@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+### Sprint 51 — Repeatable Lighthouse CI Auditing Tooling
+
+**Additive (non-breaking):** Added `@lhci/cli` (Apache-2.0, free) as a repeatable local Lighthouse audit tool. Does not change app behavior, does not run on CI by default.
+
+**Config:**
+- `lighthouserc.json` at repo root with `startServerCommand: "npm run preview"` (port 4173, production build)
+- Routes audited: `/`, `/portfolio`, `/feedback` (safe static routes that render without IndexedDB data)
+- 3 runs per route, median aggregation
+- `lighthouse:recommended` preset with all category assertions set to `"warn"` (baseline mode — never fails, just reports)
+- Upload target: `filesystem` → `./lighthouse-report/` (HTML reports saved locally)
+
+**Scripts added:**
+- `npm run lighthouse` — builds production app and runs full LHCI audit
+
+**Files changed:**
+- `package.json` (+1 script, +1 devDependency)
+- `lighthouserc.json` (new)
+- `.gitignore` (+2 entries)
+- `docs/SPRINT_51_LIGHTHOUSE_TOOLING_REPORT.md` (new)
+
+**Validation:** 499 tests pass, 0 typecheck errors, 0 lint errors (9 warnings baseline), build succeeds. Existing behavior unchanged.
+
 ## [0.3.1] - 2026-07-05
 
 ### Sprint 49 — 2D/3D Plan Consistency (One Active Plan Source)
