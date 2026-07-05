@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest'
 import { isValidPngDataUrl, captureSnapshot, registerSnapshotCapture, unregisterSnapshotCapture } from '@/lib/3d-snapshot'
 import { embedSnapshotInPdf, generatePdfReport } from '@/adapters/boqToPdf'
+import { currencySymbol } from '@/lib/utils/currency'
 import type { DesignOption } from '@/domain/boq'
 import type { BoqResult } from '@/adapters/designToBoq'
 
@@ -22,6 +23,9 @@ afterAll(() => {
 vi.mock('jspdf', () => {
   let autoTableY = 200
   const MockDoc = class {
+    constructor() {
+      (globalThis as any).__lastJsPDFInstance = this
+    }
     setFillColor = vi.fn().mockReturnThis()
     rect = vi.fn().mockReturnThis()
     setTextColor = vi.fn().mockReturnThis()
@@ -285,6 +289,169 @@ describe('generatePdfReport always saves PDF', () => {
       quantities: undefined,
     } as unknown as BoqResult
     await expect(generatePdfReport(edgeDesign, edgeBoq)).resolves.toBeUndefined()
+  })
+})
+
+// ── generatePdfReport structure assertions ──
+
+function realisticBoq(): BoqResult {
+  return {
+    id: 'real-boq',
+    projectId: 'proj-1',
+    currency: 'USD',
+    items: [
+      { id: 's1', quantityRef: 'q', description: 'Ground slab 150mm', category: 'Slabs', quantity: 120, rate: 45, total: 5400, unit: 'm2' },
+      { id: 'w1', quantityRef: 'q', description: 'External walls 230mm', category: 'Walls', quantity: 96, rate: 38, total: 3648, unit: 'm2' },
+      { id: 'w2', quantityRef: 'q', description: 'Internal partitions', category: 'Walls', quantity: 52, rate: 28, total: 1456, unit: 'm2' },
+      { id: 'r1', quantityRef: 'q', description: 'Roof sheeting IBR', category: 'Roof', quantity: 140, rate: 22, total: 3080, unit: 'm2' },
+    ],
+    summary: { subtotal: 13584, contingency: 1358.40, professionalFees: 679.20, vat: 2037.60, grandTotal: 17659.20 },
+    assumptions: [],
+    sourceMetadata: { quantitySourceLabel: 'Generated Design', geometrySource: 'generated-design', computedAt: '2024-01-01T00:00:00.000Z' },
+    quantities: {
+      designId: 'proj-1', designName: 'Real Design', floors: 1,
+      grossFloorArea: 120, footprintArea: 120, slabArea: 120,
+      roofArea: 140, finishFloorArea: 96, serviceZoneArea: 24,
+      externalWallLength: 40, internalWallLength: 26,
+      externalWallArea: 96, internalWallArea: 52, partitionArea: 0,
+      doorCount: 6, windowCount: 8,
+      doorArea: 12, windowArea: 8, openingArea: 20,
+      roomCount: 5, wetRoomCount: 2,
+      kitchenCount: 1, bedroomCount: 3, clinicRoomCount: 0,
+      warnings: [],
+    },
+  }
+}
+
+const REALISTIC_DESIGN: DesignOption = {
+  id: 'real-des-1',
+  name: 'My House',
+  buildingType: 'house-residential',
+  grossFloorArea: 120,
+  floors: 1,
+  elements: [],
+} as unknown as DesignOption
+
+const VALID_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+
+describe('generatePdfReport — structure assertions', () => {
+  beforeEach(() => { vi.clearAllMocks() })
+
+  it('generates blob output and produces a sensible filename', async () => {
+    const boq = realisticBoq()
+    await generatePdfReport(REALISTIC_DESIGN, boq, VALID_PNG)
+    const doc = (globalThis as any).__lastJsPDFInstance
+    expect(doc.output).toHaveBeenCalledWith('blob')
+    expect(mockAnchor.download).toBe('BudgetEngineer-my-house-BOQ.pdf')
+  })
+
+  it('autoTable body rows include all BOQ line items with description/qty/rate/total', async () => {
+    const boq = realisticBoq()
+    await generatePdfReport(REALISTIC_DESIGN, boq, VALID_PNG)
+    const autoTableMod = await import('jspdf-autotable')
+    const spy = autoTableMod.default as ReturnType<typeof vi.fn>
+    expect(spy).toHaveBeenCalled()
+    const allBodyRows: { description: string; qty: string; rate: string; total: string }[] = []
+    for (const call of spy.mock.calls) {
+      const opts = call[1] as { body?: { content: string }[][] }
+      if (!opts?.body) continue
+      for (const row of opts.body) {
+        const desc = row[0]?.content ?? ''
+        const qty = row[1]?.content ?? ''
+        const rate = row[2]?.content ?? ''
+        const total = row[3]?.content ?? ''
+        allBodyRows.push({ description: desc, qty, rate, total })
+      }
+    }
+    const descriptions = allBodyRows.map(r => r.description)
+    expect(descriptions).toContain('Ground slab 150mm')
+    expect(descriptions).toContain('External walls 230mm')
+    expect(descriptions).toContain('Internal partitions')
+    expect(descriptions).toContain('Roof sheeting IBR')
+    const itemRows = allBodyRows.filter(r => r.rate)
+    for (const row of itemRows) {
+      expect(row.qty).toBeTruthy()
+      expect(row.rate).toMatch(/^\$/)
+      expect(row.total).toMatch(/^\$/)
+    }
+  })
+
+  it('header includes project name, building type, and disclaimer', async () => {
+    const boq = realisticBoq()
+    await generatePdfReport(REALISTIC_DESIGN, boq, VALID_PNG)
+    const doc = (globalThis as any).__lastJsPDFInstance
+    const textCalls = (doc.text as ReturnType<typeof vi.fn>).mock.calls
+    const allTexts = textCalls.map((c: unknown[]) => String(c[0]))
+    expect(allTexts.some((t: string) => t.includes('My House'))).toBe(true)
+    expect(allTexts.some((t: string) => t.includes('house-residential'))).toBe(true)
+    expect(allTexts.some((t: string) => t.includes('consult a registered professional'))).toBe(true)
+  })
+
+  it('grand total row matches summary.grandTotal', async () => {
+    const boq = realisticBoq()
+    const expectedGrand = boq.summary!.grandTotal
+    await generatePdfReport(REALISTIC_DESIGN, boq, VALID_PNG)
+    const autoTableMod = await import('jspdf-autotable')
+    const spy = autoTableMod.default as ReturnType<typeof vi.fn>
+    const lastCall = spy.mock.calls[spy.mock.calls.length - 1]
+    const lastOpts = lastCall[1] as { body?: { content: string }[][] }
+    expect(lastOpts.body).toBeDefined()
+    const grandRow = lastOpts.body![lastOpts.body!.length - 1]
+    expect(grandRow[0].content).toBe('Grand Total')
+    const expectedFormatted = '$' + expectedGrand.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    expect(grandRow[1].content).toBe(expectedFormatted)
+  })
+
+  it('subtotal rows exist per trade category', async () => {
+    const boq = realisticBoq()
+    await generatePdfReport(REALISTIC_DESIGN, boq, VALID_PNG)
+    const autoTableMod = await import('jspdf-autotable')
+    const spy = autoTableMod.default as ReturnType<typeof vi.fn>
+    const allBodies: { content: string }[][] = []
+    for (const call of spy.mock.calls) {
+      const opts = call[1] as { body?: { content: string }[][] }
+      if (opts?.body) allBodies.push(...opts.body)
+    }
+    const descriptions = allBodies.map(r => r[0]?.content ?? '')
+    expect(descriptions).toContain('Walling subtotal')
+    expect(descriptions).toContain('Substructure subtotal')
+    expect(descriptions).toContain('Roofing subtotal')
+  })
+
+  it('valid PNG calls addImage; undefined does not call addImage but still outputs PDF', async () => {
+    const boq1 = realisticBoq()
+    await generatePdfReport(REALISTIC_DESIGN, boq1, VALID_PNG)
+    const doc1 = (globalThis as any).__lastJsPDFInstance
+    expect(doc1.addImage).toHaveBeenCalled()
+    vi.clearAllMocks()
+    const boq2 = realisticBoq()
+    await generatePdfReport(REALISTIC_DESIGN, boq2, undefined)
+    const doc2 = (globalThis as any).__lastJsPDFInstance
+    expect(doc2.addImage).not.toHaveBeenCalled()
+    expect(doc2.output).toHaveBeenCalledWith('blob')
+  })
+
+  it('disclaimer text appears in the generated report', async () => {
+    const boq = realisticBoq()
+    await generatePdfReport(REALISTIC_DESIGN, boq, VALID_PNG)
+    const doc = (globalThis as any).__lastJsPDFInstance
+    const textCalls = (doc.text as ReturnType<typeof vi.fn>).mock.calls
+    const allTexts = textCalls.map((c: unknown[]) => String(c[0]))
+    expect(allTexts.some((t: string) =>
+      t.includes('Early estimate') && t.includes('consult a registered professional')
+    )).toBe(true)
+  })
+})
+
+describe('currency — currencySymbol helper', () => {
+  it('USD returns $', () => {
+    expect(currencySymbol('USD')).toBe('$')
+  })
+  it('ZAR returns R', () => {
+    expect(currencySymbol('ZAR')).toBe('R')
+  })
+  it('unknown currency returns code + space', () => {
+    expect(currencySymbol('ZWL')).toBe('ZWL ')
   })
 })
 

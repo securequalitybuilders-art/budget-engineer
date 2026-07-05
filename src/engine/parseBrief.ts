@@ -79,6 +79,34 @@ function extractProgramFromText(text: string): ProgramItem[] {
   return items
 }
 
+function mergeProgramWithDefault(textProgram: ProgramItem[], defaultProgram: ProgramItem[]): ProgramItem[] {
+  const defaultByName = new Map<string, ProgramItem>()
+  for (const dp of defaultProgram) {
+    defaultByName.set(dp.name, dp)
+  }
+
+  const merged: ProgramItem[] = []
+  const usedNames = new Set<string>()
+
+  for (const tp of textProgram) {
+    const dp = defaultByName.get(tp.name)
+    merged.push({
+      name: tp.name,
+      count: tp.count,
+      areaM2: dp ? dp.areaM2 : Math.max(tp.areaM2 || 15, 15),
+    })
+    usedNames.add(tp.name)
+  }
+
+  for (const dp of defaultProgram) {
+    if (!usedNames.has(dp.name)) {
+      merged.push({ ...dp })
+    }
+  }
+
+  return merged
+}
+
 function buildQualityGate(
   brief: Tier1ParsedBrief,
   siteArea: number | null,
@@ -209,7 +237,9 @@ export function parseBrief(
   const constraints = extractConstraints(lower)
   const textProgram = extractProgramFromText(lower)
   const program = textProgram.length > 0
-    ? textProgram
+    ? finalTypology
+      ? mergeProgramWithDefault(textProgram, finalTypology.defaultProgram)
+      : textProgram
     : finalTypology
       ? finalTypology.defaultProgram.map((p) => ({ ...p }))
       : []
