@@ -553,7 +553,7 @@ export function Dashboard() {
 
                     {/* Canvas area */}
                     {activeCanvasView === 'plan' ? (
-                      <PlanCanvas projectId={id ?? null} design={selectedDesign} persistedPlan={persistedPlan} onSavePlan={handleSavePlan} />
+                      <PlanCanvas projectId={id ?? null} design={selectedDesign} persistedPlan={activePlan} onSavePlan={handleSavePlan} />
                     ) : (
                       <LazyBimModel3D plan={activePlan} design={selectedDesign} height={480} />
                     )}

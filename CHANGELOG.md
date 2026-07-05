@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Sprint 49 — 2D/3D Plan Consistency (One Active Plan Source)
+
+**Root cause**: The 2D PlanCanvas and 3D BimModel3D read from different plan sources. PlanCanvas used `persistedPlan ?? generatePlanModel(selectedDesign)` (ignoring Tier 3 FloorPlans), while the 3D view used `activePlan = persistedPlan ?? floorPlanToPlanModel(selectedTier3Plan, selectedDesign) ?? generatePlanModel(selectedDesign)`. For a hotel courtyard, 2D showed a generic rectangle while 3D showed the courtyard ring.
+
+**Fix**: PlanCanvas now receives `activePlan` (the fully resolved plan) as its `persistedPlan` prop, making both views share the same resolution pipeline. Priority order for both: persistedPlan (CAD edits) ≫ Tier 3 FloorPlan via floorPlanToPlanModel ≫ legacy generatePlanModel fallback.
+
+**Files changed**: `src/pages/Dashboard.tsx` (1 line), `src/__tests__/activePlanConsistency.test.ts` (new, 7 tests).
+
+**Verification**: 470 tests pass (463 old + 7 new). Typecheck, lint (0 errors, 9 warnings baseline), build all pass.
+
+### Sprint 48D — Pass current dropdown typology into Tier 3 in both generate paths
+
+**Root cause**: Dashboard `handleGenerate` hardcoded `buildingType:'auto'` for Tier 3 calls, ignoring the user's explicit dropdown selection (e.g., Clinic, Hotel). The AiBriefPanel path correctly used `buildingTypeRef.current`, but the value never reached Dashboard.
+
+**Fix**: Lifted `selectedBuildingType` state to Dashboard. AiBriefPanel emits `onBuildingTypeChange` on dropdown change; EngineeringStudioPanel passes it through; both generate paths now use the same `selectedBuildingType` value.
+
+**Files changed**: `src/components/ai/AiBriefPanel.tsx`, `src/components/dashboard/EngineeringStudioPanel.tsx`, `src/pages/Dashboard.tsx`.
+
+**Verification**: Auto+hotel → hotel-fullservice (courtyard). Explicit clinic → clinic-health. 463 tests pass.
+
 ### Sprint 48C — Fix Typology Detection: Full Dropdown + Auto-Detect Default
 
 **Root cause**: The building-type dropdown defaulted to `'house'` and was ALWAYS applied as an override in `parseBrief()`. A hotel brief text-detected as `hotel-fullservice` was overridden to `house-residential` via `startsWith('house')`, so the courtyard selection branch (`typologyId === 'hotel-fullservice'`) never fired. Additionally, the dropdown only offered 8 types; `hotel` was not listed.
