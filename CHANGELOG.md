@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Sprint 48B — Temporary Debug Readout for Courtyard Topology Selection
+
+**Root cause**: Despite Sprint 48A fixing the layout engine to return courtyard among the 3 topologies, a hotel brief live still shows only Rectangle/L-Shape/Split-Wing. The UI override in `parseBrief(brief.rawText, { buildingType: brief.parsed.buildingType ?? 'house' })` overwrites the text-detected `hotel-fullservice` typology with `house-residential` when `brief.parsed.buildingType` is `'house'` — which it always is, because `src/lib/ai/brief-parser.ts` doesn't recognize `'hotel'`.
+
+**Debug addition**: Added a temporary visible debug panel (top-left, green-on-black, z-index 99999) showing runtime values: `typologyId`, `heritageId`, `selectionBranch`, `topologies[]`, `planLabels[]`. Console logs with prefix `[CY-DEBUG]` at each generation.
+
+**Documentation:** `docs/SPRINT_48B_COURTYARD_DEBUG_REPORT.md`
+
 ### Sprint 48A — Fix Courtyard Topology Selection for Hotels (No More Empty 4th Option)
 
 **Root cause**: `generateLayoutParameters` added `'courtyard'` as a 4th topology for hotels/heritage-courtyard typologies, but the UI (`Dashboard.tsx`) only maps over the first 3 `aiDesignOptions` — the courtyard plan was silently dropped. Users always saw Rectangle / L-Shape / Split-Wing even for a hotel, never a Courtyard option.
