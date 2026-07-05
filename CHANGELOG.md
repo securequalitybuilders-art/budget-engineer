@@ -2,6 +2,39 @@
 
 ## Unreleased
 
+### Sprint 48A — Fix Courtyard Topology Selection for Hotels (No More Empty 4th Option)
+
+**Root cause**: `generateLayoutParameters` added `'courtyard'` as a 4th topology for hotels/heritage-courtyard typologies, but the UI (`Dashboard.tsx`) only maps over the first 3 `aiDesignOptions` — the courtyard plan was silently dropped. Users always saw Rectangle / L-Shape / Split-Wing even for a hotel, never a Courtyard option.
+
+**Fixes**:
+1. `layoutEngine.ts:475-480`: For courtyard-eligible typologies/histories (hotel-fullservice, townhouse, kraal, courtyard-hearth), the 3 topologies are now `['courtyard', 'l-shape', 'split-wing']` — courtyard **replaces** rectangle instead of being a dropped 4th option.
+2. `Dashboard.tsx`: Both `handleGenerate` and `handleTier3Plans` now handle `plans.length !== prev.length` by appending new `DesignOption` entries for extra plans. Removed fragile `prev.length >= plans.length` guard.
+
+**Before**: Hotels returned 4 plans (`rectangle, l-shape, split-wing, courtyard`), UI showed only first 3 — courtyard invisible.
+**After**: Hotels return 3 plans (`courtyard, l-shape, split-wing`), courtyard is the FIRST option the user sees.
+
+**Testing**: Modified hotel test from `toBe(4)` → `toBe(3)` with `toContain('courtyard')`. Added explicit `not.toContain('courtyard')` for house. Signature test compares courtyard vs l-shape. All 455 tests pass (31 files).
+
+**Files changed**: `layoutEngine.ts`, `Dashboard.tsx`, `tier3LayoutEngine.test.ts`, `CHANGELOG.md`, `docs/SPRINT_48A_COURTYARD_SELECTION_REPORT.md`.
+
+**Documentation:** `docs/SPRINT_48A_COURTYARD_SELECTION_REPORT.md`
+
+### Sprint 48 — Fix Courtyard Layout Overlap (Real Courtyard Ring for Hotels, No Rectangle Fallback)
+
+**Root cause**: `generateCourtyard` used a hardcoded `wingDepth = 4.0`. Guest rooms with `minDepth = 5.5` were ZBC-enforced to 5.5m height, 1.5m deeper than the planned wingDepth. Rooms protruded into the courtyard void, causing `hasOverlaps` to return true, and `generateFloorPlans` degraded the courtyard plan to a "Fallback Rectangle (courtyard degrade)".
+
+**Fixes**:
+1. `layoutEngine.ts:310-465`: `generateCourtyard` now computes `wingDepth = max(minD, minW)` across ALL program items (minimum 4.0). Room sizes are computed directly from ZBC-minimum-aware formulae (`max(minW, area/wingDepth)` and `max(minD, area/wingDepth)`) so ZBC is satisfied BY CONSTRUCTION — no post-placement bump that could cause overlaps.
+2. Spans use the ZBC-enforced sizes, not raw `area/wingDepth`. Outer dimensions accommodate the real placement.
+3. Fewer-wings fallback for <4 rooms. Proper corner handling.
+
+**Before**: 20-room hotel courtyard always degraded to "Fallback Rectangle (courtyard degrade)" — every hotel was just a rectangle.
+**After**: 20-room hotel produces a REAL courtyard ring: rooms on all 4 sides, central void ≥ 2m × 2m, no overlaps, ZBC-compliant.
+
+**Testing**: +6 tests (455 total, 31 files) — small courtyard (6 rooms), real courtyard with central void, ZBC compliance, signature distinct from l-shape, explicit house-excludes-courtyard.
+
+**Documentation:** `docs/SPRINT_48_COURTYARD_LAYOUT_REPORT.md`
+
 ### Sprint 47B — Fix PDF Generation Failure (jspdf-autotable Functional API for Code-Split)
 
 **Confirmed error** (browser console): `TypeError: t.autoTable is not a function` in `boqToPdf-*.js`.

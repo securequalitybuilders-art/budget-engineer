@@ -278,12 +278,21 @@ export function Dashboard() {
           if (plans.length > 0) {
             setTier3Plans(plans)
             setAiDesignOptions((prev) => {
-              const updated = prev.map((opt, i) => {
-                if (i < plans.length) {
-                  return { ...opt, name: plans[i].name, id: opt.id + `-t3-${i}` }
-                }
-                return opt
-              })
+              const updated = prev.map((opt, i) => ({
+                ...opt,
+                name: i < plans.length ? plans[i].name : opt.name,
+                id: opt.id + `-t3-${i}`,
+              }))
+              for (let i = prev.length; i < plans.length; i++) {
+                updated.push({
+                  name: plans[i].name,
+                  id: `t3-plan-${i}`,
+                  grossFloorArea: 0,
+                  floors: 1,
+                  buildingType: 'hotel',
+                  elements: [],
+                })
+              }
               return updated
             })
           }
@@ -311,17 +320,24 @@ export function Dashboard() {
     setTier3Plans(plans)
     // Use the ref to avoid stale closure: plans arrive after re-render
     setAiDesignOptions((prev) => {
-      if (prev.length >= plans.length) {
-        const updated = prev.map((opt, i) => {
-          if (i < plans.length) {
-            return { ...opt, name: plans[i].name, id: opt.id + `-t3-${i}` }
-          }
-          return opt
+      if (plans.length === 0) return prev
+      const updated = prev.map((opt, i) => ({
+        ...opt,
+        name: i < plans.length ? plans[i].name : opt.name,
+        id: opt.id + `-t3-${i}`,
+      }))
+      for (let i = prev.length; i < plans.length; i++) {
+        updated.push({
+          name: plans[i].name,
+          id: `t3-plan-${i}`,
+          grossFloorArea: 0,
+          floors: 1,
+          buildingType: 'hotel',
+          elements: [],
         })
-        setSelectedDesignId(updated[0]?.id ?? null)
-        return updated
       }
-      return prev
+      setSelectedDesignId(updated[0]?.id ?? null)
+      return updated
     })
   };
 

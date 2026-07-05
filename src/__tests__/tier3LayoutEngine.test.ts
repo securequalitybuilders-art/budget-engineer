@@ -91,12 +91,13 @@ describe('Tier 3 — generateFloorPlans (house)', () => {
     }
   })
 
-  it('topologies are distinct (rectangle, l-shape, split-wing)', () => {
+  it('topologies are distinct (rectangle, l-shape, split-wing) — no courtyard for house', () => {
     const plans = getPlans()
     const topos = plans.map(p => p.topology)
     expect(topos).toContain('rectangle')
     expect(topos).toContain('l-shape')
     expect(topos).toContain('split-wing')
+    expect(topos).not.toContain('courtyard')
     expect(new Set(topos).size).toBe(3)
   })
 
@@ -204,9 +205,9 @@ describe('Tier 3 — generateFloorPlans (hotel with courtyard)', () => {
     return generateFloorPlans(params, brief)
   }
 
-  it('returns exactly 4 floor plans including courtyard', () => {
+  it('returns exactly 3 floor plans including courtyard', () => {
     const plans = getPlans()
-    expect(plans.length).toBe(4)
+    expect(plans.length).toBe(3)
     const topos = plans.map(p => p.topology)
     expect(topos).toContain('courtyard')
   })
@@ -286,16 +287,16 @@ describe('Tier 3 — generateFloorPlans (hotel with courtyard)', () => {
     }
   })
 
-  it('courtyard room signature differs from rectangle option', () => {
+  it('courtyard signature differs from l-shape option (no rectangle in hotel trio)', () => {
     const plans = getPlans()
     const courtyard = plans.find(p => p.topology === 'courtyard')
-    const rect = plans.find(p => p.topology === 'rectangle')
+    const lshape = plans.find(p => p.topology === 'l-shape')
     expect(courtyard).toBeDefined()
-    expect(rect).toBeDefined()
-    if (!courtyard || !rect) return
+    expect(lshape).toBeDefined()
+    if (!courtyard || !lshape) return
     const courtyardKey = courtyard.rooms.map(r => `${r.name}@${r.x.toFixed(1)},${r.y.toFixed(1)}`).join('|')
-    const rectKey = rect.rooms.map(r => `${r.name}@${r.x.toFixed(1)},${r.y.toFixed(1)}`).join('|')
-    expect(courtyardKey).not.toBe(rectKey)
+    const lshapeKey = lshape.rooms.map(r => `${r.name}@${r.x.toFixed(1)},${r.y.toFixed(1)}`).join('|')
+    expect(courtyardKey).not.toBe(lshapeKey)
     // Courtyard has rooms at the edges forming a ring; verify at least one room touches the top edge
     const hasTopEdge = courtyard.rooms.some(r => r.y === 0)
     expect(hasTopEdge, 'Courtyard should have rooms on the top edge (north wing)').toBe(true)
@@ -310,9 +311,9 @@ describe('Tier 3 — generateFloorPlans (small courtyard — 6 rooms)', () => {
     return generateFloorPlans(params, brief)
   }
 
-  it('returns 4 plans including courtyard without throwing', () => {
+  it('returns 3 plans including courtyard without throwing', () => {
     const plans = getPlans()
-    expect(plans.length).toBe(4)
+    expect(plans.length).toBe(3)
     expect(plans.map(p => p.topology)).toContain('courtyard')
   })
 

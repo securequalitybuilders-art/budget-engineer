@@ -474,12 +474,12 @@ export function generateLayoutParameters(
   const minDims = gatherMinDims(brief.typology)
   const typologyId = brief.typology?.id ?? 'house-residential'
 
-  const topologies: Topology[] = ['rectangle', 'l-shape', 'split-wing']
-
   const heritageId = brief.heritagePattern?.id
-  if (typologyId === 'hotel-fullservice' || typologyId === 'townhouse' || heritageId === 'kraal' || heritageId === 'courtyard-hearth') {
-    topologies.push('courtyard')
-  }
+  const needsCourtyard = typologyId === 'hotel-fullservice' || typologyId === 'townhouse' || heritageId === 'kraal' || heritageId === 'courtyard-hearth'
+
+  const topologies: Topology[] = needsCourtyard
+    ? ['courtyard', 'l-shape', 'split-wing']
+    : ['rectangle', 'l-shape', 'split-wing']
 
   return {
     topologies,
