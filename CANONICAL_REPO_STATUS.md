@@ -1,8 +1,8 @@
 # Canonical Repo Status — Budget Engineer OS
 
-> **Date:** 2026-07-04  
+> **Date:** 2026-07-05  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** v0.3.0 — DzeNhare OS 3-tier Enterprise Architectural Intelligence (Brief Intelligence, Concept Engine, Layout Engine with 3 distinct topologies), fully working 3D BIM (thick walls, slabs, multi-storey, doors, windows, roof, ceilings, GLB export), PDF cost report, PWA auto-update, unified single option source with no duplicates. Lint baseline at 9 warnings. All 414 unit tests pass (30 files). `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (414 passed, 30 files).
+> **Status:** v0.3.1 — DzeNhare OS 3-tier Enterprise Architectural Intelligence (Brief Intelligence, Concept Engine, Layout Engine with 3 distinct topologies + real courtyard), fully working 3D BIM (thick walls, slabs, multi-storey, doors, windows, roof, ceilings, GLB export), PDF cost report with 3D snapshot, PWA auto-update, unified single option source with no duplicates, all 14 building typologies in dropdown with Auto-detect, 2D/3D plan consistency from shared active PlanModel. Lint baseline at 9 warnings. All 470 unit tests pass (33 files). `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (470 passed, 33 files).
 
 ---
 
@@ -315,7 +315,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **External wall area missing in BOQ** | External walls were not costed separately | ✅ DONE (Sprint 13 — added as line item) |
 | **Partition/opening estimates in BOQ** | Used fixed m² estimates, not actual geometry | ✅ DONE (Sprint 13 — geometryQuantitiesAdapter provides derived quantities) |
 | **Web Workers** | No off-main-thread processing | Future |
-| **Tests** | 414 unit tests across 30 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 + Sprint 19 + Sprint 21 + Sprint 25 + Sprint 26 + Sprint 27 + Sprint 28 + Sprint 29 + Sprint 36 + Sprint 37 + Sprint 38 + Sprint 43 + Sprint 44 + Sprint 46 — vitest, all adapters tested, CI pipeline) |
+| **Tests** | 470 unit tests across 33 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 + Sprint 19 + Sprint 21 + Sprint 25 + Sprint 26 + Sprint 27 + Sprint 28 + Sprint 29 + Sprint 36 + Sprint 37 + Sprint 38 + Sprint 43 + Sprint 44 + Sprint 46 + Sprint 47 + Sprint 47A + Sprint 47B + Sprint 48 + Sprint 48A + Sprint 48C + Sprint 48D + Sprint 49 — vitest, all adapters tested, CI pipeline) |
 | **Deployment docs** | DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects | ✅ DONE (Sprint 10 — Vercel/Netlify/static hosting, SPA fallback, release checklist) |
 | **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |
 | **Room layout optimization** | Grid-based layout may produce self-intersecting wall rings | Improve geometry adapter with proper floorplan algorithm |

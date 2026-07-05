@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.3.1] - 2026-07-05
+
 ### Sprint 49 — 2D/3D Plan Consistency (One Active Plan Source)
 
 **Root cause**: The 2D PlanCanvas and 3D BimModel3D read from different plan sources. PlanCanvas used `persistedPlan ?? generatePlanModel(selectedDesign)` (ignoring Tier 3 FloorPlans), while the 3D view used `activePlan = persistedPlan ?? floorPlanToPlanModel(selectedTier3Plan, selectedDesign) ?? generatePlanModel(selectedDesign)`. For a hotel courtyard, 2D showed a generic rectangle while 3D showed the courtyard ring.

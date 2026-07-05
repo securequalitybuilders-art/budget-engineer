@@ -116,6 +116,6 @@ All validated with **414 automated tests** across 30 files. No paid APIs, no bac
 
 ## Roadmap
 
-- **v0.3.1** — Multi-user project sharing, cloud sync architecture research
+- **v0.3.1** — [SHIPPED] PDF 3D snapshot + reliability, real courtyard + typology dropdown + Auto-detect, 2D/3D consistency
 - **v0.4.0** — IFC import/export improvements, drawing register + section views in export
 - **v0.5.0** — Structural engine integration (load analysis, footing sizing, column/beam/footing generation)
