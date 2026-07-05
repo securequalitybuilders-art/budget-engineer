@@ -283,13 +283,14 @@ export function Dashboard() {
                 name: i < plans.length ? plans[i].name : opt.name,
                 id: opt.id + `-t3-${i}`,
               }))
+              const fallbackBt = prev.length > 0 ? prev[0].buildingType : 'other'
               for (let i = prev.length; i < plans.length; i++) {
                 updated.push({
                   name: plans[i].name,
                   id: `t3-plan-${i}`,
                   grossFloorArea: 0,
                   floors: 1,
-                  buildingType: 'hotel',
+                  buildingType: fallbackBt,
                   elements: [],
                 })
               }
@@ -326,13 +327,14 @@ export function Dashboard() {
         name: i < plans.length ? plans[i].name : opt.name,
         id: opt.id + `-t3-${i}`,
       }))
+      const fallbackBt = prev.length > 0 ? prev[0].buildingType : 'other'
       for (let i = prev.length; i < plans.length; i++) {
         updated.push({
           name: plans[i].name,
           id: `t3-plan-${i}`,
           grossFloorArea: 0,
           floors: 1,
-          buildingType: 'hotel',
+          buildingType: fallbackBt,
           elements: [],
         })
       }
