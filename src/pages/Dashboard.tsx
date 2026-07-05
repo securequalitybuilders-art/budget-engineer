@@ -43,6 +43,7 @@ export function Dashboard() {
   const [aiDesignOptions, setAiDesignOptions] = useState<DesignOption[]>([]);
   const [tier3Plans, setTier3Plans] = useState<FloorPlan[]>([]);
   const [latestBuildingType, setLatestBuildingType] = useState<string | null>(null);
+  const [selectedBuildingType, setSelectedBuildingType] = useState('auto');
   const [persistedPlan, setPersistedPlan] = useState<PlanModel | null>(null);
   const [cadSyncSource, setCadSyncSource] = useState<GeometrySource>('generated-design');
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
@@ -269,7 +270,7 @@ export function Dashboard() {
       if (brief?.rawText) {
         try {
           const { parseBrief } = await import('@/engine/parseBrief')
-          const parsed = parseBrief(brief.rawText, { buildingType: brief.parsed.buildingType ?? 'auto' })
+          const parsed = parseBrief(brief.rawText, { buildingType: selectedBuildingType })
           const { generateDesignConcept } = await import('@/engine/tier2/conceptEngine')
           const concept = generateDesignConcept(parsed)
           const { generateLayoutParameters, generateFloorPlans } = await import('@/engine/tier3/layoutEngine')
@@ -620,7 +621,7 @@ export function Dashboard() {
             />
             <PropertiesPanel />
             <TransactionPanel />
-            <EngineeringStudioPanel selectedDesign={selectedDesign} onDesignOptionsGenerated={handleAiDesignOptions} onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }} onTier3Plans={handleTier3Plans} />
+            <EngineeringStudioPanel selectedDesign={selectedDesign} onDesignOptionsGenerated={handleAiDesignOptions} onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }} onTier3Plans={handleTier3Plans} onBuildingTypeChange={setSelectedBuildingType} />
             <BoqExportPanel selectedDesign={selectedDesign} boq={currentBoq} onExport={handleExport} />
             <EngineeringAnalysisPanel selectedDesign={selectedDesign} />
             <GovernancePanel

@@ -35,9 +35,10 @@ interface AiBriefPanelProps {
   onParsed?: (result: ParseResult) => void;
   onDesignOptionsGenerated?: (options: DesignOption[]) => void;
   onTier3Plans?: (plans: FloorPlan[]) => void;
+  onBuildingTypeChange?: (bt: string) => void;
 }
 
-export function AiBriefPanel({ onParsed, onDesignOptionsGenerated, onTier3Plans }: AiBriefPanelProps) {
+export function AiBriefPanel({ onParsed, onDesignOptionsGenerated, onTier3Plans, onBuildingTypeChange }: AiBriefPanelProps) {
   const [briefText, setBriefText] = useState('');
   const [aiEngine, setAiEngine] = useState<AiEngine>('local-rules');
   const [buildingType, setBuildingType] = useState('auto');
@@ -102,7 +103,7 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated, onTier3Plans 
       <label className="mb-1 block text-xs font-medium text-stone-400">Building type</label>
       <select
         value={buildingType}
-        onChange={(e) => setBuildingType(e.target.value)}
+        onChange={(e) => { setBuildingType(e.target.value); onBuildingTypeChange?.(e.target.value) }}
         className="mb-3 w-full rounded border border-stone-700 bg-stone-800 p-2 text-sm text-stone-200 focus:border-cyan-600 focus:outline-none"
       >
         {BUILDING_TYPE_OPTIONS.map((t) => (
