@@ -30,7 +30,7 @@ export function BimLegend({ elementCounts }: BimLegendProps) {
             <span className="inline-block h-3 w-3 rounded" style={{ background: color }} />
             <span>{LABELS[type] ?? type}</span>
             {elementCounts?.[type] != null && (
-              <span className="text-slate-500">({elementCounts[type]})</span>
+              <span className="text-slate-400">({elementCounts[type]})</span>
             )}
           </div>
         ))}

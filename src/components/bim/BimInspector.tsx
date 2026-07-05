@@ -24,7 +24,7 @@ export function BimInspector({ element }: BimInspectorProps) {
         <Row label="Floor" value={element.floorId} />
         <Row label="Source CAD" value={element.sourceCadId ?? '—'} />
         <div>
-          <span className="text-slate-500">Properties:</span>
+          <span className="text-slate-400">Properties:</span>
           <pre className="mt-1 rounded bg-slate-950 p-2 text-[10px] text-slate-400">
             {JSON.stringify(element.properties, null, 2)}
           </pre>
@@ -42,7 +42,7 @@ export function BimInspector({ element }: BimInspectorProps) {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between border-b border-white/5 pb-1">
-      <span className="text-slate-500">{label}</span>
+      <span className="text-slate-400">{label}</span>
       <span className="text-slate-200">{value}</span>
     </div>
   )

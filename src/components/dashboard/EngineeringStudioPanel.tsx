@@ -115,7 +115,7 @@ export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerate
             className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
               activeTab === tab.id
                 ? 'bg-cyan-600/20 text-cyan-300'
-                : 'text-stone-500 hover:bg-stone-800 hover:text-stone-300'
+                : 'text-stone-400 hover:bg-stone-800 hover:text-stone-300'
             }`}
           >
             {tab.label}
@@ -151,7 +151,7 @@ export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerate
 
       {selectedDesign && (
         <div className="border-t border-stone-700/60 px-3 py-2">
-          <p className="text-xs text-stone-500">
+          <p className="text-xs text-stone-400">
             Using <span className="text-stone-300">{selectedDesign.name}</span> —
             {slabArea > 0 ? ` ${slabArea.toFixed(0)} m²` : ' sample data'}
           </p>

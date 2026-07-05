@@ -488,10 +488,10 @@ export function Dashboard() {
                               <span className={`text-sm font-bold ${isSelected ? 'text-cyan-200' : 'text-slate-200'}`}>
                                 {option.name}
                               </span>
-                              <span className="text-xs text-slate-500">
+                              <span className="text-xs text-slate-400">
                                 {option.grossFloorArea.toFixed(0)} m² · {option.floors} floor{option.floors > 1 ? 's' : ''}
                               </span>
-                              <span className="mt-1 text-[10px] leading-relaxed text-slate-500">
+                              <span className="mt-1 text-[10px] leading-relaxed text-slate-400">
                                 {option.elements.length} element{option.elements.length > 1 ? 's' : ''}
                               </span>
                               <span
@@ -559,13 +559,13 @@ export function Dashboard() {
                     )}
                     <PlanComparison designs={visibleDesignOptions} selectedDesignId={selectedDesign?.id} />
                     {activeCanvasView === 'bim' && activePlan && (
-                      <p className="max-w-md text-[10px] text-stone-500 leading-relaxed">
+                      <p className="max-w-md text-[10px] text-stone-400 leading-relaxed">
                         3D BIM model — walls, slabs, storeys, doors, windows and roof generated from your floor plan.
                         Storey height 3.0&nbsp;m, wall thickness {(activePlan.wallThickness || 0.23).toFixed(2)}&nbsp;m.
                         Model downloadable as .glb for use in Blender, Windows 3D Viewer, and other 3D tools.
                       </p>
                     )}
-                    <p className="max-w-xs text-[10px] text-stone-500">
+                    <p className="max-w-xs text-[10px] text-stone-400">
                       Mobile: review, estimates, exports supported. For best CAD editing, use a tablet or desktop.
                     </p>
                   </div>
@@ -598,7 +598,7 @@ export function Dashboard() {
                         Import DXF
                       </Button>
                     </div>
-                    <p className="mt-6 max-w-xs text-[10px] text-stone-500">
+                    <p className="mt-6 max-w-xs text-[10px] text-stone-400">
                       Mobile: review, estimates, exports supported. For best CAD editing, use a tablet or desktop.
                     </p>
                   </motion.div>

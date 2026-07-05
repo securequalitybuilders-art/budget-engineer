@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+### Sprint 52 — Accessibility & SEO Fixes (Lighthouse Audit)
+
+**Non-breaking:** Fixed real Accessibility (84→94+) and SEO (85→98+) issues found by Lighthouse production audit. All changes are cosmetic or additive — no feature logic changed.
+
+**A) Select labels:** Added `htmlFor`/`id` pairs to all 6 `<select>` elements across `AiBriefPanel`, `FeedbackPanel`, `RebarSpecPanel` (3 selects), `FootingSizingPanel`.
+
+**B) Color contrast:** Replaced failing tokens globally — `text-stone-500`→`text-stone-400`, `text-slate-500`→`text-slate-400`, `text-stone-600`→`text-stone-400`, `bg-cyan-600`→`bg-cyan-700`. All pass WCAG AA 4.5:1 on dark backgrounds.
+
+**C) Main landmark:** Wrapped `<Outlet />` in `<main>` within `GlobalLayout` in `router.tsx`.
+
+**D) robots.txt:** Created `public/robots.txt` allowing all crawlers with sitemap reference.
+
+**E) sitemap.xml:** Created `public/sitemap.xml` with 4 routes (`/`, `/new`, `/portfolio`, `/feedback`).
+
+**F) Canonical URL:** Removed hardcoded `<link rel="canonical">` from `index.html`. Set dynamically per route via `useEffect` in `GlobalLayout`.
+
+**G) Icon optimization:** Resized and compressed `icon-192.png` (935 KB 1024×1024 → 18 KB 192×192) and `icon-512.png` (937 KB 1024×1024 → 123 KB 512×512).
+
+**Tests:** Added `src/__tests__/a11ySeoConfig.test.ts` (13 tests) verifying all fixes.
+
+**Validation:** 512 tests pass (499 old + 13 new), 0 typecheck errors, 0 lint errors (9 warnings baseline), build succeeds.
+
 ### Sprint 51 — Repeatable Lighthouse CI Auditing Tooling
 
 **Additive (non-breaking):** Added `@lhci/cli` (Apache-2.0, free) as a repeatable local Lighthouse audit tool. Does not change app behavior, does not run on CI by default.

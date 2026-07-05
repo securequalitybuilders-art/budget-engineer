@@ -35,7 +35,7 @@ export function FootingSizingPanel({ bim }: FootingSizingPanelProps) {
             onClick={() => setLoadCombo(c)}
             className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
               loadCombo === c
-                ? 'bg-cyan-600 text-white'
+                ? 'bg-cyan-700 text-white'
                 : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
             }`}
           >
@@ -44,8 +44,8 @@ export function FootingSizingPanel({ bim }: FootingSizingPanelProps) {
         ))}
       </div>
 
-      <label className="mb-1 block text-xs font-medium text-stone-400">Soil bearing capacity</label>
-      <select value={soil} onChange={(e) => setSoil(e.target.value as SoilClass)}
+      <label htmlFor="soil-capacity" className="mb-1 block text-xs font-medium text-stone-400">Soil bearing capacity</label>
+      <select id="soil-capacity" value={soil} onChange={(e) => setSoil(e.target.value as SoilClass)}
         className="mb-3 w-full rounded border border-stone-700 bg-stone-800 p-2 text-sm text-stone-200">
         {SOILS.map((s) => (
           <option key={s} value={s}>{SOIL_TYPES[s].label} — {SOIL_TYPES[s].bearingKpa} kPa</option>
@@ -98,7 +98,7 @@ export function FootingSizingPanel({ bim }: FootingSizingPanelProps) {
         </tbody>
       </table>
 
-      <p className="mt-2 text-xs text-stone-500">
+      <p className="mt-2 text-xs text-stone-400">
         Required area = N* / q<sub>allow</sub>; side rounded up to a 50 mm module (min 600 mm),
         thickness ≈ side / 3 (min 300 mm). Early-stage sizing for budgeting — not a stamped
         foundation design.

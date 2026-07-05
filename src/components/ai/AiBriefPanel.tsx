@@ -100,8 +100,9 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated, onTier3Plans,
       <h3 className="font-semibold text-stone-100">Enterprise AI — Brief to Design</h3>
       <p className="mb-3 text-xs text-stone-400">Local &amp; offline · no paid API</p>
 
-      <label className="mb-1 block text-xs font-medium text-stone-400">Building type</label>
+      <label htmlFor="building-type" className="mb-1 block text-xs font-medium text-stone-400">Building type</label>
       <select
+        id="building-type"
         value={buildingType}
         onChange={(e) => { setBuildingType(e.target.value); onBuildingTypeChange?.(e.target.value) }}
         className="mb-3 w-full rounded border border-stone-700 bg-stone-800 p-2 text-sm text-stone-200 focus:border-cyan-600 focus:outline-none"
@@ -120,9 +121,9 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated, onTier3Plans,
             onClick={() => setAiEngine(e.id)}
             className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
               e.disabled
-                ? 'cursor-not-allowed bg-stone-800/50 text-stone-600 line-through'
+                ? 'cursor-not-allowed bg-stone-800/50 text-stone-400 line-through'
                 : aiEngine === e.id
-                  ? 'bg-cyan-600 text-white'
+                  ? 'bg-cyan-700 text-white'
                   : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
             }`}
             title={e.hint}
@@ -143,7 +144,7 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated, onTier3Plans,
       <div className="mt-3">
         <button
           onClick={handleGenerate}
-          className="rounded bg-cyan-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-500"
+          className="rounded bg-cyan-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cyan-500"
         >
           Generate Design →
         </button>
@@ -158,7 +159,7 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated, onTier3Plans,
       <Tier1Readout parsed={tier1Parsed} />
       <ConceptPanel concept={tier2Concept} />
 
-      <p className="mt-2 text-xs text-stone-500">
+      <p className="mt-2 text-xs text-stone-400">
         <span className="text-emerald-400">✅ Local rules active by default</span> — instant, offline, no dependencies.
         WebLLM requires <code className="text-amber-400">npm install @mlc-ai/web-llm</code>.
         Select a building type above or let the parser detect it from your text. The

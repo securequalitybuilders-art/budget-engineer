@@ -22,20 +22,20 @@ export function CadCommandPanel({ doc, selectedWallId, selectedOpeningId, onAddD
         <button
           onClick={onUndo}
           disabled={!canUndo}
-          className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white disabled:text-slate-500"
+          className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white disabled:text-slate-400"
         >
           Undo
         </button>
         <button
           onClick={onRedo}
           disabled={!canRedo}
-          className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white disabled:text-slate-500"
+          className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white disabled:text-slate-400"
         >
           Redo
         </button>
       </div>
 
-      <span className="text-xs text-slate-500">|</span>
+      <span className="text-xs text-slate-400">|</span>
 
       <button
         onClick={onAddDoor}
@@ -66,7 +66,7 @@ export function CadCommandPanel({ doc, selectedWallId, selectedOpeningId, onAddD
         Delete Opening
       </button>
 
-      <span className="text-xs text-slate-500">|</span>
+      <span className="text-xs text-slate-400">|</span>
 
       <button
         onClick={onAddFloor}

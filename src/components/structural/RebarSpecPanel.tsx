@@ -33,22 +33,22 @@ export function RebarSpecPanel({ slabArea = 0, spec: extSpec, onChange }: RebarS
 
       <div className="mb-3 grid grid-cols-3 gap-3">
         <div>
-          <label className="mb-1 block text-xs font-medium text-stone-400">Bar Ø</label>
-          <select value={spec.diameter} onChange={(e) => update({ diameter: Number(e.target.value) as BarDiameter })}
+          <label htmlFor="rebar-diameter" className="mb-1 block text-xs font-medium text-stone-400">Bar Ø</label>
+          <select id="rebar-diameter" value={spec.diameter} onChange={(e) => update({ diameter: Number(e.target.value) as BarDiameter })}
             className="w-full rounded border border-stone-700 bg-stone-800 p-2 text-sm text-stone-200">
             {BAR_DIAMETERS.map((d) => <option key={d} value={d}>Y{d}</option>)}
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-stone-400">Spacing</label>
-          <select value={spec.spacing} onChange={(e) => update({ spacing: Number(e.target.value) as BarSpacing })}
+          <label htmlFor="rebar-spacing" className="mb-1 block text-xs font-medium text-stone-400">Spacing</label>
+          <select id="rebar-spacing" value={spec.spacing} onChange={(e) => update({ spacing: Number(e.target.value) as BarSpacing })}
             className="w-full rounded border border-stone-700 bg-stone-800 p-2 text-sm text-stone-200">
             {BAR_SPACINGS.map((s) => <option key={s} value={s}>{s} c/c</option>)}
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-stone-400">Layers</label>
-          <select value={spec.layers} onChange={(e) => update({ layers: Number(e.target.value) as MeshLayers })}
+          <label htmlFor="rebar-layers" className="mb-1 block text-xs font-medium text-stone-400">Layers</label>
+          <select id="rebar-layers" value={spec.layers} onChange={(e) => update({ layers: Number(e.target.value) as MeshLayers })}
             className="w-full rounded border border-stone-700 bg-stone-800 p-2 text-sm text-stone-200">
             <option value={1}>Single</option>
             <option value={2}>Double</option>
@@ -71,7 +71,7 @@ export function RebarSpecPanel({ slabArea = 0, spec: extSpec, onChange }: RebarS
         </div>
       </div>
 
-      <p className="text-xs text-stone-500">
+      <p className="text-xs text-stone-400">
         Spec: <b className="text-stone-200">{describeSpec(spec)}</b>. Steel mass is derived from
         bar cross-section × density (7850 kg/m³), two-way mesh, recalculated into the BOQ
         Reinforcement line on every change.

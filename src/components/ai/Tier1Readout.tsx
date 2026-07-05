@@ -30,18 +30,18 @@ export function Tier1Readout({ parsed }: Tier1ReadoutProps) {
         <span className={`ml-auto rounded-full px-1.5 py-0.5 text-[8px] font-bold ${scoreColor}`}>
           {score}/100
         </span>
-        <span className="text-stone-500">{expanded ? '▲' : '▼'}</span>
+        <span className="text-stone-400">{expanded ? '▲' : '▼'}</span>
       </button>
 
       {expanded && (
         <div className="mt-2 space-y-2 border-t border-stone-700/40 pt-2">
           {/* Typology */}
           <div className="flex justify-between">
-            <span className="text-stone-500">Typology</span>
+            <span className="text-stone-400">Typology</span>
             <span className="text-stone-200 font-medium">
               {typology ? typology.displayName : 'Not detected'}
               {typology && (
-                <span className="ml-1 text-[8px] text-stone-500">
+                <span className="ml-1 text-[8px] text-stone-400">
                   ({Math.round(typologyConfidence * 100)}%)
                 </span>
               )}
@@ -50,7 +50,7 @@ export function Tier1Readout({ parsed }: Tier1ReadoutProps) {
 
           {/* Climate zone */}
           <div className="flex justify-between">
-            <span className="text-stone-500">Climate Zone</span>
+            <span className="text-stone-400">Climate Zone</span>
             <span className="text-stone-200 font-medium">
               {climateZone ? climateZone.name : 'Not detected'}
             </span>
@@ -58,7 +58,7 @@ export function Tier1Readout({ parsed }: Tier1ReadoutProps) {
 
           {/* Heritage pattern */}
           <div className="flex justify-between">
-            <span className="text-stone-500">Heritage Pattern</span>
+            <span className="text-stone-400">Heritage Pattern</span>
             <span className="text-stone-200 font-medium">
               {heritagePattern ? heritagePattern.name : 'None detected'}
             </span>

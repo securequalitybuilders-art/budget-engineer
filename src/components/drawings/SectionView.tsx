@@ -38,7 +38,7 @@ export function SectionView({ cad, onConfigChange }: SectionViewProps) {
         <button
           onClick={() => { setAxis('AA'); setPos(null); }}
           className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
-            axis === 'AA' ? 'bg-cyan-600 text-white' : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
+            axis === 'AA' ? 'bg-cyan-700 text-white' : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
           }`}
         >
           Section A–A
@@ -46,7 +46,7 @@ export function SectionView({ cad, onConfigChange }: SectionViewProps) {
         <button
           onClick={() => { setAxis('BB'); setPos(null); }}
           className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
-            axis === 'BB' ? 'bg-cyan-600 text-white' : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
+            axis === 'BB' ? 'bg-cyan-700 text-white' : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
           }`}
         >
           Section B–B
@@ -66,7 +66,7 @@ export function SectionView({ cad, onConfigChange }: SectionViewProps) {
         className="overflow-hidden rounded-lg border border-stone-700/60 bg-stone-950"
         dangerouslySetInnerHTML={{ __html: svg }}
       />
-      <p className="mt-2 text-xs text-stone-500">
+      <p className="mt-2 text-xs text-stone-400">
         Choose the section line and slide the cut plane. Only openings on the cut plane (±0.6 m)
         are shown; green = door, cyan = window, sand = stair. Generated from the same model as the plans and BOQ.
       </p>

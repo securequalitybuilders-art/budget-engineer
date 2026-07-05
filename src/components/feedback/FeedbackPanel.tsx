@@ -66,8 +66,9 @@ export function FeedbackPanel({ projectName, currentUrl, compact }: { projectNam
     <div className="space-y-3">
       {/* Category */}
       <div>
-        <label className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">Category</label>
+        <label htmlFor="feedback-category" className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">Category</label>
         <select
+          id="feedback-category"
           value={category}
           onChange={(e) => setCategory(e.target.value as FeedbackCategory)}
           className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--brand-accent)]"

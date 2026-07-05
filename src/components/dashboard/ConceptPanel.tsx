@@ -41,7 +41,7 @@ export function ConceptPanel({ concept }: ConceptPanelProps) {
         <span className="text-[9px] font-semibold uppercase tracking-wider text-indigo-400">
           Tier-2 Concept
         </span>
-        <span className="ml-auto text-stone-500">{expanded ? '▲' : '▼'}</span>
+        <span className="ml-auto text-stone-400">{expanded ? '▲' : '▼'}</span>
       </button>
 
       {expanded && (
@@ -60,47 +60,47 @@ export function ConceptPanel({ concept }: ConceptPanelProps) {
           {/* Strategy */}
           <Section label="Strategy">
             <div className="space-y-1">
-              <p><span className="text-stone-500">Spatial:</span> {concept.strategy.spatialOrganization}</p>
-              <p><span className="text-stone-500">Privacy:</span> {concept.strategy.privacyGradient}</p>
-              <p><span className="text-stone-500">Circulation:</span> {concept.strategy.circulationPattern}</p>
-              <p><span className="text-stone-500">Climate:</span> {concept.strategy.climateResponse}</p>
-              <p><span className="text-stone-500">Heritage:</span> {concept.strategy.heritageIntegration}</p>
+              <p><span className="text-stone-400">Spatial:</span> {concept.strategy.spatialOrganization}</p>
+              <p><span className="text-stone-400">Privacy:</span> {concept.strategy.privacyGradient}</p>
+              <p><span className="text-stone-400">Circulation:</span> {concept.strategy.circulationPattern}</p>
+              <p><span className="text-stone-400">Climate:</span> {concept.strategy.climateResponse}</p>
+              <p><span className="text-stone-400">Heritage:</span> {concept.strategy.heritageIntegration}</p>
             </div>
           </Section>
 
           {/* Site Analysis */}
           <Section label="Site Analysis">
             <div className="space-y-1">
-              <p><span className="text-stone-500">Orientation:</span> {concept.siteAnalysis.orientation}</p>
-              <p><span className="text-stone-500">Solar:</span> {concept.siteAnalysis.solarResponse}</p>
-              <p><span className="text-stone-500">Wind:</span> {concept.siteAnalysis.windResponse}</p>
-              <p><span className="text-stone-500">Topography:</span> {concept.siteAnalysis.topographyResponse}</p>
+              <p><span className="text-stone-400">Orientation:</span> {concept.siteAnalysis.orientation}</p>
+              <p><span className="text-stone-400">Solar:</span> {concept.siteAnalysis.solarResponse}</p>
+              <p><span className="text-stone-400">Wind:</span> {concept.siteAnalysis.windResponse}</p>
+              <p><span className="text-stone-400">Topography:</span> {concept.siteAnalysis.topographyResponse}</p>
             </div>
           </Section>
 
           {/* Circulation */}
           <Section label="Circulation">
             <div className="space-y-0.5">
-              <p><span className="text-emerald-400">●</span> <span className="text-stone-500">Public:</span> {concept.circulation.publicPath}</p>
-              <p><span className="text-blue-400">●</span> <span className="text-stone-500">Private:</span> {concept.circulation.privatePath}</p>
-              <p><span className="text-amber-400">●</span> <span className="text-stone-500">Service:</span> {concept.circulation.servicePath}</p>
-              <p><span className="text-red-400">●</span> <span className="text-stone-500">Emergency:</span> {concept.circulation.emergencyPath}</p>
+              <p><span className="text-emerald-400">●</span> <span className="text-stone-400">Public:</span> {concept.circulation.publicPath}</p>
+              <p><span className="text-blue-400">●</span> <span className="text-stone-400">Private:</span> {concept.circulation.privatePath}</p>
+              <p><span className="text-amber-400">●</span> <span className="text-stone-400">Service:</span> {concept.circulation.servicePath}</p>
+              <p><span className="text-red-400">●</span> <span className="text-stone-400">Emergency:</span> {concept.circulation.emergencyPath}</p>
             </div>
           </Section>
 
           {/* Massing */}
           <Section label="Massing">
             <div className="space-y-1">
-              <p><span className="text-stone-500">Form:</span> {concept.massing.primaryForm}</p>
-              <p><span className="text-stone-500">Height:</span> {concept.massing.height}</p>
-              <p><span className="text-stone-500">Roof:</span> {concept.massing.roofStrategy}</p>
-              <p><span className="text-stone-500">Facade:</span> {concept.massing.facadeStrategy}</p>
+              <p><span className="text-stone-400">Form:</span> {concept.massing.primaryForm}</p>
+              <p><span className="text-stone-400">Height:</span> {concept.massing.height}</p>
+              <p><span className="text-stone-400">Roof:</span> {concept.massing.roofStrategy}</p>
+              <p><span className="text-stone-400">Facade:</span> {concept.massing.facadeStrategy}</p>
               <div className="flex items-start gap-2">
-                <span className="text-stone-500 shrink-0">Materials:</span>
+                <span className="text-stone-400 shrink-0">Materials:</span>
                 <ChipRow items={concept.massing.materialPalette} />
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-stone-500 shrink-0">Colors:</span>
+                <span className="text-stone-400 shrink-0">Colors:</span>
                 <div className="flex flex-wrap gap-1">
                   {concept.massing.colorPalette.map((c, i) => {
                     const colorMatch = c.match(/#([0-9A-Fa-f]{6})/)
@@ -121,19 +121,19 @@ export function ConceptPanel({ concept }: ConceptPanelProps) {
           <Section label="Precedents + References">
             <div className="space-y-1">
               <div className="flex items-start gap-2">
-                <span className="text-stone-500 shrink-0">African:</span>
+                <span className="text-stone-400 shrink-0">African:</span>
                 <ChipRow items={concept.precedents.african} />
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-stone-500 shrink-0">Modern:</span>
+                <span className="text-stone-400 shrink-0">Modern:</span>
                 <ChipRow items={concept.precedents.modern} />
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-stone-500 shrink-0">Local:</span>
+                <span className="text-stone-400 shrink-0">Local:</span>
                 <ChipRow items={concept.precedents.local} />
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-stone-500 shrink-0">Climate:</span>
+                <span className="text-stone-400 shrink-0">Climate:</span>
                 <ChipRow items={concept.precedents.climate} />
               </div>
             </div>

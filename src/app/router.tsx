@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import {
   createBrowserRouter,
   RouterProvider,
@@ -20,13 +20,18 @@ const FeedbackPage = lazy(() => import('@/pages/FeedbackPage').then((m) => ({ de
 function GlobalLayout() {
   useKeyboardShortcuts();
 
+  useEffect(() => {
+    const link = document.querySelector('link[rel="canonical"]')
+    if (link) link.setAttribute('href', window.location.href)
+  }, [])
+
   return (
-    <>
+    <main>
       <CommandBar />
       <Outlet />
       <CommandPalette />
       <ShortcutsHelp />
-    </>
+    </main>
   );
 }
 

@@ -142,7 +142,7 @@ export function BuilderJourneyGuide({
                         'mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[9px] font-bold',
                         status === 'done' && 'bg-cyan-500/20 text-cyan-300',
                         status === 'active' && 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40',
-                        status === 'upcoming' && 'bg-stone-800 text-stone-500',
+                        status === 'upcoming' && 'bg-stone-800 text-stone-400',
                       )}
                       aria-hidden="true"
                     >
@@ -154,7 +154,7 @@ export function BuilderJourneyGuide({
                           'text-[11px] leading-tight',
                           status === 'done' && 'text-stone-400 line-through',
                           status === 'active' && 'font-medium text-white',
-                          status === 'upcoming' && 'text-stone-500',
+                          status === 'upcoming' && 'text-stone-400',
                         )}
                       >
                         {step.label}
@@ -162,7 +162,7 @@ export function BuilderJourneyGuide({
                       <p
                         className={cn(
                           'mt-0.5 text-[10px] leading-tight',
-                          status === 'active' ? 'text-stone-400' : 'text-stone-600',
+                          status === 'active' ? 'text-stone-400' : 'text-stone-400',
                         )}
                       >
                         {step.description}
@@ -193,7 +193,7 @@ export function BuilderJourneyGuide({
                       className="block w-full rounded-md border border-stone-700/50 px-3 py-2 text-left text-[11px] text-stone-300 hover:border-cyan-600/40 hover:bg-cyan-500/5 hover:text-white"
                     >
                       <span className="text-[10px] font-medium text-cyan-400">{t.label}</span>
-                      <p className="mt-0.5 text-[10px] text-stone-500 line-clamp-2">{t.brief}</p>
+                      <p className="mt-0.5 text-[10px] text-stone-400 line-clamp-2">{t.brief}</p>
                     </button>
                   ))}
                 </div>
@@ -205,7 +205,7 @@ export function BuilderJourneyGuide({
             <p className="text-[10px] leading-relaxed text-amber-500/80">
               For final construction, consult a registered architect, engineer, and quantity surveyor.
             </p>
-            <p className="mt-1 text-[9px] text-stone-500">
+            <p className="mt-1 text-[9px] text-stone-400">
               No CAD experience needed. Works in your browser. No paid AI required. Early estimate — not professional sign-off.
             </p>
           </div>

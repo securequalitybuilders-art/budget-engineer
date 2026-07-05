@@ -22,8 +22,8 @@ export function EngineeringAnalysisPanel({ selectedDesign }: Props) {
 
   if (!selectedDesign) {
     return (
-      <div className="flex flex-col items-center justify-center gap-2 border-l border-stone-700/60 bg-stone-950/80 p-4 text-center text-xs text-stone-500">
-        <Activity size={18} className="text-stone-600" />
+      <div className="flex flex-col items-center justify-center gap-2 border-l border-stone-700/60 bg-stone-950/80 p-4 text-center text-xs text-stone-400">
+        <Activity size={18} className="text-stone-400" />
         <p>Describe your project in the AI Brief first. Once designs are ready, this panel checks for clashes, solar orientation, and services.</p>
       </div>
     )
@@ -53,15 +53,15 @@ export function EngineeringAnalysisPanel({ selectedDesign }: Props) {
         {/* Design header */}
         <div className="mb-3 rounded-lg border border-stone-700/60 bg-stone-900/80 p-3 text-xs">
           <div className="flex items-center justify-between">
-            <span className="text-stone-500">Design</span>
+            <span className="text-stone-400">Design</span>
             <span className="font-medium text-stone-200">{selectedDesign.name}</span>
           </div>
           <div className="mt-1 flex items-center justify-between">
-            <span className="text-stone-500">Area</span>
+            <span className="text-stone-400">Area</span>
             <span className="text-stone-200">{safeStr(selectedDesign.grossFloorArea, 0)} m²</span>
           </div>
           <div className="mt-1 flex items-center justify-between">
-            <span className="text-stone-500">Floors</span>
+            <span className="text-stone-400">Floors</span>
             <span className="text-stone-200">{selectedDesign.floors}</span>
           </div>
         </div>
@@ -75,7 +75,7 @@ export function EngineeringAnalysisPanel({ selectedDesign }: Props) {
           {clashes ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-stone-500">Status</span>
+                <span className="text-stone-400">Status</span>
                 <span className={`font-medium ${clashColor}`}>{clashes.statusRating}</span>
               </div>
               <div className="flex gap-3">
@@ -99,7 +99,7 @@ export function EngineeringAnalysisPanel({ selectedDesign }: Props) {
                     </div>
                   ))}
                   {clashes.clashes.length > 3 && (
-                    <p className="text-[10px] text-stone-500">+{clashes.clashes.length - 3} more</p>
+                    <p className="text-[10px] text-stone-400">+{clashes.clashes.length - 3} more</p>
                   )}
                 </div>
               )}
@@ -111,7 +111,7 @@ export function EngineeringAnalysisPanel({ selectedDesign }: Props) {
               )}
             </div>
           ) : (
-            <p className="text-stone-500">Unable to compute clash analysis.</p>
+            <p className="text-stone-400">Unable to compute clash analysis.</p>
           )}
         </div>
 
@@ -124,22 +124,22 @@ export function EngineeringAnalysisPanel({ selectedDesign }: Props) {
           {solar ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-stone-500">Rating</span>
+                <span className="text-stone-400">Rating</span>
                 <span className={`font-medium ${solarColor}`}>{solar.efficiencyRating}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-stone-500">Peak cooling load</span>
+                <span className="text-stone-400">Peak cooling load</span>
                 <span className="text-stone-200">{safeStr(solar.totalPeakCoolingLoadKw)} kW</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-stone-500">Glazing ratio</span>
+                <span className="text-stone-400">Glazing ratio</span>
                 <span className="text-stone-200">{safeStr(solar.overallWwrPct)}%</span>
               </div>
               {/* Cardinal heat gain mini table */}
               <div className="mt-1 grid grid-cols-2 gap-1">
                 {solar.cardinalMetrics.map((m) => (
                   <div key={m.orientation} className="rounded bg-stone-800/60 px-2 py-1">
-                    <span className="text-stone-500">{m.orientation}</span>
+                    <span className="text-stone-400">{m.orientation}</span>
                     <div className="text-stone-300">{safeStr(m.peakCoolingLoadKw, 1)} kW</div>
                   </div>
                 ))}
@@ -147,14 +147,14 @@ export function EngineeringAnalysisPanel({ selectedDesign }: Props) {
               <div className="mt-1">
                 {solar.recommendations.length > 0 && (
                   <div className="flex items-start gap-1 text-stone-400">
-                    <span className="mt-0.5 text-stone-500">•</span>
+                    <span className="mt-0.5 text-stone-400">•</span>
                     <span>{solar.recommendations[0]}</span>
                   </div>
                 )}
               </div>
             </div>
           ) : (
-            <p className="text-stone-500">Unable to compute solar analysis.</p>
+            <p className="text-stone-400">Unable to compute solar analysis.</p>
           )}
         </div>
 
@@ -167,28 +167,28 @@ export function EngineeringAnalysisPanel({ selectedDesign }: Props) {
           {mep ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-stone-500">Score</span>
+                <span className="text-stone-400">Score</span>
                 <span className="font-medium text-stone-200">{mep.efficiencyScore}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-stone-500">Electrical points</span>
+                <span className="text-stone-400">Electrical points</span>
                 <span className="text-stone-200">{mep.totalElecPoints}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-stone-500">Lighting points</span>
+                <span className="text-stone-400">Lighting points</span>
                 <span className="text-stone-200">{mep.totalLightPoints}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-stone-500">Plumbing points</span>
+                <span className="text-stone-400">Plumbing points</span>
                 <span className="text-stone-200">{mep.totalPlumbPoints}</span>
               </div>
               <div className="flex items-center justify-between border-t border-stone-700/60 pt-1">
-                <span className="text-stone-500">Est. services cost</span>
+                <span className="text-stone-400">Est. services cost</span>
                 <span className="font-mono font-semibold text-emerald-400">{money(mep.totalMepCostUsd)}</span>
               </div>
             </div>
           ) : (
-            <p className="text-stone-500">Unable to compute MEP takeoff.</p>
+            <p className="text-stone-400">Unable to compute MEP takeoff.</p>
           )}
         </div>
 

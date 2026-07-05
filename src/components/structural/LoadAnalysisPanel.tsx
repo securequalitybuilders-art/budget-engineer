@@ -27,7 +27,7 @@ export function LoadAnalysisPanel({ bim }: LoadAnalysisPanelProps) {
             onClick={() => setLoadCombo(c)}
             className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
               loadCombo === c
-                ? 'bg-cyan-600 text-white'
+                ? 'bg-cyan-700 text-white'
                 : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
             }`}
           >
@@ -80,7 +80,7 @@ export function LoadAnalysisPanel({ bim }: LoadAnalysisPanelProps) {
         </tbody>
       </table>
 
-      <p className="text-xs text-stone-500">
+      <p className="text-xs text-stone-400">
         Combination: <b className="text-stone-200">{result.factors.label}</b>. Slab dead = 4.8 kN/m²,
         roof dead = 1.2 kN/m², floor live = 1.5 kN/m², roof live = 0.6 kN/m², scaled by material
         self-weight. Early-stage estimates for budgeting and footing sizing — not a substitute for a

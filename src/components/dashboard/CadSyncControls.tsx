@@ -30,7 +30,7 @@ export function CadSyncControls({
     statusType === 'success' ? 'text-emerald-400' :
     statusType === 'error' ? 'text-red-400' :
     statusType === 'info' ? 'text-cyan-400' :
-    'text-stone-500'
+    'text-stone-400'
 
   const statusIcon =
     statusType === 'success' ? <CheckCircle2 size={10} className="shrink-0" /> :

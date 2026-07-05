@@ -158,8 +158,8 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
 
   if (!selectedDesign) {
     return (
-      <div className="flex flex-col items-center justify-center gap-2 border-l border-stone-700/60 bg-stone-950/80 p-4 text-center text-xs text-stone-500">
-        <Calculator size={18} className="text-stone-600" />
+      <div className="flex flex-col items-center justify-center gap-2 border-l border-stone-700/60 bg-stone-950/80 p-4 text-center text-xs text-stone-400">
+        <Calculator size={18} className="text-stone-400" />
         <p>Describe your project in the AI Brief first. Once a design is ready, this panel shows your cost estimate and lets you export a report.</p>
       </div>
     )
@@ -190,24 +190,24 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
         {/* Design summary */}
         <div className="mb-3 space-y-1 rounded-lg border border-stone-700/60 bg-stone-900/80 p-3 text-xs">
           <div className="flex justify-between">
-            <span className="text-stone-500">Design</span>
+            <span className="text-stone-400">Design</span>
             <span className="text-stone-200 font-medium">{selectedDesign.name}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-stone-500">Area</span>
+            <span className="text-stone-400">Area</span>
             <span className="text-stone-200">{areaM2.toFixed(0)} m²</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-stone-500">Floors</span>
+            <span className="text-stone-400">Floors</span>
             <span className="text-stone-200">{floors}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-stone-500">Currency</span>
+            <span className="text-stone-400">Currency</span>
             <span className="text-stone-200">{currency}</span>
           </div>
           {costPerM2 > 0 && (
             <div className="flex justify-between border-t border-stone-700/60 pt-1">
-              <span className="text-stone-500">Cost / m²</span>
+              <span className="text-stone-400">Cost / m²</span>
               <span className="text-cyan-300 font-mono font-semibold">{money(costPerM2)}</span>
             </div>
           )}
@@ -273,17 +273,17 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
           <div className="mb-3 rounded-lg border border-stone-700/60 bg-stone-900/80 p-2.5 text-[10px]">
             <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider text-cyan-400">Quantity Basis</div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-              <span className="text-stone-500">GFA</span>
+              <span className="text-stone-400">GFA</span>
               <span className="text-right text-stone-200 tabular-nums">{boq.quantities.grossFloorArea.toFixed(0)} m²</span>
-              <span className="text-stone-500">External walls</span>
+              <span className="text-stone-400">External walls</span>
               <span className="text-right text-stone-200 tabular-nums">{boq.quantities.externalWallArea.toFixed(0)} m²</span>
-              <span className="text-stone-500">Partitions</span>
+              <span className="text-stone-400">Partitions</span>
               <span className="text-right text-stone-200 tabular-nums">{boq.quantities.partitionArea.toFixed(0)} m²</span>
-              <span className="text-stone-500">Doors / Windows</span>
+              <span className="text-stone-400">Doors / Windows</span>
               <span className="text-right text-stone-200 tabular-nums">{boq.quantities.doorCount} / {boq.quantities.windowCount}</span>
-              <span className="text-stone-500">Finish area</span>
+              <span className="text-stone-400">Finish area</span>
               <span className="text-right text-stone-200 tabular-nums">{boq.quantities.finishFloorArea.toFixed(0)} m²</span>
-              <span className="text-stone-500">Rooms (wet)</span>
+              <span className="text-stone-400">Rooms (wet)</span>
               <span className="text-right text-stone-200 tabular-nums">{boq.quantities.roomCount} ({boq.quantities.wetRoomCount})</span>
             </div>
           </div>
@@ -346,7 +346,7 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
             </table>
           </div>
         ) : (
-          <div className="mb-3 flex items-center justify-center rounded-lg border border-stone-700/60 bg-stone-900/80 p-4 text-xs text-stone-500">
+          <div className="mb-3 flex items-center justify-center rounded-lg border border-stone-700/60 bg-stone-900/80 p-4 text-xs text-stone-400">
             Computing BOQ...
           </div>
         )}
@@ -355,19 +355,19 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
         {boq && (
           <div className="mb-3 space-y-1 rounded-lg border border-stone-700/60 bg-stone-900/80 p-3 text-xs">
             <div className="flex justify-between">
-              <span className="text-stone-500">Subtotal</span>
+              <span className="text-stone-400">Subtotal</span>
               <span className="text-stone-200 font-mono">{money(boq.summary.subtotal)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-stone-500">Contingency</span>
+              <span className="text-stone-400">Contingency</span>
               <span className="text-stone-200 font-mono">{money(boq.summary.contingency)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-stone-500">Prof. Fees</span>
+              <span className="text-stone-400">Prof. Fees</span>
               <span className="text-stone-200 font-mono">{money(boq.summary.professionalFees)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-stone-500">VAT</span>
+              <span className="text-stone-400">VAT</span>
               <span className="text-stone-200 font-mono">{money(boq.summary.vat)}</span>
             </div>
             <div className="flex justify-between rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2 py-2">
@@ -388,7 +388,7 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
             >
               <Info size={12} />
               Rate Assumptions &nbsp;
-              <span className="text-stone-500">({boq.assumptions.filter((a) => a.source === 'fallback').length} fallback)</span>
+              <span className="text-stone-400">({boq.assumptions.filter((a) => a.source === 'fallback').length} fallback)</span>
               <span className="ml-auto">{showAssumptions ? '▲' : '▼'}</span>
             </button>
             {showAssumptions && (

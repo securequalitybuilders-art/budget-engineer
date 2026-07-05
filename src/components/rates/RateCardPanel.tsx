@@ -97,7 +97,7 @@ export function RateCardPanel({ card: externalCard, onChange }: RateCardPanelPro
         </div>
       </div>
 
-      <p className="text-xs text-stone-500">
+      <p className="text-xs text-stone-400">
         Active: <b className="text-stone-200">{card.region}</b> · all BOQ totals and the cost chart
         recompute in <b className="text-cyan-400">{card.currency}</b> on every edit, persisted to IndexedDB and audit-logged.
       </p>
