@@ -18,7 +18,7 @@ export function generateDesignOptionsFromBriefText(
   const diagnostics: string[] = []
 
   const parsed = parseBrief(briefText, region)
-  if (buildingTypeOverride) {
+  if (buildingTypeOverride && buildingTypeOverride !== 'auto') {
     parsed.buildingType = buildingTypeOverride as ParsedBrief['buildingType']
   }
   diagnostics.push(`Building type: ${parsed.buildingType}`)

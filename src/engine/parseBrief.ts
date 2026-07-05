@@ -192,11 +192,11 @@ export function parseBrief(
   let finalTypology = typology
   let finalConfidence = confidence
 
-  if (uiOverrides?.buildingType && uiOverrides.buildingType !== 'other') {
+  if (uiOverrides?.buildingType && uiOverrides.buildingType !== 'auto' && uiOverrides.buildingType !== 'other') {
     const all = getAllTypologies()
-    const matched = all.find(
-      (t) => t.id.startsWith(uiOverrides!.buildingType!) || t.aliases.includes(uiOverrides!.buildingType!),
-    )
+    const override = uiOverrides.buildingType
+    // exact ID match first (canonical IDs from dropdown), then alias match for backward compat
+    const matched = all.find((t) => t.id === override || t.aliases.includes(override))
     if (matched) {
       finalTypology = matched
       finalConfidence = Math.max(confidence, 0.95)

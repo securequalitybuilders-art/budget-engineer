@@ -464,15 +464,6 @@ function generateCourtyard(program: ProgramItem[], siteW: number, siteD: number,
   return { id: uid(), name: 'Courtyard — Rooms Around Central Space', topology: 'courtyard', width: planW, height: planD, rooms }
 }
 
-// ── SPRINT 48B DEBUG: temporary courtyard-selection diagnostics ──
-export const CY_DEBUG = {
-  typologyId: '',
-  heritageId: '',
-  selectionBranch: '',
-  topologies: [] as string[],
-  planLabels: [] as string[],
-}
-
 // ── Public API ──
 
 export function generateLayoutParameters(
@@ -489,19 +480,6 @@ export function generateLayoutParameters(
   const topologies: Topology[] = needsCourtyard
     ? ['courtyard', 'l-shape', 'split-wing']
     : ['rectangle', 'l-shape', 'split-wing']
-
-  CY_DEBUG.typologyId = typologyId
-  CY_DEBUG.heritageId = heritageId ?? ''
-  CY_DEBUG.selectionBranch = needsCourtyard ? 'courtyard-eligible' : 'default (rect/l/split)'
-  CY_DEBUG.topologies = topologies
-
-  console.log('[CY-DEBUG] generateLayoutParameters', {
-    typologyId,
-    heritageId,
-    needsCourtyard,
-    selectionBranch: CY_DEBUG.selectionBranch,
-    topologies,
-  })
 
   return {
     topologies,
@@ -551,12 +529,6 @@ export function generateFloorPlans(
     }
     plans.push(plan)
   }
-
-  CY_DEBUG.planLabels = plans.map(p => p.name)
-  console.log('[CY-DEBUG] generateFloorPlans', {
-    topologies,
-    planLabels: CY_DEBUG.planLabels,
-  })
 
   return plans
 }

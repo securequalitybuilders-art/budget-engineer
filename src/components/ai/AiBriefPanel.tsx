@@ -9,14 +9,21 @@ import { Tier1Readout } from './Tier1Readout';
 import { ConceptPanel } from '@/components/dashboard/ConceptPanel';
 
 const BUILDING_TYPE_OPTIONS: { value: string; label: string }[] = [
-  { value: 'house', label: 'House / Residential' },
-  { value: 'apartment', label: 'Apartment / Flat' },
-  { value: 'townhouse', label: 'Townhouse' },
-  { value: 'clinic', label: 'Clinic / Health Centre' },
-  { value: 'school', label: 'School / Classroom Block' },
-  { value: 'commercial', label: 'Commercial / Shop' },
-  { value: 'office', label: 'Office' },
-  { value: 'other', label: 'Other' },
+  { value: 'auto', label: 'Auto-detect from brief' },
+  { value: 'house-residential', label: 'House / Residential' },
+  { value: 'apartment-multi', label: 'Apartment / Flat' },
+  { value: 'clinic-health', label: 'Clinic / Health Centre' },
+  { value: 'school-classroom', label: 'School / Classroom Block' },
+  { value: 'hotel-fullservice', label: 'Hotel (Full Service)' },
+  { value: 'office-commercial', label: 'Office / Commercial' },
+  { value: 'retail-shop', label: 'Retail / Shop' },
+  { value: 'restaurant', label: 'Restaurant / Eatery' },
+  { value: 'church-worship', label: 'Church / Place of Worship' },
+  { value: 'warehouse-industrial', label: 'Warehouse / Industrial' },
+  { value: 'community-hall', label: 'Community Hall' },
+  { value: 'market', label: 'Market / Informal Trading' },
+  { value: 'petrol-station', label: 'Petrol Station / Filling Station' },
+  { value: 'mixed-use', label: 'Mixed-Use (Commercial + Residential)' },
 ]
 
 const ENGINES: { id: AiEngine; label: string; disabled?: boolean; hint?: string }[] = [
@@ -33,7 +40,7 @@ interface AiBriefPanelProps {
 export function AiBriefPanel({ onParsed, onDesignOptionsGenerated, onTier3Plans }: AiBriefPanelProps) {
   const [briefText, setBriefText] = useState('');
   const [aiEngine, setAiEngine] = useState<AiEngine>('local-rules');
-  const [buildingType, setBuildingType] = useState('house');
+  const [buildingType, setBuildingType] = useState('auto');
   // useRef avoids stale closure in async handleGenerate (Sprint 39C)
   const buildingTypeRef = useRef(buildingType);
   useEffect(() => { buildingTypeRef.current = buildingType }, [buildingType]);

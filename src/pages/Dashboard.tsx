@@ -41,8 +41,6 @@ export function Dashboard() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeCanvasView, setActiveCanvasView] = useState<'plan' | 'bim'>('plan');
   const [aiDesignOptions, setAiDesignOptions] = useState<DesignOption[]>([]);
-  // SPRINT 48B DEBUG: temporary courtyard-selection diagnostics
-  const [cyDebug, setCyDebug] = useState({ typologyId: '', heritageId: '', selectionBranch: '', topologies: [] as string[], planLabels: [] as string[] });
   const [tier3Plans, setTier3Plans] = useState<FloorPlan[]>([]);
   const [latestBuildingType, setLatestBuildingType] = useState<string | null>(null);
   const [persistedPlan, setPersistedPlan] = useState<PlanModel | null>(null);
@@ -271,15 +269,12 @@ export function Dashboard() {
       if (brief?.rawText) {
         try {
           const { parseBrief } = await import('@/engine/parseBrief')
-          const parsed = parseBrief(brief.rawText, { buildingType: brief.parsed.buildingType ?? 'house' })
+          const parsed = parseBrief(brief.rawText, { buildingType: brief.parsed.buildingType ?? 'auto' })
           const { generateDesignConcept } = await import('@/engine/tier2/conceptEngine')
           const concept = generateDesignConcept(parsed)
-          const layoutMod = await import('@/engine/tier3/layoutEngine')
-          const { generateLayoutParameters, generateFloorPlans } = layoutMod
+          const { generateLayoutParameters, generateFloorPlans } = await import('@/engine/tier3/layoutEngine')
           const params = generateLayoutParameters(concept, parsed)
           const plans = generateFloorPlans(params, parsed)
-          // SPRINT 48B DEBUG
-          setCyDebug({ ...layoutMod.CY_DEBUG })
           if (plans.length > 0) {
             setTier3Plans(plans)
             setAiDesignOptions((prev) => {
@@ -322,13 +317,8 @@ export function Dashboard() {
     }
   };
 
-  const handleTier3Plans = async (plans: FloorPlan[]) => {
+  const handleTier3Plans = (plans: FloorPlan[]) => {
     setTier3Plans(plans)
-    // SPRINT 48B DEBUG
-    try {
-      const { CY_DEBUG } = await import('@/engine/tier3/layoutEngine')
-      setCyDebug({ ...CY_DEBUG })
-    } catch { /* silent */ }
     // Use the ref to avoid stale closure: plans arrive after re-render
     setAiDesignOptions((prev) => {
       if (plans.length === 0) return prev
@@ -393,21 +383,8 @@ export function Dashboard() {
     );
   }
 
-  // SPRINT 48B DEBUG: temporary courtyard-selection diagnostic panel
-  const DebugPanel = () => (
-    <div style={{ position: 'fixed', top: 4, left: 4, zIndex: 99999, background: 'rgba(0,0,0,0.9)', color: '#0f0', fontFamily: 'monospace', fontSize: 11, padding: '6px 10px', borderRadius: 4, maxWidth: 420, border: '1px solid #0f0', pointerEvents: 'none' }}>
-      <div style={{ fontWeight: 'bold', marginBottom: 2 }}>SPRINT 48B DEBUG</div>
-      <div>typologyId: <span style={{ color: '#ff0' }}>{cyDebug.typologyId || '(empty)'}</span></div>
-      <div>heritageId: <span style={{ color: '#ff0' }}>{cyDebug.heritageId || '(empty)'}</span></div>
-      <div>branch: <span style={{ color: cyDebug.selectionBranch === 'courtyard-eligible' ? '#0f0' : '#f80' }}>{cyDebug.selectionBranch || '(empty)'}</span></div>
-      <div>topologies: <span style={{ color: '#0ff' }}>[{cyDebug.topologies.join(', ')}]</span></div>
-      <div>labels: <span style={{ color: '#0ff' }}>{cyDebug.planLabels.map(l => '「' + l + '」').join(', ')}</span></div>
-    </div>
-  )
-
   return (
     <>
-      <DebugPanel />
       <BentoShell>
       <Sidebar />
 

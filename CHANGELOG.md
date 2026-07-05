@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Sprint 48C — Fix Typology Detection: Full Dropdown + Auto-Detect Default
+
+**Root cause**: The building-type dropdown defaulted to `'house'` and was ALWAYS applied as an override in `parseBrief()`. A hotel brief text-detected as `hotel-fullservice` was overridden to `house-residential` via `startsWith('house')`, so the courtyard selection branch (`typologyId === 'hotel-fullservice'`) never fired. Additionally, the dropdown only offered 8 types; `hotel` was not listed.
+
+**Fixes**:
+1. `AiBriefPanel.tsx`: Dropdown now offers "Auto-detect from brief" (default) + all 14 Tier 1 typologies with canonical IDs (e.g., `'hotel-fullservice'`). Selecting "Hotel (Full Service)" directly triggers the courtyard branch.
+2. `parseBrief.ts`: Override is skipped when `buildingType` is `'auto'` — text detection wins at default. Explicit selection still forces its typology (e.g., picking "Hotel" forces `hotel-fullservice`, picking "House" forces `house-residential`).
+3. `Dashboard.tsx:272`: Default changed from `'house'` → `'auto'`.
+4. `aiDesignAdapter.ts:21`: Skip `'auto'` override so design options get the detected building type.
+5. Sprint 48B debug (CY_DEBUG, DebugPanel, console.logs) fully removed.
+
+**Before**: Hotel brief → typology `house-residential` → Rectangle/L-Shape/Split-Wing — no courtyard.
+**After**: Hotel brief (auto OR explicit) → typology `hotel-fullservice` → Courtyard/L-Shape/Split-Wing.
+
+**Testing**: +8 parseBrief override tests (463 total, 32 files). Zero `[CY-DEBUG]`/`DebugPanel` references remain.
+
+**Documentation:** `docs/SPRINT_48C_TYPOLOGY_DROPDOWN_REPORT.md`
+
 ### Sprint 48B — Temporary Debug Readout for Courtyard Topology Selection
 
 **Root cause**: Despite Sprint 48A fixing the layout engine to return courtyard among the 3 topologies, a hotel brief live still shows only Rectangle/L-Shape/Split-Wing. The UI override in `parseBrief(brief.rawText, { buildingType: brief.parsed.buildingType ?? 'house' })` overwrites the text-detected `hotel-fullservice` typology with `house-residential` when `brief.parsed.buildingType` is `'house'` — which it always is, because `src/lib/ai/brief-parser.ts` doesn't recognize `'hotel'`.
