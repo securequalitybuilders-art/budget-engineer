@@ -621,7 +621,7 @@ export function Dashboard() {
             />
             <PropertiesPanel />
             <TransactionPanel />
-            <EngineeringStudioPanel selectedDesign={selectedDesign} onDesignOptionsGenerated={handleAiDesignOptions} onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }} onTier3Plans={handleTier3Plans} onBuildingTypeChange={setSelectedBuildingType} />
+            <EngineeringStudioPanel selectedDesign={selectedDesign} activePlan={activePlan} boq={currentBoq} onDesignOptionsGenerated={handleAiDesignOptions} onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }} onTier3Plans={handleTier3Plans} onBuildingTypeChange={setSelectedBuildingType} />
             <BoqExportPanel selectedDesign={selectedDesign} boq={currentBoq} onExport={handleExport} />
             <EngineeringAnalysisPanel selectedDesign={selectedDesign} />
             <GovernancePanel

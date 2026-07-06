@@ -3,6 +3,18 @@ import type { DesignOption } from '@/domain/boq'
 import type { BoqResult } from './designToBoq'
 import { currencySymbol } from '@/lib/utils/currency'
 import { isValidPngDataUrl } from '@/lib/3d-snapshot'
+
+export interface PdfAnalysisSummary {
+  areaSchedule: string
+  envelope: string
+  daylight: string
+  egress: string
+  structural: string
+  energy: string
+  costPerM2: string
+  grandTotal: string
+  hasData: boolean
+}
 const CATEGORY_DISPLAY: Record<string, string> = {
   Walls: 'Walling',
   Slabs: 'Substructure',
@@ -77,6 +89,7 @@ export async function generatePdfReport(
   design: DesignOption,
   boq: BoqResult,
   snapshotDataUrl?: string,
+  analysis?: PdfAnalysisSummary | null,
 ): Promise<void> {
   const [{ default: jsPDF }, autoTableMod] = await Promise.all([import('jspdf'), import('jspdf-autotable')])
   const autoTable = autoTableMod.default
@@ -139,6 +152,29 @@ export async function generatePdfReport(
   doc.setFont('helvetica', 'italic')
   doc.text('Early estimate \u2014 consult a registered professional for final construction.', margin, y)
   y += 6
+
+  // ── Design Analysis (if available) ──
+  if (analysis && analysis.hasData) {
+    if (y > 250) { doc.addPage(); y = margin }
+    doc.setTextColor(30, 41, 82)
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Design Analysis', margin, y)
+    y += 5
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(80, 80, 80)
+    const analysisLines = [
+      `Area: ${analysis.areaSchedule} | Envelope: ${analysis.envelope} | Daylight: ${analysis.daylight}`,
+      `Egress: ${analysis.egress} | Structural: ${analysis.structural} | Energy: ${analysis.energy}`,
+      `Cost: ${analysis.costPerM2} per m\u00B2 | Grand Total: ${analysis.grandTotal}`,
+    ]
+    for (const line of analysisLines) {
+      doc.text(line, margin + 2, y)
+      y += 4.5
+    }
+    y += 2
+  }
 
   // ── BOQ table grouped by trade ──
   const groups = groupBoqItems(boq)

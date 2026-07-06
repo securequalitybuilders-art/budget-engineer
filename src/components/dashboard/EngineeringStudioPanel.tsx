@@ -5,8 +5,11 @@ import { RebarSpecPanel } from '@/components/structural/RebarSpecPanel';
 import { FootingSizingPanel } from '@/components/structural/FootingSizingPanel';
 import { LoadAnalysisPanel } from '@/components/structural/LoadAnalysisPanel';
 import { SectionView } from '@/components/drawings/SectionView';
+import { AnalysisPanel } from '@/components/dashboard/AnalysisPanel';
 import { RATE_CARDS } from '@/lib/rates/rate-card';
 import type { DesignOption } from '@/domain/boq';
+import type { BOQ } from '@/lib/boq/boq-types';
+import type { PlanModel } from '@/domain/plan';
 import type { BimModel, CadDocument, CadFloor } from '@/domain/ws6-types';
 import type { ParseResult } from '@/lib/ai/ai-provider';
 
@@ -18,7 +21,7 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
-type TabId = 'ai' | 'rates' | 'rebar' | 'footings' | 'loads' | 'section';
+type TabId = 'ai' | 'rates' | 'rebar' | 'footings' | 'loads' | 'section' | 'analysis';
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'ai', label: 'AI Brief' },
@@ -27,6 +30,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'footings', label: 'Footings' },
   { id: 'loads', label: 'Loads' },
   { id: 'section', label: 'Section' },
+  { id: 'analysis', label: 'Analysis' },
 ];
 
 function safeSqrt(n: number): number {
@@ -83,19 +87,22 @@ import type { FloorPlan } from '@/engine/tier3/layoutEngine';
 
 interface EngineeringStudioPanelProps {
   selectedDesign: DesignOption | null;
+  activePlan?: PlanModel | null;
+  boq?: BOQ | null;
   onDesignOptionsGenerated?: (options: DesignOption[]) => void;
   onParsed?: (result: ParseResult) => void;
   onTier3Plans?: (plans: FloorPlan[]) => void;
   onBuildingTypeChange?: (bt: string) => void;
 }
 
-export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerated, onParsed, onTier3Plans, onBuildingTypeChange }: EngineeringStudioPanelProps) {
+export function EngineeringStudioPanel({ selectedDesign, activePlan, boq, onDesignOptionsGenerated, onParsed, onTier3Plans, onBuildingTypeChange }: EngineeringStudioPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('ai');
 
   const sampleCad = useMemo(() => buildSampleCad(selectedDesign), [selectedDesign]);
   const sampleBim = useMemo(() => buildSampleBim(selectedDesign), [selectedDesign]);
 
   const slabArea = selectedDesign?.grossFloorArea ?? 0;
+  const buildingType = selectedDesign?.buildingType ?? 'house';
 
   return (
     <div className="flex flex-col border-l border-stone-700/60 bg-stone-950/80">
@@ -146,6 +153,10 @@ export function EngineeringStudioPanel({ selectedDesign, onDesignOptionsGenerate
               <p className="text-sm text-stone-400">Start with the AI Brief tab. Once a design exists, section views appear here.</p>
             </div>
           )
+        )}</div>
+
+        <div id="analysis-panel" role="tabpanel" aria-labelledby="analysis-tab" hidden={activeTab !== 'analysis'}>{activeTab === 'analysis' && (
+          <AnalysisPanel plan={activePlan ?? null} design={selectedDesign} boq={boq ?? null} buildingType={buildingType} />
         )}</div>
       </div>
 

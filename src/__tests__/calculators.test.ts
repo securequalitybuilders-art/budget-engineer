@@ -6,6 +6,7 @@ import { computeOccupancyAndEgress } from '@/engine/calculators/egress'
 import { computeGravityLoads } from '@/engine/calculators/structuralLoad'
 import { estimateEnergyDemand } from '@/engine/calculators/energyDemand'
 import { estimateCost } from '@/engine/calculators/costEstimate'
+import { assembleAnalysis, emptyAnalysis } from '@/engine/calculators/analysisAssembly'
 import { buildBoqFromDesignOption, getCostPerM2 } from '@/adapters/designToBoq'
 import type { DesignOption } from '@/domain/boq'
 
@@ -246,5 +247,44 @@ describe('costEstimate', () => {
   it('returns zero for zero-area design', () => {
     const r = estimateCost({ design: makeDesign({ grossFloorArea: 0 }) })
     expect(r.grandTotal).toBe(0)
+  })
+})
+
+describe('analysisAssembly', () => {
+  const plan = {
+    id: 'test-plan', designOptionId: 'test-1', width: 15, height: 10,
+    wallThickness: 0.2, scaleLabel: '1:100',
+    rooms: [
+      { id: 'r1', name: 'Living Room', x: 0, y: 0, width: 6, height: 5 },
+      { id: 'r2', name: 'Bedroom', x: 6, y: 0, width: 5, height: 5 },
+      { id: 'r3', name: 'Kitchen', x: 0, y: 5, width: 4, height: 4 },
+      { id: 'r4', name: 'Bathroom', x: 4, y: 5, width: 3, height: 3 },
+    ],
+    walls: [], openings: [],
+  }
+
+  it('assembles analysis with non-zero values for a sample design', () => {
+    const design = makeDesign()
+    const r = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    expect(r.areaSchedule.grossFloorArea).toBe(150)
+    expect(r.areaSchedule.netUsableArea).toBeGreaterThan(0)
+    expect(r.areaSchedule.roomCount).toBe(4)
+    expect(r.envelope).not.toBeNull()
+    expect(r.envelope!.wall.uValue).toBeGreaterThan(0)
+    expect(r.egress.occupantLoad).toBeGreaterThan(0)
+    expect(r.structural.totalLoadKnm2).toBeGreaterThan(0)
+    expect(r.energy.annualHeatingDemandKwhM2).toBeGreaterThan(0)
+    expect(r.cost.grandTotal).toBeGreaterThan(0)
+  })
+
+  it('returns safe empty result for empty/undefined plan', () => {
+    const r = emptyAnalysis()
+    expect(r.areaSchedule.grossFloorArea).toBe(0)
+    expect(r.areaSchedule.roomCount).toBe(0)
+    expect(r.envelope).toBeNull()
+    expect(r.daylight).toBeNull()
+    expect(r.egress.occupantLoad).toBe(0)
+    expect(r.structural.grandTotalKn).toBe(0)
+    expect(r.cost.grandTotal).toBe(0)
   })
 })

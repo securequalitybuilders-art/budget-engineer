@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Sprint 54 — Surface Enterprise Calculators in the UI
+
+**Additive (non-breaking):** Wired Sprint 53's 7 pure TS calculators into the UI — new Analysis tab in Engineering Studio, analysis assembly helper, PDF Design Analysis section. All 546 tests pass, 0 typecheck errors, lint baseline 9, build succeeds.
+
+**New files:**
+- **`src/engine/calculators/analysisAssembly.ts`** — `assembleAnalysis(plan, design, boq, buildingType)` orchestrates all 7 calculators from PlanModel + DesignOption + BOQ. Each calculator wrapped in try/catch. Default envelope assemblies per building type (wall U-values 0.45–0.55 W/m²K, roof 0.35–0.45 W/m²K). Exports `emptyAnalysis()` for safe zero output.
+- **`src/components/dashboard/AnalysisPanel.tsx`** — 7 branded cards (Area Schedule, Envelope U-Values, Daylight, Egress, Structural Loads, Energy Demand, Cost Summary) with units and preliminary-estimate notes. Empty state: "Generate a design to see analysis". Uses `text-stone-400` tokens (WCAG AA).
+
+**Modified files:**
+- **`EngineeringStudioPanel.tsx`** — Added `'analysis'` TabId, TABS entry, tab panel. Accepts `activePlan` and `boq` props.
+- **`Dashboard.tsx`** (~line 624) — Passes `activePlan` and `boq` to `EngineeringStudioPanel`.
+- **`boqToPdf.ts`** — Added `PdfAnalysisSummary` interface + optional `analysis` param. When `hasData === true`, renders "Design Analysis" section between disclaimer and BOQ table. Gracefully skips when absent.
+- **`structuralLoad.ts`** — Added `'educational'` and `'institutional'` to `StructuralOccupancy` union with corresponding dead/live load values.
+
+**Tests:** +5 tests (546 total). 2 `analysisAssembly` tests in calculators.test.ts, 3 "Design Analysis section" tests in boqToPdf.test.ts.
+
 ### Sprint 53 — Enterprise Design Calculators (TS Ports)
 
 **Additive (non-breaking):** Ported 7 enterprise architectural/engineering calculators from MIT-licensed Python references to pure TypeScript. No UI yet (Sprint 54). All calculators are deterministic, locally runnable, and safe on bad input.

@@ -21,7 +21,7 @@ export interface StructuralLoadResult {
   warnings: string[]
 }
 
-export type StructuralOccupancy = 'residential' | 'office' | 'retail' | 'industrial' | 'storage' | 'roof'
+export type StructuralOccupancy = 'residential' | 'office' | 'retail' | 'industrial' | 'storage' | 'roof' | 'educational' | 'institutional'
 
 export const DEAD_LOADS: Record<StructuralOccupancy, number> = {
   residential: 4.0,
@@ -30,6 +30,8 @@ export const DEAD_LOADS: Record<StructuralOccupancy, number> = {
   industrial: 6.0,
   storage: 5.0,
   roof: 2.0,
+  educational: 4.5,
+  institutional: 4.5,
 }
 
 export const LIVE_LOADS: Record<StructuralOccupancy, number> = {
@@ -39,6 +41,8 @@ export const LIVE_LOADS: Record<StructuralOccupancy, number> = {
   industrial: 6.0,
   storage: 6.0,
   roof: 1.0,
+  educational: 2.40,
+  institutional: 2.40,
 }
 
 export function computeGravityLoads(input: StructuralLoadInput): StructuralLoadResult {

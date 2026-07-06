@@ -492,4 +492,42 @@ describe('autoTable functional API', () => {
     //  that the fallback expression (doc as any).lastAutoTable?.finalY ?? y is safe)
     expect((doc as any).lastAutoTable?.finalY ?? 200).toBe(200)
   })
+
+  describe('Design Analysis section in PDF', () => {
+    const analysis = {
+      areaSchedule: '150 m² gross / 112 m² net',
+      envelope: 'Wall 0.45 W/m²K (pass)',
+      daylight: 'DF 3.2% (ok)',
+      egress: '10 persons, 1 exit (pass)',
+      structural: '4.0+1.9 kN/m² (prelim)',
+      energy: '55 kWh/m²/yr',
+      costPerM2: '$85.00',
+      grandTotal: '$12,750.00',
+      hasData: true,
+    }
+
+    it('PDF includes Design Analysis section when analysis data is provided', async () => {
+      await generatePdfReport(MINIMAL_DESIGN, realisticBoq(), VALID_PNG, analysis)
+      const doc = (globalThis as any).__lastJsPDFInstance
+      const textCalls = (doc.text as ReturnType<typeof vi.fn>).mock.calls
+      const allTexts = textCalls.map((c: unknown[]) => String(c[0]))
+      expect(allTexts.some((t: string) => t.includes('Design Analysis'))).toBe(true)
+      expect(allTexts.some((t: string) => t.includes('150 m² gross'))).toBe(true)
+      expect(allTexts.some((t: string) => t.includes('4.0+1.9'))).toBe(true)
+    })
+
+    it('PDF still generates without analysis data', async () => {
+      vi.clearAllMocks()
+      await generatePdfReport(MINIMAL_DESIGN, realisticBoq(), VALID_PNG, null)
+      const doc = (globalThis as any).__lastJsPDFInstance
+      expect(doc.output).toHaveBeenCalled()
+    })
+
+    it('PDF still generates when analysis.hasData is false', async () => {
+      vi.clearAllMocks()
+      await generatePdfReport(MINIMAL_DESIGN, realisticBoq(), VALID_PNG, { ...analysis, hasData: false })
+      const doc = (globalThis as any).__lastJsPDFInstance
+      expect(doc.output).toHaveBeenCalled()
+    })
+  })
 })
