@@ -408,11 +408,43 @@ describe('CeilingPlanView', () => {
     expect(renderCeilingPlan(plan)).toBeNull()
   })
 
-  it('renderCeilingPlan contains light fixtures', () => {
-    const sheet = renderCeilingPlan(makePlan())
+  it('renderCeilingPlan has one light fixture per room', () => {
+    const plan = makePlan()
+    const sheet = renderCeilingPlan(plan)
     expect(sheet).not.toBeNull()
     const lightCount = sheet!.elements ? countByPrefix(sheet!.elements, 'light-') : 0
-    expect(lightCount).toBeGreaterThanOrEqual(1)
+    expect(lightCount).toBe(plan.rooms.length)
+  })
+
+  it('renderCeilingPlan draws grid lines for rooms >= 2.5 m', () => {
+    const plan = makePlan()
+    const sheet = renderCeilingPlan(plan)
+    expect(sheet).not.toBeNull()
+    const gridV = sheet!.elements ? countByPrefix(sheet!.elements, 'grid-v-') : 0
+    const gridH = sheet!.elements ? countByPrefix(sheet!.elements, 'grid-h-') : 0
+    // makePlan rooms are 6×8, both ≥ 2.5 m — expect at least one grid line per axis
+    expect(gridV).toBeGreaterThanOrEqual(1)
+    expect(gridH).toBeGreaterThanOrEqual(1)
+  })
+
+  it('renderCeilingPlan small rooms get a fixture but no grid', () => {
+    const plan = makePlan({ rooms: [{ id: 'tiny', name: 'Store', x: 0, y: 0, width: 1.5, height: 1.5 }] })
+    const sheet = renderCeilingPlan(plan)
+    expect(sheet).not.toBeNull()
+    const lightCount = sheet!.elements ? countByPrefix(sheet!.elements, 'light-') : 0
+    expect(lightCount).toBe(1)
+    const gridV = sheet!.elements ? countByPrefix(sheet!.elements, 'grid-v-') : 0
+    const gridH = sheet!.elements ? countByPrefix(sheet!.elements, 'grid-h-') : 0
+    expect(gridV).toBe(0)
+    expect(gridH).toBe(0)
+  })
+
+  it('renderCeilingPlan renders note when plan has no rooms', () => {
+    const plan = makePlan({ rooms: [] })
+    const sheet = renderCeilingPlan(plan)
+    expect(sheet).not.toBeNull()
+    const noRooms = sheet!.elements ? countByPrefix(sheet!.elements, 'no-rooms') : 0
+    expect(noRooms).toBe(1)
   })
 
   it('renderCeilingPlan has legend, NorthArrow, and ScaleBar', () => {

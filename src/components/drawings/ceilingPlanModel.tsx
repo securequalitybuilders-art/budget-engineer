@@ -71,18 +71,26 @@ export function renderCeilingPlan(plan: PlanModel | null): CeilingSheet | null {
   // ── Ceiling grid + light fixtures per room ──
   const electricalColor = DISCIPLINE.electrical.color
 
+  if (plan.rooms.length === 0) {
+    elements.push(
+      <text key="no-rooms" x={ox + s(bw) / 2} y={oy - s(bh) / 2} fontSize={7} fill={INK} fontFamily="system-ui, sans-serif" textAnchor="middle" opacity={0.5}>
+        No room data
+      </text>,
+    )
+  }
+
   for (const room of plan.rooms) {
+    // Room rect in screen space (same y-flip as walls: origin bottom-left)
     const rx = ox + s(room.x)
-    const ry = oy - s(room.y) - s(room.height)
+    const ry = oy - s(room.y + room.height)
     const rw = s(room.width)
     const rh = s(room.height)
-    const isLarge = rw > 30 && rh > 30
-    const gridStepS = s(CEILING_GRID)
-    const effectiveGridStep = Math.max(gridStepS, 10)
+    const isLarge = room.width >= 2.5 && room.height >= 2.5
+    const step = Math.max(s(CEILING_GRID), 6)
 
     // Ceiling grid lines (only for larger rooms)
     if (isLarge) {
-      for (let gx = rx + effectiveGridStep; gx < rx + rw; gx += effectiveGridStep) {
+      for (let gx = rx + step; gx < rx + rw; gx += step) {
         elements.push(
           <line
             key={`grid-v-${room.id}-${gx.toFixed(0)}`}
@@ -96,7 +104,7 @@ export function renderCeilingPlan(plan: PlanModel | null): CeilingSheet | null {
           />,
         )
       }
-      for (let gy = ry + effectiveGridStep; gy < ry + rh; gy += effectiveGridStep) {
+      for (let gy = ry + step; gy < ry + rh; gy += step) {
         elements.push(
           <line
             key={`grid-h-${room.id}-${gy.toFixed(0)}`}
@@ -115,10 +123,10 @@ export function renderCeilingPlan(plan: PlanModel | null): CeilingSheet | null {
     // Light fixture (circle + cross at room centre) using electrical discipline colour
     const lcx = rx + rw / 2
     const lcy = ry + rh / 2
-    const lr = Math.min(rw, rh) * 0.08
+    const lr = Math.max(s(Math.min(room.width, room.height)) * 0.12, 4)
     elements.push(
       <g key={`light-${room.id}`}>
-        <circle cx={lcx} cy={lcy} r={Math.max(lr, 4)} fill="none" stroke={electricalColor} strokeWidth={CAD_THIN} />
+        <circle cx={lcx} cy={lcy} r={lr} fill="none" stroke={electricalColor} strokeWidth={CAD_THIN} />
         <line x1={lcx - lr * 0.6} y1={lcy} x2={lcx + lr * 0.6} y2={lcy} stroke={electricalColor} strokeWidth={CAD_HAIR} />
         <line x1={lcx} y1={lcy - lr * 0.6} x2={lcx} y2={lcy + lr * 0.6} stroke={electricalColor} strokeWidth={CAD_HAIR} />
       </g>,
