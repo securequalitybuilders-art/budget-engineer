@@ -1,8 +1,8 @@
 # Canonical Repo Status — Budget Engineer OS
 
-> **Date:** 2026-07-05  
+> **Date:** 2026-07-06  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** v0.3.1 — DzeNhare OS 3-tier Enterprise Architectural Intelligence (Brief Intelligence, Concept Engine, Layout Engine with 3 distinct topologies + real courtyard), fully working 3D BIM (thick walls, slabs, multi-storey, doors, windows, roof, ceilings, GLB export), PDF cost report with 3D snapshot, PWA auto-update, unified single option source with no duplicates, all 14 building typologies in dropdown with Auto-detect, 2D/3D plan consistency from shared active PlanModel. Lint baseline at 9 warnings. All 470 unit tests pass (33 files). `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (470 passed, 33 files).
+> **Status:** v0.3.2 — DzeNhare OS 3-tier Enterprise Architectural Intelligence (Brief Intelligence, Concept Engine, Layout Engine with 3 distinct topologies + real courtyard), fully working 3D BIM (thick walls, slabs, multi-storey, doors, windows, roof, ceilings, GLB export), PDF cost report with 3D snapshot + Design Analysis section + ZBC compliance, PWA auto-update, unified single option source with no duplicates, all 14 building typologies in dropdown with Auto-detect, 2D/3D plan consistency from shared active PlanModel, 7 enterprise design calculators (area schedule, U-value, daylight, egress, structural loads, energy demand, cost estimate), Analysis panel in Engineering Studio, ZBC rule-based compliance checker (9 rules). Lint baseline at 9 warnings. All 559 unit tests pass (37 files). `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (559 passed, 37 files).
 
 ---
 

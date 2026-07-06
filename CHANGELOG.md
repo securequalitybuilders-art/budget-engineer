@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.3.2] - 2026-07-06
+
 ### Sprint 55 — ZBC Building-Code Compliance Checks (Design Intelligence)
 
 **Additive (non-breaking):** Added jurisdiction-keyed rule-based compliance checker for Zimbabwe (ZBC 1996). Evaluates active design against 9 building-code minimums. Results shown in Analysis panel (new ZBC Compliance card) and PDF cost report. Extensible for SADC neighbours.

@@ -1,7 +1,7 @@
 # Dzenhare Budget Engineer Studio
 
 [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions)
-**Current release:** v0.3.1 — [View on GitHub](https://github.com/securequalitybuilders-art/budget-engineer/releases/tag/v0.3.1)
+**Current release:** v0.3.2 — [View on GitHub](https://github.com/securequalitybuilders-art/budget-engineer/releases/tag/v0.3.2)
 
 > AI-powered computational design → 2D CAD → 3D BIM → engineering checks → quantities → BOQ → export.
 > Offline-first, open-source, Africa-focused.
@@ -116,11 +116,11 @@ Each push to `main` runs via GitHub Actions:
 
 | Detail | Value |
 |--------|-------|
-| Current version | v0.3.1 |
+| Current version | v0.3.2 |
 | Live demo | https://budget-engineer.vercel.app/ |
 | GitHub | https://github.com/securequalitybuilders-art/budget-engineer |
 | CI status | [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions) |
-| Tests | 470 across 33 files |
+| Tests | 559 across 37 files |
 | Architecture | Local-first, no paid APIs, no backend, no cloud LLM |
 
 See [CHANGELOG.md](CHANGELOG.md) for full release history.
