@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+### Sprint 57 — Professional Orthographic CAD Drawings (Flat Black-on-White Style)
+
+**Additive (non-breaking):** Refactored ElevationView and SectionView into professional flat black-on-white CAD sheets with proper line weights, dimension strings, grid bubbles, level markers, poché hatching on cut walls, hatched earth datum, and A1-format title block. All geometry from `planToElevations.ts` unchanged — presentation/annotation layer only.
+
+**New files:**
+- **`src/components/drawings/cadConstants.ts`** — Line-weight constants (`CAD_HEAVY=2`, `CAD_MEDIUM=1.2`, `CAD_THIN=0.6`, `CAD_HAIR=0.4`), ink/paper colors (`INK='#1a1a1a'`, `PAPER='#ffffff'`), `metresToMm()` helper.
+- **`src/components/drawings/cadPrimitives.tsx`** — React SVG components: `HatchDefs` (poche 45° diagonal + earth stipple), `SheetBorder`, `TitleBlock`, `DimensionLineH`, `DimensionLineV`, `GridBubble`, `LevelMarker`, `DrawingTitle`.
+- **`src/components/drawings/SectionView.tsx`** — Standalone CAD section view with poché-hatched cut walls, heavy floor slabs, hatched earth datum, dimension strings, grid bubbles, level markers, title block.
+- **`src/__tests__/cadDrawings.test.ts`** — 24 tests for `metresToMm`, front/side/section data shape, empty/null/zero fallback safety.
+
+**Modified files:**
+- **`ElevationView.tsx`** — Complete white-sheet refactor: white background, black ink, CAD line weights, dimension strings above/left, grid bubbles, level markers, title block, drawing title, sheet border.
+- **`DrawingsPanel.tsx`** — Passes `activePlan`, `floors`, `storeyHeight`, `pitchHeight`, `title` props to `ElevationView`/`SectionView`.
+- **`EngineeringStudioPanel.tsx`** — Removed `buildSampleCad` / `CadDocument` dependency; section tab shows redirect to main Drawings view.
+
+**Validation:** 609 tests pass (39 files). Typecheck 0 errors. Lint 0 errors (9 warnings baseline). Build succeeds. PWA intact. No `text-stone-500` introduced.
+
 ### Sprint 56 — Auto-Generated Elevations and Section Drawings (SVG)
 
 **Additive (non-breaking):** Pure-SVG front elevation, side elevation, and cross-section derived from the same PlanModel geometry used by 2D/3D. New "Drawings" view toggle (between 2D and 3D in the canvas toolbar) with Plan | Front Elevation | Side Elevation | Section A-A sub-tabs. Reuses wall/opening/roof constants from `planTo3d.ts` (storey height 3 m, pitch height 1.5 m, etc.) — zero geometry duplication.

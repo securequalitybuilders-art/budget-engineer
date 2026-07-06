@@ -4,13 +4,12 @@ import { RateCardPanel } from '@/components/rates/RateCardPanel';
 import { RebarSpecPanel } from '@/components/structural/RebarSpecPanel';
 import { FootingSizingPanel } from '@/components/structural/FootingSizingPanel';
 import { LoadAnalysisPanel } from '@/components/structural/LoadAnalysisPanel';
-import { SectionView } from '@/components/drawings/SectionView';
 import { AnalysisPanel } from '@/components/dashboard/AnalysisPanel';
 import { RATE_CARDS } from '@/lib/rates/rate-card';
 import type { DesignOption } from '@/domain/boq';
 import type { BOQ } from '@/lib/boq/boq-types';
 import type { PlanModel } from '@/domain/plan';
-import type { BimModel, CadDocument, CadFloor } from '@/domain/ws6-types';
+import type { BimModel, CadFloor } from '@/domain/ws6-types';
 import type { ParseResult } from '@/lib/ai/ai-provider';
 
 function EmptyState({ message }: { message: string }) {
@@ -35,31 +34,6 @@ const TABS: { id: TabId; label: string }[] = [
 
 function safeSqrt(n: number): number {
   return n > 0 ? Math.sqrt(n) : 0;
-}
-
-function buildSampleCad(design: DesignOption | null): CadDocument | null {
-  if (!design || design.grossFloorArea <= 0) return null;
-  const floor: CadFloor = { id: 'f1', name: 'Ground', elevation: 0, height: 3 };
-  const wallLen = safeSqrt(design.grossFloorArea) * 2;
-  return {
-    id: 'cad-sample',
-    projectId: '',
-    name: design.name,
-    materialSystem: 'concrete',
-    floors: [floor],
-    walls: [
-      {
-        id: 'w1', floorId: 'f1', start: { x: 0, y: 0 }, end: { x: wallLen, y: 0 },
-        thickness: 0.23, height: 3, name: 'Outer wall', metadata: { ifcClass: 'IfcWall', category: 'wall', properties: {} },
-      },
-      {
-        id: 'w2', floorId: 'f1', start: { x: wallLen, y: 0 }, end: { x: wallLen, y: wallLen / 2 },
-        thickness: 0.23, height: 3, name: 'Outer wall', metadata: { ifcClass: 'IfcWall', category: 'wall', properties: {} },
-      },
-    ],
-    openings: [],
-    blocks: [],
-  };
 }
 
 function buildSampleBim(design: DesignOption | null): BimModel | null {
@@ -98,7 +72,6 @@ interface EngineeringStudioPanelProps {
 export function EngineeringStudioPanel({ selectedDesign, activePlan, boq, onDesignOptionsGenerated, onParsed, onTier3Plans, onBuildingTypeChange }: EngineeringStudioPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('ai');
 
-  const sampleCad = useMemo(() => buildSampleCad(selectedDesign), [selectedDesign]);
   const sampleBim = useMemo(() => buildSampleBim(selectedDesign), [selectedDesign]);
 
   const slabArea = selectedDesign?.grossFloorArea ?? 0;
@@ -146,13 +119,9 @@ export function EngineeringStudioPanel({ selectedDesign, activePlan, boq, onDesi
         )}</div>
 
         <div id="section-panel" role="tabpanel" aria-labelledby="section-tab" hidden={activeTab !== 'section'}>{activeTab === 'section' && (
-          sampleCad ? (
-            <SectionView cad={sampleCad} />
-          ) : (
-            <div className="rounded-lg border border-stone-700/60 bg-stone-900/80 p-6 text-center">
-              <p className="text-sm text-stone-400">Start with the AI Brief tab. Once a design exists, section views appear here.</p>
-            </div>
-          )
+          <div className="rounded-lg border border-stone-700/60 bg-stone-900/80 p-6 text-center">
+            <p className="text-sm text-stone-400">Professional orthographic section drawings are now in the main Drawings view (toggle button in the canvas toolbar).</p>
+          </div>
         )}</div>
 
         <div id="analysis-panel" role="tabpanel" aria-labelledby="analysis-tab" hidden={activeTab !== 'analysis'}>{activeTab === 'analysis' && (

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import type { PlanModel } from '@/domain/plan'
 import { PlanCanvas } from '@/components/cad/PlanCanvas'
 import { ElevationView } from '@/components/drawings/ElevationView'
+import { SectionView } from '@/components/drawings/SectionView'
 import {
   computeFrontElevation,
   computeSideElevation,
@@ -31,26 +32,17 @@ interface DrawingsPanelProps {
 export function DrawingsPanel({ activePlan, floors, storeyHeight = DEFAULT_STOREY_HEIGHT, pitchHeight = ROOF_PITCH_HEIGHT }: DrawingsPanelProps) {
   const [activeTab, setActiveTab] = useState<DrawingTab>('front')
 
-  const frontElevation = useMemo(
-    () => {
-      try { return computeFrontElevation(activePlan!, floors, storeyHeight, pitchHeight) } catch { return null }
-    },
-    [activePlan, floors, storeyHeight, pitchHeight],
-  )
+  const frontDrawing = useMemo(() => {
+    try { return computeFrontElevation(activePlan!, floors, storeyHeight, pitchHeight) } catch { return null }
+  }, [activePlan, floors, storeyHeight, pitchHeight])
 
-  const sideElevation = useMemo(
-    () => {
-      try { return computeSideElevation(activePlan!, floors, storeyHeight, pitchHeight) } catch { return null }
-    },
-    [activePlan, floors, storeyHeight, pitchHeight],
-  )
+  const sideDrawing = useMemo(() => {
+    try { return computeSideElevation(activePlan!, floors, storeyHeight, pitchHeight) } catch { return null }
+  }, [activePlan, floors, storeyHeight, pitchHeight])
 
-  const section = useMemo(
-    () => {
-      try { return computeSection(activePlan!, floors, storeyHeight, pitchHeight) } catch { return null }
-    },
-    [activePlan, floors, storeyHeight, pitchHeight],
-  )
+  const sectionDrawing = useMemo(() => {
+    try { return computeSection(activePlan!, floors, storeyHeight, pitchHeight) } catch { return null }
+  }, [activePlan, floors, storeyHeight, pitchHeight])
 
   if (!activePlan || floors < 1) {
     return (
@@ -85,14 +77,40 @@ export function DrawingsPanel({ activePlan, floors, storeyHeight = DEFAULT_STORE
           <PlanCanvas projectId={null} design={null} persistedPlan={activePlan} />
         </div>
       )}
-      {activeTab === 'front' && <ElevationView drawing={frontElevation} />}
-      {activeTab === 'side' && <ElevationView drawing={sideElevation} />}
-      {activeTab === 'section' && <ElevationView drawing={section} />}
+      {activeTab === 'front' && (
+        <ElevationView
+          drawing={frontDrawing}
+          activePlan={activePlan}
+          floors={floors}
+          storeyHeight={storeyHeight}
+          pitchHeight={pitchHeight}
+          title="FRONT ELEVATION"
+        />
+      )}
+      {activeTab === 'side' && (
+        <ElevationView
+          drawing={sideDrawing}
+          activePlan={activePlan}
+          floors={floors}
+          storeyHeight={storeyHeight}
+          pitchHeight={pitchHeight}
+          title="SIDE ELEVATION"
+        />
+      )}
+      {activeTab === 'section' && (
+        <SectionView
+          drawing={sectionDrawing}
+          activePlan={activePlan}
+          floors={floors}
+          storeyHeight={storeyHeight}
+          pitchHeight={pitchHeight}
+        />
+      )}
 
       <p className="text-[10px] text-stone-400 leading-relaxed">
         Elevations and section derived from the same PlanModel geometry as 2D/3D.
         {activePlan.wallThickness > 0 && ` Wall thickness ${activePlan.wallThickness.toFixed(2)} m.`}
-        Storey height {storeyHeight.toFixed(1)} m. Roof pitch height {pitchHeight.toFixed(1)} m (approximate gable).
+        Storey height {storeyHeight.toFixed(1)} m. Roof pitch height {pitchHeight.toFixed(1)} m.
       </p>
     </div>
   )
