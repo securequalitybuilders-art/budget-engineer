@@ -10,9 +10,11 @@ import { GroundHatchDefs, SoilLayers, GroundLine } from '@/components/drawings/g
 import { SitePlanView } from '@/components/drawings/SitePlanView'
 import { FoundationPlanView } from '@/components/drawings/FoundationPlanView'
 import { computeFrontElevation, computeSideElevation, computeSection } from '@/adapters/planToElevations'
-import { renderSectionSheet } from '@/components/drawings/SectionView'
-import { RoofPlanView, renderRoofPlan } from '@/components/drawings/RoofPlanView'
-import { CeilingPlanView, renderCeilingPlan } from '@/components/drawings/CeilingPlanView'
+import { renderSectionSheet } from '@/components/drawings/sectionModel'
+import { RoofPlanView } from '@/components/drawings/RoofPlanView'
+import { renderRoofPlan } from '@/components/drawings/roofPlanModel'
+import { CeilingPlanView } from '@/components/drawings/CeilingPlanView'
+import { renderCeilingPlan } from '@/components/drawings/ceilingPlanModel'
 
 function makePlan(overrides?: Partial<PlanModel>): PlanModel {
   return {
