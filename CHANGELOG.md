@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Sprint 59 — Site Plan + Foundation Plan Drawing Types and Reusable Entourage/Ground Richness Library
+
+**Additive (non-breaking):** Added two new professional drawing types (Site Plan, Foundation Plan) and a reusable pure-SVG entourage/ground library. Section A‑A enriched with layered soil strata, trees, person silhouette, and numbered legend. All new rendering deterministic, 100% offline — no AI images or external APIs.
+
+**New files:**
+- **`src/components/drawings/entourage.tsx`** — `TreeElevation` (round/conifer/palm), `PersonSilhouette`, `CarSilhouette`, `NorthArrow`, `ScaleBar`, `NumberedLegend`.
+- **`src/components/drawings/ground.tsx`** — `GroundHatchDefs` (topsoil/subsoil/rock patterns), `GroundLine`, `SoilLayers` (stacked coloured strata).
+- **`src/components/drawings/SitePlanView.tsx`** — Site plan with plot boundary, building footprint, road, trees, parking, north arrow, scale bar, setback dims, "indicative" coverage note.
+- **`src/components/drawings/FoundationPlanView.tsx`** — Foundation plan with strip footings (concrete poché × 2.5 wall thickness), dashed wall lines above, grid, north arrow, materials legend, "confirm with structural engineer" note.
+
+**Modified files:**
+- **`DrawingsPanel.tsx`** — Added Site Plan and Foundation tabs (row: Plan / Site Plan / Foundation / Front Elevation / Side Elevation / Section A‑A).
+- **`SectionView.tsx`** — Replaced flat earth hatch with `SoilLayers` (topsoil→subsoil→rock). Added 2 trees, person silhouette, numbered legend (wall/slab/soil callouts).
+
+**Indicative values:** All setback, footing, and site coverage values labelled "indicative / schematic — verify with local authority" or "confirm with a structural engineer".
+
+**Tests:** +11 tests (627 total, 39 files) for entourage/ground components, SitePlanView, FoundationPlanView.
+
+**Validation:** 627 tests pass (39 files). Typecheck 0 errors. Lint 0 errors (9 warnings baseline). Build succeeds. PWA 30 precache entries. No `text-stone-500` introduced.
+
 ### Sprint 58 — Fix Blank Plan Tab + Coloured Material/Discipline Drawing System
 
 **Bug fix + additive (non-breaking):** Root-caused the blank Plan sub-tab in Drawings view: `DrawingsPanel` was passing `design={null}` to `PlanCanvas`, which guards on `!design`. Added `design` prop and wired `selectedDesign` from Dashboard. All four sub-tabs (Plan, Front, Side, Section) now render from one consistent plan.

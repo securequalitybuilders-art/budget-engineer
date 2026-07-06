@@ -4,6 +4,10 @@ import { metresToMm } from '@/components/drawings/cadConstants'
 import { MATERIAL_LEGEND, DISCIPLINE_LEGEND } from '@/components/drawings/drawingColors'
 import { MaterialHatchDefs, LegendBox } from '@/components/drawings/drawingLegend'
 import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
+import { TreeElevation, NorthArrow, ScaleBar, NumberedLegend, PersonSilhouette, CarSilhouette } from '@/components/drawings/entourage'
+import { GroundHatchDefs, SoilLayers, GroundLine } from '@/components/drawings/ground'
+import { SitePlanView } from '@/components/drawings/SitePlanView'
+import { FoundationPlanView } from '@/components/drawings/FoundationPlanView'
 import { computeFrontElevation, computeSideElevation, computeSection } from '@/adapters/planToElevations'
 
 function makePlan(overrides?: Partial<PlanModel>): PlanModel {
@@ -220,5 +224,57 @@ describe('MaterialHatchDefs and LegendBox are valid components', () => {
 describe('DrawingsPanel is a valid component', () => {
   it('DrawingsPanel is a function', () => {
     expect(typeof DrawingsPanel).toBe('function')
+  })
+})
+
+describe('Entourage components', () => {
+  it('TreeElevation is a function', () => {
+    expect(typeof TreeElevation).toBe('function')
+  })
+
+  it('NorthArrow is a function', () => {
+    expect(typeof NorthArrow).toBe('function')
+  })
+
+  it('ScaleBar is a function', () => {
+    expect(typeof ScaleBar).toBe('function')
+  })
+
+  it('NumberedLegend is a function', () => {
+    expect(typeof NumberedLegend).toBe('function')
+  })
+
+  it('PersonSilhouette is a function', () => {
+    expect(typeof PersonSilhouette).toBe('function')
+  })
+
+  it('CarSilhouette is a function', () => {
+    expect(typeof CarSilhouette).toBe('function')
+  })
+})
+
+describe('Ground components', () => {
+  it('GroundHatchDefs is a function', () => {
+    expect(typeof GroundHatchDefs).toBe('function')
+  })
+
+  it('SoilLayers is a function', () => {
+    expect(typeof SoilLayers).toBe('function')
+  })
+
+  it('GroundLine is a function', () => {
+    expect(typeof GroundLine).toBe('function')
+  })
+})
+
+describe('SitePlanView', () => {
+  it('is a function', () => {
+    expect(typeof SitePlanView).toBe('function')
+  })
+})
+
+describe('FoundationPlanView', () => {
+  it('is a function', () => {
+    expect(typeof FoundationPlanView).toBe('function')
   })
 })

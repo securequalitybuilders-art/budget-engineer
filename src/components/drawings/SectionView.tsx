@@ -9,6 +9,8 @@ import {
 } from '@/components/drawings/cadPrimitives'
 import { MaterialHatchDefs, LegendBox } from '@/components/drawings/drawingLegend'
 import { MATERIAL_LEGEND } from '@/components/drawings/drawingColors'
+import { GroundHatchDefs, SoilLayers } from '@/components/drawings/ground'
+import { TreeElevation, PersonSilhouette, NumberedLegend } from '@/components/drawings/entourage'
 
 interface SectionViewProps {
   drawing: ElevationDrawing | null
@@ -97,11 +99,22 @@ function renderSectionSheet(
   elements.push(<rect key="bg" x={0} y={0} width={sheetW} height={sheetH} fill={PAPER} />)
   elements.push(<HatchDefs key="defs" />)
   elements.push(<MaterialHatchDefs key="mat-defs" />)
+  elements.push(<GroundHatchDefs key="gnd-defs" />)
 
   // ── Earth / ground datum ──
-  // Ground fill with earth pattern (brown + hatch)
+  // Layered soil strata below ground
   elements.push(
-    <rect key="earth-fill" x={0} y={groundY} width={sheetW} height={MARGIN_BOTTOM} fill="url(#mat-earth)" stroke="none" />,
+    <SoilLayers
+      key="soil-layers"
+      x1={0}
+      x2={sheetW}
+      topY={groundY}
+      layers={[
+        { depth: 8, type: 'topsoil' },
+        { depth: 12, type: 'subsoil' },
+        { depth: MARGIN_BOTTOM - 20, type: 'rock' },
+      ]}
+    />,
   )
   // Ground line (extra heavy)
   elements.push(
@@ -255,14 +268,39 @@ function renderSectionSheet(
     />,
   )
 
+  // ── Entourage (trees + person for scale) ──
+  elements.push(
+    <TreeElevation key="tree-1" x={ox - 15} groundY={groundY} height={30} variant="round" />,
+  )
+  elements.push(
+    <TreeElevation key="tree-2" x={ox + s(bw) + 15} groundY={groundY} height={35} variant="conifer" />,
+  )
+  elements.push(
+    <PersonSilhouette key="person" x={ox + s(bw) + 35} groundY={groundY} height={20} />,
+  )
+
+  // ── Numbered legend ──
+  elements.push(
+    <NumberedLegend
+      key="num-legend"
+      items={[
+        { n: 1, label: 'Brick/block wall' },
+        { n: 2, label: 'Concrete floor slab' },
+        { n: 3, label: 'Natural soil' },
+      ]}
+      x={ox}
+      y={groundY + 55}
+    />,
+  )
+
   // ── Material legend ──
   elements.push(
     <LegendBox
       key="legend"
       items={MATERIAL_LEGEND.slice(0, 4)}
       title="MATERIALS"
-      x={ox}
-      y={groundY + 45}
+      x={ox + 85}
+      y={groundY + 55}
     />,
   )
 

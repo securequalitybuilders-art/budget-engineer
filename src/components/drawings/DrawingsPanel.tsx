@@ -4,6 +4,8 @@ import type { PlanModel } from '@/domain/plan'
 import { PlanCanvas } from '@/components/cad/PlanCanvas'
 import { ElevationView } from '@/components/drawings/ElevationView'
 import { SectionView } from '@/components/drawings/SectionView'
+import { SitePlanView } from '@/components/drawings/SitePlanView'
+import { FoundationPlanView } from '@/components/drawings/FoundationPlanView'
 import {
   computeFrontElevation,
   computeSideElevation,
@@ -14,10 +16,12 @@ import {
   ROOF_PITCH_HEIGHT,
 } from '@/adapters/planTo3d'
 
-type DrawingTab = 'plan' | 'front' | 'side' | 'section'
+type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'front' | 'side' | 'section'
 
 const TABS: { id: DrawingTab; label: string }[] = [
   { id: 'plan', label: 'Plan' },
+  { id: 'site-plan', label: 'Site Plan' },
+  { id: 'foundation', label: 'Foundation' },
   { id: 'front', label: 'Front Elevation' },
   { id: 'side', label: 'Side Elevation' },
   { id: 'section', label: 'Section A-A' },
@@ -78,6 +82,12 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
         <div className="rounded-lg border border-stone-700/60 bg-stone-950/80 p-1">
           <PlanCanvas projectId={null} design={design} persistedPlan={activePlan} />
         </div>
+      )}
+      {activeTab === 'site-plan' && (
+        <SitePlanView activePlan={activePlan} design={design} floors={floors} />
+      )}
+      {activeTab === 'foundation' && (
+        <FoundationPlanView activePlan={activePlan} floors={floors} />
       )}
       {activeTab === 'front' && (
         <ElevationView
