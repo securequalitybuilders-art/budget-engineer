@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { PlanModel } from '../domain/plan'
 import { moveRoom, resizeRoom } from '../lib/geometry/plan-transforms'
 import { rebuildWallsFromRooms } from '../lib/geometry/plan-topology'
@@ -19,7 +19,9 @@ export function useEditablePlan(baseModel: PlanModel | null, persistedModel: Pla
   const initialModel = useMemo(() => persistedModel ?? baseModel, [persistedModel, baseModel])
   const history = usePlanHistory(initialModel)
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null)
-  const [session, setSession] = useState<PointerSession | null>(null)
+  const sessionRef = useRef<PointerSession | null>(null)
+  const [activeMode, setActiveMode] = useState<EditMode>('idle')
+  const pointerAccum = useRef({ dx: 0, dy: 0 })
 
   useEffect(() => {
     history.resetTo(initialModel)
@@ -28,23 +30,31 @@ export function useEditablePlan(baseModel: PlanModel | null, persistedModel: Pla
   const beginMove = (roomId: string, x: number, y: number) => {
     if (!history.present) return
     setSelectedRoomId(roomId)
-    setSession({ roomId, startX: x, startY: y, originPlan: history.present, mode: 'move' })
+    pointerAccum.current = { dx: 0, dy: 0 }
+    sessionRef.current = { roomId, startX: x, startY: y, originPlan: history.present, mode: 'move' }
+    setActiveMode('move')
   }
 
   const beginResize = (roomId: string, x: number, y: number) => {
     if (!history.present) return
     setSelectedRoomId(roomId)
-    setSession({ roomId, startX: x, startY: y, originPlan: history.present, mode: 'resize' })
+    pointerAccum.current = { dx: 0, dy: 0 }
+    sessionRef.current = { roomId, startX: x, startY: y, originPlan: history.present, mode: 'resize' }
+    setActiveMode('resize')
   }
 
   const updatePointer = (worldDx: number, worldDy: number) => {
-    if (!session) return
-    const drafted = session.mode === 'move'
-      ? moveRoom(session.originPlan, session.roomId, worldDx, worldDy)
-      : resizeRoom(session.originPlan, session.roomId, worldDx, worldDy)
+    const s = sessionRef.current
+    if (!s) return
+    pointerAccum.current.dx += worldDx
+    pointerAccum.current.dy += worldDy
+    const { dx, dy } = pointerAccum.current
+    const drafted = s.mode === 'move'
+      ? moveRoom(s.originPlan, s.roomId, dx, dy)
+      : resizeRoom(s.originPlan, s.roomId, dx, dy)
 
-    const nextRooms = drafted.rooms.map((room) => room.id === session.roomId ? constrainRoom(room, drafted) : room)
-    const activeRoom = nextRooms.find((room) => room.id === session.roomId)
+    const nextRooms = drafted.rooms.map((room) => room.id === s.roomId ? constrainRoom(room, drafted) : room)
+    const activeRoom = nextRooms.find((room) => room.id === s.roomId)
     if (!activeRoom) return
     if (hasCollision(activeRoom, nextRooms)) return
 
@@ -52,8 +62,10 @@ export function useEditablePlan(baseModel: PlanModel | null, persistedModel: Pla
   }
 
   const endPointer = () => {
-    if (history.present && session && onCommit) onCommit(history.present)
-    setSession(null)
+    const s = sessionRef.current
+    if (history.present && s && onCommit) onCommit(history.present)
+    sessionRef.current = null
+    setActiveMode('idle')
   }
 
   return {
@@ -64,7 +76,8 @@ export function useEditablePlan(baseModel: PlanModel | null, persistedModel: Pla
     beginResize,
     updatePointer,
     endPointer,
-    activeMode: session?.mode ?? 'idle',
+    activeMode,
+    timeline: { past: history.past, future: history.future },
     undo: history.undo,
     redo: history.redo,
     canUndo: history.canUndo,

@@ -37,5 +37,5 @@ export function usePlanHistory(initial: PlanModel | null) {
     setPresent(next)
   }
 
-  return useMemo(() => ({ present, set, undo, redo, canUndo, canRedo, resetTo }), [present, canUndo, canRedo])
+  return useMemo(() => ({ past, present, future, set, undo, redo, canUndo, canRedo, resetTo }), [past, present, future, canUndo, canRedo])
 }

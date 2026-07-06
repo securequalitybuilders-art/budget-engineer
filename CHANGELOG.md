@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+### Sprint 67 — Reliable 2D room editing (cumulative-delta drag fix, pointer-capture pan/edit disambiguation, selection outline + 8 resize handles, undo/redo timeline); edits flow to all drawings + 3D and persist to IndexedDB.
+
 ### Sprint 65 — A1 sheet Floor Plan cell now renders white-paper CAD; fixed elevation opening projection (doors to ground, windows at sill, correct spacing, front/side filtering)
 
 ### Sprint 66 (hotfix) — 3D WebGL failures no longer crash the page — added error boundary + WebGL context-loss handling with a friendly "3D unavailable" fallback and Retry

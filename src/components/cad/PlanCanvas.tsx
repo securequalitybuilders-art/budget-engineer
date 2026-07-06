@@ -26,10 +26,13 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
   const {
     model,
     selectedRoomId,
+    setSelectedRoomId,
     beginMove,
     beginResize,
     updatePointer,
     endPointer,
+    activeMode,
+    timeline,
     undo,
     redo,
     canUndo,
@@ -86,7 +89,10 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
           className="block h-auto w-full cursor-grab active:cursor-grabbing"
           role="img"
           aria-label={`2D floor plan for ${design.name}`}
-          onPointerDown={(event) => onPointerDown(event.clientX, event.clientY)}
+          onPointerDown={(event) => {
+            onPointerDown(event.clientX, event.clientY)
+            setSelectedRoomId(null)
+          }}
           onPointerMove={(event) => {
             onPointerMove(event.clientX, event.clientY)
             const movementX = 'movementX' in event ? event.movementX : 0
@@ -139,9 +145,59 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
           </g>
         </svg>
       </div>
+
+      <TimelinePanel timeline={timeline} onUndo={undo} onRedo={redo} activeMode={activeMode} />
     </div>
   )
 }
+
+function TimelinePanel({ timeline, onUndo, onRedo, activeMode }: {
+  timeline: { past: PlanModel[]; future: PlanModel[] }
+  onUndo: () => void
+  onRedo: () => void
+  activeMode: string
+}) {
+  const total = timeline.past.length + 1 + timeline.future.length
+  if (total === 1) return null
+
+  return (
+    <div className="mt-3 flex items-center gap-2 overflow-x-auto">
+      <span className="shrink-0 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Timeline</span>
+      <div className="flex items-center gap-1">
+        {timeline.past.map((plan, i) => (
+          <div
+            key={i}
+            className="shrink-0 cursor-pointer rounded border border-slate-700/50 bg-slate-800/60 px-2 py-1 text-[10px] text-slate-400 transition-colors hover:border-slate-500 hover:text-slate-200"
+            title={`Snapshot ${i + 1} — ${plan.rooms.length} rooms`}
+            onClick={onUndo}
+          >
+            {plan.rooms.length} rooms
+          </div>
+        ))}
+        <div className="shrink-0 rounded border border-cyan-500/50 bg-cyan-500/10 px-2 py-1 text-[10px] font-medium text-cyan-300">
+          Now
+        </div>
+        {timeline.future.map((plan, i) => (
+          <div
+            key={i}
+            className="shrink-0 cursor-pointer rounded border border-slate-700/50 bg-slate-800/60 px-2 py-1 text-[10px] text-slate-400 transition-colors hover:border-slate-500 hover:text-slate-200"
+            title={`Future ${i + 1} — ${plan.rooms.length} rooms`}
+            onClick={onRedo}
+          >
+            {plan.rooms.length} rooms
+          </div>
+        ))}
+      </div>
+      {activeMode !== 'idle' && (
+        <span className="shrink-0 text-[10px] text-amber-400 italic">
+          {activeMode === 'move' ? 'moving…' : 'resizing…'}
+        </span>
+      )}
+    </div>
+  )
+}
+
+const HANDLE = 0.2
 
 function EditableRoom({
   room,
@@ -154,8 +210,27 @@ function EditableRoom({
   onMoveStart: (roomId: string, x: number, y: number) => void
   onResizeStart: (roomId: string, x: number, y: number) => void
 }) {
+  const cap = (event: React.PointerEvent, cb: () => void) => {
+    event.stopPropagation()
+    ;(event.currentTarget as Element).setPointerCapture(event.pointerId)
+    cb()
+  }
+
   return (
     <g>
+      {selected && (
+        <rect
+          x={room.x - 0.08}
+          y={room.y - 0.08}
+          width={room.width + 0.16}
+          height={room.height + 0.16}
+          fill="none"
+          stroke="#67e8f9"
+          strokeWidth={0.06}
+          strokeDasharray="0.16 0.12"
+          pointerEvents="none"
+        />
+      )}
       <rect
         x={room.x}
         y={room.y}
@@ -165,23 +240,28 @@ function EditableRoom({
         fillOpacity={selected ? 0.28 : 0.18}
         stroke={selected ? '#67e8f9' : 'rgba(255,255,255,0.16)'}
         strokeWidth={selected ? 0.08 : 0.04}
-        onPointerDown={(event) => {
-          event.stopPropagation()
-          onMoveStart(room.id, event.clientX, event.clientY)
-        }}
+        onPointerDown={(event) => cap(event, () => onMoveStart(room.id, event.clientX, event.clientY))}
       />
-      <rect
-        x={room.x + room.width - 0.28}
-        y={room.y + room.height - 0.28}
-        width={0.28}
-        height={0.28}
-        rx={0.04}
-        fill="#67e8f9"
-        onPointerDown={(event) => {
-          event.stopPropagation()
-          onResizeStart(room.id, event.clientX, event.clientY)
-        }}
-      />
+      {selected && (
+        <>
+          <rect x={room.x - HANDLE / 2} y={room.y - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="nwse-resize"
+            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+          <rect x={room.x + room.width / 2 - HANDLE / 2} y={room.y - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="ns-resize"
+            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+          <rect x={room.x + room.width - HANDLE / 2} y={room.y - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="nesw-resize"
+            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+          <rect x={room.x - HANDLE / 2} y={room.y + room.height / 2 - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="ew-resize"
+            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+          <rect x={room.x + room.width - HANDLE / 2} y={room.y + room.height / 2 - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="ew-resize"
+            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+          <rect x={room.x - HANDLE / 2} y={room.y + room.height - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="nesw-resize"
+            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+          <rect x={room.x + room.width / 2 - HANDLE / 2} y={room.y + room.height - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="ns-resize"
+            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+          <rect x={room.x + room.width - HANDLE / 2} y={room.y + room.height - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="nwse-resize"
+            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+        </>
+      )}
     </g>
   )
 }
