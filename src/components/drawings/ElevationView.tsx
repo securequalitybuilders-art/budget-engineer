@@ -2,6 +2,7 @@ import { useMemo, type ReactNode } from 'react'
 import type { ElevationDrawing } from '@/adapters/planToElevations'
 import type { PlanModel } from '@/domain/plan'
 import { CAD_HEAVY, CAD_MEDIUM, CAD_THIN, INK, PAPER, metresToMm } from '@/components/drawings/cadConstants'
+import { MATERIAL } from '@/components/drawings/drawingColors'
 import {
   HatchDefs, SheetBorder, TitleBlock, DimensionLineH, DimensionLineV,
   GridBubble, LevelMarker, DrawingTitle,
@@ -142,6 +143,8 @@ function renderCadSheet(
     const irw = (rect.w / drawWorldW) * s(bw)
     const irh = (rect.h / drawWorldH) * s(totalH)
 
+    // Window rects get a subtle cyan glass fill so they read as openings
+    const isWindow = rect.fill === undefined || rect.fill === MATERIAL.glass.fill
     elements.push(
       <rect
         key={`op-${irx}-${iry}`}
@@ -149,7 +152,7 @@ function renderCadSheet(
         y={iry}
         width={Math.max(irw, 1)}
         height={Math.max(irh, 1)}
-        fill={PAPER}
+        fill={isWindow ? MATERIAL.glass.fill : PAPER}
         stroke={INK}
         strokeWidth={CAD_THIN}
       />,

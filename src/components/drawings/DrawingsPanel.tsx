@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import type { DesignOption } from '@/domain/boq'
 import type { PlanModel } from '@/domain/plan'
 import { PlanCanvas } from '@/components/cad/PlanCanvas'
 import { ElevationView } from '@/components/drawings/ElevationView'
@@ -24,12 +25,13 @@ const TABS: { id: DrawingTab; label: string }[] = [
 
 interface DrawingsPanelProps {
   activePlan: PlanModel | null
+  design: DesignOption | null
   floors: number
   storeyHeight?: number
   pitchHeight?: number
 }
 
-export function DrawingsPanel({ activePlan, floors, storeyHeight = DEFAULT_STOREY_HEIGHT, pitchHeight = ROOF_PITCH_HEIGHT }: DrawingsPanelProps) {
+export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAULT_STOREY_HEIGHT, pitchHeight = ROOF_PITCH_HEIGHT }: DrawingsPanelProps) {
   const [activeTab, setActiveTab] = useState<DrawingTab>('front')
 
   const frontDrawing = useMemo(() => {
@@ -74,7 +76,7 @@ export function DrawingsPanel({ activePlan, floors, storeyHeight = DEFAULT_STORE
 
       {activeTab === 'plan' && (
         <div className="rounded-lg border border-stone-700/60 bg-stone-950/80 p-1">
-          <PlanCanvas projectId={null} design={null} persistedPlan={activePlan} />
+          <PlanCanvas projectId={null} design={design} persistedPlan={activePlan} />
         </div>
       )}
       {activeTab === 'front' && (

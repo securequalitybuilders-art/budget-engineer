@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import type { PlanModel } from '@/domain/plan'
 import { metresToMm } from '@/components/drawings/cadConstants'
+import { MATERIAL_LEGEND, DISCIPLINE_LEGEND } from '@/components/drawings/drawingColors'
+import { MaterialHatchDefs, LegendBox } from '@/components/drawings/drawingLegend'
+import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
 import { computeFrontElevation, computeSideElevation, computeSection } from '@/adapters/planToElevations'
 
 function makePlan(overrides?: Partial<PlanModel>): PlanModel {
@@ -172,5 +175,50 @@ describe('Fallback safety', () => {
     expect(computeFrontElevation(plan, 1)).toBeNull()
     expect(computeSideElevation(plan, 1)).toBeNull()
     expect(computeSection(plan, 1)).toBeNull()
+  })
+})
+
+describe('Drawing colour system', () => {
+  it('MATERIAL_LEGEND has concrete, brick, earth', () => {
+    const keys = MATERIAL_LEGEND.map(e => e.key)
+    expect(keys).toContain('concrete')
+    expect(keys).toContain('brick')
+    expect(keys).toContain('earth')
+  })
+
+  it('each MATERIAL_LEGEND entry has a hex color string', () => {
+    for (const e of MATERIAL_LEGEND) {
+      expect(e.color).toMatch(/^#[0-9a-fA-F]{6}$/)
+    }
+  })
+
+  it('DISCIPLINE_LEGEND has structural, electrical, plumbing, hvac', () => {
+    const keys = DISCIPLINE_LEGEND.map(e => e.key)
+    expect(keys).toContain('structural')
+    expect(keys).toContain('electrical')
+    expect(keys).toContain('plumbing')
+    expect(keys).toContain('hvac')
+  })
+
+  it('DISCIPLINE_LEGEND entries have hex color strings', () => {
+    for (const e of DISCIPLINE_LEGEND) {
+      expect(e.color).toMatch(/^#[0-9a-fA-F]{6}$/)
+    }
+  })
+})
+
+describe('MaterialHatchDefs and LegendBox are valid components', () => {
+  it('MaterialHatchDefs is a function', () => {
+    expect(typeof MaterialHatchDefs).toBe('function')
+  })
+
+  it('LegendBox is a function', () => {
+    expect(typeof LegendBox).toBe('function')
+  })
+})
+
+describe('DrawingsPanel is a valid component', () => {
+  it('DrawingsPanel is a function', () => {
+    expect(typeof DrawingsPanel).toBe('function')
   })
 })

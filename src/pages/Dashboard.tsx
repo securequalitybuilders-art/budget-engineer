@@ -580,6 +580,7 @@ export function Dashboard() {
                     {activeCanvasView === 'drawings' && activePlan && (
                       <DrawingsPanel
                         activePlan={activePlan}
+                        design={selectedDesign}
                         floors={selectedDesign?.floors ?? 1}
                       />
                     )}

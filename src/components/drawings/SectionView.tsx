@@ -7,6 +7,8 @@ import {
   HatchDefs, SheetBorder, TitleBlock, DimensionLineH, DimensionLineV,
   GridBubble, LevelMarker, DrawingTitle,
 } from '@/components/drawings/cadPrimitives'
+import { MaterialHatchDefs, LegendBox } from '@/components/drawings/drawingLegend'
+import { MATERIAL_LEGEND } from '@/components/drawings/drawingColors'
 
 interface SectionViewProps {
   drawing: ElevationDrawing | null
@@ -94,18 +96,19 @@ function renderSectionSheet(
   // White background
   elements.push(<rect key="bg" x={0} y={0} width={sheetW} height={sheetH} fill={PAPER} />)
   elements.push(<HatchDefs key="defs" />)
+  elements.push(<MaterialHatchDefs key="mat-defs" />)
 
   // ── Earth / ground datum ──
-  // Ground fill with earth hatch
+  // Ground fill with earth pattern (brown + hatch)
   elements.push(
-    <rect key="earth-fill" x={0} y={groundY} width={sheetW} height={MARGIN_BOTTOM} fill="url(#earth)" stroke="none" />,
+    <rect key="earth-fill" x={0} y={groundY} width={sheetW} height={MARGIN_BOTTOM} fill="url(#mat-earth)" stroke="none" />,
   )
   // Ground line (extra heavy)
   elements.push(
     <line key="ground-line" x1={0} y1={groundY} x2={sheetW} y2={groundY} stroke={INK} strokeWidth={CAD_HEAVY} />,
   )
 
-  // ── Floor slabs (heavy horizontal lines across full width) ──
+  // ── Floor slabs (concrete fill with heavy outlines) ──
   for (let si = 0; si <= floors; si++) {
     const slabY = groundY - si * s(storeyHeight)
     elements.push(
@@ -115,13 +118,14 @@ function renderSectionSheet(
         y={slabY - 2}
         width={s(bw)}
         height={4}
-        fill={INK}
-        stroke="none"
+        fill="url(#mat-concrete)"
+        stroke={INK}
+        strokeWidth={CAD_MEDIUM}
       />,
     )
   }
 
-  // ── Cut walls (poché hatch) ──
+  // ── Cut walls (coloured material poché) ──
   const cutY = plan.height / 2
   const cutWalls = plan.walls.filter(w => {
     const minWy = Math.min(w.start.y, w.end.y)
@@ -139,6 +143,9 @@ function renderSectionSheet(
     const wx = ox + s(cx) - s(wallThk) / 2
     const ww = Math.max(s(wallThk), 3)
 
+    // External walls = brick, internal = blockwork
+    const matFill = wall.type === 'external' ? 'url(#mat-brick)' : 'url(#mat-blockwork)'
+
     for (let si = 0; si < floors; si++) {
       const topY = groundY - (si + 1) * s(storeyHeight)
       const botY = groundY - si * s(storeyHeight)
@@ -149,7 +156,7 @@ function renderSectionSheet(
           y={topY}
           width={ww}
           height={botY - topY}
-          fill="url(#poche)"
+          fill={matFill}
           stroke={INK}
           strokeWidth={CAD_MEDIUM}
         />,
@@ -245,6 +252,17 @@ function renderSectionSheet(
       text="SECTION A-A"
       x={ox + s(bw) / 2}
       y={groundY + 30}
+    />,
+  )
+
+  // ── Material legend ──
+  elements.push(
+    <LegendBox
+      key="legend"
+      items={MATERIAL_LEGEND.slice(0, 4)}
+      title="MATERIALS"
+      x={ox}
+      y={groundY + 45}
     />,
   )
 

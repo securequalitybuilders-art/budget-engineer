@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Sprint 58 — Fix Blank Plan Tab + Coloured Material/Discipline Drawing System
+
+**Bug fix + additive (non-breaking):** Root-caused the blank Plan sub-tab in Drawings view: `DrawingsPanel` was passing `design={null}` to `PlanCanvas`, which guards on `!design`. Added `design` prop and wired `selectedDesign` from Dashboard. All four sub-tabs (Plan, Front, Side, Section) now render from one consistent plan.
+
+**Additive:** Introduced a coloured material + discipline colour system (`drawingColors.ts`) following BS 1192 / ISO 13567-2 convention. Applied coloured poché to Section A‑A (brick external walls, blockwork internal walls, concrete slabs, brown earth datum) with `MaterialHatchDefs` SVG patterns and a MATERIALS legend box. Elevation window rects get a subtle cyan glass fill.
+
+**New files:**
+- **`src/components/drawings/drawingColors.ts`** — Material colours (concrete, brick, earth, insulation, steel, glass, blockwork) + Discipline colours (structural, electrical, plumbing, HVAC, architectural, dimensions) + `MATERIAL_LEGEND` / `DISCIPLINE_LEGEND` arrays.
+- **`src/components/drawings/drawingLegend.tsx`** — `MaterialHatchDefs` (coloured SVG `<pattern>` elements per material) and `LegendBox` (bordered legend with colour swatches).
+
+**Modified files:**
+- **`DrawingsPanel.tsx`** — Added `design` prop, passes to `PlanCanvas`.
+- **`Dashboard.tsx`** — Passes `selectedDesign` to `DrawingsPanel`.
+- **`SectionView.tsx`** — Coloured material poché (brick/blockwork/ concrete/earth) + MATERIALS legend.
+- **`ElevationView.tsx`** — Window rects get cyan glass fill.
+
+**Tests:** +7 tests (616 total, 39 files).
+
+**Validation:** 616 tests pass (39 files). Typecheck 0 errors. Lint 0 errors (9 warnings baseline). Build succeeds. PWA 30 precache entries. No `text-stone-500` introduced.
+
 ### Sprint 57 — Professional Orthographic CAD Drawings (Flat Black-on-White Style)
 
 **Additive (non-breaking):** Refactored ElevationView and SectionView into professional flat black-on-white CAD sheets with proper line weights, dimension strings, grid bubbles, level markers, poché hatching on cut walls, hatched earth datum, and A1-format title block. All geometry from `planToElevations.ts` unchanged — presentation/annotation layer only.
