@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import type { ReactNode } from 'react'
 import type { PlanModel } from '@/domain/plan'
 import { metresToMm } from '@/components/drawings/cadConstants'
 import { MATERIAL_LEGEND, DISCIPLINE_LEGEND } from '@/components/drawings/drawingColors'
@@ -9,6 +10,7 @@ import { GroundHatchDefs, SoilLayers, GroundLine } from '@/components/drawings/g
 import { SitePlanView } from '@/components/drawings/SitePlanView'
 import { FoundationPlanView } from '@/components/drawings/FoundationPlanView'
 import { computeFrontElevation, computeSideElevation, computeSection } from '@/adapters/planToElevations'
+import { renderSectionSheet } from '@/components/drawings/SectionView'
 
 function makePlan(overrides?: Partial<PlanModel>): PlanModel {
   return {
@@ -278,3 +280,78 @@ describe('FoundationPlanView', () => {
     expect(typeof FoundationPlanView).toBe('function')
   })
 })
+
+describe('renderSectionSheet', () => {
+  it('renders slab bands >= floors+1', () => {
+    const drawing = computeSection(makePlan(), 3, 3, 1.5)!
+    const plan = makePlan()
+    const sheet = renderSectionSheet(drawing, plan, 3, 3, 1.5)!
+    const slabCount = sheet.elements ? countByPrefix(sheet.elements, 'slab-') : 0
+    expect(slabCount).toBeGreaterThanOrEqual(4)
+  })
+
+  it('renders stairs when floors >= 2', () => {
+    const drawing = computeSection(makePlan(), 2, 3, 1.5)!
+    const sheet = renderSectionSheet(drawing, makePlan(), 2, 3, 1.5)!
+    const stairsCount = sheet.elements ? countByPrefix(sheet.elements, 'stairs-') : 0
+    expect(stairsCount).toBeGreaterThanOrEqual(1)
+  })
+
+  it('renders room labels behind cut', () => {
+    const drawing = computeSection(makePlan(), 2, 3, 1.5)!
+    const sheet = renderSectionSheet(drawing, makePlan(), 2, 3, 1.5)!
+    const labelCount = sheet.elements ? countByPrefix(sheet.elements, 'room-label-') : 0
+    expect(labelCount).toBeGreaterThanOrEqual(1)
+  })
+
+  it('renders footing poché', () => {
+    const drawing = computeSection(makePlan(), 1, 3, 1.5)!
+    const sheet = renderSectionSheet(drawing, makePlan(), 1, 3, 1.5)!
+    const footingCount = sheet.elements ? countByPrefix(sheet.elements, 'footing-') : 0
+    expect(footingCount).toBeGreaterThanOrEqual(1)
+  })
+
+  it('renders soil layers', () => {
+    const drawing = computeSection(makePlan(), 1, 3, 1.5)!
+    const sheet = renderSectionSheet(drawing, makePlan(), 1, 3, 1.5)!
+    const soilCount = sheet.elements ? countByPrefix(sheet.elements, 'soil-layers') : 0
+    expect(soilCount).toBe(1)
+  })
+
+  it('renders entourage trees and person', () => {
+    const drawing = computeSection(makePlan(), 2, 3, 1.5)!
+    const plan = makePlan()
+    const sheet = renderSectionSheet(drawing, plan, 2, 3, 1.5)!
+    const treeCount = sheet.elements ? countByPrefix(sheet.elements, 'tree-') : 0
+    const personCount = sheet.elements ? countByPrefix(sheet.elements, 'person') : 0
+    expect(treeCount).toBeGreaterThanOrEqual(1)
+    expect(personCount).toBe(1)
+  })
+
+  it('returns null for null drawing', () => {
+    const sheet = renderSectionSheet(null, makePlan(), 2, 3, 1.5)
+    expect(sheet).toBeNull()
+  })
+
+  it('returns null for null plan', () => {
+    const drawing = computeSection(makePlan(), 2)!
+    const sheet = renderSectionSheet(drawing, null, 2, 3, 1.5)
+    expect(sheet).toBeNull()
+  })
+
+  it('returns null for zero floors', () => {
+    const drawing = computeSection(makePlan(), 1)!
+    const sheet = renderSectionSheet(drawing, makePlan(), 0, 3, 1.5)
+    expect(sheet).toBeNull()
+  })
+})
+
+interface ReactEl { key?: string | null }
+function countByPrefix(elements: ReactNode, prefix: string): number {
+  const arr = Array.isArray(elements) ? elements : [elements]
+  return arr.filter((el): el is ReactEl => {
+    if (el == null || typeof el !== 'object') return false
+    const e = el as ReactEl
+    return typeof e.key === 'string' && e.key.startsWith(prefix)
+  }).length
+}

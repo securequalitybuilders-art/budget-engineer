@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Sprint 60 — Rich Section A‑A (Solid Black Cut Poché, Stairs, Room Labels, Footings)
+
+**Refactor (additive):** Rewrote Section A‑A from a bare elevation into a professional architectural building section. Solid black `#1a1a1a` cut poché for walls/slabs/roof replacing previous thin pale hatch. Floor build‑ups (screed + slab + ceiling line). Sawtooth stairs between storeys with handrail. Room labels behind the cut plane (faint rects + name + area per storey). Foundation footings below ground. Roof rafter/truss lines. Ground datum + 3‑layer soil. Scaled entourage (2 trees + 1 person). Full annotations: dimensions, grid bubbles, level markers, title block, sheet border, material legend, numbered legend.
+
+**Modified files:**
+- **`SectionView.tsx`** — Full rewrite: solid black poché, floor build‑ups, stairs, room labels, footings, roof trusses, scaled entourage.
+
+**Tests:** +9 tests (636 total, 39 files) for SectionView: slab bands, stairs, room labels, footings, soil layers, entourage, fallback safety.
+
+**Validation:** 636 tests pass (39 files). Typecheck 0 errors. Build succeeds. PWA intact. No `text-stone-500` introduced.
+
 ### Sprint 59 — Site Plan + Foundation Plan Drawing Types and Reusable Entourage/Ground Richness Library
 
 **Additive (non-breaking):** Added two new professional drawing types (Site Plan, Foundation Plan) and a reusable pure-SVG entourage/ground library. Section A‑A enriched with layered soil strata, trees, person silhouette, and numbered legend. All new rendering deterministic, 100% offline — no AI images or external APIs.
