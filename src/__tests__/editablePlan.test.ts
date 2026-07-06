@@ -4,6 +4,7 @@ import { moveRoom, resizeRoom } from '../lib/geometry/plan-transforms'
 import { constrainRoom, hasCollision } from '../lib/geometry/plan-constraints'
 import { rebuildWallsFromRooms } from '../lib/geometry/plan-topology'
 import { computeSection } from '../adapters/planToElevations'
+import { snapToGrid } from '../lib/geometry/snap'
 import type { Opening, PlanModel, RoomRect } from '../domain/plan'
 import { createSamplePlanModel, createAlternatePlanModel } from './fixtures/cadFixtures'
 
@@ -897,5 +898,157 @@ describe('persistence round-trip (plan edit → save → load)', () => {
     const { savePlanModel } = await import('../services/cadPersistenceService')
     // Should not throw
     await expect(savePlanModel('', '', null as unknown as PlanModel)).resolves.not.toThrow()
+  })
+})
+
+// ── snapToGrid ──
+describe('snapToGrid', () => {
+  it('snaps to the nearest grid step', () => {
+    expect(snapToGrid(0.63, 0.1)).toBe(0.6)
+    expect(snapToGrid(0.67, 0.1)).toBe(0.7)
+    expect(snapToGrid(1.24, 0.5)).toBe(1)
+    expect(snapToGrid(1.26, 0.5)).toBe(1.5)
+  })
+
+  it('returns the value as-is when step <= 0', () => {
+    expect(snapToGrid(1.234, 0)).toBe(1.234)
+    expect(snapToGrid(1.234, -0.1)).toBe(1.234)
+  })
+
+  it('rounds to 4 decimal places', () => {
+    expect(snapToGrid(1 / 3, 0.1)).toBe(0.3)
+  })
+
+  it('snaps to whole numbers when step = 1', () => {
+    expect(snapToGrid(0.5, 1)).toBe(1)
+    expect(snapToGrid(0.49, 1)).toBe(0)
+    expect(snapToGrid(1.99, 1)).toBe(2)
+  })
+})
+
+// ── nudgeRoom (simulated) ──
+describe('nudgeRoom (simulated)', () => {
+  function simulateNudgeRoom(plan: PlanModel, roomId: string, dx: number, dy: number): PlanModel | null {
+    const drafted = moveRoom(plan, roomId, dx, dy)
+    const nextRooms = drafted.rooms.map((r) => r.id === roomId ? constrainRoom(r, drafted) : r)
+    const activeRoom = nextRooms.find((r) => r.id === roomId)
+    if (!activeRoom) return null
+    if (hasCollision(activeRoom, nextRooms)) return null
+    return rebuildWallsFromRooms({ ...drafted, rooms: nextRooms })
+  }
+
+  it('nudges a room by the given delta (downward, away from adjacent room)', () => {
+    const plan = makeBasePlan()
+    const nudged = simulateNudgeRoom(plan, 'r1', 0, 0.5)
+    expect(nudged).not.toBeNull()
+    const r = nudged!.rooms.find((r) => r.id === 'r1')
+    expect(r).toBeDefined()
+    expect(r!.x).toBe(0)
+    expect(r!.y).toBeCloseTo(0.6) // snapped to 0.2 grid by constrainRoom
+  })
+
+  it('other rooms are not affected by nudge', () => {
+    const plan = makeBasePlan()
+    const nudged = simulateNudgeRoom(plan, 'r1', 0, 0.5)
+    const r2 = nudged!.rooms.find((r) => r.id === 'r2')
+    expect(r2).toBeDefined()
+    expect(r2!.x).toBe(6)
+    expect(r2!.y).toBe(0)
+  })
+
+  it('returns null when nudge causes collision', () => {
+    const plan = makeBasePlan()
+    const nudged = simulateNudgeRoom(plan, 'r1', 7, 0)
+    expect(nudged).toBeNull()
+  })
+
+  it('nudge is undoable through history pattern', () => {
+    const plan = makeBasePlan()
+    const hist = createHistorySim(plan)
+    const afterNudge = simulateNudgeRoom(plan, 'r1', 0, 0.5)
+    expect(afterNudge).not.toBeNull()
+    hist.set(afterNudge!)
+    expect(hist.present!.rooms.find((r) => r.id === 'r1')!.y).toBeCloseTo(0.6)
+    hist.undo()
+    expect(hist.present!.rooms.find((r) => r.id === 'r1')!.y).toBe(0)
+    hist.redo()
+    expect(hist.present!.rooms.find((r) => r.id === 'r1')!.y).toBeCloseTo(0.6)
+  })
+
+  it('nudge commits via onCommit', () => {
+    const plan = makeBasePlan()
+    let committed: PlanModel | null = null
+    const onCommit = (m: PlanModel) => { committed = m }
+    const nudged = simulateNudgeRoom(plan, 'r1', 0, 0.5)
+    if (nudged) onCommit(nudged)
+    expect(committed).not.toBeNull()
+    expect(committed!.rooms.find((r) => r.id === 'r1')!.y).toBeCloseTo(0.6)
+  })
+})
+
+// ── nudgeOpening (simulated) ──
+describe('nudgeOpening (simulated)', () => {
+  function simulateNudgeOpening(plan: PlanModel, openingId: string, deltaOffset: number): PlanModel {
+    return {
+      ...plan,
+      openings: plan.openings.map((o) => {
+        if (o.id !== openingId) return o
+        const wall = plan.walls.find((w) => w.id === o.wallId)!
+        const wallLen = Math.sqrt((wall.end.x - wall.start.x) ** 2 + (wall.end.y - wall.start.y) ** 2)
+        const half = o.width / (2 * wallLen)
+        const newOffset = Math.max(half, Math.min(1 - half, o.offset + deltaOffset))
+        return { ...o, offset: Number(newOffset.toFixed(4)) }
+      }),
+    }
+  }
+
+  it('nudges opening offset by delta and clamps', () => {
+    const plan = rebuildWallsFromRooms(makeBasePlan())
+    const topWall = plan.walls.find((w) => w.start.y === 0 && w.end.y === 0 && w.type === 'external')!
+    const withOpening = simulateAddOpening(plan, 'door', topWall.id)
+    const origOffset = withOpening.openings.find((o) => o.id === 'test-opening')!.offset
+
+    const nudgedRight = simulateNudgeOpening(withOpening, 'test-opening', 0.05)
+    const nR = nudgedRight.openings.find((o) => o.id === 'test-opening')!
+    expect(nR.offset).toBeCloseTo(origOffset + 0.05, 4)
+
+    // Large nudge left clamps at wall edge
+    const nudgedLeft = simulateNudgeOpening(withOpening, 'test-opening', -1)
+    const nL = nudgedLeft.openings.find((o) => o.id === 'test-opening')!
+    const wallLen = Math.sqrt((topWall.end.x - topWall.start.x) ** 2 + (topWall.end.y - topWall.start.y) ** 2)
+    const half = 0.9 / (2 * wallLen)
+    expect(nL.offset).toBe(half)
+  })
+
+  it('nudgeOpening is undoable through history pattern', () => {
+    const plan = rebuildWallsFromRooms(makeBasePlan())
+    const topWall = plan.walls.find((w) => w.start.y === 0 && w.end.y === 0 && w.type === 'external')!
+    const withOpening = simulateAddOpening(plan, 'door', topWall.id)
+    const hist = createHistorySim(withOpening)
+    const origOffset = hist.present!.openings.find((o) => o.id === 'test-opening')!.offset
+
+    const nudged = simulateNudgeOpening(hist.present!, 'test-opening', 0.05)
+    hist.set(nudged)
+    expect(hist.present!.openings.find((o) => o.id === 'test-opening')!.offset).toBeCloseTo(origOffset + 0.05, 4)
+
+    hist.undo()
+    expect(hist.present!.openings.find((o) => o.id === 'test-opening')!.offset).toBe(origOffset)
+
+    hist.redo()
+    expect(hist.present!.openings.find((o) => o.id === 'test-opening')!.offset).toBeCloseTo(origOffset + 0.05, 4)
+  })
+
+  it('nudgeOpening commits via onCommit', () => {
+    const plan = rebuildWallsFromRooms(makeBasePlan())
+    const topWall = plan.walls.find((w) => w.start.y === 0 && w.end.y === 0 && w.type === 'external')!
+    const withOpening = simulateAddOpening(plan, 'door', topWall.id)
+    let committed: PlanModel | null = null
+    const onCommit = (m: PlanModel) => { committed = m }
+
+    const nudged = simulateNudgeOpening(withOpening, 'test-opening', 0.05)
+    onCommit(nudged)
+
+    expect(committed).not.toBeNull()
+    expect(committed!.openings.find((o) => o.id === 'test-opening')!.offset).toBeGreaterThan(0.5)
   })
 })

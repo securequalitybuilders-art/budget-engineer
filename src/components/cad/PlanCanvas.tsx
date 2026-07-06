@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import type { DesignOption } from '../../domain/boq'
 import type { Opening, PlanModel, RoomRect, WallSegment } from '../../domain/plan'
 import { generatePlanModel } from '../../engine/plan-generator'
@@ -37,6 +37,10 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
     addOpening,
     beginMoveOpening,
     deleteOpening,
+    nudgeRoom,
+    nudgeOpening,
+    snapStep,
+    setSnapStep,
     activeMode,
     timeline,
     undo,
@@ -52,19 +56,49 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
   )
 
   const lastPointer = useRef({ x: 0, y: 0 })
-  const [debugInfo, setDebugInfo] = useState({ mode: '', roomId: '', openingId: '', dx: 0, dy: 0 })
+  const modelRef = useRef(model)
+  modelRef.current = model
+  const nudgeRoomRef = useRef(nudgeRoom)
+  nudgeRoomRef.current = nudgeRoom
+  const nudgeOpeningRef = useRef(nudgeOpening)
+  nudgeOpeningRef.current = nudgeOpening
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      if (document.activeElement && document.activeElement !== document.body) return
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (document.activeElement && document.activeElement !== document.body) return
         if (selectedOpeningId) { deleteOpening(selectedOpeningId); return }
         if (selectedRoomId) deleteRoom(selectedRoomId)
+        return
+      }
+      if (e.key.startsWith('Arrow') && activeMode === 'idle') {
+        e.preventDefault()
+        const plan = modelRef.current
+        if (!plan) return
+        const step = e.shiftKey ? snapStep * 10 : snapStep
+        if (selectedOpeningId) {
+          const wall = plan.walls.find((w) => w.id === plan.openings.find((o) => o.id === selectedOpeningId)?.wallId)
+          if (!wall) return
+          const wallLen = Math.sqrt((wall.end.x - wall.start.x) ** 2 + (wall.end.y - wall.start.y) ** 2)
+          if (wallLen < 0.01) return
+          const offsetStep = step / wallLen
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') nudgeOpeningRef.current(selectedOpeningId, -offsetStep)
+          else nudgeOpeningRef.current(selectedOpeningId, offsetStep)
+          return
+        }
+        if (selectedRoomId) {
+          let dx = 0; let dy = 0
+          if (e.key === 'ArrowLeft') dx = -step
+          else if (e.key === 'ArrowRight') dx = step
+          else if (e.key === 'ArrowUp') dy = -step
+          else if (e.key === 'ArrowDown') dy = step
+          nudgeRoomRef.current(selectedRoomId, dx, dy)
+        }
       }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [selectedRoomId, selectedOpeningId, deleteRoom, deleteOpening])
+  }, [selectedRoomId, selectedOpeningId, deleteRoom, deleteOpening, snapStep, activeMode])
 
   if (!design || !model) {
     return (
@@ -84,6 +118,27 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
   const ty = padding + view.panY
   const toWorldDelta = (dx: number, dy: number) => ({ dx: dx / scale, dy: dy / scale })
 
+  let dimensionLabel: { text: string; x: number; y: number } | null = null
+  if (activeMode !== 'idle') {
+    if (activeMode === 'opening-move' && selectedOpeningId) {
+      const opening = model.openings.find((o) => o.id === selectedOpeningId)
+      if (opening) {
+        const wall = model.walls.find((w) => w.id === opening.wallId)
+        if (wall) {
+          const horizontal = wall.start.y === wall.end.y
+          const cx = horizontal ? wall.start.x + (wall.end.x - wall.start.x) * opening.offset : wall.start.x
+          const cy = horizontal ? wall.start.y : wall.start.y + (wall.end.y - wall.start.y) * opening.offset
+          dimensionLabel = { text: `${(opening.offset * 100).toFixed(0)}%`, x: cx, y: cy - 0.5 }
+        }
+      }
+    } else if ((activeMode === 'move' || activeMode === 'resize') && selectedRoomId) {
+      const room = model.rooms.find((r) => r.id === selectedRoomId)
+      if (room) {
+        dimensionLabel = { text: `${room.width.toFixed(2)} × ${room.height.toFixed(2)}`, x: room.x + room.width / 2, y: room.y + room.height / 2 }
+      }
+    }
+  }
+
   function handleSvgPointerDown(event: React.PointerEvent<SVGSVGElement>) {
     const svg = event.currentTarget as Element
     svg.setPointerCapture(event.pointerId)
@@ -95,7 +150,6 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
 
     if (openingId) {
       beginMoveOpening(openingId)
-      setDebugInfo({ mode: 'opening', roomId: '', openingId, dx: 0, dy: 0 })
       return
     }
 
@@ -109,11 +163,9 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
       } else {
         beginMove(roomId, event.clientX, event.clientY)
       }
-      setDebugInfo({ mode: isResize ? 'resize' : 'move', roomId, openingId: '', dx: 0, dy: 0 })
     } else {
       clearSelection()
       onPointerDown(event.clientX, event.clientY)
-      setDebugInfo({ mode: 'pan', roomId: '', openingId: '', dx: 0, dy: 0 })
     }
   }
 
@@ -126,14 +178,12 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
     if (activeMode !== 'idle') {
       const world = toWorldDelta(dx, dy)
       updatePointer(world.dx, world.dy)
-      setDebugInfo((prev) => ({ ...prev, dx: prev.dx + world.dx, dy: prev.dy + world.dy }))
     }
   }
 
   function handleSvgPointerUp() {
     onPointerUp()
     endPointer()
-    setDebugInfo({ mode: '', roomId: '', openingId: '', dx: 0, dy: 0 })
   }
 
   return (
@@ -148,12 +198,36 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
           <div className="min-w-[72px] text-center text-sm text-slate-300">{Math.round(view.zoom * 100)}%</div>
           <button onClick={zoomIn} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">+</button>
           <button onClick={reset} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">Reset</button>
+
+          <span className="text-slate-600">|</span>
+
           <button onClick={() => addRoom()} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700">+ Room</button>
           <button onClick={() => selectedRoomId && deleteRoom(selectedRoomId)} disabled={!selectedRoomId} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700 disabled:text-slate-400">− Room</button>
+
+          <span className="text-slate-600">|</span>
+
           <button onClick={() => addOpening('door')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700">+ Door</button>
           <button onClick={() => addOpening('window')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700">+ Window</button>
+
+          <select
+            value={String(snapStep)}
+            onChange={(e) => setSnapStep(Number(e.target.value))}
+            className="rounded-xl border border-white/10 bg-slate-900 px-2 py-2 text-sm text-white"
+          >
+            <option value="0.05">Snap 0.05m</option>
+            <option value="0.1">Snap 0.1m</option>
+            <option value="0.2">Snap 0.2m</option>
+            <option value="0.5">Snap 0.5m</option>
+            <option value="1">Snap 1m</option>
+          </select>
+
+          <span className="text-slate-600">|</span>
+
           <button onClick={undo} disabled={!canUndo} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white disabled:text-slate-400">Undo</button>
           <button onClick={redo} disabled={!canRedo} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white disabled:text-slate-400">Redo</button>
+
+          <span className="text-slate-600">|</span>
+
           <button onClick={() => downloadTextFile(`${design.name.toLowerCase().replace(/\s+/g, '-')}.json`, exportPlanToMakerJson(model), 'application/json;charset=utf-8')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">Maker JSON</button>
           <button onClick={() => downloadTextFile(`${design.name.toLowerCase().replace(/\s+/g, '-')}.dxf`, exportPlanToDxf(model), 'application/dxf')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">DXF</button>
           <button onClick={() => downloadTextFile(`${design.name.toLowerCase().replace(/\s+/g, '-')}.svg`, exportPlanToSvg(model), 'image/svg+xml;charset=utf-8')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">SVG</button>
@@ -203,6 +277,20 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
             <RoomLabels model={model} />
             <DimensionLayer model={model} />
 
+            {dimensionLabel && (
+              <text
+                x={dimensionLabel.x}
+                y={dimensionLabel.y}
+                fill="#67e8f9"
+                fontSize={0.35}
+                textAnchor="middle"
+                dominantBaseline="central"
+                pointerEvents="none"
+              >
+                {dimensionLabel.text}
+              </text>
+            )}
+
             <text x={0} y={-1.9} fill="#67e8f9" fontSize={0.56}>Footprint: {model.width.toFixed(1)}m × {model.height.toFixed(1)}m</text>
           </g>
 
@@ -213,12 +301,8 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
         </svg>
 
         {activeMode !== 'idle' && (
-          <div className="pointer-events-none absolute bottom-2 right-2 flex items-center gap-3 rounded border border-slate-700/50 bg-slate-900/80 px-3 py-1.5 text-[10px] text-slate-400">
-            <span>{debugInfo.mode}</span>
-            {debugInfo.roomId && <span>room: {debugInfo.roomId.slice(0, 8)}</span>}
-            {debugInfo.openingId && <span>opening: {debugInfo.openingId.slice(0, 8)}</span>}
-            <span>dx: {debugInfo.dx.toFixed(3)}</span>
-            <span>dy: {debugInfo.dy.toFixed(3)}</span>
+          <div className="pointer-events-none absolute bottom-2 right-2 flex items-center gap-3 rounded border border-slate-700/50 bg-slate-900/80 px-3 py-1.5 text-[10px] text-cyan-300">
+            {activeMode === 'opening-move' ? 'dragging opening…' : activeMode === 'move' ? 'moving…' : 'resizing…'}
           </div>
         )}
       </div>

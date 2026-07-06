@@ -3,6 +3,7 @@ import type { Opening, PlanModel, RoomRect } from '../domain/plan'
 import { moveRoom, resizeRoom } from '../lib/geometry/plan-transforms'
 import { rebuildWallsFromRooms } from '../lib/geometry/plan-topology'
 import { constrainRoom, hasCollision } from '../lib/geometry/plan-constraints'
+import { snapToGrid } from '../lib/geometry/snap'
 import { usePlanHistory } from './usePlanHistory'
 
 export type EditMode = 'idle' | 'move' | 'resize' | 'opening-move'
@@ -54,6 +55,7 @@ export function useEditablePlan(baseModel: PlanModel | null, persistedModel: Pla
   const sessionRef = useRef<PointerSession | null>(null)
   const [activeMode, setActiveMode] = useState<EditMode>('idle')
   const pointerAccum = useRef({ dx: 0, dy: 0 })
+  const [snapStep, setSnapStep] = useState(0.1)
 
   useEffect(() => {
     history.resetTo(initialModel)
@@ -95,7 +97,9 @@ export function useEditablePlan(baseModel: PlanModel | null, persistedModel: Pla
       const horizontal = wall.start.y === wall.end.y
       const deltaOffset = horizontal ? pointerAccum.current.dx / s.wallLength : pointerAccum.current.dy / s.wallLength
       const halfWidthRatio = opening.width / (2 * s.wallLength)
-      const newOffset = Math.max(halfWidthRatio, Math.min(1 - halfWidthRatio, opening.offset + deltaOffset))
+      const rawOffset = Math.max(halfWidthRatio, Math.min(1 - halfWidthRatio, opening.offset + deltaOffset))
+      const offsetStep = s.wallLength > 0.01 ? snapStep / s.wallLength : 0.01
+      const newOffset = snapToGrid(rawOffset, Math.max(offsetStep, 0.001))
       const nextOpenings = s.originPlan.openings.map((o) => o.id === s.targetId ? { ...o, offset: Number(newOffset.toFixed(4)) } : o)
       history.set({ ...s.originPlan, openings: nextOpenings })
       return
@@ -106,7 +110,16 @@ export function useEditablePlan(baseModel: PlanModel | null, persistedModel: Pla
       ? moveRoom(s.originPlan, s.targetId, dx, dy)
       : resizeRoom(s.originPlan, s.targetId, dx, dy)
 
-    const nextRooms = drafted.rooms.map((room) => room.id === s.targetId ? constrainRoom(room, drafted) : room)
+    const nextRooms = drafted.rooms.map((room) => {
+      if (room.id !== s.targetId) return room
+      let c = constrainRoom(room, drafted)
+      if (s.mode === 'move') {
+        c = { ...c, x: snapToGrid(c.x, snapStep), y: snapToGrid(c.y, snapStep) }
+      } else {
+        c = { ...c, width: snapToGrid(c.width, snapStep), height: snapToGrid(c.height, snapStep) }
+      }
+      return c
+    })
     const activeRoom = nextRooms.find((room) => room.id === s.targetId)
     if (!activeRoom) return
     if (hasCollision(activeRoom, nextRooms)) return
@@ -222,6 +235,37 @@ export function useEditablePlan(baseModel: PlanModel | null, persistedModel: Pla
     }
   }
 
+  const nudgeRoom = (roomId: string, dx: number, dy: number) => {
+    const plan = history.present
+    if (!plan) return
+    const drafted = moveRoom(plan, roomId, dx, dy)
+    const nextRooms = drafted.rooms.map((r) => r.id === roomId ? constrainRoom(r, drafted) : r)
+    const activeRoom = nextRooms.find((r) => r.id === roomId)
+    if (!activeRoom) return
+    if (hasCollision(activeRoom, nextRooms)) return
+    const rebuilt = rebuildWallsFromRooms({ ...drafted, rooms: nextRooms })
+    history.set(rebuilt)
+    if (onCommit) onCommit(rebuilt)
+  }
+
+  const nudgeOpening = (openingId: string, deltaOffset: number) => {
+    const plan = history.present
+    if (!plan) return
+    const nextOpenings = plan.openings.map((o) => {
+      if (o.id !== openingId) return o
+      const wall = plan.walls.find((w) => w.id === o.wallId)
+      if (!wall) return o
+      const wallLen = wallLength(wall)
+      if (wallLen < 0.01) return o
+      const halfWidthRatio = o.width / (2 * wallLen)
+      const newOffset = Math.max(halfWidthRatio, Math.min(1 - halfWidthRatio, o.offset + deltaOffset))
+      return { ...o, offset: Number(newOffset.toFixed(4)) }
+    })
+    const nextPlan = { ...plan, openings: nextOpenings }
+    history.set(nextPlan)
+    if (onCommit) onCommit(nextPlan)
+  }
+
   return {
     model: history.present,
     selectedRoomId,
@@ -238,6 +282,10 @@ export function useEditablePlan(baseModel: PlanModel | null, persistedModel: Pla
     addOpening,
     beginMoveOpening,
     deleteOpening,
+    nudgeRoom,
+    nudgeOpening,
+    snapStep,
+    setSnapStep,
     activeMode,
     timeline: { past: history.past, future: history.future },
     undo: history.undo,
