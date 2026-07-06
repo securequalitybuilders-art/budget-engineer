@@ -1,6 +1,6 @@
 # Feature Matrix — Budget Engineer OS Canonical
 
-> **Date:** 2026-07-04  
+> **Date:** 2026-07-06  
 > **Base:** WS1 (`workspace-chart 1`)  
 > **Legend:** ✅ Present | ❌ Missing | 🔄 Staged (not wired)
 > **Phase E (WS6 AI + Drawing Management) merged.**  
@@ -157,3 +157,4 @@
 | ✅ Present (Sprint 27 — PlanModel→CadDocument roundtrip) | PlanModel→CadDocument converter + fallback in sync adapter + 22 new tests (13 converter + 9 sync), 2 new files, 1 report |
 | ✅ Present (Sprint 28 — Export source metadata & CAD-edited BOQ sync) | Source metadata in BOQ/CSV/HTML exports, CAD-edited BOQ labels, cadQuantitiesAdapter, 21 new tests (10 cadQty + 8 designToBoq + 3 sync), 3 new files, 1 report |
 | ✅ Present (Sprint 29 — Manual CAD save/restore UI) | CadSyncControls dropdown (save/restore/reset), loadPlanModelMeta service, status message auto-dismiss, toolbar integration, 3 new tests, 2 new files, 1 report |
+| ✅ Present (Sprints 56–63 — Professional Drawings v0.4.0) | 11 drawing types (Elevations, Section, Site, Foundation, Roof, RCP, Electrical, Plumbing, HVAC) + A1 presentation sheet + PDF/PNG export, coloured material/discipline system, MEP placement heuristics, rich Section A‑A, presentation sheet export, 96 new tests across 4 test files, 25 new files, v0.4.0 tag |

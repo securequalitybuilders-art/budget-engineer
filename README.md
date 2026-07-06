@@ -1,12 +1,12 @@
 # Dzenhare Budget Engineer Studio
 
 [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions)
-**Current release:** v0.3.2 — [View on GitHub](https://github.com/securequalitybuilders-art/budget-engineer/releases/tag/v0.3.2)
+**Current release:** v0.4.0 — [View on GitHub](https://github.com/securequalitybuilders-art/budget-engineer/releases/tag/v0.4.0)
 
 > AI-powered computational design → 2D CAD → 3D BIM → engineering checks → quantities → BOQ → export.
 > Offline-first, open-source, Africa-focused.
 >
-> **Local AI brief-to-design flow, 3D BIM viewer with walls/slabs/multi-storey/doors/windows/roof and GLB export, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, geometry-derived BOQ quantities (door/window/partition/finish quantities from actual CAD geometry — not GFA estimates), guided first-time builder journey with 6-step progress and template briefs, governance/audit readiness panel with approval checklist and RBAC roles, local governance approval workflow with submit/approve/request-changes/comments/timeline, snapshot history panel with save/compare/cost and quantity deltas, portfolio dashboard with executive metrics and cross-project overview, portfolio filters (search, active/archived, sort by cost/name), archive/restore actions on project cards, mobile review support (review, estimates, exports on phone — CAD editing best on tablet/desktop), per-building-type room layout strategies (single-storey/duplex/clinic/shop) with circulation corridors and wet-core grouping, CAD editing persisted to IndexDB with auto-save and downstream sync metadata, PlanModel→CadDocument roundtrip for downstream analysis, BOQ/export source traceability (geometry source, CAD-edited labels, warnings in CSV/HTML), manual CAD save/restore controls with status messages, feedback and issue reporting workflow, 306 automated tests across the full pipeline.** CI validates typecheck, lint, tests, and production build on every push.
+> **Local AI brief-to-design flow, 3D BIM viewer with walls/slabs/multi-storey/doors/windows/roof and GLB export, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, geometry-derived BOQ quantities (door/window/partition/finish quantities from actual CAD geometry — not GFA estimates), guided first-time builder journey with 6-step progress and template briefs, governance/audit readiness panel with approval checklist and RBAC roles, local governance approval workflow with submit/approve/request-changes/comments/timeline, snapshot history panel with save/compare/cost and quantity deltas, portfolio dashboard with executive metrics and cross-project overview, portfolio filters (search, active/archived, sort by cost/name), archive/restore actions on project cards, mobile review support (review, estimates, exports on phone — CAD editing best on tablet/desktop), per-building-type room layout strategies (single-storey/duplex/clinic/shop) with circulation corridors and wet-core grouping, CAD editing persisted to IndexDB with auto-save and downstream sync metadata, PlanModel→CadDocument roundtrip for downstream analysis, BOQ/export source traceability (geometry source, CAD-edited labels, warnings in CSV/HTML), manual CAD save/restore controls with status messages, feedback and issue reporting workflow, 306 automated tests across the full pipeline, 11 construction-standard drawing types (Elevations, Section, Site, Foundation, Roof, RCP, Electrical, Plumbing, HVAC) + A1 presentation sheet + PDF/PNG export.** CI validates typecheck, lint, tests, and production build on every push.
 
 **Live demo:** [budget-engineer.vercel.app](https://budget-engineer.vercel.app/)
 
@@ -59,6 +59,7 @@ Then open http://localhost:5173.
 | **Sprint 27: PlanModel→CadDocument roundtrip** | PlanModel→CadDocument converter (planModelToCadAdapter.ts), sync adapter fallback in deriveAnalysisFromCadOrDesign, 22 new tests (13 converter + 9 sync) | Sprint 27 |
 | **Sprint 28: Export source metadata & CAD-edited BOQ sync** | Source metadata in BOQ/CSV/HTML, CAD-edited labels, cadQuantitiesAdapter, 21 new tests | Sprint 28 |
 | **Sprint 29: Manual CAD save/restore UI** | CadSyncControls dropdown (save/restore/reset), loadPlanModelMeta service, status messages, 3 new tests | Sprint 29 |
+| **Sprints 56–63: Professional Drawings v0.4.0** | 11 drawing types (Elevations, Section, Site, Foundation, Roof, RCP, Electrical, Plumbing, HVAC) + A1 presentation sheet + PDF/PNG export | Sprints 56–63 |
 
 **Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Checks → Quantities → BOQ → Export (CSV / HTML / PDF)
 
@@ -109,18 +110,18 @@ Each push to `main` runs via GitHub Actions:
 1. `npm ci`
 2. `npm run typecheck`
 3. `npm run lint`
-4. `npm test` (470 tests, 33 files)
+4. `npm test` (681 tests, 41 files)
 5. `npm run build`
 
 ## Release
 
 | Detail | Value |
 |--------|-------|
-| Current version | v0.3.2 |
+| Current version | v0.4.0 |
 | Live demo | https://budget-engineer.vercel.app/ |
 | GitHub | https://github.com/securequalitybuilders-art/budget-engineer |
 | CI status | [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions) |
-| Tests | 559 across 37 files |
+| Tests | 681 across 41 files |
 | Architecture | Local-first, no paid APIs, no backend, no cloud LLM |
 
 See [CHANGELOG.md](CHANGELOG.md) for full release history.

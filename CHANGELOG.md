@@ -2,141 +2,77 @@
 
 ## Unreleased
 
-### Sprint 63 — A1 Presentation Sheet Compose Multi-Drawing + PDF/PNG Export
+## [0.4.0] - 2026-07-06
 
-**Additive (non-breaking):** Added an A1 landscape presentation sheet that composes 9 drawing cells (Front Elevation, Side Elevation, Section A-A, Floor Plan, Site Plan, Foundation Plan, Roof Plan, RCP, Electrical/Plumbing/HVAC overview) onto a single titled sheet with master title block. Export toolbar delivers PNG (via canvas render) and PDF (via jsPDF) downloads.
+### Professional Drawings Phase — 11 Drawing Types + A1 Presentation Sheet + PDF/PNG Export
 
-**New files:**
-- **`src/components/drawings/presentationSheetModel.ts`** — Pure layout math: A1 landscape viewBox (1682×1188), 3×3 grid of cells, each with id/label/x/y/w/h.
-- **`src/components/drawings/PresentationSheetView.tsx`** — React component that renders the composed A1 SVG: runs each existing rendering builder, scales/translates each into its cell, falls back to framed "N/A" on null drawing. Export toolbar with accessible Export PDF / Export PNG buttons.
-- **`src/adapters/sheetExport.ts`** — Pure-ish export adapter: `serializeSvg()` (XMLSerializer → string), `svgToDataUrl()` (offscreen canvas at 2×), `exportSheetPng()` (download trigger), `exportSheetPdf()` (jsPDF A1 landscape addImage + save). Dynamic import of jsPDF, graceful error handling.
-- **`src/__tests__/presentationSheet.test.ts`** — 10 tests: layout returns 9 non-overlapping cells; view renders SVG, master title block text, ≥3 captions; null-plan fallback; accessible export button labels; serializeSvg returns `<svg` for valid element, null for null input.
+**Summary of Sprints 56–63:** Auto-generated elevations + section from PlanModel geometry. Professional orthographic CAD styling (flat black-on-white, proper line weights, dimension strings, grid bubbles, level markers, title blocks). Coloured material system (BS 1192 / ISO 13567-2) with 6 material fills + 6 discipline colours. 9 new drawing types: Site Plan, Foundation Plan, Roof Plan, Reflected Ceiling Plan (RCP), Electrical Layout, Plumbing & Drainage, HVAC/Mechanical, Rich Section A‑A (solid black cut poché, stairs, room labels, footings, entourage). A1 landscape presentation sheet composing all drawings onto a single titled sheet with master title block. PDF (jsPDF) and PNG (canvas) export of the presentation sheet. Schematic disclaimer: "Drawings indicative — verify with registered professionals."
 
-**Modified files:**
-- **`DrawingsPanel.tsx`** — Added `presentation` tab after Section A-A with `PresentationSheetView` rendering.
-- **`vitest.config.ts`** — Include `.tsx` test files.
+### New Drawing Types
 
-**Validation:** 681 tests pass (41 files). Typecheck 0 errors. Lint 0 errors / 9 warnings. Build succeeds. PWA 30 precache. No `text-stone-500`.
+| Type | File | Discipline Colour | Features |
+|------|------|-------------------|----------|
+| Front Elevation | `ElevationView.tsx` | Black (#1a1a1a) | Building outline, openings, roof, dimensions, grid bubbles, level markers |
+| Side Elevation | `ElevationView.tsx` | Black (#1a1a1a) | Same as front, orthogonal projection |
+| Section A‑A | `SectionView.tsx` | Black + material fills | Solid black cut poché, floor build-ups, stairs, room labels, footings, roof trusses, soil layers, entourage |
+| Site Plan | `SitePlanView.tsx` | Black | Plot boundary, building footprint, road, trees, parking, north arrow, scale bar, setbacks |
+| Foundation Plan | `FoundationPlanView.tsx` | Black | Strip footings, wall centre-lines, grid, materials legend |
+| Roof Plan | `RoofPlanView.tsx` | Black | Ridge, eaves, overhang, gutters, downpipes, slope arrows, pitch note |
+| RCP | `CeilingPlanView.tsx` | Yellow (#e6b800) | Ceiling grid, auto-placed light fixtures, room outlines |
+| Electrical Layout | `ElectricalPlanView.tsx` | Yellow (#e6b800) | Lights, sockets, switches, distribution board, dashed wiring runs |
+| Plumbing & Drainage | `PlumbingPlanView.tsx` | Blue (#2f6fd1) | WC, basin, shower, sink, drain, stack, dashed pipe runs |
+| HVAC/Mechanical | `HvacPlanView.tsx` | Green (#2fae66) | Supply diffusers, return grilles, FCU, dashed duct runs |
 
-### Sprint 62 — MEP Schematic Drawings (Electrical, Plumbing, HVAC) + Fallback Tests
+### New Infrastructure
 
-**Additive (non-breaking):** Added three MEP discipline drawing views: Electrical Layout, Plumbing & Drainage, and HVAC/Mechanical. Each renders a full schematic drawing with discipline-colour wall outlines, MEP symbols, dashed wiring/pipe/duct runs, dimension strings, grid bubbles, NorthArrow, ScaleBar, discipline legend, title block, and professional disclaimer notes. All views handle null plans gracefully with a bordered fallback message.
+- **CAD constants & primitives** (`cadConstants.ts`, `cadPrimitives.tsx`) — Line weights, ink/paper colours, `SheetBorder`, `TitleBlock`, `DimensionLineH/V`, `GridBubble`, `LevelMarker`, `DrawingTitle`, `HatchDefs`
+- **Colour system** (`drawingColors.ts`, `drawingLegend.tsx`) — Material colours (concrete, brick, earth, insulation, steel, glass, blockwork) + Discipline colours (structural, electrical, plumbing, HVAC, architectural, dimensions) + `MATERIAL_LEGEND` / `DISCIPLINE_LEGEND` arrays + SVG hatch patterns
+- **MEP symbols** (`mepSymbols.tsx`) — 12 pure SVG symbol components (LightFixture, Socket, Switch, DistributionBoard, WaterCloset, Basin, Shower, Sink, FloorDrain, StackRiser, SupplyDiffuser, ReturnGrille, FanCoilUnit)
+- **MEP placement** (`mepPlacement.ts`) — Pure heuristics: `placeElectrical`, `placePlumbing`, `placeHvac`
+- **Entourage & ground** (`entourage.tsx`, `ground.tsx`) — TreeElevation, PersonSilhouette, CarSilhouette, NorthArrow, ScaleBar, NumberedLegend, GroundHatchDefs, SoilLayers
+- **Presentation sheet model** (`presentationSheetModel.ts`) — A1 layout math, 9-cell grid
+- **Presentation sheet view** (`PresentationSheetView.tsx`) — Composes all drawings onto A1, export toolbar (PDF/PNG)
+- **Sheet export** (`sheetExport.ts`) — `serializeSvg`, `svgToDataUrl`, `exportSheetPng`, `exportSheetPdf` (jsPDF A1 landscape)
 
-**New files:**
-- **`src/components/drawings/mepSymbols.tsx`** — 12 pure SVG symbol components (LightFixture, Socket, Switch, DistributionBoard, WaterCloset, Basin, Shower, Sink, FloorDrain, StackRiser, SupplyDiffuser, ReturnGrille, FanCoilUnit). No component-that-triggers-refresh-warning exports.
-- **`src/components/drawings/mepPlacement.ts`** — Pure heuristics: `placeElectrical` (lights per room, sockets per wall, switch, DB), `placePlumbing` (WC/basin/shower/sink/drain/stack per wet room), `placeHvac` (supply/return per room, FCU, duct runs). Safe on empty/no-wet-rooms.
-- **`src/components/drawings/ElectricalPlanView.tsx`** — Electrical schematic; yellow (#e6b800) annotations; "ELECTRICAL LAYOUT (SCHEMATIC)" title.
-- **`src/components/drawings/PlumbingPlanView.tsx`** — Plumbing schematic; blue (#2f6fd1) annotations; "PLUMBING & DRAINAGE (SCHEMATIC)" title.
-- **`src/components/drawings/HvacPlanView.tsx`** — HVAC schematic; green (#2fae66) annotations; "HVAC / MECHANICAL (SCHEMATIC)" title.
-- **`src/__tests__/mepPlacement.test.ts`** — 12 tests covering electrical/plumbing/hvac placement logic.
+### Fixes
 
-**Modified files:**
-- **`DrawingsPanel.tsx`** — Added `electrical`, `plumbing`, `hvac` tabs between Ceiling (RCP) and Front Elevation.
-- **`cadDrawings.test.ts`** — Restored 3 fallback tests using `@testing-library/react` `render()`; added 3 valid-plan title/symbol tests.
-- **`package.json` / `package-lock.json`** — Added `@testing-library/react` and `jsdom` dev dependencies.
-- **`vitest.config.ts`** — Include `tsx` test files.
+- **Blank Plan tab (Sprint 58):** `DrawingsPanel` was passing `design={null}` to `PlanCanvas` — wired `selectedDesign` from Dashboard so all sub-tabs render from one consistent plan
+- **RCP light-fixture placement (Sprint 62A):** Fixed y-flip to match wall coordinate convention; metre-based grid threshold so small rooms get a fixture but no grid
+- **Lint baseline (Sprint 61A):** Moved render functions from `.tsx` to `.ts` model files to maintain exact 9-warning lint baseline
 
-**Validation:** 671 tests pass (40 files). Typecheck 0 errors. Lint 0 errors / 9 warnings. Build succeeds. PWA 30 precache. No `text-stone-500`.
+### Tests
 
-### Sprint 61 — Roof Plan and Reflected Ceiling Plan (RCP) Drawing Types
+681 tests across 41 files. All drawing types tested: null-plan safety, data shape, coordinate bounds, element counts, fallback rendering via `@testing-library/react`.
 
-**Additive (non-breaking):** Added two construction-standard drawing types: Roof Plan (ridge/eaves/overhang/gutters/downpipes with slope arrows and pitch note) and Reflected Ceiling Plan (ceiling grid + auto-placed light fixtures in electrical discipline colour). Both tabs wired into DrawingsPanel tab row. Schematic/indicative labels per professional convention.
+### Files Created (Sprints 56–63)
 
-**New files:**
-- **`src/components/drawings/RoofPlanView.tsx`** — Top-down roof plan with building footprint + roof overhang, dashed eaves outline, central ridge line, slope direction arrow, gutter and downpipe markers, NorthArrow, ScaleBar, dimension strings, grid bubbles, legend, title block, sheet border, material note.
-- **`src/components/drawings/CeilingPlanView.tsx`** — Reflected ceiling plan with room outlines (same as floor plan), 600×600 mm suspended-ceiling grid on larger rooms, auto-placed light fixture (circle + cross) per room centre in electrical yellow (`#e6b800`), NorthArrow, ScaleBar, dimensions, grid bubbles, legend, title block, sheet border, schematic disclaimer.
-
-**Modified files:**
-- **`DrawingsPanel.tsx`** — Added `roof` and `ceiling` tabs to tab row (Plan / Site Plan / Foundation / Roof Plan / Ceiling (RCP) / Front Elevation / Side Elevation / Section A-A). Imports and renders `RoofPlanView` and `CeilingPlanView`.
-
-**Tests:** +11 tests (647 total, 39 files) for RoofPlanView and CeilingPlanView: component existence, null/zero-width fallback, ridge/eaves/gutter/downpipe/legend/NorthArrow/ScaleBar counts, light fixture count.
-
-**Validation:** 647 tests pass (39 files). Typecheck 0 errors. Build succeeds. PWA 30 precache entries. No `text-stone-500` introduced.
-
-### Sprint 60 — Rich Section A‑A (Solid Black Cut Poché, Stairs, Room Labels, Footings)
-
-**Refactor (additive):** Rewrote Section A‑A from a bare elevation into a professional architectural building section. Solid black `#1a1a1a` cut poché for walls/slabs/roof replacing previous thin pale hatch. Floor build‑ups (screed + slab + ceiling line). Sawtooth stairs between storeys with handrail. Room labels behind the cut plane (faint rects + name + area per storey). Foundation footings below ground. Roof rafter/truss lines. Ground datum + 3‑layer soil. Scaled entourage (2 trees + 1 person). Full annotations: dimensions, grid bubbles, level markers, title block, sheet border, material legend, numbered legend.
-
-**Modified files:**
-- **`SectionView.tsx`** — Full rewrite: solid black poché, floor build‑ups, stairs, room labels, footings, roof trusses, scaled entourage.
-
-**Tests:** +9 tests (636 total, 39 files) for SectionView: slab bands, stairs, room labels, footings, soil layers, entourage, fallback safety.
-
-**Validation:** 636 tests pass (39 files). Typecheck 0 errors. Build succeeds. PWA intact. No `text-stone-500` introduced.
-
-### Sprint 59 — Site Plan + Foundation Plan Drawing Types and Reusable Entourage/Ground Richness Library
-
-**Additive (non-breaking):** Added two new professional drawing types (Site Plan, Foundation Plan) and a reusable pure-SVG entourage/ground library. Section A‑A enriched with layered soil strata, trees, person silhouette, and numbered legend. All new rendering deterministic, 100% offline — no AI images or external APIs.
-
-**New files:**
-- **`src/components/drawings/entourage.tsx`** — `TreeElevation` (round/conifer/palm), `PersonSilhouette`, `CarSilhouette`, `NorthArrow`, `ScaleBar`, `NumberedLegend`.
-- **`src/components/drawings/ground.tsx`** — `GroundHatchDefs` (topsoil/subsoil/rock patterns), `GroundLine`, `SoilLayers` (stacked coloured strata).
-- **`src/components/drawings/SitePlanView.tsx`** — Site plan with plot boundary, building footprint, road, trees, parking, north arrow, scale bar, setback dims, "indicative" coverage note.
-- **`src/components/drawings/FoundationPlanView.tsx`** — Foundation plan with strip footings (concrete poché × 2.5 wall thickness), dashed wall lines above, grid, north arrow, materials legend, "confirm with structural engineer" note.
-
-**Modified files:**
-- **`DrawingsPanel.tsx`** — Added Site Plan and Foundation tabs (row: Plan / Site Plan / Foundation / Front Elevation / Side Elevation / Section A‑A).
-- **`SectionView.tsx`** — Replaced flat earth hatch with `SoilLayers` (topsoil→subsoil→rock). Added 2 trees, person silhouette, numbered legend (wall/slab/soil callouts).
-
-**Indicative values:** All setback, footing, and site coverage values labelled "indicative / schematic — verify with local authority" or "confirm with a structural engineer".
-
-**Tests:** +11 tests (627 total, 39 files) for entourage/ground components, SitePlanView, FoundationPlanView.
-
-**Validation:** 627 tests pass (39 files). Typecheck 0 errors. Lint 0 errors (9 warnings baseline). Build succeeds. PWA 30 precache entries. No `text-stone-500` introduced.
-
-### Sprint 58 — Fix Blank Plan Tab + Coloured Material/Discipline Drawing System
-
-**Bug fix + additive (non-breaking):** Root-caused the blank Plan sub-tab in Drawings view: `DrawingsPanel` was passing `design={null}` to `PlanCanvas`, which guards on `!design`. Added `design` prop and wired `selectedDesign` from Dashboard. All four sub-tabs (Plan, Front, Side, Section) now render from one consistent plan.
-
-**Additive:** Introduced a coloured material + discipline colour system (`drawingColors.ts`) following BS 1192 / ISO 13567-2 convention. Applied coloured poché to Section A‑A (brick external walls, blockwork internal walls, concrete slabs, brown earth datum) with `MaterialHatchDefs` SVG patterns and a MATERIALS legend box. Elevation window rects get a subtle cyan glass fill.
-
-**New files:**
-- **`src/components/drawings/drawingColors.ts`** — Material colours (concrete, brick, earth, insulation, steel, glass, blockwork) + Discipline colours (structural, electrical, plumbing, HVAC, architectural, dimensions) + `MATERIAL_LEGEND` / `DISCIPLINE_LEGEND` arrays.
-- **`src/components/drawings/drawingLegend.tsx`** — `MaterialHatchDefs` (coloured SVG `<pattern>` elements per material) and `LegendBox` (bordered legend with colour swatches).
-
-**Modified files:**
-- **`DrawingsPanel.tsx`** — Added `design` prop, passes to `PlanCanvas`.
-- **`Dashboard.tsx`** — Passes `selectedDesign` to `DrawingsPanel`.
-- **`SectionView.tsx`** — Coloured material poché (brick/blockwork/ concrete/earth) + MATERIALS legend.
-- **`ElevationView.tsx`** — Window rects get cyan glass fill.
-
-**Tests:** +7 tests (616 total, 39 files).
-
-**Validation:** 616 tests pass (39 files). Typecheck 0 errors. Lint 0 errors (9 warnings baseline). Build succeeds. PWA 30 precache entries. No `text-stone-500` introduced.
-
-### Sprint 57 — Professional Orthographic CAD Drawings (Flat Black-on-White Style)
-
-**Additive (non-breaking):** Refactored ElevationView and SectionView into professional flat black-on-white CAD sheets with proper line weights, dimension strings, grid bubbles, level markers, poché hatching on cut walls, hatched earth datum, and A1-format title block. All geometry from `planToElevations.ts` unchanged — presentation/annotation layer only.
-
-**New files:**
-- **`src/components/drawings/cadConstants.ts`** — Line-weight constants (`CAD_HEAVY=2`, `CAD_MEDIUM=1.2`, `CAD_THIN=0.6`, `CAD_HAIR=0.4`), ink/paper colors (`INK='#1a1a1a'`, `PAPER='#ffffff'`), `metresToMm()` helper.
-- **`src/components/drawings/cadPrimitives.tsx`** — React SVG components: `HatchDefs` (poche 45° diagonal + earth stipple), `SheetBorder`, `TitleBlock`, `DimensionLineH`, `DimensionLineV`, `GridBubble`, `LevelMarker`, `DrawingTitle`.
-- **`src/components/drawings/SectionView.tsx`** — Standalone CAD section view with poché-hatched cut walls, heavy floor slabs, hatched earth datum, dimension strings, grid bubbles, level markers, title block.
-- **`src/__tests__/cadDrawings.test.ts`** — 24 tests for `metresToMm`, front/side/section data shape, empty/null/zero fallback safety.
-
-**Modified files:**
-- **`ElevationView.tsx`** — Complete white-sheet refactor: white background, black ink, CAD line weights, dimension strings above/left, grid bubbles, level markers, title block, drawing title, sheet border.
-- **`DrawingsPanel.tsx`** — Passes `activePlan`, `floors`, `storeyHeight`, `pitchHeight`, `title` props to `ElevationView`/`SectionView`.
-- **`EngineeringStudioPanel.tsx`** — Removed `buildSampleCad` / `CadDocument` dependency; section tab shows redirect to main Drawings view.
-
-**Validation:** 609 tests pass (39 files). Typecheck 0 errors. Lint 0 errors (9 warnings baseline). Build succeeds. PWA intact. No `text-stone-500` introduced.
-
-### Sprint 56 — Auto-Generated Elevations and Section Drawings (SVG)
-
-**Additive (non-breaking):** Pure-SVG front elevation, side elevation, and cross-section derived from the same PlanModel geometry used by 2D/3D. New "Drawings" view toggle (between 2D and 3D in the canvas toolbar) with Plan | Front Elevation | Side Elevation | Section A-A sub-tabs. Reuses wall/opening/roof constants from `planTo3d.ts` (storey height 3 m, pitch height 1.5 m, etc.) — zero geometry duplication.
-
-**New files:**
-- **`src/adapters/planToElevations.ts`** — `computeFrontElevation()`, `computeSideElevation()`, `computeSection()`, `emptyDrawing()`. Pure functions returning structured primitives (lines, rects, polygons, texts) with SVG viewBox. All wrapped in try/catch — never throw.
-- **`src/components/drawings/ElevationView.tsx`** — Renders `ElevationDrawing` as responsive SVG (brand stroke colors, WCAG-AA `text-stone-400` labels, "Dimensions in metres" caption).
-- **`src/components/drawings/DrawingsPanel.tsx`** — Container with Plan / Front Elevation / Side Elevation / Section tab toggle. Uses `activePlan`, `floors`, `storeyHeight`, `pitchHeight`. Empty state when no plan.
-
-**Modified files:**
-- **`Dashboard.tsx`** — Added `'drawings'` to `activeCanvasView` state. "Drawings" toggle button in canvas toolbar (between 2D and 3D). Renders `<DrawingsPanel>` when active.
-- **`BuilderJourneyGuide.tsx`** — Extended `activeCanvasView` type to include `'drawings'` (no logic change; `'drawings'` treated same as `'plan'` for step tracking).
-
-**Tests:** `src/__tests__/planToElevations.test.ts` — 26 tests: null/empty plan safety, overall width matches building width + padding, total height = floors × storeyHeight + pitchHeight + padding, gable polygon present, ground line present, opening rects × floors, dimension text, viewBox format, no NaN/negative coords, side elevation width = building depth, section slab count = floors + 1, multi-storey opening multiplication, emptyDrawing safe fallback.
-
-**Validation:** 585 tests pass (38 files). Typecheck 0 errors. Lint 0 errors (9 warnings baseline). Build succeeds. PWA intact. No `text-stone-500` introduced.
+| File | Purpose |
+|------|---------|
+| `src/adapters/planToElevations.ts` | Elevation/section geometry computation |
+| `src/adapters/sheetExport.ts` | Presentation sheet PNG/PDF export |
+| `src/components/drawings/cadConstants.ts` | Line weights, ink/paper colours |
+| `src/components/drawings/cadPrimitives.tsx` | CAD annotation primitives |
+| `src/components/drawings/drawingColors.ts` | Material/discipline colour system |
+| `src/components/drawings/drawingLegend.tsx` | SVG hatch patterns + legend box |
+| `src/components/drawings/entourage.tsx` | Tree, person, car, north arrow, scale bar |
+| `src/components/drawings/ground.tsx` | Soil layers, ground hatch patterns |
+| `src/components/drawings/ElevationView.tsx` | Front/side elevation view |
+| `src/components/drawings/SectionView.tsx` | Rich section A‑A view |
+| `src/components/drawings/SitePlanView.tsx` | Site plan view |
+| `src/components/drawings/FoundationPlanView.tsx` | Foundation plan view |
+| `src/components/drawings/RoofPlanView.tsx` | Roof plan view |
+| `src/components/drawings/CeilingPlanView.tsx` | Reflected ceiling plan view |
+| `src/components/drawings/ElectricalPlanView.tsx` | Electrical layout view |
+| `src/components/drawings/PlumbingPlanView.tsx` | Plumbing & drainage view |
+| `src/components/drawings/HvacPlanView.tsx` | HVAC/mechanical view |
+| `src/components/drawings/mepSymbols.tsx` | 12 MEP SVG symbol components |
+| `src/components/drawings/mepPlacement.ts` | MEP placement heuristics |
+| `src/components/drawings/presentationSheetModel.ts` | A1 layout math |
+| `src/components/drawings/PresentationSheetView.tsx` | A1 presentation sheet component |
+| `src/__tests__/planToElevations.test.ts` | 26 elevation/section tests |
+| `src/__tests__/cadDrawings.test.ts` | 74 CAD drawing tests |
+| `src/__tests__/mepPlacement.test.ts` | 12 MEP placement tests |
+| `src/__tests__/presentationSheet.test.ts` | 10 presentation sheet tests |
 
 ## [0.3.2] - 2026-07-06
 
