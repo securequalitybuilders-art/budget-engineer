@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+### Sprint 55 — ZBC Building-Code Compliance Checks (Design Intelligence)
+
+**Additive (non-breaking):** Added jurisdiction-keyed rule-based compliance checker for Zimbabwe (ZBC 1996). Evaluates active design against 9 building-code minimums. Results shown in Analysis panel (new ZBC Compliance card) and PDF cost report. Extensible for SADC neighbours.
+
+**New files:**
+- **`src/engine/compliance/types.ts`** — `ComplianceRuleDef`, `ComplianceResult`, `ComplianceInput`, `ComplianceReport` interfaces. Jurisdiction-keyed structure.
+- **`src/engine/compliance/zimbabwe.ts`** — 9 ZBC rules (min room area 6 m², min room width 2 m, ceiling height 2.4 m, natural light 10%, ventilation 5%, sanitary 1 WC/25 occ, means of escape ≥ 2 exits >49 occ, site coverage ≤ 60%, structural adequacy). Each rule wrapped in try/catch. All values marked "approximate — verify with local authority".
+- **`src/engine/compliance/index.ts`** — `runCompliance(jurisdiction, input)` routing switch. Default `'zimbabwe'`. TODO seam for South Africa, Zambia, Botswana. Exports `emptyCompliance()` and `summarizeCompliance()`.
+
+**Modified files:**
+- **`AnalysisPanel.tsx`** — Added "ZBC Compliance" card with score, pass/warn/fail counts, per-rule status badges, actual vs required, disclaimer. Accepts optional `jurisdiction` prop.
+- **`BoqExportPanel.tsx`** — Accepts optional `activePlan` and `buildingType` props. Computes compliance summary on PDF export and passes to `generatePdfReport`.
+- **`EngineeringStudioPanel.tsx`** — Passes `jurisdiction="zimbabwe"` to `AnalysisPanel`.
+- **`boqToPdf.ts`** — Extended `PdfAnalysisSummary` with optional `complianceSummary`/`complianceHasData`. Renders compliance section when data available.
+- **`Dashboard.tsx`** — Passes `activePlan` and `buildingType` to `BoqExportPanel`.
+- **`ATTRIBUTIONS.md`** — Noted compliance rule structure inspiration from Skills-Architects code dossiers.
+
+**Tests:** `src/__tests__/compliance.test.ts` — 13 tests: pass/warn/fail for known inputs, small room fails min-area, small room fails min-width, ceiling height passes, large room passes, egress reuses calculator, sanitary for non-residential, residential sanitary N/A, null input safe, unknown jurisdiction safe, emptyCompliance safe, summarizeCompliance counts, never throws. All 546 old tests kept green.
+
+**Validation:** 559 tests pass (37 files). Typecheck 0 errors. Lint 0 errors (9 warnings baseline). Build succeeds. PWA intact.
+
 ### Sprint 54 — Surface Enterprise Calculators in the UI
 
 **Additive (non-breaking):** Wired Sprint 53's 7 pure TS calculators into the UI — new Analysis tab in Engineering Studio, analysis assembly helper, PDF Design Analysis section. All 546 tests pass, 0 typecheck errors, lint baseline 9, build succeeds.

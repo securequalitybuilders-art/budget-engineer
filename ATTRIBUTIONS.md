@@ -19,4 +19,8 @@ This project adapts (re-implements in TypeScript) formulas and calculation logic
 
 Both source repositories are MIT-licensed. This project retains the MIT license. See [LICENSE](./LICENSE).
 
-*ATTRIBUTIONS.md — Sprint 53, July 2026*
+## Compliance rule structure
+
+The **jurisdiction-keyed compliance rule structure** (per-jurisdiction files with `ComplianceRuleDef` / `evaluate()` interface) is inspired by the country-code dossier pattern in [Skills-Architects](https://github.com/Abhinavbwj/Skills-Architects). The Zimbabwe (ZBC) rule values are based on ZBC 1996 / SI references already cited in the app's typology knowledge base; all TypeScript re-implementation is original.
+
+*ATTRIBUTIONS.md — Sprint 55, July 2026*

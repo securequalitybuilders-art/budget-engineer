@@ -14,6 +14,8 @@ export interface PdfAnalysisSummary {
   costPerM2: string
   grandTotal: string
   hasData: boolean
+  complianceSummary?: string
+  complianceHasData?: boolean
 }
 const CATEGORY_DISPLAY: Record<string, string> = {
   Walls: 'Walling',
@@ -174,6 +176,26 @@ export async function generatePdfReport(
       y += 4.5
     }
     y += 2
+
+    // ── Compliance (if available) ──
+    if (analysis.complianceHasData && analysis.complianceSummary) {
+      if (y > 250) { doc.addPage(); y = margin }
+      doc.setTextColor(30, 41, 82)
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.text('ZBC Compliance', margin, y)
+      y += 4.5
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(80, 80, 80)
+      doc.text(analysis.complianceSummary, margin + 2, y)
+      y += 4.5
+      doc.setFontSize(6)
+      doc.setTextColor(180, 120, 40)
+      doc.setFont('helvetica', 'italic')
+      doc.text('Approximate pre-compliance check — verify all items with local authority.', margin + 2, y)
+      y += 4
+    }
   }
 
   // ── BOQ table grouped by trade ──

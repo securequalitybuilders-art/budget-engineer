@@ -4,12 +4,14 @@ import type { DesignOption } from '@/domain/boq'
 import type { BOQ } from '@/lib/boq/boq-types'
 import { assembleAnalysis, emptyAnalysis, type AnalysisResult } from '@/engine/calculators/analysisAssembly'
 import type { RoomAreaInput } from '@/engine/calculators/areaSchedule'
+import { runCompliance, summarizeCompliance } from '@/engine/compliance'
 
 interface AnalysisPanelProps {
   plan: PlanModel | null
   design: DesignOption | null
   boq: BOQ | null
   buildingType: string
+  jurisdiction?: string
 }
 
 function ValueCard({ label, value, unit, ok, warn }: { label: string; value: string; unit?: string; ok?: boolean; warn?: boolean }) {
@@ -55,7 +57,7 @@ function EmptyAnalysisState() {
   )
 }
 
-export function AnalysisPanel({ plan, design, boq, buildingType }: AnalysisPanelProps) {
+export function AnalysisPanel({ plan, design, boq, buildingType, jurisdiction = 'zimbabwe' }: AnalysisPanelProps) {
   const result = useMemo<AnalysisResult>(() => {
     try {
       if (!design && !plan) return emptyAnalysis()
@@ -64,6 +66,20 @@ export function AnalysisPanel({ plan, design, boq, buildingType }: AnalysisPanel
       return emptyAnalysis()
     }
   }, [plan, design, boq, buildingType])
+
+  const complianceReport = useMemo(() => {
+    try {
+      if (!design && !plan) return undefined
+      return runCompliance(jurisdiction, { plan, design, analysis: result, buildingType })
+    } catch {
+      return undefined
+    }
+  }, [plan, design, result, buildingType, jurisdiction])
+
+  const complianceSummary = useMemo(() => {
+    if (!complianceReport || complianceReport.results.length === 0) return undefined
+    return summarizeCompliance(complianceReport)
+  }, [complianceReport])
 
   const { areaSchedule, envelope, daylight, egress, structural, energy, cost, roomDaylightFlags } = result
 
@@ -145,6 +161,34 @@ export function AnalysisPanel({ plan, design, boq, buildingType }: AnalysisPanel
         <ValueCard label="Grand Total" value={cost.grandTotal.toFixed(2)} unit={cost.currency} />
         {cost.boqReused && <p className="mt-0.5 text-[9px] text-emerald-500/70">via existing BOQ engine</p>}
       </SectionCard>
+
+      {/* ZBC Compliance */}
+      {complianceSummary && complianceReport && (
+        <SectionCard title={`ZBC Compliance (${complianceReport.score}/100)`}>
+          <div className="mb-1 flex gap-2 text-[10px]">
+            <span className="text-emerald-400">{complianceSummary.passCount} pass</span>
+            <span className="text-amber-400">{complianceSummary.warnCount} warn</span>
+            {complianceSummary.failCount > 0 && <span className="text-red-400">{complianceSummary.failCount} fail</span>}
+          </div>
+          <div className="max-h-48 space-y-1 overflow-y-auto">
+            {complianceReport.results.map((r) => (
+              <div key={r.ruleId} className="flex items-start gap-1.5 rounded border border-stone-700/40 bg-stone-900/60 p-1.5">
+                <span className={`mt-0.5 shrink-0 rounded-full px-1 py-0.5 text-[8px] font-bold uppercase ${
+                  r.status === 'pass' ? 'bg-emerald-500/20 text-emerald-300' :
+                  r.status === 'warn' ? 'bg-amber-500/20 text-amber-300' :
+                  'bg-red-500/20 text-red-300'
+                }`}>{r.status}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-medium text-stone-200">{r.title}</p>
+                  <p className="text-[8px] text-stone-400">Actual: {r.actual} | Required: {r.required}</p>
+                  <p className="mt-0.5 text-[7px] italic text-stone-400">{r.note}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-1 text-[8px] italic text-amber-500/60">Non-authoritative — verify all items with local authority.</p>
+        </SectionCard>
+      )}
     </div>
   )
 }

@@ -6,16 +6,21 @@ import { getSupportedRegions, getDefaultRegionId } from '@/adapters/rateCardAdap
 import { Calculator, FileDown, FileText, FilePieChart, Printer, Info, Shield } from 'lucide-react'
 import { makeMoney } from '@/lib/utils/currency'
 import { captureSnapshot, isValidPngDataUrl } from '@/lib/3d-snapshot'
+import type { PlanModel } from '@/domain/plan'
+import { runCompliance, summarizeCompliance } from '@/engine/compliance'
+import { assembleAnalysis, emptyAnalysis } from '@/engine/calculators/analysisAssembly'
 
 interface BoqExportPanelProps {
   selectedDesign: DesignOption | null
   boq?: BoqResult | null
   onExport?: (type: 'csv' | 'html' | 'print') => void
+  activePlan?: PlanModel | null
+  buildingType?: string
 }
 
 const regions = getSupportedRegions()
 
-export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: BoqExportPanelProps) {
+export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, activePlan, buildingType }: BoqExportPanelProps) {
   const [exported, setExported] = useState(false)
   const [regionId, setRegionId] = useState(getDefaultRegionId())
   const [showAssumptions, setShowAssumptions] = useState(false)
@@ -141,9 +146,40 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
       snapshot = undefined
     }
 
+    // Compute compliance summary for PDF
+    let complianceSummary: string | undefined
+    let complianceHasData = false
+    try {
+      const bt = buildingType || selectedDesign.buildingType || 'house'
+      const plan = activePlan ?? null
+      const analysis = plan ? assembleAnalysis({ plan, design: selectedDesign, boq, buildingType: bt }) : emptyAnalysis()
+      const report = runCompliance('zimbabwe', { plan, design: selectedDesign, analysis, buildingType: bt })
+      const summary = summarizeCompliance(report)
+      if (summary.hasCompliance) {
+        complianceSummary = `${summary.passCount} pass, ${summary.warnCount} warn, ${summary.failCount} fail (${report.score}% score)`
+        complianceHasData = true
+      }
+    } catch {
+      complianceSummary = undefined
+      complianceHasData = false
+    }
+
     try {
       const { generatePdfReport } = await import('@/adapters/boqToPdf')
-      await generatePdfReport(selectedDesign, boq, snapshot)
+      const analysisPdf = complianceHasData ? {
+        areaSchedule: '',
+        envelope: '',
+        daylight: '',
+        egress: '',
+        structural: '',
+        energy: '',
+        costPerM2: '',
+        grandTotal: '',
+        hasData: false,
+        complianceSummary,
+        complianceHasData,
+      } : undefined
+      await generatePdfReport(selectedDesign, boq, snapshot, analysisPdf)
       setExported(true)
       onExport?.('print')
     } catch (err) {
@@ -154,7 +190,7 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport }: B
       setTimeout(() => setExported(false), 3000)
       setTimeout(() => setPdfError(null), 6000)
     }
-  }, [boq, selectedDesign, onExport])
+  }, [boq, selectedDesign, onExport, activePlan, buildingType])
 
   if (!selectedDesign) {
     return (

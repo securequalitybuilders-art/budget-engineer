@@ -156,7 +156,7 @@ export function EngineeringStudioPanel({ selectedDesign, activePlan, boq, onDesi
         )}</div>
 
         <div id="analysis-panel" role="tabpanel" aria-labelledby="analysis-tab" hidden={activeTab !== 'analysis'}>{activeTab === 'analysis' && (
-          <AnalysisPanel plan={activePlan ?? null} design={selectedDesign} boq={boq ?? null} buildingType={buildingType} />
+          <AnalysisPanel plan={activePlan ?? null} design={selectedDesign} boq={boq ?? null} buildingType={buildingType} jurisdiction="zimbabwe" />
         )}</div>
       </div>
 
