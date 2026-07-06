@@ -328,6 +328,20 @@ export function BimModel3D({ plan, design, height = 480 }: BimModel3DProps) {
   const numberOfStoreys = design?.floors ?? 1
   const buildingRef = useRef<THREE.Group | null>(null)
   const [isExporting, setIsExporting] = useState(false)
+  const [contextLost, setContextLost] = useState(false)
+
+  const handleCreated = useCallback((state: { gl: THREE.WebGLRenderer }) => {
+    const canvas = state.gl.domElement
+    const onContextLost = (e: Event) => {
+      e.preventDefault()
+      setContextLost(true)
+    }
+    const onContextRestored = () => {
+      setContextLost(false)
+    }
+    ;(canvas as unknown as EventTarget).addEventListener('webglcontextlost', onContextLost)
+    ;(canvas as unknown as EventTarget).addEventListener('webglcontextrestored', onContextRestored)
+  }, [])
 
   const result = useMemo(() => planTo3d(plan, numberOfStoreys), [plan, numberOfStoreys])
 
@@ -362,6 +376,24 @@ export function BimModel3D({ plan, design, height = 480 }: BimModel3DProps) {
     }
   }, [plan?.id])
 
+  // Context lost friendly fallback
+  if (contextLost) {
+    return (
+      <div
+        role="alert"
+        className="flex flex-col items-center justify-center gap-3 rounded-lg border border-stone-700/60 bg-stone-900/80 p-6"
+        style={{ height }}
+      >
+        <p className="max-w-md text-center text-sm text-stone-300">
+          3D rendering context was lost. Your drawings, 2D plan, BOQ, and exports still work.
+        </p>
+        <p className="max-w-md text-center text-xs text-stone-400">
+          Reload the page or switch to the Plan or Drawings view.
+        </p>
+      </div>
+    )
+  }
+
   // Empty state
   if (!plan || result.walls.length === 0) {
     return (
@@ -389,7 +421,14 @@ export function BimModel3D({ plan, design, height = 480 }: BimModel3DProps) {
         }}
         shadows
         style={{ height }}
-        gl={{ antialias: true, preserveDrawingBuffer: true }}
+        onCreated={handleCreated}
+        frameloop="demand"
+        gl={{
+          antialias: true,
+          preserveDrawingBuffer: true,
+          powerPreference: 'high-performance',
+          failIfMajorPerformanceCaveat: false,
+        }}
       >
         <Scene result={result} buildingRef={buildingRef} />
         <SnapshotCapture />
