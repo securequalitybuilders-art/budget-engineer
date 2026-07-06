@@ -2,6 +2,42 @@
 
 ## Unreleased
 
+### Sprint 63 — A1 Presentation Sheet Compose Multi-Drawing + PDF/PNG Export
+
+**Additive (non-breaking):** Added an A1 landscape presentation sheet that composes 9 drawing cells (Front Elevation, Side Elevation, Section A-A, Floor Plan, Site Plan, Foundation Plan, Roof Plan, RCP, Electrical/Plumbing/HVAC overview) onto a single titled sheet with master title block. Export toolbar delivers PNG (via canvas render) and PDF (via jsPDF) downloads.
+
+**New files:**
+- **`src/components/drawings/presentationSheetModel.ts`** — Pure layout math: A1 landscape viewBox (1682×1188), 3×3 grid of cells, each with id/label/x/y/w/h.
+- **`src/components/drawings/PresentationSheetView.tsx`** — React component that renders the composed A1 SVG: runs each existing rendering builder, scales/translates each into its cell, falls back to framed "N/A" on null drawing. Export toolbar with accessible Export PDF / Export PNG buttons.
+- **`src/adapters/sheetExport.ts`** — Pure-ish export adapter: `serializeSvg()` (XMLSerializer → string), `svgToDataUrl()` (offscreen canvas at 2×), `exportSheetPng()` (download trigger), `exportSheetPdf()` (jsPDF A1 landscape addImage + save). Dynamic import of jsPDF, graceful error handling.
+- **`src/__tests__/presentationSheet.test.ts`** — 10 tests: layout returns 9 non-overlapping cells; view renders SVG, master title block text, ≥3 captions; null-plan fallback; accessible export button labels; serializeSvg returns `<svg` for valid element, null for null input.
+
+**Modified files:**
+- **`DrawingsPanel.tsx`** — Added `presentation` tab after Section A-A with `PresentationSheetView` rendering.
+- **`vitest.config.ts`** — Include `.tsx` test files.
+
+**Validation:** 681 tests pass (41 files). Typecheck 0 errors. Lint 0 errors / 9 warnings. Build succeeds. PWA 30 precache. No `text-stone-500`.
+
+### Sprint 62 — MEP Schematic Drawings (Electrical, Plumbing, HVAC) + Fallback Tests
+
+**Additive (non-breaking):** Added three MEP discipline drawing views: Electrical Layout, Plumbing & Drainage, and HVAC/Mechanical. Each renders a full schematic drawing with discipline-colour wall outlines, MEP symbols, dashed wiring/pipe/duct runs, dimension strings, grid bubbles, NorthArrow, ScaleBar, discipline legend, title block, and professional disclaimer notes. All views handle null plans gracefully with a bordered fallback message.
+
+**New files:**
+- **`src/components/drawings/mepSymbols.tsx`** — 12 pure SVG symbol components (LightFixture, Socket, Switch, DistributionBoard, WaterCloset, Basin, Shower, Sink, FloorDrain, StackRiser, SupplyDiffuser, ReturnGrille, FanCoilUnit). No component-that-triggers-refresh-warning exports.
+- **`src/components/drawings/mepPlacement.ts`** — Pure heuristics: `placeElectrical` (lights per room, sockets per wall, switch, DB), `placePlumbing` (WC/basin/shower/sink/drain/stack per wet room), `placeHvac` (supply/return per room, FCU, duct runs). Safe on empty/no-wet-rooms.
+- **`src/components/drawings/ElectricalPlanView.tsx`** — Electrical schematic; yellow (#e6b800) annotations; "ELECTRICAL LAYOUT (SCHEMATIC)" title.
+- **`src/components/drawings/PlumbingPlanView.tsx`** — Plumbing schematic; blue (#2f6fd1) annotations; "PLUMBING & DRAINAGE (SCHEMATIC)" title.
+- **`src/components/drawings/HvacPlanView.tsx`** — HVAC schematic; green (#2fae66) annotations; "HVAC / MECHANICAL (SCHEMATIC)" title.
+- **`src/__tests__/mepPlacement.test.ts`** — 12 tests covering electrical/plumbing/hvac placement logic.
+
+**Modified files:**
+- **`DrawingsPanel.tsx`** — Added `electrical`, `plumbing`, `hvac` tabs between Ceiling (RCP) and Front Elevation.
+- **`cadDrawings.test.ts`** — Restored 3 fallback tests using `@testing-library/react` `render()`; added 3 valid-plan title/symbol tests.
+- **`package.json` / `package-lock.json`** — Added `@testing-library/react` and `jsdom` dev dependencies.
+- **`vitest.config.ts`** — Include `tsx` test files.
+
+**Validation:** 671 tests pass (40 files). Typecheck 0 errors. Lint 0 errors / 9 warnings. Build succeeds. PWA 30 precache. No `text-stone-500`.
+
 ### Sprint 61 — Roof Plan and Reflected Ceiling Plan (RCP) Drawing Types
 
 **Additive (non-breaking):** Added two construction-standard drawing types: Roof Plan (ridge/eaves/overhang/gutters/downpipes with slope arrows and pitch note) and Reflected Ceiling Plan (ceiling grid + auto-placed light fixtures in electrical discipline colour). Both tabs wired into DrawingsPanel tab row. Schematic/indicative labels per professional convention.

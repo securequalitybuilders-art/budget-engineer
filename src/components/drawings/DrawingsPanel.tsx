@@ -11,6 +11,7 @@ import { CeilingPlanView } from '@/components/drawings/CeilingPlanView'
 import { ElectricalPlanView } from '@/components/drawings/ElectricalPlanView'
 import { PlumbingPlanView } from '@/components/drawings/PlumbingPlanView'
 import { HvacPlanView } from '@/components/drawings/HvacPlanView'
+import { PresentationSheetView } from '@/components/drawings/PresentationSheetView'
 import {
   computeFrontElevation,
   computeSideElevation,
@@ -21,7 +22,7 @@ import {
   ROOF_PITCH_HEIGHT,
 } from '@/adapters/planTo3d'
 
-type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'side' | 'section'
+type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'side' | 'section' | 'presentation'
 
 const TABS: { id: DrawingTab; label: string }[] = [
   { id: 'plan', label: 'Plan' },
@@ -35,6 +36,7 @@ const TABS: { id: DrawingTab; label: string }[] = [
   { id: 'front', label: 'Front Elevation' },
   { id: 'side', label: 'Side Elevation' },
   { id: 'section', label: 'Section A-A' },
+  { id: 'presentation', label: 'Presentation Sheet' },
 ]
 
 interface DrawingsPanelProps {
@@ -138,6 +140,15 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
         <SectionView
           drawing={sectionDrawing}
           activePlan={activePlan}
+          floors={floors}
+          storeyHeight={storeyHeight}
+          pitchHeight={pitchHeight}
+        />
+      )}
+      {activeTab === 'presentation' && (
+        <PresentationSheetView
+          activePlan={activePlan}
+          design={design}
           floors={floors}
           storeyHeight={storeyHeight}
           pitchHeight={pitchHeight}
