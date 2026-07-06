@@ -11,6 +11,8 @@ import { SitePlanView } from '@/components/drawings/SitePlanView'
 import { FoundationPlanView } from '@/components/drawings/FoundationPlanView'
 import { computeFrontElevation, computeSideElevation, computeSection } from '@/adapters/planToElevations'
 import { renderSectionSheet } from '@/components/drawings/SectionView'
+import { RoofPlanView, renderRoofPlan } from '@/components/drawings/RoofPlanView'
+import { CeilingPlanView, renderCeilingPlan } from '@/components/drawings/CeilingPlanView'
 
 function makePlan(overrides?: Partial<PlanModel>): PlanModel {
   return {
@@ -343,6 +345,83 @@ describe('renderSectionSheet', () => {
     const drawing = computeSection(makePlan(), 1)!
     const sheet = renderSectionSheet(drawing, makePlan(), 0, 3, 1.5)
     expect(sheet).toBeNull()
+  })
+})
+
+describe('RoofPlanView', () => {
+  it('is a function', () => {
+    expect(typeof RoofPlanView).toBe('function')
+  })
+
+  it('renderRoofPlan returns null for null plan', () => {
+    expect(renderRoofPlan(null)).toBeNull()
+  })
+
+  it('renderRoofPlan returns null for zero-width plan', () => {
+    const plan = makePlan({ width: 0 })
+    expect(renderRoofPlan(plan)).toBeNull()
+  })
+
+  it('renderRoofPlan contains roof plan title and ridge line', () => {
+    const sheet = renderRoofPlan(makePlan())
+    expect(sheet).not.toBeNull()
+    const ridgeCount = sheet!.elements ? countByPrefix(sheet!.elements, 'ridge') : 0
+    expect(ridgeCount).toBe(1)
+  })
+
+  it('renderRoofPlan contains eaves outline, gutter, downpipe, and legend', () => {
+    const sheet = renderRoofPlan(makePlan())
+    expect(sheet).not.toBeNull()
+    const eavesCount = sheet!.elements ? countByPrefix(sheet!.elements, 'eaves') : 0
+    expect(eavesCount).toBe(1)
+    const gutterCount = sheet!.elements ? countByPrefix(sheet!.elements, 'gutter') : 0
+    expect(gutterCount).toBe(1)
+    const dpCount = sheet!.elements ? countByPrefix(sheet!.elements, 'downpipe-') : 0
+    expect(dpCount).toBeGreaterThanOrEqual(1)
+    const legendCount = sheet!.elements ? countByPrefix(sheet!.elements, 'legend') : 0
+    expect(legendCount).toBe(1)
+  })
+
+  it('renderRoofPlan contains NorthArrow and ScaleBar', () => {
+    const sheet = renderRoofPlan(makePlan())
+    expect(sheet).not.toBeNull()
+    const northCount = sheet!.elements ? countByPrefix(sheet!.elements, 'north') : 0
+    expect(northCount).toBe(1)
+    const scaleCount = sheet!.elements ? countByPrefix(sheet!.elements, 'scale-bar') : 0
+    expect(scaleCount).toBe(1)
+  })
+})
+
+describe('CeilingPlanView', () => {
+  it('is a function', () => {
+    expect(typeof CeilingPlanView).toBe('function')
+  })
+
+  it('renderCeilingPlan returns null for null plan', () => {
+    expect(renderCeilingPlan(null)).toBeNull()
+  })
+
+  it('renderCeilingPlan returns null for zero-width plan', () => {
+    const plan = makePlan({ width: 0 })
+    expect(renderCeilingPlan(plan)).toBeNull()
+  })
+
+  it('renderCeilingPlan contains light fixtures', () => {
+    const sheet = renderCeilingPlan(makePlan())
+    expect(sheet).not.toBeNull()
+    const lightCount = sheet!.elements ? countByPrefix(sheet!.elements, 'light-') : 0
+    expect(lightCount).toBeGreaterThanOrEqual(1)
+  })
+
+  it('renderCeilingPlan has legend, NorthArrow, and ScaleBar', () => {
+    const sheet = renderCeilingPlan(makePlan())
+    expect(sheet).not.toBeNull()
+    const legendCount = sheet!.elements ? countByPrefix(sheet!.elements, 'legend') : 0
+    expect(legendCount).toBe(1)
+    const northCount = sheet!.elements ? countByPrefix(sheet!.elements, 'north') : 0
+    expect(northCount).toBe(1)
+    const scaleCount = sheet!.elements ? countByPrefix(sheet!.elements, 'scale-bar') : 0
+    expect(scaleCount).toBe(1)
   })
 })
 

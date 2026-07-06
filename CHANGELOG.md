@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Sprint 61 — Roof Plan and Reflected Ceiling Plan (RCP) Drawing Types
+
+**Additive (non-breaking):** Added two construction-standard drawing types: Roof Plan (ridge/eaves/overhang/gutters/downpipes with slope arrows and pitch note) and Reflected Ceiling Plan (ceiling grid + auto-placed light fixtures in electrical discipline colour). Both tabs wired into DrawingsPanel tab row. Schematic/indicative labels per professional convention.
+
+**New files:**
+- **`src/components/drawings/RoofPlanView.tsx`** — Top-down roof plan with building footprint + roof overhang, dashed eaves outline, central ridge line, slope direction arrow, gutter and downpipe markers, NorthArrow, ScaleBar, dimension strings, grid bubbles, legend, title block, sheet border, material note.
+- **`src/components/drawings/CeilingPlanView.tsx`** — Reflected ceiling plan with room outlines (same as floor plan), 600×600 mm suspended-ceiling grid on larger rooms, auto-placed light fixture (circle + cross) per room centre in electrical yellow (`#e6b800`), NorthArrow, ScaleBar, dimensions, grid bubbles, legend, title block, sheet border, schematic disclaimer.
+
+**Modified files:**
+- **`DrawingsPanel.tsx`** — Added `roof` and `ceiling` tabs to tab row (Plan / Site Plan / Foundation / Roof Plan / Ceiling (RCP) / Front Elevation / Side Elevation / Section A-A). Imports and renders `RoofPlanView` and `CeilingPlanView`.
+
+**Tests:** +11 tests (647 total, 39 files) for RoofPlanView and CeilingPlanView: component existence, null/zero-width fallback, ridge/eaves/gutter/downpipe/legend/NorthArrow/ScaleBar counts, light fixture count.
+
+**Validation:** 647 tests pass (39 files). Typecheck 0 errors. Build succeeds. PWA 30 precache entries. No `text-stone-500` introduced.
+
 ### Sprint 60 — Rich Section A‑A (Solid Black Cut Poché, Stairs, Room Labels, Footings)
 
 **Refactor (additive):** Rewrote Section A‑A from a bare elevation into a professional architectural building section. Solid black `#1a1a1a` cut poché for walls/slabs/roof replacing previous thin pale hatch. Floor build‑ups (screed + slab + ceiling line). Sawtooth stairs between storeys with handrail. Room labels behind the cut plane (faint rects + name + area per storey). Foundation footings below ground. Roof rafter/truss lines. Ground datum + 3‑layer soil. Scaled entourage (2 trees + 1 person). Full annotations: dimensions, grid bubbles, level markers, title block, sheet border, material legend, numbered legend.

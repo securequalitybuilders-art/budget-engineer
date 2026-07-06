@@ -6,6 +6,8 @@ import { ElevationView } from '@/components/drawings/ElevationView'
 import { SectionView } from '@/components/drawings/SectionView'
 import { SitePlanView } from '@/components/drawings/SitePlanView'
 import { FoundationPlanView } from '@/components/drawings/FoundationPlanView'
+import { RoofPlanView } from '@/components/drawings/RoofPlanView'
+import { CeilingPlanView } from '@/components/drawings/CeilingPlanView'
 import {
   computeFrontElevation,
   computeSideElevation,
@@ -16,12 +18,14 @@ import {
   ROOF_PITCH_HEIGHT,
 } from '@/adapters/planTo3d'
 
-type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'front' | 'side' | 'section'
+type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'front' | 'side' | 'section'
 
 const TABS: { id: DrawingTab; label: string }[] = [
   { id: 'plan', label: 'Plan' },
   { id: 'site-plan', label: 'Site Plan' },
   { id: 'foundation', label: 'Foundation' },
+  { id: 'roof', label: 'Roof Plan' },
+  { id: 'ceiling', label: 'Ceiling (RCP)' },
   { id: 'front', label: 'Front Elevation' },
   { id: 'side', label: 'Side Elevation' },
   { id: 'section', label: 'Section A-A' },
@@ -88,6 +92,12 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
       )}
       {activeTab === 'foundation' && (
         <FoundationPlanView activePlan={activePlan} floors={floors} />
+      )}
+      {activeTab === 'roof' && (
+        <RoofPlanView activePlan={activePlan} />
+      )}
+      {activeTab === 'ceiling' && (
+        <CeilingPlanView activePlan={activePlan} />
       )}
       {activeTab === 'front' && (
         <ElevationView
