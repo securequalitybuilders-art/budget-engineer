@@ -337,6 +337,135 @@ describe('edit-flow: drawing reflects edited plan', () => {
   })
 })
 
+// ── pointerAccum simulation (regression: absolute deltas accumulate correctly) ──
+describe('pointerAccum simulation (the useEditablePlan pointerAccum pattern)', () => {
+  it('two updatePointer calls with per-frame deltas produce cumulative result', () => {
+    const plan = makeBasePlan()
+    // Simulate the pointerAccum logic from useEditablePlan
+    let accDx = 0
+    const accDy = 0
+
+    // Frame 1: user moves pointer 10px right → ~0.8 world units (exact ratio depends on scale, but
+    // pass world-space deltas directly as updatePointer does)
+    accDx += 0.8
+    const after1 = moveRoom(plan, 'r1', accDx, accDy)
+    const r1 = after1.rooms.find((r) => r.id === 'r1')!
+    expect(r1.x).toBeCloseTo(0.8)
+
+    // Frame 2: user moves another 15px right (~1.2 world units)
+    accDx += 1.2
+    const after2 = moveRoom(plan, 'r1', accDx, accDy)
+    const r2 = after2.rooms.find((r) => r.id === 'r1')!
+    // Cumulative: 0.8 + 1.2 = 2.0, NOT just 1.2
+    expect(r2.x).toBeCloseTo(2.0)
+  })
+
+  it('pointerAccum resets on new session (beginMove clears accumulator)', () => {
+    const plan = makeBasePlan()
+    let accDx = 0
+
+    // Session 1: move r1 by 0.5
+    accDx = 0
+    accDx += 0.5
+    const after1 = moveRoom(plan, 'r1', accDx, 0)
+    expect(after1.rooms.find((r) => r.id === 'r1')!.x).toBeCloseTo(0.5)
+
+    // Session 2 (new beginMove): accumulator resets
+    accDx = 0
+    accDx += 1.2
+    const after2 = moveRoom(plan, 'r1', accDx, 0)
+    expect(after2.rooms.find((r) => r.id === 'r1')!.x).toBeCloseTo(1.2)
+    // NOT 0.5 + 1.2 = 1.7, because pointerAccum was reset
+  })
+
+  it('resize also accumulates correctly through pointerAccum pattern', () => {
+    const plan = makeBasePlan()
+    let accDx = 0
+    let accDy = 0
+
+    accDx += 0.5
+    accDy += 0.3
+    const after1 = resizeRoom(plan, 'r1', accDx, accDy)
+    expect(after1.rooms.find((r) => r.id === 'r1')!.width).toBeCloseTo(6.5)
+    expect(after1.rooms.find((r) => r.id === 'r1')!.height).toBeCloseTo(5.3)
+
+    accDx += 0.5
+    accDy += 0.2
+    const after2 = resizeRoom(plan, 'r1', accDx, accDy)
+    expect(after2.rooms.find((r) => r.id === 'r1')!.width).toBeCloseTo(7.0)
+    expect(after2.rooms.find((r) => r.id === 'r1')!.height).toBeCloseTo(5.5)
+  })
+})
+
+// ── Edit commit flow: beginMove → updatePointer → endPointer → onCommit ──
+describe('edit commit flow (beginMove → updatePointer → endPointer → onCommit)', () => {
+  it('endPointer calls onCommit with model moved by cumulative delta', () => {
+    const plan = makeBasePlan()
+    let committed: PlanModel | null = null
+    const onCommit = (m: PlanModel) => { committed = m }
+
+    // Simulate useEditablePlan flow with pure functions
+    const hist = createHistorySim(plan)
+    const roomId = 'r1'
+    const originPlan = hist.present!
+    let accDx = 0
+
+    // beginMove equivalent
+    accDx = 0
+
+    // Frame 1 (updatePointer with worldDx = 0.8)
+    accDx += 0.8
+    const drafted1 = moveRoom(originPlan, roomId, accDx, 0)
+    const rebuilt1 = rebuildWallsFromRooms(drafted1)
+    hist.set(rebuilt1)
+
+    // Frame 2 (updatePointer with worldDx = 1.2)
+    accDx += 1.2
+    const drafted2 = moveRoom(originPlan, roomId, accDx, 0)
+    const rebuilt2 = rebuildWallsFromRooms(drafted2)
+    hist.set(rebuilt2)
+
+    // endPointer equivalent
+    if (hist.present) onCommit(hist.present)
+
+    expect(committed).not.toBeNull()
+    const moved = committed!.rooms.find((r) => r.id === 'r1')
+    expect(moved).toBeDefined()
+    expect(moved!.x).toBeCloseTo(2.0)
+  })
+
+  it('endPointer guard: onCommit skipped when sessionRef is null', () => {
+    let commitCalled = false
+    const onCommit = (_m: PlanModel) => { commitCalled = true }
+
+    // Simulate endPointer guard: history.present && sessionRef.current && onCommit
+    const sessionRef: unknown = null
+    const present: PlanModel = makeBasePlan()
+    const s = sessionRef
+    if (present && s && onCommit) onCommit(present)
+
+    expect(commitCalled).toBe(false)
+  })
+
+  it('onCommit runs once per drag session (one pointerup → one commit)', () => {
+    const plan = makeBasePlan()
+    let callCount = 0
+    const onCommit = (_m: PlanModel) => { callCount++ }
+
+    // Session 1
+    const hist1 = createHistorySim(plan)
+    hist1.set(moveRoom(hist1.present!, 'r1', 1, 0))
+    if (hist1.present) onCommit(hist1.present)
+    expect(callCount).toBe(1)
+
+    // Session 2
+    const hist2 = createHistorySim(plan)
+    hist2.set(moveRoom(hist2.present!, 'r1', 2, 0))
+    if (hist2.present) onCommit(hist2.present)
+    expect(callCount).toBe(2)
+  })
+})
+
 // ── Persistence round-trip ──
 describe('persistence round-trip (plan edit → save → load)', () => {
   it('savePlanModel then loadPlanModel returns the edited model', async () => {

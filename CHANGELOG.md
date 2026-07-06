@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+### Sprint 67B — Fixed live 2D editing: pointer capture moved from room rects to SVG root (data-attribute routing), replaced unreliable movementX/movementY with absolute clientX/Y deltas (frame-independent under capture), added on-screen debug readout. Edits now actualy drag/resize without orphaned captures.
+
 ### Sprint 67 — Reliable 2D room editing (cumulative-delta drag fix, pointer-capture pan/edit disambiguation, selection outline + 8 resize handles, undo/redo timeline); edits flow to all drawings + 3D and persist to IndexedDB.
 
 ### Sprint 65 — A1 sheet Floor Plan cell now renders white-paper CAD; fixed elevation opening projection (doors to ground, windows at sill, correct spacing, front/side filtering)

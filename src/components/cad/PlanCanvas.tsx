@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { DesignOption } from '../../domain/boq'
 import type { PlanModel, RoomRect, WallSegment } from '../../domain/plan'
 import { generatePlanModel } from '../../engine/plan-generator'
@@ -45,6 +45,9 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
     },
   )
 
+  const lastPointer = useRef({ x: 0, y: 0 })
+  const [debugInfo, setDebugInfo] = useState({ mode: '', roomId: '', dx: 0, dy: 0 })
+
   if (!design || !model) {
     return (
       <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-slate-300">
@@ -62,6 +65,49 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
   const tx = padding + view.panX
   const ty = padding + view.panY
   const toWorldDelta = (dx: number, dy: number) => ({ dx: dx / scale, dy: dy / scale })
+
+  function handleSvgPointerDown(event: React.PointerEvent<SVGSVGElement>) {
+    const svg = event.currentTarget as Element
+    svg.setPointerCapture(event.pointerId)
+    lastPointer.current = { x: event.clientX, y: event.clientY }
+
+    const target = event.target as Element | null
+    const roomEl = target?.closest('[data-room-id]') as Element | null
+    const roomId = roomEl?.getAttribute('data-room-id')
+
+    if (roomId) {
+      const isResize = roomEl?.getAttribute('data-resize') === 'true'
+      if (isResize) {
+        beginResize(roomId, event.clientX, event.clientY)
+      } else {
+        beginMove(roomId, event.clientX, event.clientY)
+      }
+      setDebugInfo({ mode: isResize ? 'resize' : 'move', roomId, dx: 0, dy: 0 })
+    } else {
+      setSelectedRoomId(null)
+      onPointerDown(event.clientX, event.clientY)
+      setDebugInfo({ mode: 'pan', roomId: '', dx: 0, dy: 0 })
+    }
+  }
+
+  function handleSvgPointerMove(event: React.PointerEvent<SVGSVGElement>) {
+    const dx = event.clientX - lastPointer.current.x
+    const dy = event.clientY - lastPointer.current.y
+    lastPointer.current = { x: event.clientX, y: event.clientY }
+
+    onPointerMove(event.clientX, event.clientY)
+    if (activeMode !== 'idle') {
+      const world = toWorldDelta(dx, dy)
+      updatePointer(world.dx, world.dy)
+      setDebugInfo((prev) => ({ ...prev, dx: prev.dx + world.dx, dy: prev.dy + world.dy }))
+    }
+  }
+
+  function handleSvgPointerUp() {
+    onPointerUp()
+    endPointer()
+    setDebugInfo({ mode: '', roomId: '', dx: 0, dy: 0 })
+  }
 
   return (
     <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
@@ -83,31 +129,16 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-950/80">
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950/80">
         <svg
           viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
           className="block h-auto w-full cursor-grab active:cursor-grabbing"
           role="img"
           aria-label={`2D floor plan for ${design.name}`}
-          onPointerDown={(event) => {
-            onPointerDown(event.clientX, event.clientY)
-            setSelectedRoomId(null)
-          }}
-          onPointerMove={(event) => {
-            onPointerMove(event.clientX, event.clientY)
-            const movementX = 'movementX' in event ? event.movementX : 0
-            const movementY = 'movementY' in event ? event.movementY : 0
-            const delta = toWorldDelta(movementX, movementY)
-            updatePointer(delta.dx, delta.dy)
-          }}
-          onPointerUp={() => {
-            onPointerUp()
-            endPointer()
-          }}
-          onPointerLeave={() => {
-            onPointerUp()
-            endPointer()
-          }}
+          onPointerDown={handleSvgPointerDown}
+          onPointerMove={handleSvgPointerMove}
+          onPointerUp={handleSvgPointerUp}
+          onPointerLeave={handleSvgPointerUp}
         >
           <defs>
             <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
@@ -122,8 +153,6 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
                 key={room.id}
                 room={room}
                 selected={selectedRoomId === room.id}
-                onMoveStart={beginMove}
-                onResizeStart={beginResize}
               />
             ))}
 
@@ -144,6 +173,15 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
             <text x={0} y={16} fill="#94a3b8" fontSize="11">Dimensions in metres</text>
           </g>
         </svg>
+
+        {activeMode !== 'idle' && (
+          <div className="pointer-events-none absolute bottom-2 right-2 flex items-center gap-3 rounded border border-slate-700/50 bg-slate-900/80 px-3 py-1.5 text-[10px] text-slate-400">
+            <span>{debugInfo.mode}</span>
+            <span>room: {debugInfo.roomId.slice(0, 8)}</span>
+            <span>dx: {debugInfo.dx.toFixed(3)}</span>
+            <span>dy: {debugInfo.dy.toFixed(3)}</span>
+          </div>
+        )}
       </div>
 
       <TimelinePanel timeline={timeline} onUndo={undo} onRedo={redo} activeMode={activeMode} />
@@ -202,20 +240,10 @@ const HANDLE = 0.2
 function EditableRoom({
   room,
   selected,
-  onMoveStart,
-  onResizeStart,
 }: {
   room: RoomRect
   selected: boolean
-  onMoveStart: (roomId: string, x: number, y: number) => void
-  onResizeStart: (roomId: string, x: number, y: number) => void
 }) {
-  const cap = (event: React.PointerEvent, cb: () => void) => {
-    event.stopPropagation()
-    ;(event.currentTarget as Element).setPointerCapture(event.pointerId)
-    cb()
-  }
-
   return (
     <g>
       {selected && (
@@ -240,26 +268,26 @@ function EditableRoom({
         fillOpacity={selected ? 0.28 : 0.18}
         stroke={selected ? '#67e8f9' : 'rgba(255,255,255,0.16)'}
         strokeWidth={selected ? 0.08 : 0.04}
-        onPointerDown={(event) => cap(event, () => onMoveStart(room.id, event.clientX, event.clientY))}
+        data-room-id={room.id}
       />
       {selected && (
         <>
           <rect x={room.x - HANDLE / 2} y={room.y - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="nwse-resize"
-            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+            data-room-id={room.id} data-resize="true" />
           <rect x={room.x + room.width / 2 - HANDLE / 2} y={room.y - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="ns-resize"
-            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+            data-room-id={room.id} data-resize="true" />
           <rect x={room.x + room.width - HANDLE / 2} y={room.y - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="nesw-resize"
-            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+            data-room-id={room.id} data-resize="true" />
           <rect x={room.x - HANDLE / 2} y={room.y + room.height / 2 - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="ew-resize"
-            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+            data-room-id={room.id} data-resize="true" />
           <rect x={room.x + room.width - HANDLE / 2} y={room.y + room.height / 2 - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="ew-resize"
-            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+            data-room-id={room.id} data-resize="true" />
           <rect x={room.x - HANDLE / 2} y={room.y + room.height - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="nesw-resize"
-            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+            data-room-id={room.id} data-resize="true" />
           <rect x={room.x + room.width / 2 - HANDLE / 2} y={room.y + room.height - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="ns-resize"
-            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+            data-room-id={room.id} data-resize="true" />
           <rect x={room.x + room.width - HANDLE / 2} y={room.y + room.height - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="nwse-resize"
-            onPointerDown={(event) => cap(event, () => onResizeStart(room.id, event.clientX, event.clientY))} />
+            data-room-id={room.id} data-resize="true" />
         </>
       )}
     </g>
