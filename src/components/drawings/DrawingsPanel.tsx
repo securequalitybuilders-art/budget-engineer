@@ -8,6 +8,9 @@ import { SitePlanView } from '@/components/drawings/SitePlanView'
 import { FoundationPlanView } from '@/components/drawings/FoundationPlanView'
 import { RoofPlanView } from '@/components/drawings/RoofPlanView'
 import { CeilingPlanView } from '@/components/drawings/CeilingPlanView'
+import { ElectricalPlanView } from '@/components/drawings/ElectricalPlanView'
+import { PlumbingPlanView } from '@/components/drawings/PlumbingPlanView'
+import { HvacPlanView } from '@/components/drawings/HvacPlanView'
 import {
   computeFrontElevation,
   computeSideElevation,
@@ -18,7 +21,7 @@ import {
   ROOF_PITCH_HEIGHT,
 } from '@/adapters/planTo3d'
 
-type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'front' | 'side' | 'section'
+type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'side' | 'section'
 
 const TABS: { id: DrawingTab; label: string }[] = [
   { id: 'plan', label: 'Plan' },
@@ -26,6 +29,9 @@ const TABS: { id: DrawingTab; label: string }[] = [
   { id: 'foundation', label: 'Foundation' },
   { id: 'roof', label: 'Roof Plan' },
   { id: 'ceiling', label: 'Ceiling (RCP)' },
+  { id: 'electrical', label: 'Electrical' },
+  { id: 'plumbing', label: 'Plumbing' },
+  { id: 'hvac', label: 'HVAC' },
   { id: 'front', label: 'Front Elevation' },
   { id: 'side', label: 'Side Elevation' },
   { id: 'section', label: 'Section A-A' },
@@ -98,6 +104,15 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
       )}
       {activeTab === 'ceiling' && (
         <CeilingPlanView activePlan={activePlan} />
+      )}
+      {activeTab === 'electrical' && (
+        <ElectricalPlanView activePlan={activePlan} />
+      )}
+      {activeTab === 'plumbing' && (
+        <PlumbingPlanView activePlan={activePlan} />
+      )}
+      {activeTab === 'hvac' && (
+        <HvacPlanView activePlan={activePlan} />
       )}
       {activeTab === 'front' && (
         <ElevationView

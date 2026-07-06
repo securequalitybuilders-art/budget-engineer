@@ -1,4 +1,7 @@
+// @vitest-environment jsdom
 import { describe, it, expect } from 'vitest'
+import { render } from '@testing-library/react'
+import React from 'react'
 import type { ReactNode } from 'react'
 import type { PlanModel } from '@/domain/plan'
 import { metresToMm } from '@/components/drawings/cadConstants'
@@ -15,6 +18,9 @@ import { RoofPlanView } from '@/components/drawings/RoofPlanView'
 import { renderRoofPlan } from '@/components/drawings/roofPlanModel'
 import { CeilingPlanView } from '@/components/drawings/CeilingPlanView'
 import { renderCeilingPlan } from '@/components/drawings/ceilingPlanModel'
+import { ElectricalPlanView } from '@/components/drawings/ElectricalPlanView'
+import { PlumbingPlanView } from '@/components/drawings/PlumbingPlanView'
+import { HvacPlanView } from '@/components/drawings/HvacPlanView'
 
 function makePlan(overrides?: Partial<PlanModel>): PlanModel {
   return {
@@ -456,6 +462,57 @@ describe('CeilingPlanView', () => {
     expect(northCount).toBe(1)
     const scaleCount = sheet!.elements ? countByPrefix(sheet!.elements, 'scale-bar') : 0
     expect(scaleCount).toBe(1)
+  })
+})
+
+describe('ElectricalPlanView', () => {
+  it('is a function', () => {
+    expect(typeof ElectricalPlanView).toBe('function')
+  })
+
+  it('renders safe fallback on null plan', () => {
+    const { container } = render(React.createElement(ElectricalPlanView, { activePlan: null }))
+    expect(container.textContent).toMatch(/unavailable|no .* data/i)
+  })
+
+  it('renders title and symbols with a valid plan', () => {
+    const { container } = render(React.createElement(ElectricalPlanView, { activePlan: makePlan() }))
+    expect(container.textContent).toMatch(/ELECTRICAL LAYOUT/i)
+    expect(container.textContent).toMatch(/light|socket|switch|distribution/i)
+  })
+})
+
+describe('PlumbingPlanView', () => {
+  it('is a function', () => {
+    expect(typeof PlumbingPlanView).toBe('function')
+  })
+
+  it('renders safe fallback on null plan', () => {
+    const { container } = render(React.createElement(PlumbingPlanView, { activePlan: null }))
+    expect(container.textContent).toMatch(/unavailable|no .* data/i)
+  })
+
+  it('renders title and symbols with a valid plan', () => {
+    const { container } = render(React.createElement(PlumbingPlanView, { activePlan: makePlan() }))
+    expect(container.textContent).toMatch(/PLUMBING/i)
+    expect(container.textContent).toMatch(/WC|basin|drain|stack/i)
+  })
+})
+
+describe('HvacPlanView', () => {
+  it('is a function', () => {
+    expect(typeof HvacPlanView).toBe('function')
+  })
+
+  it('renders safe fallback on null plan', () => {
+    const { container } = render(React.createElement(HvacPlanView, { activePlan: null }))
+    expect(container.textContent).toMatch(/unavailable|no .* data/i)
+  })
+
+  it('renders title and symbols with a valid plan', () => {
+    const { container } = render(React.createElement(HvacPlanView, { activePlan: makePlan() }))
+    expect(container.textContent).toMatch(/HVAC/i)
+    expect(container.textContent).toMatch(/supply|return|FCU/i)
   })
 })
 
