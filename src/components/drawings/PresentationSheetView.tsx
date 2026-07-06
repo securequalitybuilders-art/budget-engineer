@@ -4,6 +4,7 @@ import type { DesignOption } from '@/domain/boq'
 import { computePresentationLayout, type CellRect } from '@/components/drawings/presentationSheetModel'
 import { renderRoofPlan } from '@/components/drawings/roofPlanModel'
 import { renderCeilingPlan } from '@/components/drawings/ceilingPlanModel'
+import { renderFloorPlanSheet } from '@/components/drawings/planSheetModel'
 import { computeFrontElevation, computeSideElevation, computeSection, type ElevationDrawing } from '@/adapters/planToElevations'
 import { renderSectionSheet } from '@/components/drawings/sectionModel'
 import {
@@ -188,7 +189,9 @@ function renderCellContent(
       return embedSectionDrawing(drawing, plan, floors, storeyHeight, pitchHeight, cell, innerW, innerH, pad)
     }
     case 'floor-plan': {
-      return embedFloorPlan(plan, cell, innerW, innerH, pad)
+      const rendered = renderFloorPlanSheet(plan)
+      if (!rendered) return null
+      return embedSheetDrawing(rendered.elements, rendered.sheetW, rendered.sheetH, cell, innerW, innerH, pad, 'FLOOR PLAN')
     }
     case 'site-plan': {
       const rendered = renderSimpleDrawing(plan, 'Site Plan')
@@ -296,71 +299,6 @@ function embedSectionDrawing(
   const rendered = renderSectionSheet(drawing, plan, floors, storeyHeight, pitchHeight)
   if (!rendered) return null
   return embedSheetDrawing(rendered.elements, rendered.sheetW, rendered.sheetH, cell, innerW, innerH, pad, 'SECTION A-A')
-}
-
-function embedFloorPlan(
-  plan: PlanModel,
-  cell: CellRect,
-  innerW: number,
-  innerH: number,
-  pad: number,
-): ReactNode[] {
-  const bw = plan.width
-  const bh = plan.height
-  if (bw <= 0 || bh <= 0) return [renderFallbackCell(cell)]
-
-  const scale = Math.min(innerW / bw, innerH / bh) * 0.85
-  const offsetX = cell.x + pad + (innerW - bw * scale) / 2
-  const offsetY = cell.y + pad + (innerH - bh * scale) / 2
-
-  const els: ReactNode[] = []
-  const groupEls: ReactNode[] = []
-
-  groupEls.push(
-    <rect key="bg" x={-0.5} y={-0.5} width={bw + 1} height={bh + 1} fill={PAPER} stroke="none" />,
-  )
-
-  for (const wall of plan.walls) {
-    const wl = Math.hypot(wall.end.x - wall.start.x, wall.end.y - wall.start.y)
-    if (wl < 0.01) continue
-    const cx = (wall.start.x + wall.end.x) / 2
-    const cy = (wall.start.y + wall.end.y) / 2
-    const wallThk = wall.thickness || plan.wallThickness || 0.23
-    const angle = Math.atan2(wall.end.y - wall.start.y, wall.end.x - wall.start.x)
-
-    groupEls.push(
-      <rect
-        key={`w-${wall.id}`}
-        x={cx - wl / 2}
-        y={cy - wallThk / 2}
-        width={wl}
-        height={wallThk}
-        fill={PAPER}
-        stroke={INK}
-        strokeWidth={CAD_MEDIUM}
-        transform={`rotate(${-angle * (180 / Math.PI)}, ${cx}, ${cy})`}
-      />,
-    )
-  }
-
-  for (const room of plan.rooms) {
-    const cx = room.x + room.width / 2
-    const cy = room.y + room.height / 2
-    groupEls.push(
-      <text key={`room-${room.id}`} x={cx} y={cy} fontSize={0.18} fill={INK} fontFamily="system-ui, sans-serif" textAnchor="middle" dominantBaseline="central" opacity={0.7}>
-        {room.name}
-      </text>,
-    )
-  }
-
-  els.push(
-    <g key="floor-plan-drawing" transform={`translate(${offsetX}, ${offsetY}) scale(${scale})`}>
-      {groupEls}
-    </g>,
-  )
-
-  els.push(renderCaption(cell, 'FLOOR PLAN'))
-  return els
 }
 
 function renderSimpleDrawing(plan: PlanModel, _title: string): { sheetW: number; sheetH: number; elements: ReactNode } | null {

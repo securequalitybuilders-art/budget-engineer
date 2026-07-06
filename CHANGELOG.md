@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+### Sprint 65 — A1 sheet Floor Plan cell now renders white-paper CAD; fixed elevation opening projection (doors to ground, windows at sill, correct spacing, front/side filtering)
+
 ## [0.4.0] - 2026-07-06
 
 ### Professional Drawings Phase — 11 Drawing Types + A1 Presentation Sheet + PDF/PNG Export

@@ -208,6 +208,73 @@ describe('emptyDrawing', () => {
   })
 })
 
+describe('opening positioning — front elevation', () => {
+  it('door rect bottom equals ground line and height ≈ 2.1', () => {
+    const plan = makePlan()
+    const result = computeFrontElevation(plan, 1)
+    const svgH = Number(result!.viewBox.split(' ')[3])
+    const groundY = svgH - 2
+
+    const doorRects = result!.rects.filter(r => r.fill === 'rgba(245,158,11,0.18)')
+    expect(doorRects.length).toBeGreaterThanOrEqual(1)
+    for (const dr of doorRects) {
+      expect(dr.y + dr.h).toBeCloseTo(groundY, 1)
+      expect(dr.h).toBeCloseTo(2.1, 1)
+    }
+  })
+
+  it('window rect bottom at sill height (groundY − 0.9) and height ≈ 1.5', () => {
+    const plan = makePlan()
+    const result = computeFrontElevation(plan, 1)
+    const svgH = Number(result!.viewBox.split(' ')[3])
+    const groundY = svgH - 2
+
+    const windowRects = result!.rects.filter(r => r.fill === 'rgba(56,189,248,0.18)')
+    expect(windowRects.length).toBeGreaterThanOrEqual(1)
+    for (const wr of windowRects) {
+      expect(wr.y + wr.h).toBeCloseTo(groundY - 0.9, 1)
+      expect(wr.h).toBeCloseTo(1.5, 1)
+    }
+  })
+
+  it('projected openings do not overlap', () => {
+    const plan = makePlan()
+    const result = computeFrontElevation(plan, 2)
+    const rects = result!.rects
+    for (let i = 0; i < rects.length; i++) {
+      for (let j = i + 1; j < rects.length; j++) {
+        const a = rects[i]
+        const b = rects[j]
+        const yOverlap = a.y < b.y + b.h && b.y < a.y + a.h
+        if (!yOverlap) continue
+        const xOverlap = a.x < b.x + b.w && b.x < a.x + a.w
+        expect(xOverlap).toBe(false)
+      }
+    }
+  })
+
+  it('only front-wall openings appear in front elevation', () => {
+    const plan = makePlan()
+    const result = computeFrontElevation(plan, 2)
+    // w-bottom has 2 openings → 2 rects per floor × 2 floors = 4
+    expect(result!.rects.length).toBe(4)
+    for (const r of result!.rects) {
+      // All rects should be within the building X range
+      expect(r.x).toBeGreaterThanOrEqual(2) // PADDING
+      expect(r.x + r.w).toBeLessThanOrEqual(2 + plan.width + 0.01)
+    }
+  })
+})
+
+describe('opening positioning — side elevation', () => {
+  it('only side-wall openings appear in side elevation', () => {
+    const plan = makePlan()
+    const result = computeSideElevation(plan, 2)
+    // w-right has 1 opening → 1 rect per floor × 2 floors = 2
+    expect(result!.rects.length).toBe(2)
+  })
+})
+
 describe('multi-storey openings', () => {
   it('front elevation has openings × floors', () => {
     const plan = makePlan()

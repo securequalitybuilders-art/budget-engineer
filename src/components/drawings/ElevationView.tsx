@@ -129,21 +129,18 @@ function renderCadSheet(
 
   // ── Openings from drawing data ──
   const vbParts = drawing.viewBox.split(' ').map(Number)
-  const drawWorldLeft = vbParts[0]
-  const drawWorldTop = vbParts[1]
-  const drawWorldW = vbParts[2]
   const drawWorldH = vbParts[3]
+  // planToElevations uses PADDING=2 on all sides of the viewBox.
+  // Derive it from the difference between viewBox height and actual building height.
+  const PADDING = (drawWorldH - totalH) / 2
+  const groundViewBoxY = vbParts[1] + drawWorldH - PADDING
 
   for (const rect of drawing.rects) {
-    const oxx = (v: number) => ox + ((v - drawWorldLeft) / drawWorldW) * s(bw)
-    const oyy = (v: number) => oy - ((v - drawWorldTop) / drawWorldH) * s(totalH)
+    const irx = ox + ((rect.x - PADDING) / bw) * s(bw)
+    const iry = oy - ((groundViewBoxY - rect.y) / totalH) * s(totalH)
+    const irw = s(rect.w)
+    const irh = s(rect.h)
 
-    const irx = oxx(rect.x)
-    const iry = oyy(rect.y)
-    const irw = (rect.w / drawWorldW) * s(bw)
-    const irh = (rect.h / drawWorldH) * s(totalH)
-
-    // Window rects get a subtle cyan glass fill so they read as openings
     const isWindow = rect.fill === undefined || rect.fill === MATERIAL.glass.fill
     elements.push(
       <rect

@@ -5,6 +5,7 @@ import React from 'react'
 import type { PlanModel } from '@/domain/plan'
 import { computePresentationLayout } from '@/components/drawings/presentationSheetModel'
 import { PresentationSheetView } from '@/components/drawings/PresentationSheetView'
+import { renderFloorPlanSheet } from '@/components/drawings/planSheetModel'
 import { serializeSvg } from '@/adapters/sheetExport'
 
 function makePlan(overrides?: Partial<PlanModel>): PlanModel {
@@ -150,5 +151,59 @@ describe('serializeSvg', () => {
     expect(result).not.toBeNull()
     expect(result).toContain('<svg')
     expect(result).toContain('viewBox')
+  })
+})
+
+describe('renderFloorPlanSheet', () => {
+  it('renders white paper background', () => {
+    const plan = makePlan()
+    const result = renderFloorPlanSheet(plan)
+    expect(result).not.toBeNull()
+    // First element should be background rect with PAPER fill
+    const bgRect = React.Children.toArray(result!.elements)[0] as React.ReactElement
+    expect(bgRect.type).toBe('rect')
+    expect(bgRect.props.fill).toBe('#ffffff')
+  })
+
+  it('includes at least one room name label', () => {
+    const plan = makePlan()
+    const result = renderFloorPlanSheet(plan)
+    expect(result).not.toBeNull()
+    const textEls = React.Children.toArray(result!.elements).filter(
+      (el) => React.isValidElement(el) && el.type === 'text',
+    )
+    const texts = textEls.map(el => (el as React.ReactElement).props.children).join(' ')
+    expect(texts).toContain('Living')
+    expect(texts).toContain('Kitchen')
+  })
+
+  it('renders walls with PAPER fill and INK stroke', () => {
+    const plan = makePlan()
+    const result = renderFloorPlanSheet(plan)
+    expect(result).not.toBeNull()
+    const rectEls = React.Children.toArray(result!.elements).filter(
+      (el) => React.isValidElement(el) && el.type === 'rect',
+    )
+    // Wall rects have fill=PAPER and stroke=INK
+    const wallRects = rectEls.slice(1).filter(el => {
+      const props = (el as React.ReactElement).props
+      return props.fill === '#ffffff' && props.stroke === '#1a1a1a'
+    })
+    expect(wallRects.length).toBeGreaterThanOrEqual(plan.walls.length)
+  })
+
+  it('includes north arrow group', () => {
+    const plan = makePlan()
+    const result = renderFloorPlanSheet(plan)
+    expect(result).not.toBeNull()
+    const gEls = React.Children.toArray(result!.elements).filter(
+      (el) => React.isValidElement(el) && el.type === 'g',
+    )
+    expect(gEls.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('returns null for zero-dimension plan', () => {
+    expect(renderFloorPlanSheet(makePlan({ width: 0 }))).toBeNull()
+    expect(renderFloorPlanSheet(makePlan({ height: 0 }))).toBeNull()
   })
 })
