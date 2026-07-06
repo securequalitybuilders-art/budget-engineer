@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+### Sprint 53 — Enterprise Design Calculators (TS Ports)
+
+**Additive (non-breaking):** Ported 7 enterprise architectural/engineering calculators from MIT-licensed Python references to pure TypeScript. No UI yet (Sprint 54). All calculators are deterministic, locally runnable, and safe on bad input.
+
+**New files:**
+- **`src/engine/calculators/areaSchedule.ts`** — `computeAreaSchedule(rooms, grossFloorArea?)` → gross floor area, net usable, circulation %, efficiency ratio. Reuses pre-computed room areas; accepts optional explicit GFA.
+- **`src/engine/calculators/uValue.ts`** — `computeUValue(layers, target?)` → U-value (W/m²K) from material layers + Rsi/Rso (ISO 6946). Flags against target.
+- **`src/engine/calculators/daylight.ts`** — `estimateDaylightFactor(input, targetDF?)` → average daylight factor % (BRE formula). Flags rooms below 2%. Formula: DF = (W × θ × τ × M) / (A × (1−R²)).
+- **`src/engine/calculators/egress.ts`** — `computeOccupancyAndEgress(input)` → occupant load (IBC 2018 factors), exit width, number of exits, travel distance check.
+- **`src/engine/calculators/structuralLoad.ts`** — `computeGravityLoads(input)` → dead + live load (kN/m², total kN) per IBC/ASCE 7 defaults. Outputs flagged as PRELIMINARY.
+- **`src/engine/calculators/energyDemand.ts`** — `estimateEnergyDemand(input)` → annual heating/cooling (kWh, kWh/m²/yr) via degree-day envelope method.
+- **`src/engine/calculators/costEstimate.ts`** — `estimateCost(input)` → thin wrapper reusing `buildBoqFromDesignOption` + `getCostPerM2`. No BOQ duplication.
+
+**Reused existing logic:**
+- `areaSchedule` accepts pre-computed `room.area` values (uses `PlanModel` / `GeneratedRoom` area, not a second formula)
+- `costEstimate` calls `buildBoqFromDesignOption` and `getCostPerM2` directly — zero BOQ engine duplication
+- `egress` accepts `RoomAreaInput[]` compatible with existing `GeneratedRoom[]`
+
+**Attributions:** Added `ATTRIBUTIONS.md` crediting MIT repos `Skills-Architects` and `Claude-skills-for-Computational-Designers`.
+
+**Validation:** 541 tests pass (512 old + 29 new), 0 typecheck errors, 0 lint errors (9 warnings baseline), build succeeds. Code-split intact.
+
 ### Sprint 52 — Accessibility & SEO Fixes (Lighthouse Audit)
 
 **Non-breaking:** Fixed real Accessibility (84→94+) and SEO (85→98+) issues found by Lighthouse production audit. All changes are cosmetic or additive — no feature logic changed.
