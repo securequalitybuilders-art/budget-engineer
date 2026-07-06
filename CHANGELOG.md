@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-### Sprint 67B — Fixed live 2D editing: pointer capture moved from room rects to SVG root (data-attribute routing), replaced unreliable movementX/movementY with absolute clientX/Y deltas (frame-independent under capture), added on-screen debug readout. Edits now actualy drag/resize without orphaned captures.
+### Sprint 68 — Editor: add/delete rooms (auto wall rebuild, dangling-opening cleanup, undo/redo, persistence); guarded against deleting the last room.
+
+### Sprint 67B — Fixed live 2D editing: pointer capture moved from room rects to SVG root (data-attribute routing), replaced unreliable movementX/movementY with absolute clientX/Y deltas (frame-independent under capture), added on-screen debug readout. Edits now actually drag/resize without orphaned captures.
 
 ### Sprint 67 — Reliable 2D room editing (cumulative-delta drag fix, pointer-capture pan/edit disambiguation, selection outline + 8 resize handles, undo/redo timeline); edits flow to all drawings + 3D and persist to IndexedDB.
 

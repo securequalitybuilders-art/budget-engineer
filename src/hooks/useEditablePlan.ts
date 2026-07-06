@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { PlanModel } from '../domain/plan'
+import type { PlanModel, RoomRect } from '../domain/plan'
 import { moveRoom, resizeRoom } from '../lib/geometry/plan-transforms'
 import { rebuildWallsFromRooms } from '../lib/geometry/plan-topology'
 import { constrainRoom, hasCollision } from '../lib/geometry/plan-constraints'
@@ -13,6 +13,32 @@ interface PointerSession {
   startY: number
   originPlan: PlanModel
   mode: EditMode
+}
+
+const DEFAULT_ROOM_SIZE = 3.0
+
+function pickNonCollidingPosition(plan: PlanModel): { x: number; y: number } {
+  const cx = (plan.width - DEFAULT_ROOM_SIZE) / 2
+  const cy = (plan.height - DEFAULT_ROOM_SIZE) / 2
+  const offsets = [
+    { x: cx, y: cy },
+    { x: cx - 1, y: cy - 1 },
+    { x: cx + 1, y: cy + 1 },
+    { x: cx - 1, y: cy + 1 },
+    { x: cx + 1, y: cy - 1 },
+    { x: cx + 2, y: cy },
+    { x: cx - 2, y: cy },
+    { x: cx, y: cy + 2 },
+    { x: cx, y: cy - 2 },
+  ]
+  for (const pos of offsets) {
+    const candidate: RoomRect = { id: '', name: '', x: pos.x, y: pos.y, width: DEFAULT_ROOM_SIZE, height: DEFAULT_ROOM_SIZE }
+    const constrained = constrainRoom(candidate, plan)
+    if (!hasCollision(constrained, plan.rooms)) {
+      return { x: constrained.x, y: constrained.y }
+    }
+  }
+  return { x: cx, y: cy }
 }
 
 export function useEditablePlan(baseModel: PlanModel | null, persistedModel: PlanModel | null, onCommit?: (model: PlanModel) => void) {
@@ -68,6 +94,39 @@ export function useEditablePlan(baseModel: PlanModel | null, persistedModel: Pla
     setActiveMode('idle')
   }
 
+  const addRoom = (name?: string) => {
+    try {
+      const plan = history.present
+      if (!plan) return
+      const id = crypto.randomUUID()
+      const roomName = name ?? `Room ${plan.rooms.length + 1}`
+      const pos = pickNonCollidingPosition(plan)
+      const newRoom = constrainRoom({ id, name: roomName, x: pos.x, y: pos.y, width: DEFAULT_ROOM_SIZE, height: DEFAULT_ROOM_SIZE }, plan)
+      const nextPlan: PlanModel = { ...plan, rooms: [...plan.rooms, newRoom] }
+      const rebuilt = rebuildWallsFromRooms(nextPlan)
+      history.set(rebuilt)
+      setSelectedRoomId(id)
+      if (onCommit) onCommit(rebuilt)
+    } catch (e) {
+      console.error('addRoom failed:', e)
+    }
+  }
+
+  const deleteRoom = (roomId: string) => {
+    try {
+      const plan = history.present
+      if (!plan) return
+      if (plan.rooms.length <= 1) return
+      const nextPlan: PlanModel = { ...plan, rooms: plan.rooms.filter((r) => r.id !== roomId) }
+      const rebuilt = rebuildWallsFromRooms(nextPlan)
+      history.set(rebuilt)
+      if (selectedRoomId === roomId) setSelectedRoomId(null)
+      if (onCommit) onCommit(rebuilt)
+    } catch (e) {
+      console.error('deleteRoom failed:', e)
+    }
+  }
+
   return {
     model: history.present,
     selectedRoomId,
@@ -76,6 +135,8 @@ export function useEditablePlan(baseModel: PlanModel | null, persistedModel: Pla
     beginResize,
     updatePointer,
     endPointer,
+    addRoom,
+    deleteRoom,
     activeMode,
     timeline: { past: history.past, future: history.future },
     undo: history.undo,

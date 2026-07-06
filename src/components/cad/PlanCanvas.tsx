@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { DesignOption } from '../../domain/boq'
 import type { PlanModel, RoomRect, WallSegment } from '../../domain/plan'
 import { generatePlanModel } from '../../engine/plan-generator'
@@ -31,6 +31,8 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
     beginResize,
     updatePointer,
     endPointer,
+    addRoom,
+    deleteRoom,
     activeMode,
     timeline,
     undo,
@@ -47,6 +49,17 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
 
   const lastPointer = useRef({ x: 0, y: 0 })
   const [debugInfo, setDebugInfo] = useState({ mode: '', roomId: '', dx: 0, dy: 0 })
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (document.activeElement && document.activeElement !== document.body) return
+        if (selectedRoomId) deleteRoom(selectedRoomId)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [selectedRoomId, deleteRoom])
 
   if (!design || !model) {
     return (
@@ -121,6 +134,8 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
           <div className="min-w-[72px] text-center text-sm text-slate-300">{Math.round(view.zoom * 100)}%</div>
           <button onClick={zoomIn} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">+</button>
           <button onClick={reset} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">Reset</button>
+          <button onClick={() => addRoom()} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700">+ Room</button>
+          <button onClick={() => selectedRoomId && deleteRoom(selectedRoomId)} disabled={!selectedRoomId} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700 disabled:text-slate-400">− Room</button>
           <button onClick={undo} disabled={!canUndo} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white disabled:text-slate-400">Undo</button>
           <button onClick={redo} disabled={!canRedo} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white disabled:text-slate-400">Redo</button>
           <button onClick={() => downloadTextFile(`${design.name.toLowerCase().replace(/\s+/g, '-')}.json`, exportPlanToMakerJson(model), 'application/json;charset=utf-8')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">Maker JSON</button>

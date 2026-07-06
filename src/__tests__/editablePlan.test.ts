@@ -5,7 +5,7 @@ import { constrainRoom, hasCollision } from '../lib/geometry/plan-constraints'
 import { rebuildWallsFromRooms } from '../lib/geometry/plan-topology'
 import { computeSection } from '../adapters/planToElevations'
 import type { PlanModel, RoomRect } from '../domain/plan'
-import { createSamplePlanModel } from './fixtures/cadFixtures'
+import { createSamplePlanModel, createAlternatePlanModel } from './fixtures/cadFixtures'
 
 // ── Simulate usePlanHistory logic (pure function, no React) ──
 function createHistorySim(initial: PlanModel | null) {
@@ -463,6 +463,214 @@ describe('edit commit flow (beginMove → updatePointer → endPointer → onCom
     hist2.set(moveRoom(hist2.present!, 'r1', 2, 0))
     if (hist2.present) onCommit(hist2.present)
     expect(callCount).toBe(2)
+  })
+})
+
+// ── Shared helpers for addRoom/deleteRoom tests ──
+function pickNonCollidingPositionSim(plan: PlanModel): { x: number; y: number } {
+  const size = 3.0
+  const cx = (plan.width - size) / 2
+  const cy = (plan.height - size) / 2
+  const offsets = [
+    { x: cx, y: cy },
+    { x: cx - 1, y: cy - 1 },
+    { x: cx + 1, y: cy + 1 },
+    { x: cx - 1, y: cy + 1 },
+    { x: cx + 1, y: cy - 1 },
+    { x: cx + 2, y: cy },
+    { x: cx - 2, y: cy },
+    { x: cx, y: cy + 2 },
+    { x: cx, y: cy - 2 },
+  ]
+  for (const pos of offsets) {
+    const candidate: RoomRect = { id: '', name: '', x: pos.x, y: pos.y, width: size, height: size }
+    const constrained = constrainRoom(candidate, plan)
+    if (!hasCollision(constrained, plan.rooms)) {
+      return { x: constrained.x, y: constrained.y }
+    }
+  }
+  return { x: cx, y: cy }
+}
+
+function simulateAddRoom(plan: PlanModel, name?: string): PlanModel {
+  const size = 3.0
+  const id = 'new-room-test'
+  const roomName = name ?? `Room ${plan.rooms.length + 1}`
+  const pos = pickNonCollidingPositionSim(plan)
+  const candidate = { id, name: roomName, x: pos.x, y: pos.y, width: size, height: size }
+  const constrained = constrainRoom(candidate, plan)
+  const next: PlanModel = { ...plan, rooms: [...plan.rooms, constrained] }
+  return rebuildWallsFromRooms(next)
+}
+
+// ── addRoom (simulated pure logic) ──
+describe('addRoom', () => {
+
+  it('adds a room, rooms.length increases by 1, walls rebuilt', () => {
+    const plan = makeBasePlan()
+    const prevCount = plan.rooms.length
+    const next = simulateAddRoom(plan)
+    expect(next.rooms.length).toBe(prevCount + 1)
+    const added = next.rooms.find((r) => r.id === 'new-room-test')
+    expect(added).toBeDefined()
+    expect(added!.width).toBeGreaterThanOrEqual(1.8)
+    expect(added!.height).toBeGreaterThanOrEqual(1.8)
+    expect(added!.x).toBeGreaterThanOrEqual(0)
+    expect(added!.y).toBeGreaterThanOrEqual(0)
+    expect(added!.x + added!.width).toBeLessThanOrEqual(plan.width)
+    expect(added!.y + added!.height).toBeLessThanOrEqual(plan.height)
+    expect(next.walls.length).toBeGreaterThan(0)
+    expect(next.openings.length).toBeGreaterThan(0)
+  })
+
+  it('new room does not collide with existing rooms', () => {
+    const plan = makeBasePlan()
+    const next = simulateAddRoom(plan)
+    const added = next.rooms.find((r) => r.id === 'new-room-test')!
+    const collides = next.rooms.some((r) => r.id !== added.id && hasCollision(added, [r]))
+    expect(collides).toBe(false)
+  })
+
+  it('addRoom calls onCommit with the rebuilt plan', () => {
+    const plan = makeBasePlan()
+    let committed: PlanModel | null = null
+    const onCommit = (m: PlanModel) => { committed = m }
+
+    const next = simulateAddRoom(plan)
+    onCommit(next)
+
+    expect(committed).not.toBeNull()
+    expect(committed!.rooms.length).toBe(plan.rooms.length + 1)
+  })
+})
+
+function simulateDeleteRoom(plan: PlanModel, roomId: string): PlanModel | null {
+  if (plan.rooms.length <= 1) return null
+  const next: PlanModel = { ...plan, rooms: plan.rooms.filter((r) => r.id !== roomId) }
+  return rebuildWallsFromRooms(next)
+}
+
+// ── deleteRoom (simulated pure logic) ──
+describe('deleteRoom', () => {
+
+  it('removes a room, rooms.length decreases by 1, walls rebuilt, no dangling openings', () => {
+    const plan = makeBasePlan()
+    const prevCount = plan.rooms.length
+    const next = simulateDeleteRoom(plan, 'r1')
+    expect(next).not.toBeNull()
+    expect(next!.rooms.length).toBe(prevCount - 1)
+    expect(next!.rooms.find((r) => r.id === 'r1')).toBeUndefined()
+    expect(next!.walls.length).toBeGreaterThan(0)
+    for (const op of next!.openings) {
+      const wallRef = next!.walls.find((w) => w.id === op.wallId)
+      expect(wallRef).toBeDefined()
+    }
+  })
+
+  it('deleteRoom on the LAST remaining room is a no-op (returns null)', () => {
+    const singleRoom = createAlternatePlanModel()
+    expect(singleRoom.rooms.length).toBe(1)
+    const result = simulateDeleteRoom(singleRoom, singleRoom.rooms[0].id)
+    expect(result).toBeNull()
+  })
+
+  it('deleteRoom calls onCommit with the rebuilt plan', () => {
+    const plan = makeBasePlan()
+    let committed: PlanModel | null = null
+    const onCommit = (m: PlanModel) => { committed = m }
+
+    const next = simulateDeleteRoom(plan, 'r1')
+    if (next) onCommit(next)
+
+    expect(committed).not.toBeNull()
+    expect(committed!.rooms.length).toBe(plan.rooms.length - 1)
+  })
+})
+
+// ── addRoom undo/redo ──
+describe('addRoom undo/redo', () => {
+  it('undo after addRoom restores previous room count; redo re-adds', () => {
+    const plan = makeBasePlan()
+    const hist = createHistorySim(plan)
+    const prevCount = hist.present!.rooms.length
+
+    const withRoom = simulateAddRoom(plan, 'Undo Room')
+    hist.set(withRoom)
+    expect(hist.present!.rooms.length).toBe(prevCount + 1)
+
+    // Undo
+    hist.undo()
+    expect(hist.present!.rooms.length).toBe(prevCount)
+    expect(hist.present!.rooms.find((r) => r.id === 'new-room-test')).toBeUndefined()
+
+    // Redo
+    hist.redo()
+    expect(hist.present!.rooms.length).toBe(prevCount + 1)
+    expect(hist.present!.rooms.find((r) => r.id === 'new-room-test')).toBeDefined()
+  })
+})
+
+// ── deleteRoom undo/redo ──
+describe('deleteRoom undo/redo', () => {
+  it('undo after deleteRoom restores the deleted room; redo removes again', () => {
+    const plan = makeBasePlan()
+    const hist = createHistorySim(plan)
+    const prevCount = hist.present!.rooms.length
+
+    // Delete r1
+    const withoutR1: PlanModel = { ...plan, rooms: plan.rooms.filter((r) => r.id !== 'r1') }
+    const rebuilt = rebuildWallsFromRooms(withoutR1)
+    hist.set(rebuilt)
+    expect(hist.present!.rooms.length).toBe(prevCount - 1)
+    expect(hist.present!.rooms.find((r) => r.id === 'r1')).toBeUndefined()
+
+    // Undo
+    hist.undo()
+    expect(hist.present!.rooms.length).toBe(prevCount)
+    expect(hist.present!.rooms.find((r) => r.id === 'r1')).toBeDefined()
+
+    // Redo
+    hist.redo()
+    expect(hist.present!.rooms.length).toBe(prevCount - 1)
+    expect(hist.present!.rooms.find((r) => r.id === 'r1')).toBeUndefined()
+  })
+})
+
+// ── edit-flow: addRoom flows to drawings ──
+describe('edit-flow: addRoom flows to drawings', () => {
+  it('computeSection includes the new room after addRoom', () => {
+    const plan = makeBasePlan()
+    const rebuilt = simulateAddRoom(plan, 'Flow Room')
+
+    const originalSection = computeSection(plan, 1)!
+    const editedSection = computeSection(rebuilt, 1)!
+
+    expect(originalSection).not.toBeNull()
+    expect(editedSection).not.toBeNull()
+    expect(originalSection.rects.length).toBeLessThan(editedSection.rects.length)
+  })
+})
+
+// ── Persistence round-trip with addRoom ──
+describe('persistence round-trip with addRoom', () => {
+  it('savePlanModel then loadPlanModel returns model with added room', async () => {
+    const { savePlanModel, loadPlanModel } = await import('../services/cadPersistenceService')
+    const { db } = await import('../db/db')
+    await db.open()
+
+    try {
+      const plan = makeBasePlan()
+      const rebuilt = simulateAddRoom(plan, 'Persist Room')
+
+      await savePlanModel('proj-add', 'design-add', rebuilt)
+      const loaded = await loadPlanModel('proj-add', 'design-add')
+      expect(loaded).not.toBeNull()
+      expect(loaded!.rooms.length).toBe(plan.rooms.length + 1)
+      const found = loaded!.rooms.find((r) => r.id === 'new-room-test')
+      expect(found).toBeDefined()
+    } finally {
+      db.close()
+    }
   })
 })
 
