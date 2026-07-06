@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+### Sprint 69 — Editor: add/move/delete doors & windows (offset clamped to wall, undo/redo, persistence); openings flow to elevations, section, and 3D.
+
 ### Sprint 68 — Editor: add/delete rooms (auto wall rebuild, dangling-opening cleanup, undo/redo, persistence); guarded against deleting the last room.
 
 ### Sprint 67B — Fixed live 2D editing: pointer capture moved from room rects to SVG root (data-attribute routing), replaced unreliable movementX/movementY with absolute clientX/Y deltas (frame-independent under capture), added on-screen debug readout. Edits now actually drag/resize without orphaned captures.

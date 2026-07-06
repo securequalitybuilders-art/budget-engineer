@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { DesignOption } from '../../domain/boq'
-import type { PlanModel, RoomRect, WallSegment } from '../../domain/plan'
+import type { Opening, PlanModel, RoomRect, WallSegment } from '../../domain/plan'
 import { generatePlanModel } from '../../engine/plan-generator'
 import { DimensionLayer } from './DimensionLayer'
 import { RoomLabels } from './RoomLabels'
@@ -26,13 +26,17 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
   const {
     model,
     selectedRoomId,
-    setSelectedRoomId,
+    selectedOpeningId,
+    clearSelection,
     beginMove,
     beginResize,
     updatePointer,
     endPointer,
     addRoom,
     deleteRoom,
+    addOpening,
+    beginMoveOpening,
+    deleteOpening,
     activeMode,
     timeline,
     undo,
@@ -48,18 +52,19 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
   )
 
   const lastPointer = useRef({ x: 0, y: 0 })
-  const [debugInfo, setDebugInfo] = useState({ mode: '', roomId: '', dx: 0, dy: 0 })
+  const [debugInfo, setDebugInfo] = useState({ mode: '', roomId: '', openingId: '', dx: 0, dy: 0 })
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (document.activeElement && document.activeElement !== document.body) return
+        if (selectedOpeningId) { deleteOpening(selectedOpeningId); return }
         if (selectedRoomId) deleteRoom(selectedRoomId)
       }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [selectedRoomId, deleteRoom])
+  }, [selectedRoomId, selectedOpeningId, deleteRoom, deleteOpening])
 
   if (!design || !model) {
     return (
@@ -85,6 +90,15 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
     lastPointer.current = { x: event.clientX, y: event.clientY }
 
     const target = event.target as Element | null
+    const openingEl = target?.closest('[data-opening-id]') as Element | null
+    const openingId = openingEl?.getAttribute('data-opening-id')
+
+    if (openingId) {
+      beginMoveOpening(openingId)
+      setDebugInfo({ mode: 'opening', roomId: '', openingId, dx: 0, dy: 0 })
+      return
+    }
+
     const roomEl = target?.closest('[data-room-id]') as Element | null
     const roomId = roomEl?.getAttribute('data-room-id')
 
@@ -95,11 +109,11 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
       } else {
         beginMove(roomId, event.clientX, event.clientY)
       }
-      setDebugInfo({ mode: isResize ? 'resize' : 'move', roomId, dx: 0, dy: 0 })
+      setDebugInfo({ mode: isResize ? 'resize' : 'move', roomId, openingId: '', dx: 0, dy: 0 })
     } else {
-      setSelectedRoomId(null)
+      clearSelection()
       onPointerDown(event.clientX, event.clientY)
-      setDebugInfo({ mode: 'pan', roomId: '', dx: 0, dy: 0 })
+      setDebugInfo({ mode: 'pan', roomId: '', openingId: '', dx: 0, dy: 0 })
     }
   }
 
@@ -119,7 +133,7 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
   function handleSvgPointerUp() {
     onPointerUp()
     endPointer()
-    setDebugInfo({ mode: '', roomId: '', dx: 0, dy: 0 })
+    setDebugInfo({ mode: '', roomId: '', openingId: '', dx: 0, dy: 0 })
   }
 
   return (
@@ -136,6 +150,8 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
           <button onClick={reset} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">Reset</button>
           <button onClick={() => addRoom()} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700">+ Room</button>
           <button onClick={() => selectedRoomId && deleteRoom(selectedRoomId)} disabled={!selectedRoomId} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700 disabled:text-slate-400">− Room</button>
+          <button onClick={() => addOpening('door')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700">+ Door</button>
+          <button onClick={() => addOpening('window')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700">+ Window</button>
           <button onClick={undo} disabled={!canUndo} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white disabled:text-slate-400">Undo</button>
           <button onClick={redo} disabled={!canRedo} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white disabled:text-slate-400">Redo</button>
           <button onClick={() => downloadTextFile(`${design.name.toLowerCase().replace(/\s+/g, '-')}.json`, exportPlanToMakerJson(model), 'application/json;charset=utf-8')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">Maker JSON</button>
@@ -175,7 +191,14 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
             {model.openings.map((opening) => {
               const wall = model.walls.find((item) => item.id === opening.wallId)
               if (!wall) return null
-              return renderOpening(wall, opening.offset, opening.width, opening.kind)
+              return (
+                <EditableOpening
+                  key={opening.id}
+                  opening={opening}
+                  wall={wall}
+                  selected={selectedOpeningId === opening.id}
+                />
+              )
             })}
             <RoomLabels model={model} />
             <DimensionLayer model={model} />
@@ -192,12 +215,15 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
         {activeMode !== 'idle' && (
           <div className="pointer-events-none absolute bottom-2 right-2 flex items-center gap-3 rounded border border-slate-700/50 bg-slate-900/80 px-3 py-1.5 text-[10px] text-slate-400">
             <span>{debugInfo.mode}</span>
-            <span>room: {debugInfo.roomId.slice(0, 8)}</span>
+            {debugInfo.roomId && <span>room: {debugInfo.roomId.slice(0, 8)}</span>}
+            {debugInfo.openingId && <span>opening: {debugInfo.openingId.slice(0, 8)}</span>}
             <span>dx: {debugInfo.dx.toFixed(3)}</span>
             <span>dy: {debugInfo.dy.toFixed(3)}</span>
           </div>
         )}
       </div>
+
+      <div className="mt-2 text-[10px] text-slate-400">{model.openings.length} openings</div>
 
       <TimelinePanel timeline={timeline} onUndo={undo} onRedo={redo} activeMode={activeMode} />
     </div>
@@ -221,10 +247,10 @@ function TimelinePanel({ timeline, onUndo, onRedo, activeMode }: {
           <div
             key={i}
             className="shrink-0 cursor-pointer rounded border border-slate-700/50 bg-slate-800/60 px-2 py-1 text-[10px] text-slate-400 transition-colors hover:border-slate-500 hover:text-slate-200"
-            title={`Snapshot ${i + 1} — ${plan.rooms.length} rooms`}
+            title={`Snapshot ${i + 1} — ${plan.rooms.length} rooms, ${plan.openings.length} openings`}
             onClick={onUndo}
           >
-            {plan.rooms.length} rooms
+            {plan.rooms.length}r {plan.openings.length}o
           </div>
         ))}
         <div className="shrink-0 rounded border border-cyan-500/50 bg-cyan-500/10 px-2 py-1 text-[10px] font-medium text-cyan-300">
@@ -234,16 +260,16 @@ function TimelinePanel({ timeline, onUndo, onRedo, activeMode }: {
           <div
             key={i}
             className="shrink-0 cursor-pointer rounded border border-slate-700/50 bg-slate-800/60 px-2 py-1 text-[10px] text-slate-400 transition-colors hover:border-slate-500 hover:text-slate-200"
-            title={`Future ${i + 1} — ${plan.rooms.length} rooms`}
+            title={`Future ${i + 1} — ${plan.rooms.length} rooms, ${plan.openings.length} openings`}
             onClick={onRedo}
           >
-            {plan.rooms.length} rooms
+            {plan.rooms.length}r {plan.openings.length}o
           </div>
         ))}
       </div>
       {activeMode !== 'idle' && (
         <span className="shrink-0 text-[10px] text-amber-400 italic">
-          {activeMode === 'move' ? 'moving…' : 'resizing…'}
+          {activeMode === 'move' ? 'moving…' : activeMode === 'resize' ? 'resizing…' : 'opening…'}
         </span>
       )}
     </div>
@@ -325,40 +351,58 @@ function renderWall(wall: WallSegment) {
   )
 }
 
-function renderOpening(wall: WallSegment, offsetRatio: number, width: number, kind: 'door' | 'window') {
+function EditableOpening({
+  opening,
+  wall,
+  selected,
+}: {
+  opening: Opening
+  wall: WallSegment
+  selected: boolean
+}) {
   const horizontal = wall.start.y === wall.end.y
-  const x = horizontal
-    ? wall.start.x + (wall.end.x - wall.start.x) * offsetRatio
+  const cx = horizontal
+    ? wall.start.x + (wall.end.x - wall.start.x) * opening.offset
     : wall.start.x
-  const y = horizontal
+  const cy = horizontal
     ? wall.start.y
-    : wall.start.y + (wall.end.y - wall.start.y) * offsetRatio
+    : wall.start.y + (wall.end.y - wall.start.y) * opening.offset
 
-  const half = width / 2
+  const half = opening.width / 2
+  const strokeColor = opening.kind === 'door' ? '#f59e0b' : '#38bdf8'
+  const selectedColor = '#67e8f9'
 
-  return horizontal ? (
-    <line
-      key={`${wall.id}-${kind}-${offsetRatio}`}
-      x1={x - half}
-      y1={y}
-      x2={x + half}
-      y2={y}
-      stroke={kind === 'door' ? '#f59e0b' : '#38bdf8'}
-      strokeWidth={0.16}
-      strokeLinecap="round"
-      pointerEvents="none"
-    />
-  ) : (
-    <line
-      key={`${wall.id}-${kind}-${offsetRatio}`}
-      x1={x}
-      y1={y - half}
-      x2={x}
-      y2={y + half}
-      stroke={kind === 'door' ? '#f59e0b' : '#38bdf8'}
-      strokeWidth={0.16}
-      strokeLinecap="round"
-      pointerEvents="none"
-    />
+  return (
+    <g data-opening-id={opening.id} style={{ cursor: 'pointer' }}>
+      {selected && (
+        <circle cx={cx} cy={cy} r={0.3} fill="none" stroke={selectedColor} strokeWidth={0.06} strokeDasharray="0.12 0.1" pointerEvents="none" />
+      )}
+      {horizontal ? (
+        <line
+          x1={cx - half}
+          y1={cy}
+          x2={cx + half}
+          y2={cy}
+          stroke={selected ? selectedColor : strokeColor}
+          strokeWidth={selected ? 0.22 : 0.16}
+          strokeLinecap="round"
+          pointerEvents="none"
+        />
+      ) : (
+        <line
+          x1={cx}
+          y1={cy - half}
+          x2={cx}
+          y2={cy + half}
+          stroke={selected ? selectedColor : strokeColor}
+          strokeWidth={selected ? 0.22 : 0.16}
+          strokeLinecap="round"
+          pointerEvents="none"
+        />
+      )}
+      {selected && (
+        <circle cx={cx} cy={cy} r={0.08} fill={selectedColor} pointerEvents="none" />
+      )}
+    </g>
   )
 }

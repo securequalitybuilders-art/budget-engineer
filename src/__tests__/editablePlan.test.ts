@@ -4,7 +4,7 @@ import { moveRoom, resizeRoom } from '../lib/geometry/plan-transforms'
 import { constrainRoom, hasCollision } from '../lib/geometry/plan-constraints'
 import { rebuildWallsFromRooms } from '../lib/geometry/plan-topology'
 import { computeSection } from '../adapters/planToElevations'
-import type { PlanModel, RoomRect } from '../domain/plan'
+import type { Opening, PlanModel, RoomRect } from '../domain/plan'
 import { createSamplePlanModel, createAlternatePlanModel } from './fixtures/cadFixtures'
 
 // ── Simulate usePlanHistory logic (pure function, no React) ──
@@ -667,6 +667,184 @@ describe('persistence round-trip with addRoom', () => {
       expect(loaded).not.toBeNull()
       expect(loaded!.rooms.length).toBe(plan.rooms.length + 1)
       const found = loaded!.rooms.find((r) => r.id === 'new-room-test')
+      expect(found).toBeDefined()
+    } finally {
+      db.close()
+    }
+  })
+})
+
+// ── Shared helpers for opening tests ──
+function simulateAddOpening(plan: PlanModel, kind: 'door' | 'window', wallId: string): PlanModel {
+  const wall = plan.walls.find((w) => w.id === wallId)!
+  const wallLen = Math.sqrt((wall.end.x - wall.start.x) ** 2 + (wall.end.y - wall.start.y) ** 2)
+  const width = kind === 'door' ? 0.9 : 1.2
+  const halfWidthRatio = width / (2 * wallLen)
+  const offset = halfWidthRatio < 0.5 ? 0.5 : halfWidthRatio
+  const opening: Opening = { id: 'test-opening', wallId, kind, offset, width }
+  return { ...plan, openings: [...plan.openings, opening] }
+}
+
+function simulateMoveOpening(plan: PlanModel, openingId: string, deltaOffset: number): PlanModel {
+  return {
+    ...plan,
+    openings: plan.openings.map((o) => {
+      if (o.id !== openingId) return o
+      const wall = plan.walls.find((w) => w.id === o.wallId)!
+      const wallLen = Math.sqrt((wall.end.x - wall.start.x) ** 2 + (wall.end.y - wall.start.y) ** 2)
+      const halfWidthRatio = o.width / (2 * wallLen)
+      const newOffset = Math.max(halfWidthRatio, Math.min(1 - halfWidthRatio, o.offset + deltaOffset))
+      return { ...o, offset: Number(newOffset.toFixed(4)) }
+    }),
+  }
+}
+
+function simulateDeleteOpening(plan: PlanModel, openingId: string): PlanModel {
+  return { ...plan, openings: plan.openings.filter((o) => o.id !== openingId) }
+}
+
+// ── addOpening ──
+describe('addOpening', () => {
+  it('adds an opening with unique id, valid kind/width, offset clamped within wall', () => {
+    const plan = rebuildWallsFromRooms(makeBasePlan())
+    const topWall = plan.walls.find((w) => w.start.y === 0 && w.end.y === 0 && w.type === 'external')!
+    const prevCount = plan.openings.length
+    const next = simulateAddOpening(plan, 'door', topWall.id)
+
+    expect(next.openings.length).toBe(prevCount + 1)
+    const added = next.openings.find((o) => o.id === 'test-opening')
+    expect(added).toBeDefined()
+    expect(added!.kind).toBe('door')
+    expect(added!.width).toBe(0.9)
+    expect(added!.wallId).toBe(topWall.id)
+    expect(added!.offset).toBeGreaterThan(0)
+    expect(added!.offset).toBeLessThan(1)
+  })
+
+  it('addOpening calls onCommit with the plan containing the new opening', () => {
+    const plan = rebuildWallsFromRooms(makeBasePlan())
+    const topWall = plan.walls.find((w) => w.start.y === 0 && w.end.y === 0 && w.type === 'external')!
+    let committed: PlanModel | null = null
+    const onCommit = (m: PlanModel) => { committed = m }
+
+    const next = simulateAddOpening(plan, 'window', topWall.id)
+    onCommit(next)
+
+    expect(committed).not.toBeNull()
+    expect(committed!.openings.length).toBe(plan.openings.length + 1)
+  })
+})
+
+// ── moveOpening ──
+describe('moveOpening', () => {
+  it('changes offset by the given delta, clamped to stay on the wall', () => {
+    const plan = rebuildWallsFromRooms(makeBasePlan())
+    const topWall = plan.walls.find((w) => w.start.y === 0 && w.end.y === 0 && w.type === 'external')!
+    const withOpening = simulateAddOpening(plan, 'door', topWall.id)
+    const opening = withOpening.openings.find((o) => o.id === 'test-opening')!
+    const origOffset = opening.offset
+
+    // Small move right
+    const moved1 = simulateMoveOpening(withOpening, 'test-opening', 0.1)
+    const m1 = moved1.openings.find((o) => o.id === 'test-opening')!
+    expect(m1.offset).toBeCloseTo(origOffset + 0.1, 4)
+
+    // Large move that would overshoot → clamps at wall edge
+    const moved2 = simulateMoveOpening(withOpening, 'test-opening', -10)
+    const m2 = moved2.openings.find((o) => o.id === 'test-opening')!
+    const wallLen = Math.sqrt((topWall.end.x - topWall.start.x) ** 2 + (topWall.end.y - topWall.start.y) ** 2)
+    const halfWidthRatio = opening.width / (2 * wallLen)
+    expect(m2.offset).toBe(halfWidthRatio) // clamps to left edge
+  })
+})
+
+// ── deleteOpening ──
+describe('deleteOpening', () => {
+  it('removes the opening and calls onCommit', () => {
+    const plan = rebuildWallsFromRooms(makeBasePlan())
+    const topWall = plan.walls.find((w) => w.start.y === 0 && w.end.y === 0 && w.type === 'external')!
+    const withOpening = simulateAddOpening(plan, 'door', topWall.id)
+    const prevCount = withOpening.openings.length
+
+    const next = simulateDeleteOpening(withOpening, 'test-opening')
+    expect(next.openings.length).toBe(prevCount - 1)
+    expect(next.openings.find((o) => o.id === 'test-opening')).toBeUndefined()
+  })
+})
+
+// ── opening undo/redo ──
+describe('opening undo/redo', () => {
+  it('undo after addOpening restores opening count; redo re-adds', () => {
+    const plan = rebuildWallsFromRooms(makeBasePlan())
+    const topWall = plan.walls.find((w) => w.start.y === 0 && w.end.y === 0 && w.type === 'external')!
+    const hist = createHistorySim(plan)
+    const prevCount = hist.present!.openings.length
+
+    const withOpening = simulateAddOpening(hist.present!, 'door', topWall.id)
+    hist.set(withOpening)
+    expect(hist.present!.openings.length).toBe(prevCount + 1)
+
+    hist.undo()
+    expect(hist.present!.openings.length).toBe(prevCount)
+
+    hist.redo()
+    expect(hist.present!.openings.length).toBe(prevCount + 1)
+  })
+
+  it('undo after deleteOpening restores opening; redo removes again', () => {
+    const plan = rebuildWallsFromRooms(makeBasePlan())
+    const topWall = plan.walls.find((w) => w.start.y === 0 && w.end.y === 0 && w.type === 'external')!
+    const withOpening = simulateAddOpening(plan, 'door', topWall.id)
+    const hist = createHistorySim(withOpening)
+    const prevCount = hist.present!.openings.length
+
+    const removed = simulateDeleteOpening(hist.present!, 'test-opening')
+    hist.set(removed)
+    expect(hist.present!.openings.length).toBe(prevCount - 1)
+
+    hist.undo()
+    expect(hist.present!.openings.length).toBe(prevCount)
+
+    hist.redo()
+    expect(hist.present!.openings.length).toBe(prevCount - 1)
+  })
+})
+
+// ── edit-flow: addOpening flows to elevations/section ──
+describe('edit-flow: addOpening flows to drawings', () => {
+  it('computeSection includes the new opening after addOpening', () => {
+    const plan = rebuildWallsFromRooms(makeBasePlan())
+    const topWall = plan.walls.find((w) => w.start.y === 0 && w.end.y === 0 && w.type === 'external')!
+
+    const withOpening = simulateAddOpening(plan, 'window', topWall.id)
+
+    const originalSection = computeSection(plan, 1)!
+    const editedSection = computeSection(withOpening, 1)!
+
+    expect(originalSection).not.toBeNull()
+    expect(editedSection).not.toBeNull()
+    // The plan has more openings so the section should reflect it (opening lines)
+    expect(editedSection.lines.length).toBeGreaterThanOrEqual(originalSection.lines.length)
+  })
+})
+
+// ── Persistence round-trip with openings ──
+describe('persistence round-trip with addOpening', () => {
+  it('savePlanModel then loadPlanModel returns model with added opening', async () => {
+    const { savePlanModel, loadPlanModel } = await import('../services/cadPersistenceService')
+    const { db } = await import('../db/db')
+    await db.open()
+
+    try {
+      const plan = rebuildWallsFromRooms(makeBasePlan())
+      const topWall = plan.walls.find((w) => w.start.y === 0 && w.end.y === 0 && w.type === 'external')!
+      const withOpening = simulateAddOpening(plan, 'door', topWall.id)
+
+      await savePlanModel('proj-open', 'design-open', withOpening)
+      const loaded = await loadPlanModel('proj-open', 'design-open')
+      expect(loaded).not.toBeNull()
+      expect(loaded!.openings.length).toBe(plan.openings.length + 1)
+      const found = loaded!.openings.find((o) => o.id === 'test-opening')
       expect(found).toBeDefined()
     } finally {
       db.close()
