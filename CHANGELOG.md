@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+### Sprint 56 — Auto-Generated Elevations and Section Drawings (SVG)
+
+**Additive (non-breaking):** Pure-SVG front elevation, side elevation, and cross-section derived from the same PlanModel geometry used by 2D/3D. New "Drawings" view toggle (between 2D and 3D in the canvas toolbar) with Plan | Front Elevation | Side Elevation | Section A-A sub-tabs. Reuses wall/opening/roof constants from `planTo3d.ts` (storey height 3 m, pitch height 1.5 m, etc.) — zero geometry duplication.
+
+**New files:**
+- **`src/adapters/planToElevations.ts`** — `computeFrontElevation()`, `computeSideElevation()`, `computeSection()`, `emptyDrawing()`. Pure functions returning structured primitives (lines, rects, polygons, texts) with SVG viewBox. All wrapped in try/catch — never throw.
+- **`src/components/drawings/ElevationView.tsx`** — Renders `ElevationDrawing` as responsive SVG (brand stroke colors, WCAG-AA `text-stone-400` labels, "Dimensions in metres" caption).
+- **`src/components/drawings/DrawingsPanel.tsx`** — Container with Plan / Front Elevation / Side Elevation / Section tab toggle. Uses `activePlan`, `floors`, `storeyHeight`, `pitchHeight`. Empty state when no plan.
+
+**Modified files:**
+- **`Dashboard.tsx`** — Added `'drawings'` to `activeCanvasView` state. "Drawings" toggle button in canvas toolbar (between 2D and 3D). Renders `<DrawingsPanel>` when active.
+- **`BuilderJourneyGuide.tsx`** — Extended `activeCanvasView` type to include `'drawings'` (no logic change; `'drawings'` treated same as `'plan'` for step tracking).
+
+**Tests:** `src/__tests__/planToElevations.test.ts` — 26 tests: null/empty plan safety, overall width matches building width + padding, total height = floors × storeyHeight + pitchHeight + padding, gable polygon present, ground line present, opening rects × floors, dimension text, viewBox format, no NaN/negative coords, side elevation width = building depth, section slab count = floors + 1, multi-storey opening multiplication, emptyDrawing safe fallback.
+
+**Validation:** 585 tests pass (38 files). Typecheck 0 errors. Lint 0 errors (9 warnings baseline). Build succeeds. PWA intact. No `text-stone-500` introduced.
+
 ## [0.3.2] - 2026-07-06
 
 ### Sprint 55 — ZBC Building-Code Compliance Checks (Design Intelligence)

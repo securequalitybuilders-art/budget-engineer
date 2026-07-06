@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 interface BuilderJourneyGuideProps {
   hasDesignOptions: boolean
   selectedDesignName?: string
-  activeCanvasView?: 'plan' | 'bim'
+  activeCanvasView?: 'plan' | 'bim' | 'drawings'
   hasBoq?: boolean
   hasAnalysis?: boolean
 }
@@ -43,7 +43,7 @@ const TEMPLATES = [
 function getCurrentStep(
   hasDesignOptions: boolean,
   selectedDesignName: string | undefined,
-  activeCanvasView: 'plan' | 'bim' | undefined,
+  activeCanvasView: 'plan' | 'bim' | 'drawings' | undefined,
   hasAnalysis: boolean | undefined,
   hasBoq: boolean | undefined,
 ): number {

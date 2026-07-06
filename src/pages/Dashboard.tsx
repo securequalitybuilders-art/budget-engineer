@@ -24,6 +24,7 @@ import { BoqExportPanel } from '@/components/dashboard/BoqExportPanel';
 import { EngineeringAnalysisPanel } from '@/components/dashboard/EngineeringAnalysisPanel';
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
 import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
+import { DrawingsPanel } from '@/components/drawings/DrawingsPanel';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
 import { designOptionToBimModel } from '@/adapters/designToBim';
 import { buildBoqFromDesignOption } from '@/adapters/designToBoq';
@@ -39,7 +40,7 @@ export function Dashboard() {
   const { loadProject, currentProject, currentBrief, currentDesigns, isLoading, generateDesigns, seed } = useProjectStore();
   const { setActiveStage, selectedDesignId, setSelectedDesignId } = useUIStore();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [activeCanvasView, setActiveCanvasView] = useState<'plan' | 'bim'>('plan');
+  const [activeCanvasView, setActiveCanvasView] = useState<'plan' | 'bim' | 'drawings'>('plan');
   const [aiDesignOptions, setAiDesignOptions] = useState<DesignOption[]>([]);
   const [tier3Plans, setTier3Plans] = useState<FloorPlan[]>([]);
   const [latestBuildingType, setLatestBuildingType] = useState<string | null>(null);
@@ -438,6 +439,17 @@ export function Dashboard() {
                 <span className="hidden sm:inline">2D</span>
               </Button>
               <Button
+                variant={activeCanvasView === 'drawings' ? 'default' : 'ghost'}
+                size="sm"
+                className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
+                aria-label="Elevations and Sections"
+                title="View elevations and section drawings"
+                onClick={() => setActiveCanvasView('drawings')}
+              >
+                <LayoutGrid size={14} />
+                <span className="hidden sm:inline">Drawings</span>
+              </Button>
+              <Button
                 variant={activeCanvasView === 'bim' ? 'default' : 'ghost'}
                 size="sm"
                 className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
@@ -564,6 +576,12 @@ export function Dashboard() {
                         Storey height 3.0&nbsp;m, wall thickness {(activePlan.wallThickness || 0.23).toFixed(2)}&nbsp;m.
                         Model downloadable as .glb for use in Blender, Windows 3D Viewer, and other 3D tools.
                       </p>
+                    )}
+                    {activeCanvasView === 'drawings' && activePlan && (
+                      <DrawingsPanel
+                        activePlan={activePlan}
+                        floors={selectedDesign?.floors ?? 1}
+                      />
                     )}
                     <p className="max-w-xs text-[10px] text-stone-400">
                       Mobile: review, estimates, exports supported. For best CAD editing, use a tablet or desktop.
