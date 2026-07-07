@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useProjectStore } from '@/stores/projectStore';
+import { cn } from '@/lib/utils';
 import { buildGovernanceSummary } from '@/adapters/governanceAdapter';
 import {
   Shield, CheckCircle, Circle, Clock, Fingerprint, FileText,
@@ -23,6 +24,7 @@ interface GovernancePanelProps {
   hasBoq?: boolean;
   hasAnalysis?: boolean;
   projectId?: string | null;
+  variant?: 'sidebar' | 'full';
 }
 
 const statusColors: Record<string, string> = {
@@ -58,7 +60,7 @@ const roleLabels: Record<DemoRole, string> = {
   viewer: 'Viewer',
 };
 
-export function GovernancePanel({ selectedDesign, hasBim, hasBoq, hasAnalysis, projectId }: GovernancePanelProps) {
+export function GovernancePanel({ selectedDesign, hasBim, hasBoq, hasAnalysis, projectId, variant = 'sidebar' }: GovernancePanelProps) {
   const [isOpen, setIsOpen] = useState(true);
   const transactions = useProjectStore((s) => s.transactions);
   const currentProject = useProjectStore((s) => s.currentProject);
@@ -159,7 +161,11 @@ export function GovernancePanel({ selectedDesign, hasBim, hasBoq, hasAnalysis, p
   const isViewer = currentRole === 'viewer';
 
   return (
-    <div className="flex w-64 flex-shrink-0 flex-col border-l border-[var(--border-default)] bg-[var(--bg-secondary)] text-xs">
+    <div className={cn(
+      variant === 'full'
+        ? 'flex flex-col bg-[var(--bg-secondary)] text-xs'
+        : 'flex w-64 flex-shrink-0 flex-col border-l border-[var(--border-default)] bg-[var(--bg-secondary)] text-xs'
+    )}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center justify-between border-b border-[var(--border-default)] px-4 py-2 hover:bg-white/5"

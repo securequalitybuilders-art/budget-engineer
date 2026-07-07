@@ -20,7 +20,7 @@ import { CostDeliverStage } from '@/components/dashboard/stages/CostDeliverStage
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
 import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
-import { Box, FileSpreadsheet } from 'lucide-react';
+import { Box, FileSpreadsheet, Bug } from 'lucide-react';
 import { generatePlanModel } from '@/engine/plan-generator';
 import { floorPlanToPlanModel } from '@/adapters/floorPlanToPlanModel';
 import type { FloorPlan } from '@/engine/tier3/layoutEngine';
@@ -36,7 +36,7 @@ import type { GeometrySource } from '@/adapters/cadToDesignSyncAdapter';
 export function Dashboard() {
   const { id } = useParams<{ id: string }>();
   const { loadProject, currentProject, currentBrief, currentDesigns, isLoading, generateDesigns, seed } = useProjectStore();
-  const { activeStage, setActiveStage, selectedDesignId, setSelectedDesignId, hasSeenTour, setHasSeenTour } = useUIStore();
+  const { activeStage, setActiveStage, activeView, setActiveView, journeyGuideOpen, toggleJourneyGuide, selectedDesignId, setSelectedDesignId, hasSeenTour, setHasSeenTour } = useUIStore();
   const [isGenerating, setIsGenerating] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
 
@@ -417,118 +417,181 @@ export function Dashboard() {
           {/* Stage Rail */}
           <StageRail
             activeStage={activeStage}
-            onStageChange={setActiveStage}
+            onStageChange={(stage) => { setActiveStage(stage); setActiveView(stage); }}
             stageStatus={stageStatus}
+            activeTool={typeof activeView === 'string' ? activeView : null}
+            onToolChange={setActiveView}
           />
 
-          {/* Stage content area */}
+          {/* Main content area */}
           <div className="relative flex flex-1 flex-col overflow-hidden bg-[var(--bg-primary)]">
-            {activeStage === 1 && (
-              <BriefStage
-                onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
-                onDesignOptionsGenerated={handleAiDesignOptions}
-                onTier3Plans={handleTier3Plans}
-                onBuildingTypeChange={setSelectedBuildingType}
-                visibleDesignOptions={visibleDesignOptions}
-                selectedDesignId={selectedDesignId}
-                setSelectedDesignId={setSelectedDesignId}
-                selectedDesign={selectedDesign}
-              />
-            )}
-            {activeStage === 2 && (
-              <ConceptStage
-                visibleDesignOptions={visibleDesignOptions}
-                selectedDesignId={selectedDesignId}
-                setSelectedDesignId={setSelectedDesignId}
-                selectedDesign={selectedDesign}
-                handleGenerate={handleGenerate}
-                isGenerating={isGenerating}
-              />
-            )}
-            {activeStage === 3 && (
-              <DesignStage
-                projectId={id ?? null}
-                selectedDesign={selectedDesign}
-                activePlan={activePlan}
-                handleSavePlan={handleSavePlan}
-                cadSyncSource={cadSyncSource}
-                lastSavedAt={lastSavedAt}
-                isManualSaving={isManualSaving}
-                statusMessage={statusMessage}
-                statusType={statusType}
-                onManualSavePlan={handleManualSavePlan}
-                onRestoreSavedPlan={handleRestoreSavedPlan}
-                onResetToGeneratedPlan={handleResetToGeneratedPlan}
-                handleGenerate={handleGenerate}
-                isGenerating={isGenerating}
-              />
-            )}
-            {activeStage === 4 && (
-              <EngineeringStage
-                selectedDesign={selectedDesign}
-                activePlan={activePlan}
-                boq={currentBoq}
-                onDesignOptionsGenerated={handleAiDesignOptions}
-                onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
-                onTier3Plans={handleTier3Plans}
-                onBuildingTypeChange={setSelectedBuildingType}
-              />
-            )}
-            {activeStage === 5 && (
-              <DocsBimStage
-                activePlan={activePlan}
-                selectedDesign={selectedDesign}
-              />
-            )}
-            {activeStage === 6 && (
-              <CostDeliverStage
-                selectedDesign={selectedDesign}
-                boq={currentBoq}
-                onExport={handleExport}
-                activePlan={activePlan}
-                buildingType={buildingType}
-              />
-            )}
+            {typeof activeView === 'number' ? (
+              <>
+                {activeView === 1 && (
+                  <BriefStage
+                    onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
+                    onDesignOptionsGenerated={handleAiDesignOptions}
+                    onTier3Plans={handleTier3Plans}
+                    onBuildingTypeChange={setSelectedBuildingType}
+                    visibleDesignOptions={visibleDesignOptions}
+                    selectedDesignId={selectedDesignId}
+                    setSelectedDesignId={setSelectedDesignId}
+                    selectedDesign={selectedDesign}
+                  />
+                )}
+                {activeView === 2 && (
+                  <ConceptStage
+                    visibleDesignOptions={visibleDesignOptions}
+                    selectedDesignId={selectedDesignId}
+                    setSelectedDesignId={setSelectedDesignId}
+                    selectedDesign={selectedDesign}
+                    handleGenerate={handleGenerate}
+                    isGenerating={isGenerating}
+                  />
+                )}
+                {activeView === 3 && (
+                  <DesignStage
+                    projectId={id ?? null}
+                    selectedDesign={selectedDesign}
+                    activePlan={activePlan}
+                    handleSavePlan={handleSavePlan}
+                    cadSyncSource={cadSyncSource}
+                    lastSavedAt={lastSavedAt}
+                    isManualSaving={isManualSaving}
+                    statusMessage={statusMessage}
+                    statusType={statusType}
+                    onManualSavePlan={handleManualSavePlan}
+                    onRestoreSavedPlan={handleRestoreSavedPlan}
+                    onResetToGeneratedPlan={handleResetToGeneratedPlan}
+                    handleGenerate={handleGenerate}
+                    isGenerating={isGenerating}
+                  />
+                )}
+                {activeView === 4 && (
+                  <EngineeringStage
+                    selectedDesign={selectedDesign}
+                    activePlan={activePlan}
+                    boq={currentBoq}
+                    onDesignOptionsGenerated={handleAiDesignOptions}
+                    onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
+                    onTier3Plans={handleTier3Plans}
+                    onBuildingTypeChange={setSelectedBuildingType}
+                  />
+                )}
+                {activeView === 5 && (
+                  <DocsBimStage
+                    activePlan={activePlan}
+                    selectedDesign={selectedDesign}
+                  />
+                )}
+                {activeView === 6 && (
+                  <CostDeliverStage
+                    selectedDesign={selectedDesign}
+                    boq={currentBoq}
+                    onExport={handleExport}
+                    activePlan={activePlan}
+                    buildingType={buildingType}
+                  />
+                )}
 
-            <BOQPanel />
-          </div>
-
-          {/* Right sidebar - cross-cutting panels */}
-          <div className="flex flex-shrink-0 overflow-x-auto lg:overflow-x-visible">
-            <div className="relative">
-              <BuilderJourneyGuide
-                hasDesignOptions={visibleDesignOptions.length > 0}
-                selectedDesignName={selectedDesign?.name}
-                activeCanvasView="plan"
+                <BOQPanel />
+              </>
+            ) : activeView === 'history' ? (
+              <TransactionPanel variant="full" />
+            ) : activeView === 'governance' ? (
+              <GovernancePanel
+                variant="full"
+                selectedDesign={selectedDesign}
+                hasBim={(bimModel?.elements.length ?? 0) > 0}
                 hasBoq={!!selectedDesign}
                 hasAnalysis={!!selectedDesign}
+                projectId={id}
               />
+            ) : activeView === 'snapshots' ? (
+              <SnapshotHistoryPanel
+                variant="full"
+                projectId={id}
+                selectedDesign={selectedDesign}
+                currentBoq={currentBoq}
+              />
+            ) : activeView === 'properties' ? (
+              <PropertiesPanel variant="full" />
+            ) : null}
+          </div>
+
+          {/* Journey Guide toggle + Onboarding button */}
+          <div className="absolute left-[232px] top-2 z-20 flex gap-1">
+            <button
+              onClick={toggleJourneyGuide}
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-stone-800 text-[10px] font-bold text-stone-400 hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors"
+              aria-label="Toggle builder journey guide"
+              title="Builder Guide"
+            >
+              G
+            </button>
+            <button
+              onClick={() => setTourOpen(true)}
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-stone-800 text-[10px] font-bold text-stone-400 hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors"
+              aria-label="How it works — replay onboarding tour"
+              title="How it works"
+            >
+              ?
+            </button>
+          </div>
+
+          {/* Journey Guide floating overlay */}
+          {journeyGuideOpen && (
+            <div className="fixed right-0 top-14 z-30 h-[calc(100vh-3.5rem)] shadow-2xl">
+              <div className="relative h-full">
+                <BuilderJourneyGuide
+                  hasDesignOptions={visibleDesignOptions.length > 0}
+                  selectedDesignName={selectedDesign?.name}
+                  activeCanvasView="plan"
+                  hasBoq={!!selectedDesign}
+                  hasAnalysis={!!selectedDesign}
+                />
+                <button
+                  onClick={toggleJourneyGuide}
+                  className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-stone-700 text-[9px] text-stone-300 hover:bg-stone-600 transition-colors"
+                  aria-label="Close journey guide"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Feedback floating button */}
+          <button
+            onClick={() => {
+              const el = document.getElementById('feedback-floating-panel')
+              if (el) {
+                el.classList.toggle('hidden')
+              }
+            }}
+            className="fixed bottom-24 right-4 z-40 flex h-10 w-10 items-center justify-center rounded-full bg-stone-800 text-stone-400 shadow-lg hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors border border-stone-700/60"
+            aria-label="Open feedback form"
+            title="Send Feedback"
+          >
+            <Bug size={16} />
+          </button>
+
+          {/* Feedback floating panel */}
+          <div id="feedback-floating-panel" className="fixed bottom-36 right-4 z-40 hidden w-80 rounded-lg border border-stone-700/60 bg-stone-950 p-4 shadow-2xl">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-xs font-semibold text-cyan-400">Send Feedback</h3>
               <button
-                onClick={() => setTourOpen(true)}
-                className="absolute -top-0.5 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-stone-800 text-[10px] font-bold text-stone-400 hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors"
-                aria-label="How it works — replay onboarding tour"
-                title="How it works"
+                onClick={() => {
+                  const el = document.getElementById('feedback-floating-panel')
+                  if (el) el.classList.add('hidden')
+                }}
+                className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-700 text-[9px] text-stone-300 hover:bg-stone-600"
+                aria-label="Close feedback panel"
               >
-                ?
+                ✕
               </button>
             </div>
-            <PropertiesPanel />
-            <TransactionPanel />
-            <GovernancePanel
-              selectedDesign={selectedDesign}
-              hasBim={(bimModel?.elements.length ?? 0) > 0}
-              hasBoq={!!selectedDesign}
-              hasAnalysis={!!selectedDesign}
-              projectId={id}
-            />
-            <SnapshotHistoryPanel
-              projectId={id}
-              selectedDesign={selectedDesign}
-              currentBoq={currentBoq}
-            />
-            <div className="w-64 shrink-0 border-l border-[var(--border-default)] bg-[var(--bg-secondary)] p-3">
-              <FeedbackPanel compact projectName={currentProject?.name} currentUrl={window.location.href} />
-            </div>
+            <FeedbackPanel compact projectName={currentProject?.name} currentUrl={window.location.href} />
           </div>
         </div>
       </div>

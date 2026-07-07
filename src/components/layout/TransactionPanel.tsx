@@ -3,6 +3,10 @@ import { History, User, Bot, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ProjectTransaction } from '@/types';
 
+interface TransactionPanelProps {
+  variant?: 'sidebar' | 'full';
+}
+
 const actorConfig: Record<
   ProjectTransaction['actor'],
   { icon: typeof User; color: string }
@@ -12,12 +16,15 @@ const actorConfig: Record<
   SYSTEM: { icon: Settings, color: 'text-[var(--text-muted)]' },
 };
 
-export function TransactionPanel() {
+export function TransactionPanel({ variant = 'sidebar' }: TransactionPanelProps) {
   const { transactions } = useProjectStore();
+  const sidebarClasses = 'hidden flex-col border-t border-[var(--border-default)] bg-[var(--bg-secondary)] lg:flex lg:w-64 lg:border-t-0 lg:border-l';
+  const fullClasses = 'flex flex-col bg-[var(--bg-secondary)]';
+  const containerClass = variant === 'full' ? fullClasses : sidebarClasses;
 
   if (transactions.length === 0) {
     return (
-      <div className="hidden flex-col items-center justify-center gap-2 border-t border-[var(--border-default)] bg-[var(--bg-secondary)] p-4 text-center text-xs text-[var(--text-muted)] lg:flex lg:w-64 lg:border-t-0 lg:border-l">
+      <div className={cn(containerClass, 'items-center justify-center gap-2 p-4 text-center text-xs text-[var(--text-muted)]')}>
         <History size={18} />
         <p>Transaction history will appear here.</p>
       </div>
@@ -25,7 +32,7 @@ export function TransactionPanel() {
   }
 
   return (
-    <div className="hidden flex-col border-t border-[var(--border-default)] bg-[var(--bg-secondary)] lg:flex lg:w-64 lg:border-t-0 lg:border-l">
+    <div className={cn(containerClass)}>
       <div className="flex items-center justify-between border-b border-[var(--border-default)] px-4 py-2">
         <h3 className="font-display text-sm font-semibold">History</h3>
         <History size={14} className="text-[var(--text-muted)]" />

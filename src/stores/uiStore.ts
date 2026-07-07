@@ -3,6 +3,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type { AppTheme } from '@/types';
 
+export type ActiveView = number | 'history' | 'governance' | 'snapshots' | 'properties';
+
 interface UIState {
   theme: AppTheme;
   resolvedTheme: 'dark' | 'light';
@@ -12,6 +14,8 @@ interface UIState {
   aiChatOpen: boolean;
   shortcutsOpen: boolean;
   activeStage: number;
+  activeView: ActiveView;
+  journeyGuideOpen: boolean;
   selectedDesignId: string | null;
   hasSeenTour: boolean;
   setTheme: (theme: AppTheme) => void;
@@ -21,6 +25,8 @@ interface UIState {
   toggleAiChat: () => void;
   toggleShortcutsHelp: () => void;
   setActiveStage: (stage: number) => void;
+  setActiveView: (view: ActiveView) => void;
+  toggleJourneyGuide: () => void;
   setSelectedDesignId: (id: string | null) => void;
   setHasSeenTour: (seen: boolean) => void;
 }
@@ -50,6 +56,8 @@ export const useUIStore = create<UIState>()(
         aiChatOpen: false,
         shortcutsOpen: false,
         activeStage: 1,
+        activeView: 1,
+        journeyGuideOpen: false,
         selectedDesignId: null,
         hasSeenTour: false,
 
@@ -85,6 +93,15 @@ export const useUIStore = create<UIState>()(
         setActiveStage: (stage) =>
           set((s) => {
             s.activeStage = stage;
+          }),
+        setActiveView: (view) =>
+          set((s) => {
+            s.activeView = view;
+            if (typeof view === 'number') s.activeStage = view;
+          }),
+        toggleJourneyGuide: () =>
+          set((s) => {
+            s.journeyGuideOpen = !s.journeyGuideOpen;
           }),
         setSelectedDesignId: (id) =>
           set((s) => {

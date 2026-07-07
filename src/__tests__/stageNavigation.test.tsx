@@ -10,11 +10,44 @@ import { DesignStage } from '@/components/dashboard/stages/DesignStage'
 import { EngineeringStage } from '@/components/dashboard/stages/EngineeringStage'
 import { DocsBimStage } from '@/components/dashboard/stages/DocsBimStage'
 import { CostDeliverStage } from '@/components/dashboard/stages/CostDeliverStage'
+import { TransactionPanel } from '@/components/layout/TransactionPanel'
+import { GovernancePanel } from '@/components/dashboard/GovernancePanel'
+import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel'
+import { PropertiesPanel } from '@/components/layout/PropertiesPanel'
 
 vi.mock('@/stores/projectStore', () => ({
   useProjectStore: () => ({
     currentBrief: { rawText: 'test', parsed: null },
+    transactions: [],
   }),
+}))
+
+vi.mock('@/services/projectSnapshotService', () => ({
+  loadProjectSnapshots: vi.fn(() => Promise.resolve([])),
+  saveProjectSnapshot: vi.fn(() => Promise.resolve(null)),
+  compareCurrentToSnapshot: vi.fn(() => ({ hasComparison: false, costDelta: 0, costDeltaPercent: 0, areaDelta: 0, floorDelta: 0, wallAreaDelta: 0, doorCountDelta: 0, windowCountDelta: 0, warnings: [] })),
+}))
+
+vi.mock('@/services/governanceWorkflowService', () => ({
+  loadGovernanceWorkflow: vi.fn(() => Promise.resolve(null)),
+  submitForReview: vi.fn(() => Promise.resolve(null)),
+  approveProject: vi.fn(() => Promise.resolve(null)),
+  requestChanges: vi.fn(() => Promise.resolve(null)),
+  resetGovernance: vi.fn(() => Promise.resolve(null)),
+  addGovernanceCommentAction: vi.fn(() => Promise.resolve(null)),
+}))
+
+vi.mock('@/adapters/governanceAdapter', () => ({
+  buildGovernanceSummary: vi.fn(() => ({
+    status: 'draft',
+    generatedAt: null,
+    fingerprint: '',
+    checklistItems: [],
+    roleDescriptions: [],
+    recentTransactions: [],
+    recommendations: [],
+    warnings: [],
+  })),
 }))
 
 beforeEach(() => {
@@ -48,18 +81,28 @@ describe('stages module', () => {
 
 // ── STAGE RAIL ──
 describe('StageRail', () => {
-  it('renders all 6 stages', () => {
-    render(<StageRail activeStage={1} onStageChange={vi.fn()} />)
+  it('renders all 6 stages and 4 project tools', () => {
+    render(<StageRail activeStage={1} onStageChange={vi.fn()} activeTool={null} onToolChange={vi.fn()} />)
     for (const stage of STAGES) {
       expect(screen.getByText(stage.label)).toBeTruthy()
     }
+    expect(screen.getByText('History')).toBeTruthy()
+    expect(screen.getByText('Governance')).toBeTruthy()
+    expect(screen.getByText('Snapshots')).toBeTruthy()
+    expect(screen.getByText('Properties')).toBeTruthy()
   })
 
   it('has role="navigation" and aria-label', () => {
     render(<StageRail activeStage={1} onStageChange={vi.fn()} />)
     const nav = screen.getByRole('navigation')
     expect(nav).toBeTruthy()
-    expect(nav.getAttribute('aria-label')).toBe('Workflow stages')
+    expect(nav.getAttribute('aria-label')).toBe('Dashboard navigation')
+  })
+
+  it('shows Workflow and Project Tools section headings', () => {
+    render(<StageRail activeStage={1} onStageChange={vi.fn()} />)
+    expect(screen.getByText('Workflow')).toBeTruthy()
+    expect(screen.getByText('Project Tools')).toBeTruthy()
   })
 
   it('applies aria-current="step" to the active stage button', () => {
@@ -68,6 +111,14 @@ describe('StageRail', () => {
     const activeButton = buttons.find((b) => b.getAttribute('aria-current') === 'step')
     expect(activeButton).toBeTruthy()
     expect(activeButton?.textContent).toContain('Design')
+  })
+
+  it('applies aria-current="page" to the active tool button', () => {
+    render(<StageRail activeStage={1} onStageChange={vi.fn()} activeTool="history" onToolChange={vi.fn()} />)
+    const buttons = screen.getAllByRole('button')
+    const activeToolBtn = buttons.find((b) => b.getAttribute('aria-current') === 'page')
+    expect(activeToolBtn).toBeTruthy()
+    expect(activeToolBtn?.textContent).toContain('History')
   })
 
   it('calls onStageChange when clicking a stage', () => {
@@ -79,13 +130,48 @@ describe('StageRail', () => {
     expect(onStageChange).toHaveBeenCalledWith(2)
   })
 
+  it('calls onToolChange when clicking a tool', () => {
+    const onToolChange = vi.fn()
+    render(<StageRail activeStage={1} onStageChange={vi.fn()} activeTool={null} onToolChange={onToolChange} />)
+    const historyButton = screen.getByText('History').closest('button')
+    expect(historyButton).toBeTruthy()
+    fireEvent.click(historyButton!)
+    expect(onToolChange).toHaveBeenCalledWith('history')
+  })
+
   it('shows blocked status for stages that are blocked', () => {
     const stageStatus = { 1: 'active' as const, 2: 'blocked' as const, 3: 'blocked' as const, 4: 'blocked' as const, 5: 'blocked' as const, 6: 'blocked' as const }
     render(<StageRail activeStage={1} onStageChange={vi.fn()} stageStatus={stageStatus} />)
-    // All stages should render without error
     for (const stage of STAGES) {
       expect(screen.getByText(stage.label)).toBeTruthy()
     }
+  })
+})
+
+// ── PROJECT TOOLS (rendered in main area) ──
+describe('Project Tools panels', () => {
+  it('TransactionPanel renders with variant="full"', () => {
+    const { container } = render(<TransactionPanel variant="full" />)
+    expect(container.textContent).toBeTruthy()
+  })
+
+  it('GovernancePanel renders with variant="full"', () => {
+    const { container } = render(
+      <GovernancePanel variant="full" selectedDesign={null} projectId={null} />
+    )
+    expect(container.textContent).toBeTruthy()
+  })
+
+  it('SnapshotHistoryPanel renders with variant="full"', () => {
+    const { container } = render(
+      <SnapshotHistoryPanel variant="full" projectId="test" selectedDesign={null} currentBoq={null} />
+    )
+    expect(container.textContent).toBeTruthy()
+  })
+
+  it('PropertiesPanel renders with variant="full"', () => {
+    const { container } = render(<PropertiesPanel variant="full" />)
+    expect(container.textContent).toBeTruthy()
   })
 })
 

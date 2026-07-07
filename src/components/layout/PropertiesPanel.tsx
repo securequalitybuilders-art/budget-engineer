@@ -1,32 +1,20 @@
 import { useProjectStore } from '@/stores/projectStore';
-import { useUIStore } from '@/stores/uiStore';
-import { Button } from '@/components/ui/Button';
-import { PanelRight, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
+interface PropertiesPanelProps {
+  variant?: 'sidebar' | 'full';
+}
 
-export function PropertiesPanel() {
+export function PropertiesPanel({ variant = 'sidebar' }: PropertiesPanelProps) {
   const { currentProject, currentBrief } = useProjectStore();
-  const { propertiesPanelOpen, togglePropertiesPanel } = useUIStore();
-
-  if (!propertiesPanelOpen) {
-    return (
-      <button
-        onClick={togglePropertiesPanel}
-        className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-md bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-default)]"
-        aria-label="Open properties panel"
-      >
-        <PanelRight size={16} />
-      </button>
-    );
-  }
+  const containerClass = variant === 'full'
+    ? 'flex-1 overflow-y-auto bg-[var(--bg-secondary)] p-4'
+    : 'w-80 flex-shrink-0 overflow-y-auto border-l border-[var(--border-default)] bg-[var(--bg-secondary)] p-4';
 
   return (
-    <div className="w-80 flex-shrink-0 overflow-y-auto border-l border-[var(--border-default)] bg-[var(--bg-secondary)] p-4">
+    <div className={cn(containerClass, 'flex flex-col')}>
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-display font-semibold">Properties</h3>
-        <Button variant="ghost" size="icon" onClick={togglePropertiesPanel} aria-label="Close properties">
-          <X size={16} />
-        </Button>
       </div>
 
       {!currentProject ? (
