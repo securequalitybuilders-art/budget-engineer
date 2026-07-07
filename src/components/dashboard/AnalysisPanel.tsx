@@ -59,6 +59,7 @@ function EmptyAnalysisState() {
 
 export function AnalysisPanel({ plan, design, boq, buildingType, jurisdiction: initialJurisdiction = 'zimbabwe' }: AnalysisPanelProps) {
   const [jurisdiction, setJurisdiction] = useState(initialJurisdiction)
+  const jurisdictionLabel = { 'zimbabwe': 'ZBC', 'south-africa': 'SANS 10400', 'zambia': 'Public Health Act CAP 295', 'botswana': 'Building Control Regs' }
   const result = useMemo<AnalysisResult>(() => {
     try {
       if (!design && !plan) return emptyAnalysis()
@@ -177,8 +178,8 @@ export function AnalysisPanel({ plan, design, boq, buildingType, jurisdiction: i
             >
               <option value="zimbabwe">Zimbabwe (ZBC)</option>
               <option value="south-africa">South Africa (SANS 10400)</option>
-              <option value="zambia" disabled>Zambia — coming soon</option>
-              <option value="botswana" disabled>Botswana — coming soon</option>
+              <option value="zambia">Zambia (Public Health Act CAP 295)</option>
+              <option value="botswana">Botswana (Building Control Regs)</option>
             </select>
           </label>
         </div>
@@ -186,7 +187,7 @@ export function AnalysisPanel({ plan, design, boq, buildingType, jurisdiction: i
         {complianceSummary && complianceReport && (
           <>
             <div className="mb-1 flex gap-2 text-[10px]">
-              <span className="text-stone-400">{complianceReport.jurisdiction === 'south-africa' ? 'SANS 10400' : 'ZBC'} {complianceReport.score}/100</span>
+              <span className="text-stone-400">{(jurisdictionLabel as Record<string, string>)[complianceReport.jurisdiction] ?? complianceReport.jurisdiction} {complianceReport.score}/100</span>
               <span className="text-emerald-400">{complianceSummary.passCount} pass</span>
               <span className="text-amber-400">{complianceSummary.warnCount} warn</span>
               {complianceSummary.failCount > 0 && <span className="text-red-400">{complianceSummary.failCount} fail</span>}

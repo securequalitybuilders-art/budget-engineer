@@ -1,6 +1,8 @@
 import type { ComplianceInput, ComplianceReport, ComplianceResult } from './types'
 import { evaluateZbcRules } from './zimbabwe'
 import { evaluateSouthAfricaRules } from './southAfrica'
+import { evaluateZambiaRules } from './zambia'
+import { evaluateBotswanaRules } from './botswana'
 
 export function runCompliance(jurisdiction: string, input: ComplianceInput): ComplianceReport {
   const warnings: string[] = []
@@ -13,6 +15,12 @@ export function runCompliance(jurisdiction: string, input: ComplianceInput): Com
         break
       case 'south-africa':
         results = evaluateSouthAfricaRules(input)
+        break
+      case 'zambia':
+        results = evaluateZambiaRules(input)
+        break
+      case 'botswana':
+        results = evaluateBotswanaRules(input)
         break
       default: {
         warnings.push(`Unknown jurisdiction "${jurisdiction}". No compliance rules available.`)

@@ -161,7 +161,7 @@ describe('runCompliance', () => {
     const plan = createSamplePlanModel()
     const design = createSampleDesignOption()
     const result = emptyAnalysis()
-    const report = runCompliance('zambia', { plan, design, analysis: result, buildingType: 'house' })
+    const report = runCompliance('atlantis', { plan, design, analysis: result, buildingType: 'house' })
 
     expect(report.results.length).toBe(0)
     expect(report.score).toBe(0)
@@ -274,15 +274,155 @@ describe('SANS 10400 — South Africa compliance', () => {
     expect(widthRule!.status).toBe('pass')
   })
 
-  it('unknown jurisdiction (zambia) returns empty results without throwing', () => {
+  it('unknown jurisdiction (atlantis) returns empty results without throwing', () => {
     const plan = createSamplePlanModel()
     const design = createSampleDesignOption()
     const result = emptyAnalysis()
-    const report = runCompliance('zambia', { plan, design, analysis: result, buildingType: 'house' })
+    const report = runCompliance('atlantis', { plan, design, analysis: result, buildingType: 'house' })
 
     expect(report.results.length).toBe(0)
     expect(report.score).toBe(0)
     expect(report.warnings.length).toBeGreaterThan(0)
     expect(report.warnings[0]).toContain('Unknown jurisdiction')
+  })
+})
+
+describe('Zambia compliance', () => {
+  it('evaluateZambiaRules returns >0 rules for valid input', () => {
+    const plan = createSamplePlanModel()
+    const design = createSampleDesignOption({ grossFloorArea: 200, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('zambia', { plan, design, analysis, buildingType: 'house' })
+
+    expect(report.jurisdiction).toBe('zambia')
+    expect(report.results.length).toBeGreaterThan(0)
+    expect(report.totalRules).toBe(report.results.length)
+    expect(report.score).toBeGreaterThanOrEqual(0)
+    expect(report.score).toBeLessThanOrEqual(100)
+  })
+
+  it('each Zambia result has required fields and approximate note', () => {
+    const plan = createSamplePlanModel()
+    const design = createSampleDesignOption({ grossFloorArea: 200, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('zambia', { plan, design, analysis, buildingType: 'house' })
+
+    for (const rule of report.results) {
+      expect(rule.ruleId).toBeTruthy()
+      expect(rule.category).toBeTruthy()
+      expect(rule.title).toBeTruthy()
+      expect(['pass', 'warn', 'fail']).toContain(rule.status)
+      expect(rule.actual).toBeTruthy()
+      expect(rule.required).toBeTruthy()
+      expect(rule.note).toBeTruthy()
+      expect(rule.note.toLowerCase()).toContain('approximate')
+    }
+  })
+
+  it('runCompliance zambia returns report with score/totalRules/passedRules', () => {
+    const plan = createSamplePlanModel()
+    const design = createSampleDesignOption({ grossFloorArea: 200, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('zambia', { plan, design, analysis, buildingType: 'house' })
+
+    expect(typeof report.score).toBe('number')
+    expect(typeof report.totalRules).toBe('number')
+    expect(typeof report.passedRules).toBe('number')
+    expect(report.totalRules).toBeGreaterThan(0)
+    expect(report.passedRules).toBeLessThanOrEqual(report.totalRules)
+  })
+
+  it('too-small room fails zambia-min-room-area rule', () => {
+    const plan = makeSmallRoomPlan()
+    const design = createSampleDesignOption({ grossFloorArea: 6, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('zambia', { plan, design, analysis, buildingType: 'house' })
+
+    const areaRule = report.results.find((r) => r.ruleId === 'zambia-min-room-area')
+    expect(areaRule).toBeDefined()
+    expect(areaRule!.status).toBe('fail')
+    expect(areaRule!.note.toLowerCase()).toContain('below')
+  })
+
+  it('compliant plan passes zambia-min-room-area and zambia-min-room-width', () => {
+    const plan = makeLargePlan()
+    const design = createSampleDesignOption({ grossFloorArea: 150, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('zambia', { plan, design, analysis, buildingType: 'house' })
+
+    const areaRule = report.results.find((r) => r.ruleId === 'zambia-min-room-area')
+    const widthRule = report.results.find((r) => r.ruleId === 'zambia-min-room-width')
+    expect(areaRule!.status).toBe('pass')
+    expect(widthRule!.status).toBe('pass')
+  })
+})
+
+describe('Botswana compliance', () => {
+  it('evaluateBotswanaRules returns >0 rules for valid input', () => {
+    const plan = createSamplePlanModel()
+    const design = createSampleDesignOption({ grossFloorArea: 200, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('botswana', { plan, design, analysis, buildingType: 'house' })
+
+    expect(report.jurisdiction).toBe('botswana')
+    expect(report.results.length).toBeGreaterThan(0)
+    expect(report.totalRules).toBe(report.results.length)
+    expect(report.score).toBeGreaterThanOrEqual(0)
+    expect(report.score).toBeLessThanOrEqual(100)
+  })
+
+  it('each Botswana result has required fields and approximate note', () => {
+    const plan = createSamplePlanModel()
+    const design = createSampleDesignOption({ grossFloorArea: 200, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('botswana', { plan, design, analysis, buildingType: 'house' })
+
+    for (const rule of report.results) {
+      expect(rule.ruleId).toBeTruthy()
+      expect(rule.category).toBeTruthy()
+      expect(rule.title).toBeTruthy()
+      expect(['pass', 'warn', 'fail']).toContain(rule.status)
+      expect(rule.actual).toBeTruthy()
+      expect(rule.required).toBeTruthy()
+      expect(rule.note).toBeTruthy()
+      expect(rule.note.toLowerCase()).toContain('approximate')
+    }
+  })
+
+  it('runCompliance botswana returns report with score/totalRules/passedRules', () => {
+    const plan = createSamplePlanModel()
+    const design = createSampleDesignOption({ grossFloorArea: 200, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('botswana', { plan, design, analysis, buildingType: 'house' })
+
+    expect(typeof report.score).toBe('number')
+    expect(typeof report.totalRules).toBe('number')
+    expect(typeof report.passedRules).toBe('number')
+    expect(report.totalRules).toBeGreaterThan(0)
+    expect(report.passedRules).toBeLessThanOrEqual(report.totalRules)
+  })
+
+  it('too-small room fails bw-min-room-area rule', () => {
+    const plan = makeSmallRoomPlan()
+    const design = createSampleDesignOption({ grossFloorArea: 6, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('botswana', { plan, design, analysis, buildingType: 'house' })
+
+    const areaRule = report.results.find((r) => r.ruleId === 'bw-min-room-area')
+    expect(areaRule).toBeDefined()
+    expect(areaRule!.status).toBe('fail')
+    expect(areaRule!.note.toLowerCase()).toContain('below')
+  })
+
+  it('compliant plan passes bw-min-room-area and bw-min-room-width', () => {
+    const plan = makeLargePlan()
+    const design = createSampleDesignOption({ grossFloorArea: 150, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('botswana', { plan, design, analysis, buildingType: 'house' })
+
+    const areaRule = report.results.find((r) => r.ruleId === 'bw-min-room-area')
+    const widthRule = report.results.find((r) => r.ruleId === 'bw-min-room-width')
+    expect(areaRule!.status).toBe('pass')
+    expect(widthRule!.status).toBe('pass')
   })
 })

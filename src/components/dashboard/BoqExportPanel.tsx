@@ -157,7 +157,7 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, act
       const report = runCompliance(jurisdiction, { plan, design: selectedDesign, analysis, buildingType: bt })
       const summary = summarizeCompliance(report)
       if (summary.hasCompliance) {
-        const label = jurisdiction === 'south-africa' ? 'SANS 10400' : 'ZBC'
+        const label = ({ 'zimbabwe': 'ZBC', 'south-africa': 'SANS 10400', 'zambia': 'Public Health Act CAP 295', 'botswana': 'Building Control Regs' } as Record<string, string>)[jurisdiction] ?? jurisdiction
         complianceSummary = `${label}: ${summary.passCount} pass, ${summary.warnCount} warn, ${summary.failCount} fail (${report.score}% score)`
         complianceHasData = true
       }
@@ -236,8 +236,8 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, act
           >
             <option value="zimbabwe">Zimbabwe (ZBC)</option>
             <option value="south-africa">South Africa (SANS 10400)</option>
-            <option value="zambia" disabled>Zambia — coming soon</option>
-            <option value="botswana" disabled>Botswana — coming soon</option>
+            <option value="zambia">Zambia (Public Health Act CAP 295)</option>
+            <option value="botswana">Botswana (Building Control Regs)</option>
           </select>
           <p className="mt-1 text-[8px] italic text-amber-500/60">Non-authoritative — verify with local authority.</p>
         </div>
