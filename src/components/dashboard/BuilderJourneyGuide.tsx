@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 import { Calculator, ChevronDown, ChevronUp } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { JOURNEY_STEPS } from './journeySteps'
+import { useUIStore } from '@/stores/uiStore'
 
 interface BuilderJourneyGuideProps {
   hasDesignOptions: boolean
@@ -33,21 +34,6 @@ const TEMPLATES = [
   },
 ]
 
-function getCurrentStep(
-  hasDesignOptions: boolean,
-  selectedDesignName: string | undefined,
-  activeCanvasView: 'plan' | 'bim' | 'drawings' | undefined,
-  hasAnalysis: boolean | undefined,
-  hasBoq: boolean | undefined,
-): number {
-  if (!hasDesignOptions) return 1
-  if (!selectedDesignName) return 2
-  if (activeCanvasView !== 'bim') return 3
-  if (!hasAnalysis) return 4
-  if (!hasBoq) return 5
-  return 6
-}
-
 function getStepStatus(stepId: number, currentStep: number): StepStatus {
   if (stepId < currentStep) return 'done'
   if (stepId === currentStep) return 'active'
@@ -56,12 +42,12 @@ function getStepStatus(stepId: number, currentStep: number): StepStatus {
 
 function getNextAction(currentStep: number): string {
   const actions: Record<number, string> = {
-    1: 'Go to AI Brief in the Engineering Studio panel to describe your project.',
-    2: 'Select a design option from the bar above the canvas to review it.',
-    3: 'Click the 3D button in the toolbar to view your design in 3D.',
-    4: 'Open the Engineering Checks panel to review clash, solar, and MEP analysis.',
-    5: 'Open the BOQ panel to see your cost estimate and export a report.',
-    6: 'All done! Export your results or start a new project.',
+    1: 'Go to the Brief panel to describe your project in plain English.',
+    2: 'Review the design options and select one to explore.',
+    3: 'Edit your design in the 2D canvas or switch to 3D view.',
+    4: 'Run compliance checks and structural analysis on your design.',
+    5: 'Generate drawings and BIM model exports.',
+    6: 'All done! View your BOQ and export a report.',
   }
   return actions[currentStep] ?? ''
 }
@@ -69,17 +55,18 @@ function getNextAction(currentStep: number): string {
 const STEPS = JOURNEY_STEPS
 
 export function BuilderJourneyGuide({
-  hasDesignOptions,
-  selectedDesignName,
-  activeCanvasView,
-  hasBoq,
-  hasAnalysis,
+  hasDesignOptions: _hasDesignOptions,
+  selectedDesignName: _selectedDesignName,
+  activeCanvasView: _activeCanvasView,
+  hasBoq: _hasBoq,
+  hasAnalysis: _hasAnalysis,
 }: BuilderJourneyGuideProps) {
   const [isOpen, setIsOpen] = useState(true)
   const [showTemplates, setShowTemplates] = useState(false)
   const navigate = useNavigate()
+  const { activeStage } = useUIStore()
 
-  const currentStep = getCurrentStep(hasDesignOptions, selectedDesignName, activeCanvasView, hasAnalysis, hasBoq)
+  const currentStep = activeStage
   const nextAction = getNextAction(currentStep)
   const currentStepLabel = STEPS.find((s) => s.id === currentStep)?.label ?? ''
 

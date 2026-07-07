@@ -2,19 +2,22 @@
 
 ## [Unreleased]
 
-### Sprint 81 — First-run onboarding tour (accessible overlay, localStorage seen-flag, re-openable)
+### Sprint 82 — 6-Stage workflow navigation rail + stage-based Dashboard refactor
 
-**Summary:** An accessible, dismissible, multi-slide onboarding tour that explains the 6-step workflow (brief → design → 2D plan → 3D → checks → BOQ). Reuses the shared `JOURNEY_STEPS` constant from a new `src/components/dashboard/journeySteps.ts` module. The `hasSeenTour` flag is persisted in uiStore (Zustand + localStorage). First load shows the tour; completing or skipping sets the flag. A "How it works" (?) button next to the Builder Journey Guide header re-opens it anytime. 12 new tests. 876 test suite passes (48 files). 0 typecheck errors, 0 lint errors (9 warnings). Build green with 30 PWA entries.
+**Summary:** Restructured the single-view Dashboard into 6 discrete workflow stages (Brief → Concept → Design → Engineering → Docs & BIM → Cost & Deliver) with a persistent left navigation rail (`StageRail.tsx`). Each stage renders only its relevant panels (AiBriefPanel in Brief, design option cards + PlanComparison in Concept, PlanCanvas + 2D/3D/Drawings viewer in Design, EngineeringStudioPanel + EngineeringAnalysisPanel in Engineering, DrawingsPanel + 3D viewer in Docs & BIM, BoqExportPanel in Cost & Deliver). Stage-inappropriate panels removed from the right sidebar, which now shows only cross-cutting tools (BuilderJourneyGuide, Properties, Transactions, Governance, Snapshots, Feedback). Empty-state fallbacks with CTAs guide users when prerequisite data is missing (e.g. "Select a design option in the Concept stage first"). A `stageStatus` map provides blocked/done/active/upcoming visual indicators on the rail. StageRail uses `role="navigation"` and `aria-current="step"` for accessibility. The onboarding tour's "Get started" now sets `activeStage=1` (Brief). 18 new tests (894 total, 49 files). 0 typecheck errors, 0 lint errors (9 warnings). Build green with 30 PWA entries.
 
 ### Changed Files
-- `src/components/onboarding/OnboardingTour.tsx` — new: accessible modal overlay with 6 slides, progress dots, Next/Back/Skip, focus trap, Esc to close, aria-dialog
-- `src/components/dashboard/journeySteps.ts` — new: shared `JOURNEY_STEPS` constant and `JourneyStep` type
-- `src/components/dashboard/BuilderJourneyGuide.tsx` — uses shared `JOURNEY_STEPS` instead of local constant
-- `src/stores/uiStore.ts` — added `hasSeenTour` + `setHasSeenTour` (persisted to localStorage via partialize)
-- `src/pages/Dashboard.tsx` — wired first-run logic (`!hasSeenTour` → show tour), "How it works" button on tour re-open
-- `src/__tests__/onboardingTour.test.tsx` — new: 12 tests covering rendering, navigation, close/skip/complete, a11y, accessibile roles
-- `docs/SPRINT_81_ONBOARDING_TOUR_REPORT.md` — sprint report
-- `CHANGELOG.md` — release notes
+- `src/components/dashboard/stages.ts` — new: shared `STAGES` constant and `WorkflowStage` type (6 stages, icons, descriptions)
+- `src/components/dashboard/StageRail.tsx` — new: left vertical navigation rail with active highlight, status indicators, aria-current
+- `src/components/dashboard/stages/BriefStage.tsx` — new: AiBriefPanel + generated design cards
+- `src/components/dashboard/stages/ConceptStage.tsx` — new: design option cards + PlanComparison + empty state
+- `src/components/dashboard/stages/DesignStage.tsx` — new: toolbar + PlanCanvas/3D/Drawings viewer + CadSyncControls
+- `src/components/dashboard/stages/EngineeringStage.tsx` — new: EngineeringStudioPanel + EngineeringAnalysisPanel
+- `src/components/dashboard/stages/DocsBimStage.tsx` — new: DrawingsPanel + 3D model viewer toggle
+- `src/components/dashboard/stages/CostDeliverStage.tsx` — new: BoqExportPanel + empty state
+- `src/pages/Dashboard.tsx` — refactored: StageRail + stage switch replaces monolithic content; EngineeringStudioPanel/BoqExportPanel/EngineeringAnalysisPanel moved to stage content; cross-cutting panels remain in right sidebar; onboarding tour sets activeStage=1 on complete
+- `src/components/dashboard/BuilderJourneyGuide.tsx` — updated: uses `activeStage` from uiStore instead of computing step from UI state
+- `src/__tests__/stageNavigation.test.tsx` — new: 18 tests covering StageRail rendering, aria-current, stage switching, all 6 component empty states and data states
 
 ## [0.8.0] - 2026-07-07
 

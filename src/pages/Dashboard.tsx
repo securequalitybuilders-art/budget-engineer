@@ -8,25 +8,22 @@ import { PropertiesPanel } from '@/components/layout/PropertiesPanel';
 import { BOQPanel } from '@/components/layout/BOQPanel';
 import { TransactionPanel } from '@/components/layout/TransactionPanel';
 import { AIChatPanel } from '@/components/layout/AIChatPanel';
-import { EngineeringStudioPanel } from '@/components/dashboard/EngineeringStudioPanel';
 import { BuilderJourneyGuide } from '@/components/dashboard/BuilderJourneyGuide';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
-import { CadSyncControls } from '@/components/dashboard/CadSyncControls';
-import { Button } from '@/components/ui/Button';
-import { Layers, Box, Ruler, FileSpreadsheet, Wand2, Loader2, Boxes, LayoutGrid } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { PlanCanvas } from '@/components/cad/PlanCanvas';
-import { PlanComparison } from '@/components/cad/PlanComparison';
-import { LazyBimModel3D } from '@/components/bim/LazyBimModel3D';
+import { StageRail } from '@/components/dashboard/StageRail';
+import { BriefStage } from '@/components/dashboard/stages/BriefStage';
+import { ConceptStage } from '@/components/dashboard/stages/ConceptStage';
+import { DesignStage } from '@/components/dashboard/stages/DesignStage';
+import { EngineeringStage } from '@/components/dashboard/stages/EngineeringStage';
+import { DocsBimStage } from '@/components/dashboard/stages/DocsBimStage';
+import { CostDeliverStage } from '@/components/dashboard/stages/CostDeliverStage';
+import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
+import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
+import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
+import { Box, FileSpreadsheet } from 'lucide-react';
 import { generatePlanModel } from '@/engine/plan-generator';
 import { floorPlanToPlanModel } from '@/adapters/floorPlanToPlanModel';
 import type { FloorPlan } from '@/engine/tier3/layoutEngine';
-import { BoqExportPanel } from '@/components/dashboard/BoqExportPanel';
-import { EngineeringAnalysisPanel } from '@/components/dashboard/EngineeringAnalysisPanel';
-import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
-import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
-import { DrawingsPanel } from '@/components/drawings/DrawingsPanel';
-import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
 import { designOptionToBimModel } from '@/adapters/designToBim';
 import { buildBoqFromDesignOption } from '@/adapters/designToBoq';
 import { deriveBoqFromCadOrDesign, buildCadSyncMetadata } from '@/adapters/cadToDesignSyncAdapter';
@@ -39,7 +36,7 @@ import type { GeometrySource } from '@/adapters/cadToDesignSyncAdapter';
 export function Dashboard() {
   const { id } = useParams<{ id: string }>();
   const { loadProject, currentProject, currentBrief, currentDesigns, isLoading, generateDesigns, seed } = useProjectStore();
-  const { setActiveStage, selectedDesignId, setSelectedDesignId, hasSeenTour, setHasSeenTour } = useUIStore();
+  const { activeStage, setActiveStage, selectedDesignId, setSelectedDesignId, hasSeenTour, setHasSeenTour } = useUIStore();
   const [isGenerating, setIsGenerating] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
 
@@ -52,12 +49,13 @@ export function Dashboard() {
   const handleTourComplete = useCallback(() => {
     setHasSeenTour(true)
     setTourOpen(false)
-  }, [setHasSeenTour])
+    setActiveStage(1)
+  }, [setHasSeenTour, setActiveStage])
 
   const handleTourClose = useCallback(() => {
     setTourOpen(false)
   }, [])
-  const [activeCanvasView, setActiveCanvasView] = useState<'plan' | 'bim' | 'drawings'>('plan');
+
   const [aiDesignOptions, setAiDesignOptions] = useState<DesignOption[]>([]);
   const [tier3Plans, setTier3Plans] = useState<FloorPlan[]>([]);
   const [latestBuildingType, setLatestBuildingType] = useState<string | null>(null);
@@ -73,7 +71,6 @@ export function Dashboard() {
   const loadedCadRef = useRef<string | null>(null);
   const loggedBimRef = useRef<string | null>(null);
   const loggedBoqRef = useRef<string | null>(null);
-  const designOptionsRef = useRef<HTMLDivElement>(null);
 
   function showStatus(msg: string, type: 'success' | 'error' | 'info') {
     if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
@@ -160,7 +157,7 @@ export function Dashboard() {
 
   useEffect(() => {
     if (currentProject) {
-      const stageMap: Record<typeof currentProject.status, number> = {
+      const stageMap: Record<string, number> = {
         draft: 1,
         concept: 2,
         design: 3,
@@ -171,13 +168,6 @@ export function Dashboard() {
       setActiveStage(stageMap[currentProject.status] || 1);
     }
   }, [currentProject, setActiveStage]);
-
-  // ── Auto-scroll to design options after generation ──
-  useEffect(() => {
-    if (visibleDesignOptions.length > 0 && designOptionsRef.current) {
-      designOptionsRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }, [visibleDesignOptions.length]);
 
   // ── CAD Persistence: load saved PlanModel on design selection change ──
   useEffect(() => {
@@ -368,6 +358,21 @@ export function Dashboard() {
     logTransaction(id, 'EXPORT', 'export', selectedDesign.id, `BOQ exported as ${label}`)
   }
 
+  // ── Stage status for Rail ──
+  const stageStatus: Record<number, 'done' | 'active' | 'upcoming' | 'blocked'> = useMemo(() => {
+    const hasDesigns = visibleDesignOptions.length > 0
+    const hasSelection = !!selectedDesignId && hasDesigns
+    const hasBoq = !!selectedDesign
+    return {
+      1: activeStage === 1 ? 'active' : 'done',
+      2: !hasDesigns ? (activeStage === 2 ? 'active' : 'blocked') : (activeStage === 2 ? 'active' : 'done'),
+      3: !hasSelection ? (activeStage === 3 ? 'active' : 'blocked') : (activeStage === 3 ? 'active' : 'done'),
+      4: !hasSelection ? (activeStage === 4 ? 'active' : 'blocked') : (activeStage === 4 ? 'active' : 'done'),
+      5: !hasSelection ? (activeStage === 5 ? 'active' : 'blocked') : (activeStage === 5 ? 'active' : 'done'),
+      6: !hasBoq ? (activeStage === 6 ? 'active' : 'blocked') : (activeStage === 6 ? 'active' : 'done'),
+    }
+  }, [activeStage, visibleDesignOptions.length, selectedDesignId, selectedDesign])
+
   if (isLoading) {
     return (
       <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center bg-[var(--bg-primary)]">
@@ -409,250 +414,92 @@ export function Dashboard() {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <div className="flex flex-1 overflow-hidden">
-          {/* Main canvas area */}
+          {/* Stage Rail */}
+          <StageRail
+            activeStage={activeStage}
+            onStageChange={setActiveStage}
+            stageStatus={stageStatus}
+          />
+
+          {/* Stage content area */}
           <div className="relative flex flex-1 flex-col overflow-hidden bg-[var(--bg-primary)]">
-            {/* Toolbar */}
-            <div className="absolute left-4 top-4 z-10 flex items-center gap-1 rounded-full glass px-2 py-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-[var(--brand-accent)]" aria-label="Select">
-                <Box size={16} />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" aria-label="Wall tool">
-                <Layers size={16} />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" aria-label="Measure">
-                <Ruler size={16} />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" aria-label="AI design">
-                <Wand2 size={16} />
-              </Button>
-
-              <span className="mx-1 h-5 w-px bg-white/10" />
-
-              <CadSyncControls
-                sourceLabel={
-                  cadSyncSource === 'persisted-cad' ? 'Edited CAD' :
-                  cadSyncSource === 'fallback-generated' ? 'Fallback' :
-                  'Generated'
-                }
+            {activeStage === 1 && (
+              <BriefStage
+                onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
+                onDesignOptionsGenerated={handleAiDesignOptions}
+                onTier3Plans={handleTier3Plans}
+                onBuildingTypeChange={setSelectedBuildingType}
+                visibleDesignOptions={visibleDesignOptions}
+                selectedDesignId={selectedDesignId}
+                setSelectedDesignId={setSelectedDesignId}
+                selectedDesign={selectedDesign}
+              />
+            )}
+            {activeStage === 2 && (
+              <ConceptStage
+                visibleDesignOptions={visibleDesignOptions}
+                selectedDesignId={selectedDesignId}
+                setSelectedDesignId={setSelectedDesignId}
+                selectedDesign={selectedDesign}
+                handleGenerate={handleGenerate}
+                isGenerating={isGenerating}
+              />
+            )}
+            {activeStage === 3 && (
+              <DesignStage
+                projectId={id ?? null}
+                selectedDesign={selectedDesign}
+                activePlan={activePlan}
+                handleSavePlan={handleSavePlan}
+                cadSyncSource={cadSyncSource}
                 lastSavedAt={lastSavedAt}
-                isSaving={isManualSaving}
-                disabled={!id || !selectedDesign?.id}
+                isManualSaving={isManualSaving}
                 statusMessage={statusMessage}
                 statusType={statusType}
-                onSave={handleManualSavePlan}
-                onRestore={handleRestoreSavedPlan}
-                onReset={handleResetToGeneratedPlan}
+                onManualSavePlan={handleManualSavePlan}
+                onRestoreSavedPlan={handleRestoreSavedPlan}
+                onResetToGeneratedPlan={handleResetToGeneratedPlan}
+                handleGenerate={handleGenerate}
+                isGenerating={isGenerating}
               />
+            )}
+            {activeStage === 4 && (
+              <EngineeringStage
+                selectedDesign={selectedDesign}
+                activePlan={activePlan}
+                boq={currentBoq}
+                onDesignOptionsGenerated={handleAiDesignOptions}
+                onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
+                onTier3Plans={handleTier3Plans}
+                onBuildingTypeChange={setSelectedBuildingType}
+              />
+            )}
+            {activeStage === 5 && (
+              <DocsBimStage
+                activePlan={activePlan}
+                selectedDesign={selectedDesign}
+              />
+            )}
+            {activeStage === 6 && (
+              <CostDeliverStage
+                selectedDesign={selectedDesign}
+                boq={currentBoq}
+                onExport={handleExport}
+                activePlan={activePlan}
+                buildingType={buildingType}
+              />
+            )}
 
-              <Button
-                variant={activeCanvasView === 'plan' ? 'default' : 'ghost'}
-                size="sm"
-                className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
-                aria-label="2D Plan View"
-                title="View 2D floor plan"
-                onClick={() => setActiveCanvasView('plan')}
-              >
-                <LayoutGrid size={14} />
-                <span className="hidden sm:inline">2D</span>
-              </Button>
-              <Button
-                variant={activeCanvasView === 'drawings' ? 'default' : 'ghost'}
-                size="sm"
-                className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
-                aria-label="Elevations and Sections"
-                title="View elevations and section drawings"
-                onClick={() => setActiveCanvasView('drawings')}
-              >
-                <LayoutGrid size={14} />
-                <span className="hidden sm:inline">Drawings</span>
-              </Button>
-              <Button
-                variant={activeCanvasView === 'bim' ? 'default' : 'ghost'}
-                size="sm"
-                className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
-                aria-label="3D BIM View"
-                title="View 3D BIM model"
-                onClick={() => setActiveCanvasView('bim')}
-              >
-                <Boxes size={14} />
-                <span className="hidden sm:inline">3D</span>
-              </Button>
-            </div>
-
-            {/* Canvas area */}
-              <div className="flex flex-1 flex-col overflow-auto p-4">
-                {visibleDesignOptions.length > 0 ? (
-                  <div ref={designOptionsRef} className="flex flex-col gap-6">
-                    {/* ── Prominent "Choose your design" section ── */}
-                    <div className="rounded-2xl border-2 border-cyan-500/25 bg-slate-900/80 p-5 shadow-lg shadow-cyan-500/5 sm:p-6">
-                      {/* Section header */}
-                      <div className="mb-5 flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20">
-                          <LayoutGrid size={20} className="text-cyan-400" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h2 className="text-lg font-bold text-white">Choose your design</h2>
-                          <p className="text-xs text-slate-400">
-                            {selectedDesignId
-                              ? 'Design selected — you can change anytime'
-                              : 'Select a design option to unlock the Design stage'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Cards grid */}
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {visibleDesignOptions.map((option) => {
-                          const isSelected = selectedDesignId === option.id;
-                          return (
-                            <button
-                              key={option.id}
-                              onClick={() => setSelectedDesignId(option.id)}
-                              className={`flex flex-col gap-1 rounded-xl border-2 p-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${
-                                isSelected
-                                  ? 'border-cyan-400/60 bg-cyan-500/15 shadow-md shadow-cyan-500/15'
-                                  : 'border-slate-700/60 bg-slate-800/80 hover:border-cyan-500/40 hover:bg-cyan-500/5'
-                              }`}
-                            >
-                              <span className={`text-sm font-bold ${isSelected ? 'text-cyan-200' : 'text-slate-200'}`}>
-                                {option.name}
-                              </span>
-                              <span className="text-xs text-slate-400">
-                                {option.grossFloorArea.toFixed(0)} m² · {option.floors} floor{option.floors > 1 ? 's' : ''}
-                              </span>
-                              <span className="mt-1 text-[10px] leading-relaxed text-slate-400">
-                                {option.elements.length} element{option.elements.length > 1 ? 's' : ''}
-                              </span>
-                              <span
-                                className={`mt-2 self-start rounded-md px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                                  isSelected
-                                    ? 'bg-cyan-500/20 text-cyan-300'
-                                    : 'bg-amber-500/10 text-amber-400'
-                                }`}
-                              >
-                                {isSelected ? 'Selected' : 'Select this design'}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      {/* CTA after selection */}
-                      {selectedDesignId ? (
-                        <div className="mt-5 flex flex-col items-start gap-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20">
-                              <span className="text-[10px] text-emerald-400">✓</span>
-                            </div>
-                            <span className="text-sm text-cyan-200">
-                              <span className="font-semibold text-white">{selectedDesign?.name}</span> selected
-                            </span>
-                          </div>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => {
-                              setActiveCanvasView('plan');
-                              designOptionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                            }}
-                          >
-                            View 2D floor plan →
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="mt-5 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-center text-sm font-medium text-cyan-300">
-                          Select a design option to continue
-                        </div>
-                      )}
-
-                      {/* Regenerate button */}
-                      <div className="mt-4 flex justify-center sm:justify-end">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          className="gap-2"
-                          onClick={handleGenerate}
-                          disabled={isGenerating || !currentBrief}
-                        >
-                          {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
-                          {isGenerating ? 'Generating...' : 'Regenerate options'}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Canvas area */}
-                    {activeCanvasView === 'plan' ? (
-                      <PlanCanvas projectId={id ?? null} design={selectedDesign} persistedPlan={activePlan} onSavePlan={handleSavePlan} />
-                    ) : (
-                      <LazyBimModel3D plan={activePlan} design={selectedDesign} height={480} />
-                    )}
-                    <PlanComparison designs={visibleDesignOptions} selectedDesignId={selectedDesign?.id} />
-                    {activeCanvasView === 'bim' && activePlan && (
-                      <p className="max-w-md text-[10px] text-stone-400 leading-relaxed">
-                        3D BIM model — walls, slabs, storeys, doors, windows and roof generated from your floor plan.
-                        Storey height 3.0&nbsp;m, wall thickness {(activePlan.wallThickness || 0.23).toFixed(2)}&nbsp;m.
-                        Model downloadable as .glb for use in Blender, Windows 3D Viewer, and other 3D tools.
-                      </p>
-                    )}
-                    {activeCanvasView === 'drawings' && activePlan && (
-                      <DrawingsPanel
-                        activePlan={activePlan}
-                        design={selectedDesign}
-                        floors={selectedDesign?.floors ?? 1}
-                      />
-                    )}
-                    <p className="max-w-xs text-[10px] text-stone-400">
-                      Mobile: review, estimates, exports supported. For best CAD editing, use a tablet or desktop.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex flex-1 flex-col items-center justify-center">
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex flex-col items-center text-center"
-                  >
-                    <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-2xl border border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-lg">
-                      <Box size={40} className="text-[var(--brand-accent)]" />
-                    </div>
-                    <h2 className="font-display text-2xl font-bold">2D / 3D Design Canvas</h2>
-                    <p className="mt-2 max-w-md text-sm text-[var(--text-secondary)]">
-                      Go to the AI Brief panel on the right to describe your project in plain English.
-                      Once you generate design options, 2D plans and 3D views appear here.
-                    </p>
-                    <div className="mt-6 flex flex-col items-center gap-3">
-                      <Button className="gap-2" onClick={handleGenerate} disabled={isGenerating || !currentBrief}>
-                        {isGenerating ? (
-                          <Loader2 size={16} className="animate-spin" />
-                        ) : (
-                          <Wand2 size={16} />
-                        )}
-                        {isGenerating ? 'Generating designs...' : 'Generate Design Options'}
-                      </Button>
-                      <Button variant="secondary" className="gap-2">
-                        <FileSpreadsheet size={16} />
-                        Import DXF
-                      </Button>
-                    </div>
-                    <p className="mt-6 max-w-xs text-[10px] text-stone-400">
-                      Mobile: review, estimates, exports supported. For best CAD editing, use a tablet or desktop.
-                    </p>
-                  </motion.div>
-                </div>
-              )}
-            </div>
-
-            {/* BOQ toggle when closed */}
             <BOQPanel />
           </div>
 
-          {/* Right sidebar */}
+          {/* Right sidebar - cross-cutting panels */}
           <div className="flex flex-shrink-0 overflow-x-auto lg:overflow-x-visible">
             <div className="relative">
               <BuilderJourneyGuide
                 hasDesignOptions={visibleDesignOptions.length > 0}
                 selectedDesignName={selectedDesign?.name}
-                activeCanvasView={activeCanvasView}
+                activeCanvasView="plan"
                 hasBoq={!!selectedDesign}
                 hasAnalysis={!!selectedDesign}
               />
@@ -667,9 +514,6 @@ export function Dashboard() {
             </div>
             <PropertiesPanel />
             <TransactionPanel />
-            <EngineeringStudioPanel selectedDesign={selectedDesign} activePlan={activePlan} boq={currentBoq} onDesignOptionsGenerated={handleAiDesignOptions} onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }} onTier3Plans={handleTier3Plans} onBuildingTypeChange={setSelectedBuildingType} />
-            <BoqExportPanel selectedDesign={selectedDesign} boq={currentBoq} onExport={handleExport} activePlan={activePlan} buildingType={buildingType} />
-            <EngineeringAnalysisPanel selectedDesign={selectedDesign} />
             <GovernancePanel
               selectedDesign={selectedDesign}
               hasBim={(bimModel?.elements.length ?? 0) > 0}
