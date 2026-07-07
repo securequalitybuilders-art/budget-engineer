@@ -1,11 +1,12 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useCallback } from 'react'
 import { useProjectStore } from '@/stores/projectStore'
 import { PlanComparison } from '@/components/cad/PlanComparison'
 import { Button } from '@/components/ui/Button'
-import { LayoutGrid, Wand2, Loader2, FileSpreadsheet } from 'lucide-react'
+import { LayoutGrid, Wand2, Loader2, Upload } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import type { DesignOption } from '@/domain/boq'
+import type { PlanModel } from '@/domain/plan'
 
 interface ConceptStageProps {
   visibleDesignOptions: DesignOption[]
@@ -14,6 +15,7 @@ interface ConceptStageProps {
   selectedDesign: DesignOption | null
   handleGenerate: () => Promise<void>
   isGenerating: boolean
+  onDxfImported?: (plan: PlanModel) => void
 }
 
 export function ConceptStage({
@@ -23,7 +25,27 @@ export function ConceptStage({
   selectedDesign,
   handleGenerate,
   isGenerating,
+  onDxfImported,
 }: ConceptStageProps) {
+  const dxfInputRef = useRef<HTMLInputElement>(null)
+
+  const handleDxfFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !onDxfImported) return
+    try {
+      const text = await file.text()
+      const { parseDxfToPlan } = await import('@/lib/import/dxf-importer')
+      const plan = parseDxfToPlan(text)
+      if (plan) {
+        onDxfImported(plan)
+      } else {
+        alert('Could not read this DXF file. The file may be empty, invalid, or use unsupported entities.')
+      }
+    } catch {
+      alert('Could not read this DXF file. The file may be empty, invalid, or use unsupported entities.')
+    }
+    if (e.target) e.target.value = ''
+  }, [onDxfImported])
   const { currentBrief } = useProjectStore()
   const designOptionsRef = useRef<HTMLDivElement>(null)
 
@@ -53,10 +75,18 @@ export function ConceptStage({
               {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
               {isGenerating ? 'Generating designs...' : 'Generate Design Options'}
             </Button>
-            <Button variant="secondary" className="gap-2">
-              <FileSpreadsheet size={16} />
+            <Button variant="secondary" className="gap-2" onClick={() => dxfInputRef.current?.click()}>
+              <Upload size={16} />
               Import DXF
             </Button>
+            <input
+              ref={dxfInputRef}
+              type="file"
+              accept=".dxf"
+              onChange={handleDxfFile}
+              className="hidden"
+              aria-label="Select a DXF file to import"
+            />
           </div>
           <p className="mt-6 max-w-xs text-[10px] text-stone-400">
             Mobile: review, estimates, exports supported. For best CAD editing, use a tablet or desktop.

@@ -268,6 +268,26 @@ export function Dashboard() {
     }
   }, [selectedDesign, id, currentBoq])
 
+  const handleDxfImport = useCallback((plan: PlanModel) => {
+    if (!id) return;
+    const dxfDesignOption: DesignOption = {
+      id: `dxf-import-${Date.now()}`,
+      name: 'Imported DXF',
+      grossFloorArea: plan.width * plan.height,
+      floors: 1,
+      buildingType: 'imported',
+      elements: [],
+    };
+    plan.designOptionId = dxfDesignOption.id;
+    setAiDesignOptions((prev) => [...prev, dxfDesignOption]);
+    setSelectedDesignId(dxfDesignOption.id);
+    savePlanModel(id, dxfDesignOption.id, plan);
+    setPersistedPlan(plan);
+    logTransaction(id, 'CREATE', 'design', dxfDesignOption.id, 'DXF imported — verify scale');
+    setActiveView(3);
+    showStatus('DXF imported — verify scale', 'success');
+  }, [id, setSelectedDesignId, setActiveView]);
+
   const handleGenerate = async () => {
     if (!id) return;
     setIsGenerating(true);
@@ -447,6 +467,7 @@ export function Dashboard() {
                     selectedDesign={selectedDesign}
                     handleGenerate={handleGenerate}
                     isGenerating={isGenerating}
+                    onDxfImported={handleDxfImport}
                   />
                 )}
                 {activeView === 3 && (

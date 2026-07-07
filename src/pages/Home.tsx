@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useRef } from 'react'
+import { Link, useNavigate } from 'react-router-dom';
 import { useProjectStore } from '@/stores/projectStore';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -32,7 +33,38 @@ const JOURNEY_STEPS = [
 ]
 
 export function Home() {
-  const { projects, isHydrated } = useProjectStore();
+  const { projects, isHydrated, createProject } = useProjectStore();
+  const navigate = useNavigate();
+  const dxfInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDxfFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const text = await file.text()
+      const { parseDxfToPlan } = await import('@/lib/import/dxf-importer')
+      const plan = parseDxfToPlan(text)
+      if (plan) {
+        const project = await createProject({
+          name: file.name.replace(/\.dxf$/i, '') || 'Imported DXF',
+          profile: 'first-time',
+          region: 'zimbabwe',
+          currency: 'USD',
+        })
+        plan.designOptionId = `dxf-home-${Date.now()}`
+        const { savePlanModel } = await import('@/services/cadPersistenceService')
+        await savePlanModel(project.id, plan.designOptionId, plan)
+        const { logTransaction } = await import('@/services/projectPersistenceService')
+        await logTransaction(project.id, 'CREATE', 'design', plan.designOptionId, 'DXF imported from home — verify scale')
+        navigate(`/project/${project.id}`)
+      } else {
+        alert('Could not read this DXF file. The file may be empty, invalid, or use unsupported entities.')
+      }
+    } catch {
+      alert('Could not read this DXF file. The file may be empty, invalid, or use unsupported entities.')
+    }
+    if (e.target) e.target.value = ''
+  }
 
   return (
     <main className="relative min-h-[calc(100vh-3.5rem)] overflow-y-auto">
@@ -62,10 +94,18 @@ export function Home() {
                 Portfolio Dashboard
               </Button>
             </Link>
-            <Button variant="secondary" size="lg" className="gap-2">
+            <Button variant="secondary" size="lg" className="gap-2" onClick={() => dxfInputRef.current?.click()}>
               <FileBarChart size={18} />
               Import DXF/IFC
             </Button>
+            <input
+              ref={dxfInputRef}
+              type="file"
+              accept=".dxf"
+              onChange={handleDxfFile}
+              className="hidden"
+              aria-label="Select a DXF file to import"
+            />
           </div>
         </div>
 
