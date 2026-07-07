@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Sprint 72 — Interior inspection: dollhouse/cutaway 3D view (hide roof, translucent walls, per-storey isolation) to see inside the model
+
+### New Files
+- `src/components/bim/viewMode.ts` — `computeVisibility()` pure helper (ViewMode, VisibilityState)
+- `src/__tests__/bimViewMode.test.ts` — 12 tests for `computeVisibility` ('full', 'dollhouse', 'noRoof', storey filtering, bounds clamping)
+
+### Tests
+778 tests across 44 files (12 new).
+
+---
+
 ## [0.5.0] - 2026-07-06
 
 ### Interactive 2D CAD Editor — Sprints 67–70: Reliable room & opening editing with snap-to-grid, nudge, live dimension readout, undo/redo timeline, and IndexedDB persistence

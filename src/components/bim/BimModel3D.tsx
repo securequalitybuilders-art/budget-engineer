@@ -2,6 +2,7 @@ import { useMemo, useRef, useCallback, useState, useEffect } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
+
 import { registerSnapshotCapture, unregisterSnapshotCapture } from '@/lib/3d-snapshot'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
@@ -9,6 +10,8 @@ import { planTo3d, DEFAULT_STOREY_HEIGHT } from '@/adapters/planTo3d'
 import type { PlanTo3dResult, WallPier, FloorSlab, Opening3d, RoofParams, CeilingSlab } from '@/adapters/planTo3d'
 import { Button } from '@/components/ui/Button'
 import { Download } from 'lucide-react'
+import { computeVisibility } from './viewMode'
+import type { ViewMode } from './viewMode'
 
 // ── Brand palette materials (PBR) ──
 const WALL_EXT_MAT = new THREE.MeshStandardMaterial({
@@ -53,11 +56,13 @@ interface BimModel3DProps {
   plan: PlanModel | null
   design: DesignOption | null
   height?: number
+  viewMode?: ViewMode
+  visibleStorey?: number | 'all'
 }
 
-// — Mesh sub-components —
+// ── Mesh sub-components ──
 
-function WallPierMesh({ pier }: { pier: WallPier }) {
+function WallPierMesh({ pier, wallOpacity }: { pier: WallPier; wallOpacity: number }) {
   const dx = pier.endX - pier.startX
   const dz = pier.endZ - pier.startZ
   const length = Math.hypot(dx, dz) || 0.001
@@ -65,7 +70,15 @@ function WallPierMesh({ pier }: { pier: WallPier }) {
   const midZ = (pier.startZ + pier.endZ) / 2
   const midY = pier.height / 2 + pier.storeyIndex * DEFAULT_STOREY_HEIGHT
   const angle = Math.atan2(dz, dx)
-  const mat = pier.type === 'external' ? WALL_EXT_MAT : WALL_INT_MAT
+  const mat = useMemo(() => {
+    const col = pier.type === 'external' ? '#94a3b8' : '#cbd5e1'
+    if (wallOpacity >= 1) return pier.type === 'external' ? WALL_EXT_MAT : WALL_INT_MAT
+    const m = new THREE.MeshStandardMaterial({
+      color: col, roughness: 0.7, metalness: pier.type === 'external' ? 0.05 : 0.0,
+      transparent: true, opacity: wallOpacity, depthWrite: false,
+    })
+    return m
+  }, [pier.type, wallOpacity])
 
   return (
     <mesh position={[midX, midY, midZ]} rotation={[0, angle, 0]} castShadow receiveShadow material={mat}>
@@ -123,23 +136,18 @@ function WindowMesh({ op }: { op: Opening3d }) {
   const ss = op.sillHeight
   return (
     <group position={[op.centerX, op.centerY, op.centerZ]} rotation={[0, op.wallAngle, 0]}>
-      {/* Glass pane — thin box inside the wall */}
       <mesh position={[0, glassY, 0]} renderOrder={1} material={WINDOW_GLASS_MAT}>
         <boxGeometry args={[ww, hh, glassZ]} />
       </mesh>
-      {/* Frame: head — top horizontal bar */}
       <mesh position={[0, ss + hh - ft / 2, 0]} material={WINDOW_FRAME_MAT}>
         <boxGeometry args={[ww + ft * 2, ft, ft]} />
       </mesh>
-      {/* Frame: sill — bottom horizontal bar */}
       <mesh position={[0, ss + ft / 2, 0]} material={WINDOW_FRAME_MAT}>
         <boxGeometry args={[ww + ft * 2, ft, ft]} />
       </mesh>
-      {/* Frame: left jamb */}
       <mesh position={[-ww / 2 - ft / 2, ss + hh / 2, 0]} material={WINDOW_FRAME_MAT}>
         <boxGeometry args={[ft, hh + ft * 2, ft]} />
       </mesh>
-      {/* Frame: right jamb */}
       <mesh position={[ww / 2 + ft / 2, ss + hh / 2, 0]} material={WINDOW_FRAME_MAT}>
         <boxGeometry args={[ft, hh + ft * 2, ft]} />
       </mesh>
@@ -158,45 +166,34 @@ function RoofMesh({ roof }: { roof: RoofParams }) {
     const indices: number[] = []
 
     if (ridgeAxis === 'x') {
-      // Ridge runs along X axis at z = bd/2
       const zRidge = bd / 2
-      // 6 vertices
       const v = [
-        -oh, eaveY, -oh,        // 0: SW eave
-        bw + oh, eaveY, -oh,    // 1: SE eave
-        bw + oh, eaveY, bd + oh,// 2: NE eave
-        -oh, eaveY, bd + oh,    // 3: NW eave
-        -oh, apexY, zRidge,     // 4: ridge W end
-        bw + oh, apexY, zRidge, // 5: ridge E end
+        -oh, eaveY, -oh,
+        bw + oh, eaveY, -oh,
+        bw + oh, eaveY, bd + oh,
+        -oh, eaveY, bd + oh,
+        -oh, apexY, zRidge,
+        bw + oh, apexY, zRidge,
       ]
       vertices.push(...v)
-      // South roof plane (quad: 0,1,5,4)
       indices.push(0, 1, 5, 0, 5, 4)
-      // North roof plane (quad: 3,2,5,4)
       indices.push(3, 2, 5, 3, 5, 4)
-      // West gable (vertical triangle: 0,3,4)
       indices.push(0, 3, 4)
-      // East gable (vertical triangle: 1,2,5)
       indices.push(1, 2, 5)
     } else {
-      // Ridge runs along Z axis at x = bw/2
       const xRidge = bw / 2
       const v = [
-        -oh, eaveY, -oh,        // 0: SW eave
-        bw + oh, eaveY, -oh,    // 1: SE eave
-        bw + oh, eaveY, bd + oh,// 2: NE eave
-        -oh, eaveY, bd + oh,    // 3: NW eave
-        xRidge, apexY, -oh,     // 4: ridge S end
-        xRidge, apexY, bd + oh, // 5: ridge N end
+        -oh, eaveY, -oh,
+        bw + oh, eaveY, -oh,
+        bw + oh, eaveY, bd + oh,
+        -oh, eaveY, bd + oh,
+        xRidge, apexY, -oh,
+        xRidge, apexY, bd + oh,
       ]
       vertices.push(...v)
-      // East roof plane (quad: 1,2,5,4)
       indices.push(1, 2, 5, 1, 5, 4)
-      // West roof plane (quad: 0,3,5,4)
       indices.push(0, 3, 5, 0, 5, 4)
-      // South gable (vertical triangle: 0,1,4)
       indices.push(0, 1, 4)
-      // North gable (vertical triangle: 3,2,5)
       indices.push(3, 2, 5)
     }
 
@@ -261,17 +258,67 @@ function AccentEdges({ result }: { result: PlanTo3dResult }) {
   )
 }
 
-// — Scene —
+// ── Helpers ──
 
-function Scene({ result, buildingRef }: { result: PlanTo3dResult; buildingRef: React.MutableRefObject<THREE.Group | null> }) {
+function shouldShowStorey(
+  item: { storeyIndex: number },
+  storeysToShow: number[] | 'all',
+): boolean {
+  return storeysToShow === 'all' || storeysToShow.includes(item.storeyIndex)
+}
+
+// ── Scene ──
+
+interface SceneProps {
+  result: PlanTo3dResult
+  buildingRef: React.MutableRefObject<THREE.Group | null>
+  wallOpacity: number
+  showRoof: boolean
+  showCeilings: boolean
+  storeysToShow: number[] | 'all'
+  viewMode: ViewMode
+}
+
+function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, storeysToShow, viewMode }: SceneProps) {
+  const camera = useThree(s => s.camera)
+  const invalidate = useThree(s => s.invalidate)
+  const controlsRef = useRef<React.ElementRef<typeof OrbitControls> | null>(null)
+
   const target = useMemo(
     () => new THREE.Vector3(result.bounds.width / 2, result.bounds.totalHeight / 2, result.bounds.depth / 2),
     [result],
   )
 
+  // Adjust camera when view mode changes
+  useEffect(() => {
+    const c = controlsRef.current
+    if (!c) return
+    const b = result.bounds
+    const cx = b.width / 2
+    const cz = b.depth / 2
+    const maxDim = Math.max(b.width, b.depth, 5)
+
+    if (viewMode === 'dollhouse') {
+      c.target.set(cx, b.totalHeight * 0.3, cz)
+      camera.position.set(
+        cx + maxDim * 0.1,
+        b.totalHeight + maxDim * 0.8,
+        cz + maxDim * 0.6,
+      )
+    } else {
+      c.target.set(cx, b.totalHeight / 2, cz)
+      camera.position.set(
+        cx + maxDim * 0.6,
+        b.totalHeight * 0.5 + maxDim * 0.3,
+        cz + maxDim * 0.6,
+      )
+    }
+    c.update()
+    invalidate()
+  }, [viewMode, result.bounds, camera, invalidate])
+
   return (
     <>
-      {/* Ground plane */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[result.bounds.width / 2, -0.01, result.bounds.depth / 2]} receiveShadow>
         <planeGeometry args={[Math.max(result.bounds.width * 3, 30), Math.max(result.bounds.depth * 3, 30)]} />
         <meshStandardMaterial color="#1e293b" roughness={1} />
@@ -282,34 +329,33 @@ function Scene({ result, buildingRef }: { result: PlanTo3dResult; buildingRef: R
         position={[result.bounds.width / 2, 0, result.bounds.depth / 2]}
       />
 
-      {/* All building meshes inside a single group for export */}
       <group ref={buildingRef}>
-        {/* Slabs */}
-        {result.slabs.map((s) => <SlabMesh key={`slab-${s.storeyIndex}`} slab={s} />)}
+        {result.slabs
+          .filter((s) => shouldShowStorey(s, storeysToShow))
+          .map((s) => <SlabMesh key={`slab-${s.storeyIndex}`} slab={s} />)}
 
-        {/* Ceilings (one per room per storey) */}
-        {result.ceilings.map((c) => <CeilingMesh key={`ceil-${c.roomId}-${c.storeyIndex}`} ceiling={c} />)}
+        {result.ceilings
+          .filter((c) => showCeilings && shouldShowStorey(c, storeysToShow))
+          .map((c) => <CeilingMesh key={`ceil-${c.roomId}-${c.storeyIndex}`} ceiling={c} />)}
 
-        {/* Wall piers (split to create openings) */}
-        {result.walls.map((w) => <WallPierMesh key={`${w.pierId}-${w.storeyIndex}`} pier={w} />)}
+        {result.walls
+          .filter((w) => shouldShowStorey(w, storeysToShow))
+          .map((w) => <WallPierMesh key={`${w.pierId}-${w.storeyIndex}`} pier={w} wallOpacity={wallOpacity} />)}
 
-        {/* Doors */}
-        {result.openings.filter((o) => o.kind === 'door').map((o) => (
-          <DoorMesh key={`door-${o.openingId}-s${o.storeyIndex}`} op={o} />
-        ))}
+        {result.openings
+          .filter((o) => o.kind === 'door' && shouldShowStorey(o, storeysToShow))
+          .map((o) => <DoorMesh key={`door-${o.openingId}-s${o.storeyIndex}`} op={o} />)}
 
-        {/* Windows */}
-        {result.openings.filter((o) => o.kind === 'window').map((o) => (
-          <WindowMesh key={`win-${o.openingId}-s${o.storeyIndex}`} op={o} />
-        ))}
+        {result.openings
+          .filter((o) => o.kind === 'window' && shouldShowStorey(o, storeysToShow))
+          .map((o) => <WindowMesh key={`win-${o.openingId}-s${o.storeyIndex}`} op={o} />)}
 
-        {/* Roof (pitched gable on topmost storey) */}
-        {result.roof && <RoofMesh roof={result.roof} />}
+        {showRoof && result.roof && <RoofMesh roof={result.roof} />}
       </group>
 
       <AccentEdges result={result} />
 
-      <OrbitControls enableDamping dampingFactor={0.12} target={target} minDistance={3} maxDistance={60} />
+      <OrbitControls ref={controlsRef} enableDamping dampingFactor={0.12} target={target} minDistance={3} maxDistance={60} />
 
       <ambientLight intensity={0.5} />
       <directionalLight position={[15, 20, 10]} intensity={1.2} castShadow
@@ -322,9 +368,9 @@ function Scene({ result, buildingRef }: { result: PlanTo3dResult; buildingRef: R
   )
 }
 
-// — Main component —
+// ── Main component ──
 
-export function BimModel3D({ plan, design, height = 480 }: BimModel3DProps) {
+export function BimModel3D({ plan, design, height = 480, viewMode = 'full', visibleStorey = 'all' }: BimModel3DProps) {
   const numberOfStoreys = design?.floors ?? 1
   const buildingRef = useRef<THREE.Group | null>(null)
   const [isExporting, setIsExporting] = useState(false)
@@ -345,7 +391,11 @@ export function BimModel3D({ plan, design, height = 480 }: BimModel3DProps) {
 
   const result = useMemo(() => planTo3d(plan, numberOfStoreys), [plan, numberOfStoreys])
 
-  // Export handler — dynamically import GLTFExporter on click
+  const vis = useMemo(
+    () => computeVisibility(viewMode, visibleStorey, numberOfStoreys),
+    [viewMode, visibleStorey, numberOfStoreys],
+  )
+
   const handleExport = useCallback(async () => {
     if (!buildingRef.current) return
     setIsExporting(true)
@@ -376,7 +426,6 @@ export function BimModel3D({ plan, design, height = 480 }: BimModel3DProps) {
     }
   }, [plan?.id])
 
-  // Context lost friendly fallback
   if (contextLost) {
     return (
       <div
@@ -394,7 +443,6 @@ export function BimModel3D({ plan, design, height = 480 }: BimModel3DProps) {
     )
   }
 
-  // Empty state
   if (!plan || result.walls.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-slate-950/60" style={{ height }}>
@@ -430,10 +478,17 @@ export function BimModel3D({ plan, design, height = 480 }: BimModel3DProps) {
           failIfMajorPerformanceCaveat: false,
         }}
       >
-        <Scene result={result} buildingRef={buildingRef} />
+        <Scene
+          result={result}
+          buildingRef={buildingRef}
+          wallOpacity={vis.wallOpacity}
+          showRoof={vis.showRoof}
+          showCeilings={vis.showCeilings}
+          storeysToShow={vis.storeysToShow}
+          viewMode={viewMode}
+        />
         <SnapshotCapture />
       </Canvas>
-      {/* Download button */}
       <div className="flex items-center gap-2 border-t border-white/10 px-4 py-2">
         <Button
           variant="secondary"
