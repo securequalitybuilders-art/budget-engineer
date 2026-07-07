@@ -1,8 +1,8 @@
 # Canonical Repo Status — Budget Engineer OS
 
-> **Date:** 2026-07-07  
+> **Date:** 2026-07-07 (v0.8.0)  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** v0.7.0 — DzeNhare OS with Parametric Biomimetic Canopy Phase. Opt-in canopy roof type alongside existing gable — toggle via Gable/Canopy button. Curved Voronoi-cell surface (Bowyer–Watson Delaunay + Sutherland–Hodgman clip, parabolic projection) with live sliders (Span X, Span Z, Rise, Cell Density capped at 60, Reseed). ETFE-like translucent cyan panels with visible edge lattice. Structural framing: spine ribs (thick teal box segments along X/Z axes), perimeter beam, support columns, violet secondary rib network. Geometry disposal + 120ms debounce prevents WebGL context loss on param changes. Canopy Section A-A drawing integration: curved profile curve, rib tick marks, ETFE panel fill, support columns, label, Rise/Span sliders in DrawingsPanel, gable fallback on error. Also includes Interior Inspection Phase (Full/Dollhouse/No Roof toggles, storey selector, click-a-room fly-in with smooth animation, first-person walkthrough with WASD + pointer-lock mouse-look, footprint clamp). Complete interactive 2D CAD editing for rooms and openings. All 11 construction-standard drawing types + A1 presentation sheet + PDF/PNG export. Lint baseline at 9 warnings. All 847 unit tests pass (47 files). `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (847 passed, 47 files).
+> **Status:** v0.8.0 — SADC Building-Code Compliance Phase. Four building-code jurisdictions: Zimbabwe (ZBC, 9 rules), South Africa (SANS 10400, 10 rules), Zambia (Public Health Act CAP 295, 9 rules), Botswana (Building Control Regulations, 9 rules) — totalling 28 rules. Jurisdiction picker in Analysis panel and BOQ & Export panel. All rules marked "approximate — verify with local authority". Unknown jurisdictions return empty with warning (never crash). Builds on all prior phases: Parametric Biomimetic Canopy Phase (Voronoi-cell surface, ETFE panels, spine ribs, Section A-A integration), Interior Inspection Phase (dollhouse/fly-in/walkthrough), Interactive 2D CAD Editor, Professional Drawings (11 types + A1 sheet), Governance approval workflow, Snapshot history, Portfolio dashboard, and all earlier features. Lint baseline at 9 warnings. All 864 unit tests pass (47 files). `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (864 passed, 47 files).
 
 ---
 
@@ -321,7 +321,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **External wall area missing in BOQ** | External walls were not costed separately | ✅ DONE (Sprint 13 — added as line item) |
 | **Partition/opening estimates in BOQ** | Used fixed m² estimates, not actual geometry | ✅ DONE (Sprint 13 — geometryQuantitiesAdapter provides derived quantities) |
 | **Web Workers** | No off-main-thread processing | Future |
-| **Tests** | 847 unit tests across 47 files | ✅ DONE (Sprint 9 + Sprints 16–29 + Sprints 36–49 + Sprints 65–70 + Sprints 72–74 + Sprints 76–77 — vitest, all adapters tested, CI pipeline) |
+| **Tests** | 864 unit tests across 47 files | ✅ DONE (Sprint 9 + Sprints 16–29 + Sprints 36–49 + Sprints 65–70 + Sprints 72–74 + Sprints 76–77 + Sprints 79–80 — vitest, all adapters tested, CI pipeline) |
 | **Deployment docs** | DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects | ✅ DONE (Sprint 10 — Vercel/Netlify/static hosting, SPA fallback, release checklist) |
 | **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |
 | **Room layout optimization** | Grid-based layout may produce self-intersecting wall rings | Improve geometry adapter with proper floorplan algorithm |

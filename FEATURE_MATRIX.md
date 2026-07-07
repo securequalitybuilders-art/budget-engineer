@@ -1,6 +1,6 @@
 # Feature Matrix — Budget Engineer OS Canonical
 
-> **Date:** 2026-07-07  
+> **Date:** 2026-07-07 (v0.8.0)  
 > **Base:** WS1 (`workspace-chart 1`)  
 > **Legend:** ✅ Present | ❌ Missing | 🔄 Staged (not wired)
 > **Phase E (WS6 AI + Drawing Management) merged.**  
@@ -161,3 +161,4 @@
 | ✅ Present (Sprints 67–70 — Interactive 2D CAD Editor v0.5.0) | Room add/delete/move/resize, door/window add/move/delete, snap-to-grid, keyboard nudge, live dimension readout, undo/redo timeline, IndexedDB persistence, 63 new tests (766 total across 43 files), 7 new files, v0.5.0 tag |
 | ✅ Present (Sprints 72–74 — Interior Inspection v0.6.0) | Dollhouse/cutaway 3D view (Full/Dollhouse/No Roof toggles + storey selector), click-a-room camera fly-in with smooth animation and Back button, first-person walkthrough (WASD + pointer-lock mouse-look, footprint clamp, eye height, auto no-roof, Exit/Esc), 41 new tests (807 total across 46 files), 6 new files, v0.6.0 tag |
 | ✅ Present (Sprints 76–77 — Parametric Canopy Roof v0.7.0) | Opt-in canopy roof type (alongside gable), Voronoi-cell surface (Bowyer–Watson Delaunay), ETFE panels, spine ribs + structural framing, Section A-A drawing integration, geometry disposal/debounce, 30 new tests (847 total across 47 files), 3 new files, v0.7.0 tag |
+| ✅ Present (Sprints 79–80 — SADC Building-Code Compliance v0.8.0) | 4 jurisdictions: Zimbabwe (ZBC), South Africa (SANS 10400, 10 rules), Zambia (CAP 295, 9 rules), Botswana (Building Control, 9 rules); jurisdiction picker in Analysis + BOQ panels; 17 new tests (864 total across 47 files), 3 new files, v0.8.0 tag |

@@ -2,17 +2,23 @@
 
 ## [Unreleased]
 
-### Sprint 80 — SADC building codes (2/2): Zambia (CAP 295) + Botswana rules + enable all pickers
 
-**Summary:** Zambia (9 rules, Public Health Act CAP 295) and Botswana (9 rules, Building Control Regs) compliance modules implemented following the SANS/ZBC pattern — every rule marked "approximate — verify with local authority". Both picker options now enabled (no longer disabled "coming soon"). 10 new tests (30 total). 864 test suite passes across 47 files, 0 typecheck errors, 0 lint errors (9 warnings). Build succeeds with 30 PWA entries.
+## [0.8.0] - 2026-07-07
+
+### SADC Building-Code Compliance (Sprints 79 & 80)
+
+**Summary:** Four building-code jurisdictions now supported — Zimbabwe (ZBC), South Africa (SANS 10400, 10 rules), Zambia (Public Health Act CAP 295, 9 rules), Botswana (Building Control Regs, 9 rules) — totalling 28 compliance rules across 4 jurisdictions. A jurisdiction `<select>` picker in both the Analysis panel and BOQ & Export panel lets users choose applicable building codes. All rules marked "approximate — verify with local authority". Unknown jurisdictions return empty results with a warning (never crash). 17 new tests (30 total). 864 test suite passes across 47 files, 0 typecheck errors, 0 lint errors (9 warnings). Build green with 30 PWA entries.
 
 ### Changed Files
-- `src/engine/compliance/zambia.ts` — new: 9 Zambia rules + `evaluateZambiaRules()`
-- `src/engine/compliance/botswana.ts` — new: 9 Botswana rules + `evaluateBotswanaRules()`
-- `src/engine/compliance/index.ts` — imports + switch cases for `'zambia'` and `'botswana'`
-- `src/components/dashboard/AnalysisPanel.tsx` — picker options enabled, dynamic jurisdiction label
-- `src/components/dashboard/BoqExportPanel.tsx` — picker options enabled, dynamic PDF label
-- `src/__tests__/compliance.test.ts` — 10 new tests (30 total), unknown jurisdiction uses `'atlantis'`
+- `src/engine/compliance/southAfrica.ts` — new: 10 SANS 10400 rules + `evaluateSouthAfricaRules()`
+- `src/engine/compliance/zambia.ts` — new: 9 Zambia CAP 295 rules + `evaluateZambiaRules()`
+- `src/engine/compliance/botswana.ts` — new: 9 Botswana Building Control rules + `evaluateBotswanaRules()`
+- `src/engine/compliance/index.ts` — imports + switch cases for `'south-africa'`, `'zambia'`, `'botswana'`
+- `src/components/dashboard/AnalysisPanel.tsx` — jurisdiction picker with dynamic labels
+- `src/components/dashboard/BoqExportPanel.tsx` — jurisdiction picker wired into PDF compliance summary
+- `src/__tests__/compliance.test.ts` — 17 new tests (30 total), unknown jurisdiction uses `'atlantis'`
+- `docs/SPRINT_79_SANS_COMPLIANCE_REPORT.md` — Sprint 79 report
+- `CHANGELOG.md` — release notes
 
 ## [0.7.0] - 2026-07-07
 
