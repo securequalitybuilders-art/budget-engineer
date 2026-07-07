@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Sprint 79 — SADC building codes (1/2): South Africa SANS 10400 rules + jurisdiction picker
+
+**Summary:** 10 SANS 10400 compliance rules implemented (Space Standards, Health & Amenity, Life Safety, Site Planning, Energy & Sustainability, Structural) following the existing ZBC pattern — every rule marked "approximate — verify with the local authority". A jurisdiction `<select>` dropdown added to the Analysis panel (compliance section) and BOQ & Export panel with options: Zimbabwe (ZBC), South Africa (SANS 10400), Zambia (coming soon), Botswana (coming soon). The selected jurisdiction drives `runCompliance()` in both panels and is reflected in the PDF compliance summary. Unknown jurisdictions return empty results with a warning (never crash). 7 new tests covering SANS rule structure, pass/fail behaviour, unknown jurisdiction safety, and Zimbabwe regression.
+
+### Changed Files
+- `src/engine/compliance/southAfrica.ts` — new: 10 SANS 10400 rules with `SANS_RULES` + `evaluateSouthAfricaRules()`
+- `src/engine/compliance/index.ts` — import + switch case for `'south-africa'`
+- `src/components/dashboard/AnalysisPanel.tsx` — compliance section with jurisdiction picker, dynamic header
+- `src/components/dashboard/BoqExportPanel.tsx` — jurisdiction picker, wired into PDF compliance summary
+- `src/__tests__/compliance.test.ts` — 7 new tests (20 total), jurisdiction regression
+- `docs/SPRINT_79_SANS_COMPLIANCE_REPORT.md` — sprint report
+
 ## [0.7.0] - 2026-07-07
 
 ### Parametric Biomimetic Canopy Phase (Sprints 76, 76B, 77)

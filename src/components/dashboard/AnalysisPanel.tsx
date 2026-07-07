@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
 import type { BOQ } from '@/lib/boq/boq-types'
@@ -57,7 +57,8 @@ function EmptyAnalysisState() {
   )
 }
 
-export function AnalysisPanel({ plan, design, boq, buildingType, jurisdiction = 'zimbabwe' }: AnalysisPanelProps) {
+export function AnalysisPanel({ plan, design, boq, buildingType, jurisdiction: initialJurisdiction = 'zimbabwe' }: AnalysisPanelProps) {
+  const [jurisdiction, setJurisdiction] = useState(initialJurisdiction)
   const result = useMemo<AnalysisResult>(() => {
     try {
       if (!design && !plan) return emptyAnalysis()
@@ -162,33 +163,53 @@ export function AnalysisPanel({ plan, design, boq, buildingType, jurisdiction = 
         {cost.boqReused && <p className="mt-0.5 text-[9px] text-emerald-500/70">via existing BOQ engine</p>}
       </SectionCard>
 
-      {/* ZBC Compliance */}
-      {complianceSummary && complianceReport && (
-        <SectionCard title={`ZBC Compliance (${complianceReport.score}/100)`}>
-          <div className="mb-1 flex gap-2 text-[10px]">
-            <span className="text-emerald-400">{complianceSummary.passCount} pass</span>
-            <span className="text-amber-400">{complianceSummary.warnCount} warn</span>
-            {complianceSummary.failCount > 0 && <span className="text-red-400">{complianceSummary.failCount} fail</span>}
-          </div>
-          <div className="max-h-48 space-y-1 overflow-y-auto">
-            {complianceReport.results.map((r) => (
-              <div key={r.ruleId} className="flex items-start gap-1.5 rounded border border-stone-700/40 bg-stone-900/60 p-1.5">
-                <span className={`mt-0.5 shrink-0 rounded-full px-1 py-0.5 text-[8px] font-bold uppercase ${
-                  r.status === 'pass' ? 'bg-emerald-500/20 text-emerald-300' :
-                  r.status === 'warn' ? 'bg-amber-500/20 text-amber-300' :
-                  'bg-red-500/20 text-red-300'
-                }`}>{r.status}</span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-medium text-stone-200">{r.title}</p>
-                  <p className="text-[8px] text-stone-400">Actual: {r.actual} | Required: {r.required}</p>
-                  <p className="mt-0.5 text-[7px] italic text-stone-400">{r.note}</p>
+      {/* Compliance */}
+      <div className="mb-2 rounded-lg border border-stone-700/60 bg-stone-950/80 p-2.5">
+        <div className="mb-1.5 flex items-center justify-between">
+          <h4 className="text-xs font-semibold text-cyan-300">Compliance</h4>
+          <label className="text-[10px] text-stone-400">
+            Jurisdiction{' '}
+            <select
+              value={jurisdiction}
+              onChange={(e) => setJurisdiction(e.target.value)}
+              className="ml-1 rounded border border-stone-700 bg-stone-800 px-1.5 py-0.5 text-[10px] text-stone-200"
+              aria-label="Building jurisdiction"
+            >
+              <option value="zimbabwe">Zimbabwe (ZBC)</option>
+              <option value="south-africa">South Africa (SANS 10400)</option>
+              <option value="zambia" disabled>Zambia — coming soon</option>
+              <option value="botswana" disabled>Botswana — coming soon</option>
+            </select>
+          </label>
+        </div>
+        <p className="mb-1 text-[8px] italic text-amber-500/60">Non-authoritative — verify all items with local authority.</p>
+        {complianceSummary && complianceReport && (
+          <>
+            <div className="mb-1 flex gap-2 text-[10px]">
+              <span className="text-stone-400">{complianceReport.jurisdiction === 'south-africa' ? 'SANS 10400' : 'ZBC'} {complianceReport.score}/100</span>
+              <span className="text-emerald-400">{complianceSummary.passCount} pass</span>
+              <span className="text-amber-400">{complianceSummary.warnCount} warn</span>
+              {complianceSummary.failCount > 0 && <span className="text-red-400">{complianceSummary.failCount} fail</span>}
+            </div>
+            <div className="max-h-48 space-y-1 overflow-y-auto">
+              {complianceReport.results.map((r) => (
+                <div key={r.ruleId} className="flex items-start gap-1.5 rounded border border-stone-700/40 bg-stone-900/60 p-1.5">
+                  <span className={`mt-0.5 shrink-0 rounded-full px-1 py-0.5 text-[8px] font-bold uppercase ${
+                    r.status === 'pass' ? 'bg-emerald-500/20 text-emerald-300' :
+                    r.status === 'warn' ? 'bg-amber-500/20 text-amber-300' :
+                    'bg-red-500/20 text-red-300'
+                  }`}>{r.status}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-medium text-stone-200">{r.title}</p>
+                    <p className="text-[8px] text-stone-400">Actual: {r.actual} | Required: {r.required}</p>
+                    <p className="mt-0.5 text-[7px] italic text-stone-400">{r.note}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-          <p className="mt-1 text-[8px] italic text-amber-500/60">Non-authoritative — verify all items with local authority.</p>
-        </SectionCard>
-      )}
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }

@@ -23,6 +23,7 @@ const regions = getSupportedRegions()
 export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, activePlan, buildingType }: BoqExportPanelProps) {
   const [exported, setExported] = useState(false)
   const [regionId, setRegionId] = useState(getDefaultRegionId())
+  const [jurisdiction, setJurisdiction] = useState('zimbabwe')
   const [showAssumptions, setShowAssumptions] = useState(false)
   const [showSource, setShowSource] = useState(false)
 
@@ -153,10 +154,11 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, act
       const bt = buildingType || selectedDesign.buildingType || 'house'
       const plan = activePlan ?? null
       const analysis = plan ? assembleAnalysis({ plan, design: selectedDesign, boq, buildingType: bt }) : emptyAnalysis()
-      const report = runCompliance('zimbabwe', { plan, design: selectedDesign, analysis, buildingType: bt })
+      const report = runCompliance(jurisdiction, { plan, design: selectedDesign, analysis, buildingType: bt })
       const summary = summarizeCompliance(report)
       if (summary.hasCompliance) {
-        complianceSummary = `${summary.passCount} pass, ${summary.warnCount} warn, ${summary.failCount} fail (${report.score}% score)`
+        const label = jurisdiction === 'south-africa' ? 'SANS 10400' : 'ZBC'
+        complianceSummary = `${label}: ${summary.passCount} pass, ${summary.warnCount} warn, ${summary.failCount} fail (${report.score}% score)`
         complianceHasData = true
       }
     } catch {
@@ -190,7 +192,7 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, act
       setTimeout(() => setExported(false), 3000)
       setTimeout(() => setPdfError(null), 6000)
     }
-  }, [boq, selectedDesign, onExport, activePlan, buildingType])
+  }, [boq, selectedDesign, onExport, activePlan, buildingType, jurisdiction])
 
   if (!selectedDesign) {
     return (
@@ -221,6 +223,23 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, act
               <option key={r.id} value={r.id}>{r.label}</option>
             ))}
           </select>
+        </div>
+
+        {/* Jurisdiction selector */}
+        <div className="mb-3 rounded-lg border border-stone-700/60 bg-stone-900/80 p-3">
+          <label htmlFor="compliance-jurisdiction" className="mb-1 block text-xs font-medium text-stone-400">Compliance Jurisdiction</label>
+          <select
+            id="compliance-jurisdiction"
+            value={jurisdiction}
+            onChange={(e) => setJurisdiction(e.target.value)}
+            className="w-full rounded border border-stone-700 bg-stone-800 p-2 text-sm text-stone-200"
+          >
+            <option value="zimbabwe">Zimbabwe (ZBC)</option>
+            <option value="south-africa">South Africa (SANS 10400)</option>
+            <option value="zambia" disabled>Zambia — coming soon</option>
+            <option value="botswana" disabled>Botswana — coming soon</option>
+          </select>
+          <p className="mt-1 text-[8px] italic text-amber-500/60">Non-authoritative — verify with local authority.</p>
         </div>
 
         {/* Design summary */}

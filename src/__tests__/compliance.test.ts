@@ -161,11 +161,12 @@ describe('runCompliance', () => {
     const plan = createSamplePlanModel()
     const design = createSampleDesignOption()
     const result = emptyAnalysis()
-    const report = runCompliance('south-africa', { plan, design, analysis: result, buildingType: 'house' })
+    const report = runCompliance('zambia', { plan, design, analysis: result, buildingType: 'house' })
 
     expect(report.results.length).toBe(0)
     expect(report.score).toBe(0)
     expect(report.warnings.length).toBeGreaterThan(0)
+    expect(report.warnings[0]).toContain('Unknown jurisdiction')
   })
 
   it('emptyCompliance returns safe zero state', () => {
@@ -191,5 +192,97 @@ describe('runCompliance', () => {
     expect(() => runCompliance('zimbabwe', { plan: null, design: null, analysis: null, buildingType: '' })).not.toThrow()
     expect(() => runCompliance('', { plan: null, design: null, analysis: null, buildingType: '' })).not.toThrow()
     expect(() => runCompliance('zimbabwe', { plan: null, design: null, analysis: null, buildingType: 'clinic' })).not.toThrow()
+  })
+
+  it('zimbabwe regression: still works unchanged', () => {
+    const plan = createSamplePlanModel()
+    const design = createSampleDesignOption({ grossFloorArea: 200, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('zimbabwe', { plan, design, analysis, buildingType: 'house' })
+    expect(report.jurisdiction).toBe('zimbabwe')
+    expect(report.results.length).toBeGreaterThan(0)
+    expect(report.totalRules).toBe(report.results.length)
+  })
+})
+
+describe('SANS 10400 — South Africa compliance', () => {
+  it('evaluateSouthAfricaRules returns >0 rules for valid input', () => {
+    const plan = createSamplePlanModel()
+    const design = createSampleDesignOption({ grossFloorArea: 200, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('south-africa', { plan, design, analysis, buildingType: 'house' })
+
+    expect(report.jurisdiction).toBe('south-africa')
+    expect(report.results.length).toBeGreaterThan(0)
+    expect(report.totalRules).toBe(report.results.length)
+    expect(report.score).toBeGreaterThanOrEqual(0)
+    expect(report.score).toBeLessThanOrEqual(100)
+  })
+
+  it('each SANS result has required fields and approximate note', () => {
+    const plan = createSamplePlanModel()
+    const design = createSampleDesignOption({ grossFloorArea: 200, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('south-africa', { plan, design, analysis, buildingType: 'house' })
+
+    for (const rule of report.results) {
+      expect(rule.ruleId).toBeTruthy()
+      expect(rule.category).toBeTruthy()
+      expect(rule.title).toBeTruthy()
+      expect(['pass', 'warn', 'fail']).toContain(rule.status)
+      expect(rule.actual).toBeTruthy()
+      expect(rule.required).toBeTruthy()
+      expect(rule.note).toBeTruthy()
+      expect(rule.note.toLowerCase()).toContain('approximate')
+    }
+  })
+
+  it('runCompliance south-africa returns report with score/totalRules/passedRules', () => {
+    const plan = createSamplePlanModel()
+    const design = createSampleDesignOption({ grossFloorArea: 200, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('south-africa', { plan, design, analysis, buildingType: 'house' })
+
+    expect(typeof report.score).toBe('number')
+    expect(typeof report.totalRules).toBe('number')
+    expect(typeof report.passedRules).toBe('number')
+    expect(report.totalRules).toBeGreaterThan(0)
+    expect(report.passedRules).toBeLessThanOrEqual(report.totalRules)
+  })
+
+  it('too-small room fails sans-min-room-area rule', () => {
+    const plan = makeSmallRoomPlan()
+    const design = createSampleDesignOption({ grossFloorArea: 6, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('south-africa', { plan, design, analysis, buildingType: 'house' })
+
+    const areaRule = report.results.find((r) => r.ruleId === 'sans-min-room-area')
+    expect(areaRule).toBeDefined()
+    expect(areaRule!.status).toBe('fail')
+    expect(areaRule!.note.toLowerCase()).toContain('below')
+  })
+
+  it('compliant plan passes sans-min-room-area and sans-min-room-width', () => {
+    const plan = makeLargePlan()
+    const design = createSampleDesignOption({ grossFloorArea: 150, buildingType: 'house' })
+    const analysis = assembleAnalysis({ plan, design, boq: null, buildingType: 'house' })
+    const report = runCompliance('south-africa', { plan, design, analysis, buildingType: 'house' })
+
+    const areaRule = report.results.find((r) => r.ruleId === 'sans-min-room-area')
+    const widthRule = report.results.find((r) => r.ruleId === 'sans-min-room-width')
+    expect(areaRule!.status).toBe('pass')
+    expect(widthRule!.status).toBe('pass')
+  })
+
+  it('unknown jurisdiction (zambia) returns empty results without throwing', () => {
+    const plan = createSamplePlanModel()
+    const design = createSampleDesignOption()
+    const result = emptyAnalysis()
+    const report = runCompliance('zambia', { plan, design, analysis: result, buildingType: 'house' })
+
+    expect(report.results.length).toBe(0)
+    expect(report.score).toBe(0)
+    expect(report.warnings.length).toBeGreaterThan(0)
+    expect(report.warnings[0]).toContain('Unknown jurisdiction')
   })
 })

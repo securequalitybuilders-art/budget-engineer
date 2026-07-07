@@ -1,13 +1,7 @@
 import type { ComplianceInput, ComplianceReport, ComplianceResult } from './types'
 import { evaluateZbcRules } from './zimbabwe'
+import { evaluateSouthAfricaRules } from './southAfrica'
 
-/**
- * Run compliance checks for a given jurisdiction.
- *
- * To add a new jurisdiction (e.g. 'south-africa'):
- * 1. Create src/engine/compliance/southAfrica.ts exporting `evaluateSouthAfricaRules(input): ComplianceResult[]`
- * 2. Import it here and add a case in the switch below.
- */
 export function runCompliance(jurisdiction: string, input: ComplianceInput): ComplianceReport {
   const warnings: string[] = []
   let results: ComplianceResult[] = []
@@ -17,10 +11,9 @@ export function runCompliance(jurisdiction: string, input: ComplianceInput): Com
       case 'zimbabwe':
         results = evaluateZbcRules(input)
         break
-      // TODO: Add south-africa (SANS 10400), zambia, botswana, etc.
-      //   case 'south-africa':
-      //     results = evaluateSouthAfricaRules(input)
-      //     break
+      case 'south-africa':
+        results = evaluateSouthAfricaRules(input)
+        break
       default: {
         warnings.push(`Unknown jurisdiction "${jurisdiction}". No compliance rules available.`)
         results = []
