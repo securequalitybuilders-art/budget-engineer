@@ -2,40 +2,32 @@
 
 ## Unreleased
 
-### Sprint 74 — Interior inspection: First-person walkthrough (WASD + mouse-look, footprint clamp, eye-height, auto no-roof, Exit/Esc)
 
-**Summary:** First-person walkthrough mode for the 3D BIM view — click the "Walk" button to enter eye-level navigation. WASD/Arrow keys move on the horizontal plane; click the canvas for pointer-lock mouse-look. Camera is clamped to the building footprint (prevents walking outside). Eye height fixed at ~1.6m. An overlay with "Click to enter walk mode" + "Exit Walkthrough" button appears when pointer is unlocked. Esc releases pointer lock but does not exit walk mode (use the Exit button). Interior-wall collision is **deferred** for v1 — you can walk through interior walls; only the outer footprint is enforced. Completes the interior inspection trio (Dollhouse → Room fly-in → Walkthrough).
 
-### New Files
-- `src/components/bim/walkthrough.ts` — `computeWalkStart()` (largest room centre at 1.6m eye height), `clampToFootprint()` (clamp x/z to bounds with margin)
-- `src/__tests__/walkthrough.test.ts` — 16 tests covering `computeWalkStart` (null/empty/single/multi-room) and `clampToFootprint` (all axes, margins, inside unchanged)
+## [0.6.0] - 2026-07-07
 
-### Changed Files
-- `src/components/bim/viewMode.ts` — Added `'walk'` to `ViewMode` type and `computeVisibility` case (behaves like noRoof)
-- `src/components/bim/BimModel3D.tsx` — Added `WalkController` component (pointer-lock mouse-look, WASD movement, footprint clamp, eye height). Conditionally renders `WalkController` vs `OrbitControls` based on viewMode. Exits via `onExitWalk` prop. Shows overlay when pointer is unlocked during walk mode.
-- `src/components/bim/LazyBimModel3D.tsx` — Added "Walk" button. `handleViewModeChange` saves state on walk entry, auto-sets noRoof + storey 0. `handleExitWalk` restores saved viewMode/storey.
+### Interior Inspection — Dollhouse / Cutaway 3D View, Room Fly-in Focus, First-person Walkthrough (Sprints 72–74)
 
-### Tests
-807 tests across 46 files (16 new).
-
----
-
-**Summary:** Room fly-in focus for the 3D BIM view — select a room from a dropdown to smoothly animate the camera to that room's centre at eye height. Pure helper `computeRoomFocus()` calculates camera target/position from plan geometry; `BimModel3D` animates via `useFrame` lerp (0.6s smoothstep). Lazy wrapper adds `<select>` room picker, Back button, and auto-assist (switches to noRoof + storey 0 on focus, restores previous viewMode/storey on exit).
+**Summary:** Complete interior inspection phase for the 3D BIM viewer. Three view-mode toggles (Full, Dollhouse, No Roof) with a storey selector for multi-storey plans. Click-a-room fly-in with smooth camera animation (0.6s lerp) and auto noRoof+storey assist. First-person walkthrough with WASD + pointer-lock mouse-look, footprint clamp, eye height at 1.6m, and a clear Exit button. All modes reflect the edited active plan, wrapped by ErrorBoundary — crash-safe.
 
 ### New Files
+- `src/components/bim/viewMode.ts` — `computeVisibility()` pure helper (ViewMode type, VisibilityState)
+- `src/__tests__/bimViewMode.test.ts` — 12 tests for `computeVisibility`
 - `src/components/bim/roomFocus.ts` — `computeRoomFocus()` pure helper (RoomFocus interface)
-- `src/__tests__/roomFocus.test.ts` — 13 tests for `computeRoomFocus` (valid room, unknown roomId, empty plan, storey offset, camera distance, edge cases)
+- `src/__tests__/roomFocus.test.ts` — 13 tests for `computeRoomFocus`
+- `src/components/bim/walkthrough.ts` — `computeWalkStart()` and `clampToFootprint()` pure helpers
+- `src/__tests__/walkthrough.test.ts` — 16 tests for walkthrough helpers
 
 ### Changed Files
-- `src/components/bim/BimModel3D.tsx` — Added `focusedRoomId`/`onBack` props, `useFrame` camera lerp animation, Back button in footer bar
-- `src/components/bim/LazyBimModel3D.tsx` — Added `focusedRoomId` state, room picker `<select>`, Back → restore saved viewMode/storey
+- `src/components/bim/BimModel3D.tsx` — Accepts `viewMode`/`visibleStorey`/`focusedRoomId`/`onBack`/`onExitWalk` props. `Scene` receives visibility state from `computeVisibility`. Meshes gated by storey, wall opacity, showRoof, showCeilings. Camera adjusts for dollhouse mode. `WalkController` component (pointer-lock mouse-look, WASD movement, footprint clamp, eye height). Room focus animation via `useFrame` lerp. Back / Exit Walkthrough buttons in footer.
+- `src/components/bim/LazyBimModel3D.tsx` — Manages `viewMode`/`visibleStorey`/`focusedRoomId`. View-mode buttons (Full, Dollhouse, No Roof, Walk). Storey selector for multi-storey. Room picker `<select>`. Walk mode entry saves state, auto-sets noRoof+storey 0; exit restores.
 
 ### Tests
-791 tests across 45 files (13 new).
+807 tests across 46 files (41 new).
 
----
-
----
+### Known Limitations (v1)
+- Interior-wall collision is **deferred** — walkthrough enforces outer footprint clamp only (0.5m margin); you can walk through interior walls.
+- Walkthrough controls are desktop-focused (WASD + pointer-lock mouse-look). On touch devices the Exit button remains accessible; a note indicates "walkthrough works best on desktop".
 
 ## [0.5.0] - 2026-07-06
 

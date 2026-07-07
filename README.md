@@ -1,12 +1,12 @@
 # Dzenhare Budget Engineer Studio
 
 [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions)
-**Current release:** v0.5.0 — [View on GitHub](https://github.com/securequalitybuilders-art/budget-engineer/releases/tag/v0.5.0)
+**Current release:** v0.6.0 — [View on GitHub](https://github.com/securequalitybuilders-art/budget-engineer/releases/tag/v0.6.0)
 
 > AI-powered computational design → 2D CAD → 3D BIM → engineering checks → quantities → BOQ → export.
 > Offline-first, open-source, Africa-focused.
 >
-> **Interactive 2D CAD editor with room add/delete/move/resize, door/window add/move/delete, snap-to-grid, keyboard nudge, live dimension readout, undo/redo timeline, and IndexedDB persistence. Local AI brief-to-design flow, 3D BIM viewer with walls/slabs/multi-storey/doors/windows/roof and GLB export, BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, geometry-derived BOQ quantities (door/window/partition/finish quantities from actual CAD geometry — not GFA estimates), guided first-time builder journey with 6-step progress and template briefs, governance/audit readiness panel with approval checklist and RBAC roles, local governance approval workflow with submit/approve/request-changes/comments/timeline, snapshot history panel with save/compare/cost and quantity deltas, portfolio dashboard with executive metrics and cross-project overview, portfolio filters (search, active/archived, sort by cost/name), archive/restore actions on project cards, mobile review support (review, estimates, exports on phone — CAD editing best on tablet/desktop), per-building-type room layout strategies (single-storey/duplex/clinic/shop) with circulation corridors and wet-core grouping, CAD editing persisted to IndexDB with auto-save and downstream sync metadata, PlanModel→CadDocument roundtrip for downstream analysis, BOQ/export source traceability (geometry source, CAD-edited labels, warnings in CSV/HTML), manual CAD save/restore controls with status messages, feedback and issue reporting workflow, 766 automated tests across the full pipeline, 11 construction-standard drawing types (Elevations, Section, Site, Foundation, Roof, RCP, Electrical, Plumbing, HVAC) + A1 presentation sheet + PDF/PNG export.** CI validates typecheck, lint, tests, and production build on every push.
+> **Interactive 2D CAD editor with room add/delete/move/resize, door/window add/move/delete, snap-to-grid, keyboard nudge, live dimension readout, undo/redo timeline, and IndexedDB persistence. Local AI brief-to-design flow, 3D BIM viewer with walls/slabs/multi-storey/doors/windows/roof and GLB export, interior inspection (dollhouse cutaway, click-a-room fly-in, first-person walkthrough of your 3D model), BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, geometry-derived BOQ quantities (door/window/partition/finish quantities from actual CAD geometry — not GFA estimates), guided first-time builder journey with 6-step progress and template briefs, governance/audit readiness panel with approval checklist and RBAC roles, local governance approval workflow with submit/approve/request-changes/comments/timeline, snapshot history panel with save/compare/cost and quantity deltas, portfolio dashboard with executive metrics and cross-project overview, portfolio filters (search, active/archived, sort by cost/name), archive/restore actions on project cards, mobile review support (review, estimates, exports on phone — CAD editing best on tablet/desktop), per-building-type room layout strategies (single-storey/duplex/clinic/shop) with circulation corridors and wet-core grouping, CAD editing persisted to IndexDB with auto-save and downstream sync metadata, PlanModel→CadDocument roundtrip for downstream analysis, BOQ/export source traceability (geometry source, CAD-edited labels, warnings in CSV/HTML), manual CAD save/restore controls with status messages, feedback and issue reporting workflow, 807 automated tests across the full pipeline, 11 construction-standard drawing types (Elevations, Section, Site, Foundation, Roof, RCP, Electrical, Plumbing, HVAC) + A1 presentation sheet + PDF/PNG export.** CI validates typecheck, lint, tests, and production build on every push.
 
 **Live demo:** [budget-engineer.vercel.app](https://budget-engineer.vercel.app/)
 
@@ -61,6 +61,7 @@ Then open http://localhost:5173.
 | **Sprint 29: Manual CAD save/restore UI** | CadSyncControls dropdown (save/restore/reset), loadPlanModelMeta service, status messages, 3 new tests | Sprint 29 |
 | **Sprints 56–63: Professional Drawings v0.4.0** | 11 drawing types (Elevations, Section, Site, Foundation, Roof, RCP, Electrical, Plumbing, HVAC) + A1 presentation sheet + PDF/PNG export | Sprints 56–63 |
 | **Sprints 67–70: Interactive 2D CAD Editor v0.5.0** | Room add/delete/move/resize, door/window add/move/delete, snap-to-grid, keyboard nudge, live dimension readout, undo/redo timeline, IndexedDB persistence | Sprints 67–70 |
+| **Sprints 72–74: Interior Inspection v0.6.0** | Dollhouse/cutaway 3D view (Full/Dollhouse/No Roof, storey selector), click-a-room camera fly-in with smooth animation and Back button, first-person walkthrough (WASD + mouse-look, footprint clamp, eye height, auto no-roof) | Sprints 72–74 |
 
 **Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Checks → Quantities → BOQ → Export (CSV / HTML / PDF)
 
@@ -111,18 +112,18 @@ Each push to `main` runs via GitHub Actions:
 1. `npm ci`
 2. `npm run typecheck`
 3. `npm run lint`
-4. `npm test` (766 tests, 43 files)
+4. `npm test` (807 tests, 46 files)
 5. `npm run build`
 
 ## Release
 
 | Detail | Value |
 |--------|-------|
-| Current version | v0.5.0 |
+| Current version | v0.6.0 |
 | Live demo | https://budget-engineer.vercel.app/ |
 | GitHub | https://github.com/securequalitybuilders-art/budget-engineer |
 | CI status | [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions) |
-| Tests | 766 across 43 files |
+| Tests | 807 across 46 files |
 | Architecture | Local-first, no paid APIs, no backend, no cloud LLM |
 
 See [CHANGELOG.md](CHANGELOG.md) for full release history.

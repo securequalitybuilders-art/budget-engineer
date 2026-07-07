@@ -1,8 +1,8 @@
 # Canonical Repo Status — Budget Engineer OS
 
-> **Date:** 2026-07-06  
+> **Date:** 2026-07-07  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** v0.5.0 — DzeNhare OS with Interactive 2D CAD Editor + Professional Drawings Phase. Complete interactive 2D CAD editing for rooms and openings: add/delete/move/resize rooms, add/move/delete doors and windows, snap-to-grid (user-selectable step), keyboard nudge (Arrow/Shift+Arrow), live W×H and offset‑% dimension readouts, undo/redo timeline, IndexedDB persistence. All 11 construction-standard drawing types (Elevations, Section, Site Plan, Foundation Plan, Roof Plan, RCP, Electrical, Plumbing, HVAC) + A1 presentation sheet + PDF/PNG export. Coloured material/discipline system (BS 1192 / ISO 13567-2). Pure-heuristic MEP placement. Rich Section A‑A with solid cut poché, stairs, room labels, footings, entourage. Lint baseline at 9 warnings. All 766 unit tests pass (43 files). `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (766 passed, 43 files).
+> **Status:** v0.6.0 — DzeNhare OS with Interior Inspection Phase. Three view-mode toggles (Full, Dollhouse, No Roof) with storey selector for multi-storey plans. Click-a-room camera fly-in with smooth animation (0.6s lerp) and Back button. First-person walkthrough with WASD + pointer-lock mouse-look, footprint clamp, eye height at 1.6m, auto no-roof, and Exit button. All modes reflect the edited active plan, wrapped by ErrorBoundary — crash-safe. Interior-wall collision deferred for v1 (footprint clamp only). Complete interactive 2D CAD editing for rooms and openings: add/delete/move/resize rooms, add/move/delete doors and windows, snap-to-grid (user-selectable step), keyboard nudge (Arrow/Shift+Arrow), live W×H and offset‑% dimension readouts, undo/redo timeline, IndexedDB persistence. All 11 construction-standard drawing types (Elevations, Section, Site Plan, Foundation Plan, Roof Plan, RCP, Electrical, Plumbing, HVAC) + A1 presentation sheet + PDF/PNG export. Coloured material/discipline system (BS 1192 / ISO 13567-2). Pure-heuristic MEP placement. Rich Section A‑A with solid cut poché, stairs, room labels, footings, entourage. Lint baseline at 9 warnings. All 807 unit tests pass (46 files). `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (807 passed, 46 files).
 
 ---
 
@@ -279,7 +279,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 - **7 UI primitives** (Button, Card, Badge, Input, Label, Select, Textarea)
 - **12 layout components** (BentoShell, Sidebar, CommandBar, CommandPalette, etc.)
 - **12 CAD components** (PlanCanvas, WallFirstCanvas, PlanComparison, PlanLegend, panels)
-- **5 BIM components** (BimViewer, BimLegend, BimInspector, FloorVisibilityPanel, LazyBimViewer)
+- **5 BIM components** (BimViewer, BimLegend, BimInspector, FloorVisibilityPanel, LazyBimViewer) + interior inspection helpers (viewMode, roomFocus, walkthrough)
 - **6 WS6 panel components** (AiBriefPanel, RateCardPanel, RebarSpecPanel, FootingSizingPanel, LoadAnalysisPanel, SectionView) — ✅ wired into Engineering Studio
 - **Engineering Studio section** (EngineeringStudioPanel) — tabbed accordion panel in dashboard right sidebar
 - **BOQ Export Panel** (BoqExportPanel) — sidebar panel for BOQ display, CSV export, HTML dossier, print-to-PDF
@@ -321,7 +321,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **External wall area missing in BOQ** | External walls were not costed separately | ✅ DONE (Sprint 13 — added as line item) |
 | **Partition/opening estimates in BOQ** | Used fixed m² estimates, not actual geometry | ✅ DONE (Sprint 13 — geometryQuantitiesAdapter provides derived quantities) |
 | **Web Workers** | No off-main-thread processing | Future |
-| **Tests** | 766 unit tests across 43 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 + Sprint 19 + Sprint 21 + Sprint 25 + Sprint 26 + Sprint 27 + Sprint 28 + Sprint 29 + Sprint 36 + Sprint 37 + Sprint 38 + Sprint 43 + Sprint 44 + Sprint 46 + Sprint 47 + Sprint 47A + Sprint 47B + Sprint 48 + Sprint 48A + Sprint 48C + Sprint 48D + Sprint 49 + Sprint 65 + Sprint 66 + Sprint 67 + Sprint 67B + Sprint 68 + Sprint 69 + Sprint 70 — vitest, all adapters tested, CI pipeline) |
+| **Tests** | 807 unit tests across 46 files | ✅ DONE (Sprint 9 + Sprints 16–29 + Sprints 36–49 + Sprints 65–70 + Sprints 72–74 — vitest, all adapters tested, CI pipeline) |
 | **Deployment docs** | DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects | ✅ DONE (Sprint 10 — Vercel/Netlify/static hosting, SPA fallback, release checklist) |
 | **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |
 | **Room layout optimization** | Grid-based layout may produce self-intersecting wall rings | Improve geometry adapter with proper floorplan algorithm |
