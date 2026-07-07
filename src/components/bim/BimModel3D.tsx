@@ -1,5 +1,5 @@
 import { useMemo, useRef, useCallback, useState, useEffect } from 'react'
-import { Canvas, useThree } from '@react-three/fiber'
+import { Canvas, useThree, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 
@@ -9,9 +9,10 @@ import type { DesignOption } from '@/domain/boq'
 import { planTo3d, DEFAULT_STOREY_HEIGHT } from '@/adapters/planTo3d'
 import type { PlanTo3dResult, WallPier, FloorSlab, Opening3d, RoofParams, CeilingSlab } from '@/adapters/planTo3d'
 import { Button } from '@/components/ui/Button'
-import { Download } from 'lucide-react'
+import { Download, ArrowLeft } from 'lucide-react'
 import { computeVisibility } from './viewMode'
 import type { ViewMode } from './viewMode'
+import { computeRoomFocus } from './roomFocus'
 
 // ── Brand palette materials (PBR) ──
 const WALL_EXT_MAT = new THREE.MeshStandardMaterial({
@@ -58,6 +59,8 @@ interface BimModel3DProps {
   height?: number
   viewMode?: ViewMode
   visibleStorey?: number | 'all'
+  focusedRoomId?: string | null
+  onBack?: () => void
 }
 
 // ── Mesh sub-components ──
@@ -277,9 +280,11 @@ interface SceneProps {
   showCeilings: boolean
   storeysToShow: number[] | 'all'
   viewMode: ViewMode
+  focusedRoomId: string | null | undefined
+  plan: PlanModel | null
 }
 
-function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, storeysToShow, viewMode }: SceneProps) {
+function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, storeysToShow, viewMode, focusedRoomId, plan }: SceneProps) {
   const camera = useThree(s => s.camera)
   const invalidate = useThree(s => s.invalidate)
   const controlsRef = useRef<React.ElementRef<typeof OrbitControls> | null>(null)
@@ -289,8 +294,68 @@ function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, store
     [result],
   )
 
-  // Adjust camera when view mode changes
+  // ── Room focus camera animation ──
+  const animRef = useRef<{
+    startTime: number
+    fromTarget: THREE.Vector3
+    toTarget: THREE.Vector3
+    fromPos: THREE.Vector3
+    toPos: THREE.Vector3
+  } | null>(null)
+  const wasFocused = useRef(false)
+
   useEffect(() => {
+    const c = controlsRef.current
+    if (!c) return
+
+    if (focusedRoomId && plan) {
+      const storeyIdx = storeysToShow === 'all' ? 0 : storeysToShow[0]
+      const focus = computeRoomFocus(plan, focusedRoomId, storeyIdx)
+      if (!focus) return
+
+      wasFocused.current = true
+      animRef.current = {
+        startTime: performance.now(),
+        fromTarget: c.target.clone(),
+        toTarget: new THREE.Vector3(...focus.target),
+        fromPos: camera.position.clone(),
+        toPos: new THREE.Vector3(...focus.cameraPos),
+      }
+      invalidate()
+    } else if (!focusedRoomId && wasFocused.current) {
+      wasFocused.current = false
+      const b = result.bounds
+      const cx = b.width / 2
+      const cz = b.depth / 2
+      const maxDim = Math.max(b.width, b.depth, 5)
+      const tx = cx
+      let ty = b.totalHeight / 2
+      const tz = cz
+      let px = cx + maxDim * 0.6
+      let py = b.totalHeight * 0.5 + maxDim * 0.3
+      let pz = cz + maxDim * 0.6
+
+      if (viewMode === 'dollhouse') {
+        ty = b.totalHeight * 0.3
+        px = cx + maxDim * 0.1
+        py = b.totalHeight + maxDim * 0.8
+        pz = cz + maxDim * 0.6
+      }
+
+      animRef.current = {
+        startTime: performance.now(),
+        fromTarget: c.target.clone(),
+        toTarget: new THREE.Vector3(tx, ty, tz),
+        fromPos: camera.position.clone(),
+        toPos: new THREE.Vector3(px, py, pz),
+      }
+      invalidate()
+    }
+  }, [focusedRoomId, plan, camera, invalidate, result.bounds, viewMode, storeysToShow])
+
+  // Adjust camera when view mode changes (skip if room focus is active)
+  useEffect(() => {
+    if (focusedRoomId || animRef.current) return
     const c = controlsRef.current
     if (!c) return
     const b = result.bounds
@@ -315,7 +380,29 @@ function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, store
     }
     c.update()
     invalidate()
-  }, [viewMode, result.bounds, camera, invalidate])
+  }, [viewMode, result.bounds, camera, invalidate, focusedRoomId])
+
+  // Camera lerp on each frame during animation
+  useFrame(() => {
+    const anim = animRef.current
+    if (!anim) return
+    const c = controlsRef.current
+    if (!c) return
+
+    const elapsed = (performance.now() - anim.startTime) / 1000
+    const t = Math.min(elapsed / 0.6, 1)
+    // smoothstep
+    const ease = t * t * (3 - 2 * t)
+
+    c.target.lerpVectors(anim.fromTarget, anim.toTarget, ease)
+    camera.position.lerpVectors(anim.fromPos, anim.toPos, ease)
+    c.update()
+    invalidate()
+
+    if (t >= 1) {
+      animRef.current = null
+    }
+  })
 
   return (
     <>
@@ -355,7 +442,7 @@ function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, store
 
       <AccentEdges result={result} />
 
-      <OrbitControls ref={controlsRef} enableDamping dampingFactor={0.12} target={target} minDistance={3} maxDistance={60} />
+      <OrbitControls ref={controlsRef} enableDamping dampingFactor={0.12} target={target} minDistance={1} maxDistance={60} />
 
       <ambientLight intensity={0.5} />
       <directionalLight position={[15, 20, 10]} intensity={1.2} castShadow
@@ -370,7 +457,7 @@ function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, store
 
 // ── Main component ──
 
-export function BimModel3D({ plan, design, height = 480, viewMode = 'full', visibleStorey = 'all' }: BimModel3DProps) {
+export function BimModel3D({ plan, design, height = 480, viewMode = 'full', visibleStorey = 'all', focusedRoomId, onBack }: BimModel3DProps) {
   const numberOfStoreys = design?.floors ?? 1
   const buildingRef = useRef<THREE.Group | null>(null)
   const [isExporting, setIsExporting] = useState(false)
@@ -425,6 +512,10 @@ export function BimModel3D({ plan, design, height = 480, viewMode = 'full', visi
       setIsExporting(false)
     }
   }, [plan?.id])
+
+  const handleBack = useCallback(() => {
+    onBack?.()
+  }, [onBack])
 
   if (contextLost) {
     return (
@@ -486,10 +577,24 @@ export function BimModel3D({ plan, design, height = 480, viewMode = 'full', visi
           showCeilings={vis.showCeilings}
           storeysToShow={vis.storeysToShow}
           viewMode={viewMode}
+          focusedRoomId={focusedRoomId}
+          plan={plan}
         />
         <SnapshotCapture />
       </Canvas>
       <div className="flex items-center gap-2 border-t border-white/10 px-4 py-2">
+        {focusedRoomId && (
+          <Button
+            variant="secondary"
+            size="sm"
+            className="gap-1.5 text-[11px]"
+            onClick={handleBack}
+            title="Return to full building view"
+          >
+            <ArrowLeft size={14} />
+            Back
+          </Button>
+        )}
         <Button
           variant="secondary"
           size="sm"

@@ -2,14 +2,22 @@
 
 ## Unreleased
 
-### Sprint 72 — Interior inspection: dollhouse/cutaway 3D view (hide roof, translucent walls, per-storey isolation) to see inside the model
+### Sprint 73 — Interior inspection: Room fly-in focus
+
+**Summary:** Room fly-in focus for the 3D BIM view — select a room from a dropdown to smoothly animate the camera to that room's centre at eye height. Pure helper `computeRoomFocus()` calculates camera target/position from plan geometry; `BimModel3D` animates via `useFrame` lerp (0.6s smoothstep). Lazy wrapper adds `<select>` room picker, Back button, and auto-assist (switches to noRoof + storey 0 on focus, restores previous viewMode/storey on exit).
 
 ### New Files
-- `src/components/bim/viewMode.ts` — `computeVisibility()` pure helper (ViewMode, VisibilityState)
-- `src/__tests__/bimViewMode.test.ts` — 12 tests for `computeVisibility` ('full', 'dollhouse', 'noRoof', storey filtering, bounds clamping)
+- `src/components/bim/roomFocus.ts` — `computeRoomFocus()` pure helper (RoomFocus interface)
+- `src/__tests__/roomFocus.test.ts` — 13 tests for `computeRoomFocus` (valid room, unknown roomId, empty plan, storey offset, camera distance, edge cases)
+
+### Changed Files
+- `src/components/bim/BimModel3D.tsx` — Added `focusedRoomId`/`onBack` props, `useFrame` camera lerp animation, Back button in footer bar
+- `src/components/bim/LazyBimModel3D.tsx` — Added `focusedRoomId` state, room picker `<select>`, Back → restore saved viewMode/storey
 
 ### Tests
-778 tests across 44 files (12 new).
+791 tests across 45 files (13 new).
+
+---
 
 ---
 

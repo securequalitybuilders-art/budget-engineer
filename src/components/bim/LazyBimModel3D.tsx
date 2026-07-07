@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useState, useRef, useMemo, useCallback } from 'react'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -26,17 +26,52 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
   const [retryKey, setRetryKey] = useState(0)
   const [viewMode, setViewMode] = useState<ViewMode>('full')
   const [visibleStorey, setVisibleStorey] = useState<number | 'all'>('all')
+  const [focusedRoomId, setFocusedRoomId] = useState<string | null>(null)
+
+  // Saved pre-focus state for auto-restore
+  const savedStateRef = useRef<{ viewMode: ViewMode; visibleStorey: number | 'all' } | null>(null)
 
   const handleRetry = () => setRetryKey((k) => k + 1)
 
   const storeyCount = props.design?.floors ?? 1
-  const storeyLabels: { value: number | 'all'; label: string }[] = [
+  const storeyLabels: { value: number | 'all'; label: string }[] = useMemo(() => [
     { value: 'all', label: 'All' },
     ...Array.from({ length: storeyCount }, (_, i) => ({
       value: i,
       label: i === 0 ? 'G' : String(i),
     })),
-  ]
+  ], [storeyCount])
+
+  const roomOptions = useMemo(() => {
+    if (!props.plan) return []
+    return props.plan.rooms.map((r) => ({ value: r.id, label: r.name || r.id }))
+  }, [props.plan])
+
+  const handleRoomChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const roomId = e.target.value || null
+    if (roomId) {
+      // Save current state only on first room selection (not when switching)
+      if (!savedStateRef.current) {
+        savedStateRef.current = { viewMode, visibleStorey }
+      }
+      setFocusedRoomId(roomId)
+      // Auto-assist: noRoof + first room's storey
+      setViewMode('noRoof')
+      if (storeyCount > 1) {
+        setVisibleStorey(0)
+      }
+    }
+  }, [viewMode, visibleStorey, storeyCount])
+
+  const handleBack = useCallback(() => {
+    setFocusedRoomId(null)
+    // Restore saved state
+    if (savedStateRef.current) {
+      setViewMode(savedStateRef.current.viewMode)
+      setVisibleStorey(savedStateRef.current.visibleStorey)
+      savedStateRef.current = null
+    }
+  }, [])
 
   if (!isWebGLAvailable()) {
     return <Bim3DUnavailable onRetry={handleRetry} />
@@ -44,7 +79,7 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
 
   return (
     <ErrorBoundary fallback={(retry) => <Bim3DUnavailable onRetry={retry} />}>
-      {/* View mode controls */}
+      {/* Controls bar */}
       <div className="mb-2 flex flex-wrap items-center gap-2">
         {/* View-mode buttons */}
         <div className="flex items-center gap-0.5 rounded-lg bg-stone-900/80 p-0.5" role="group" aria-label="3D view mode">
@@ -83,6 +118,21 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
             ))}
           </div>
         )}
+
+        {/* Room picker dropdown */}
+        {roomOptions.length > 0 && (
+          <select
+            aria-label="Focus on a room"
+            value={focusedRoomId ?? ''}
+            onChange={handleRoomChange}
+            className="rounded-md bg-stone-900/80 px-2.5 py-1 text-[11px] font-medium text-stone-200 transition-colors hover:bg-stone-800"
+          >
+            <option value="">Focus Room...</option>
+            {roomOptions.map((r) => (
+              <option key={r.value} value={r.value}>{r.label}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       <Suspense
@@ -98,7 +148,14 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
           </div>
         }
       >
-        <BimModel3DInner key={retryKey} viewMode={viewMode} visibleStorey={visibleStorey} {...props} />
+        <BimModel3DInner
+          key={retryKey}
+          viewMode={viewMode}
+          visibleStorey={visibleStorey}
+          focusedRoomId={focusedRoomId}
+          onBack={handleBack}
+          {...props}
+        />
       </Suspense>
     </ErrorBoundary>
   )
