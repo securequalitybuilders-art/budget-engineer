@@ -14,6 +14,8 @@ import { computeVisibility } from './viewMode'
 import type { ViewMode } from './viewMode'
 import { computeRoomFocus } from './roomFocus'
 import { computeWalkStart, clampToFootprint } from './walkthrough'
+import { CanopyMesh } from './CanopyMesh'
+import type { CanopyParams } from '@/engine/canopy/canopyGeometry'
 
 // ── Brand palette materials (PBR) ──
 const WALL_EXT_MAT = new THREE.MeshStandardMaterial({
@@ -63,6 +65,8 @@ interface BimModel3DProps {
   focusedRoomId?: string | null
   onBack?: () => void
   onExitWalk?: () => void
+  roofType?: 'gable' | 'canopy'
+  canopyParams?: CanopyParams
 }
 
 // ── Mesh sub-components ──
@@ -409,9 +413,11 @@ interface SceneProps {
   focusedRoomId: string | null | undefined
   plan: PlanModel | null
   onPointerLockChange?: (locked: boolean) => void
+  roofType?: 'gable' | 'canopy'
+  canopyParams?: CanopyParams
 }
 
-function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, storeysToShow, viewMode, focusedRoomId, plan, onPointerLockChange }: SceneProps) {
+function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, storeysToShow, viewMode, focusedRoomId, plan, onPointerLockChange, roofType = 'gable', canopyParams }: SceneProps) {
   const camera = useThree(s => s.camera)
   const invalidate = useThree(s => s.invalidate)
   const controlsRef = useRef<React.ElementRef<typeof OrbitControls> | null>(null)
@@ -564,7 +570,8 @@ function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, store
           .filter((o) => o.kind === 'window' && shouldShowStorey(o, storeysToShow))
           .map((o) => <WindowMesh key={`win-${o.openingId}-s${o.storeyIndex}`} op={o} />)}
 
-        {showRoof && result.roof && <RoofMesh roof={result.roof} />}
+        {showRoof && result.roof && roofType === 'gable' && <RoofMesh roof={result.roof} />}
+        {showRoof && roofType === 'canopy' && canopyParams && <CanopyMesh params={canopyParams} />}
       </group>
 
       <AccentEdges result={result} />
@@ -588,7 +595,7 @@ function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, store
 
 // ── Main component ──
 
-export function BimModel3D({ plan, design, height = 480, viewMode = 'full', visibleStorey = 'all', focusedRoomId, onBack, onExitWalk }: BimModel3DProps) {
+export function BimModel3D({ plan, design, height = 480, viewMode = 'full', visibleStorey = 'all', focusedRoomId, onBack, onExitWalk, roofType = 'gable', canopyParams }: BimModel3DProps) {
   const numberOfStoreys = design?.floors ?? 1
   const buildingRef = useRef<THREE.Group | null>(null)
   const [isExporting, setIsExporting] = useState(false)
@@ -721,6 +728,8 @@ export function BimModel3D({ plan, design, height = 480, viewMode = 'full', visi
           focusedRoomId={focusedRoomId}
           plan={plan}
           onPointerLockChange={handlePointerLockChange}
+          roofType={roofType}
+          canopyParams={canopyParams}
         />
         <SnapshotCapture />
       </Canvas>

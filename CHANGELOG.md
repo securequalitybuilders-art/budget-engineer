@@ -2,7 +2,20 @@
 
 ## Unreleased
 
+### Sprint 76 — Parametric biomimetic canopy (opt-in roof type)
+**Summary:** Curved surface + Voronoi cell network rendered in 3D with live sliders (span, rise, cell density, reseed). Opt-in roof type alongside existing gable — toggle via "Gable" / "Canopy" button in the 3D panel.
 
+### New Files
+- `src/engine/canopy/canopyGeometry.ts` — pure, deterministic Voronoi geometry engine (Bowyer–Watson Delaunay, Sutherland–Hodgman clip, surface projection)
+- `src/__tests__/canopyGeometry.test.ts` — 22 tests covering surfacePoint, seed generation, triangulation, cells, projection, edge cases, determinism
+- `src/components/bim/CanopyMesh.tsx` — React Three Fiber component rendering translucent cell surface + cyan edge network
+
+### Changed Files
+- `src/components/bim/BimModel3D.tsx` — accepts `roofType` and `canopyParams` props; conditionally renders CanopyMesh vs RoofMesh
+- `src/components/bim/LazyBimModel3D.tsx` — adds Gable/Canopy toggle, live sliders (Span X, Span Z, Rise, Cell Density, Reseed) when canopy active
+
+### Tests
+829 tests across 47 files (22 new).
 
 ## [0.6.0] - 2026-07-07
 

@@ -5,6 +5,8 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Bim3DUnavailable } from '@/components/bim/Bim3DUnavailable'
 import { isWebGLAvailable } from '@/lib/webgl'
 import type { ViewMode } from './viewMode'
+import type { CanopyParams } from '@/engine/canopy/canopyGeometry'
+import { DEFAULT_STOREY_HEIGHT } from '@/adapters/planTo3d'
 
 const BimModel3DInner = lazy(() =>
   import('./BimModel3D').then((m) => ({ default: m.BimModel3D })),
@@ -15,6 +17,8 @@ interface LazyBimModel3DProps {
   design: DesignOption | null
   height?: number
 }
+
+type RoofType = 'gable' | 'canopy'
 
 const VIEW_MODES: { value: ViewMode; label: string }[] = [
   { value: 'full', label: 'Full' },
@@ -28,6 +32,33 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('full')
   const [visibleStorey, setVisibleStorey] = useState<number | 'all'>('all')
   const [focusedRoomId, setFocusedRoomId] = useState<string | null>(null)
+  const [roofType, setRoofType] = useState<RoofType>('gable')
+
+  const defaultCanopyParams = useMemo((): CanopyParams => {
+    const pw = props.plan?.width ?? 10
+    const ph = props.plan?.height ?? 8
+    const storeys = props.design?.floors ?? 1
+    return {
+      spanX: pw + 1,
+      spanZ: ph + 1,
+      rise: 1.5,
+      cellDensity: 30,
+      seed: 42,
+      heightAboveBuilding: storeys * DEFAULT_STOREY_HEIGHT,
+    }
+  }, [props.plan?.width, props.plan?.height, props.design?.floors])
+
+  const [canopyParams, setCanopyParams] = useState<CanopyParams>(defaultCanopyParams)
+
+  // Sync canopy params when plan changes (reset to defaults)
+  const lastPlanKeyRef = useRef<string>('')
+  const planKey = `${props.plan?.width ?? ''}-${props.plan?.height ?? ''}`
+  if (planKey !== lastPlanKeyRef.current) {
+    lastPlanKeyRef.current = planKey
+    if (roofType !== 'canopy') {
+      setCanopyParams(defaultCanopyParams)
+    }
+  }
 
   // Saved pre-focus state for auto-restore
   const savedStateRef = useRef<{ viewMode: ViewMode; visibleStorey: number | 'all' } | null>(null)
@@ -36,11 +67,9 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
 
   const handleViewModeChange = useCallback((mode: ViewMode) => {
     if (mode === 'walk') {
-      // Save current state before entering walk mode
       if (!savedStateRef.current) {
         savedStateRef.current = { viewMode, visibleStorey }
       }
-      // Walk mode auto-enables noRoof for visibility
       setViewMode('walk')
       if (props.design && props.design.floors > 1) {
         setVisibleStorey(0)
@@ -60,6 +89,14 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
     }
   }, [])
 
+  const updateCanopyParam = useCallback((key: keyof CanopyParams, value: number) => {
+    setCanopyParams((prev) => ({ ...prev, [key]: value }))
+  }, [])
+
+  const handleReseed = useCallback(() => {
+    setCanopyParams((prev) => ({ ...prev, seed: Math.floor(Math.random() * 10000) }))
+  }, [])
+
   const storeyCount = props.design?.floors ?? 1
   const storeyLabels: { value: number | 'all'; label: string }[] = useMemo(() => [
     { value: 'all', label: 'All' },
@@ -77,12 +114,10 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
   const handleRoomChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const roomId = e.target.value || null
     if (roomId) {
-      // Save current state only on first room selection (not when switching)
       if (!savedStateRef.current) {
         savedStateRef.current = { viewMode, visibleStorey }
       }
       setFocusedRoomId(roomId)
-      // Auto-assist: noRoof + first room's storey
       setViewMode('noRoof')
       if (storeyCount > 1) {
         setVisibleStorey(0)
@@ -92,7 +127,6 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
 
   const handleBack = useCallback(() => {
     setFocusedRoomId(null)
-    // Restore saved state
     if (savedStateRef.current) {
       setViewMode(savedStateRef.current.viewMode)
       setVisibleStorey(savedStateRef.current.visibleStorey)
@@ -122,6 +156,29 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
               }`}
             >
               {m.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Roof type toggle */}
+        <div className="flex items-center gap-0.5 rounded-lg bg-stone-900/80 p-0.5" role="group" aria-label="Roof type">
+          {(['gable', 'canopy'] as RoofType[]).map((rt) => (
+            <button
+              key={rt}
+              onClick={() => {
+                setRoofType(rt)
+                if (rt === 'canopy') {
+                  setCanopyParams(defaultCanopyParams)
+                }
+              }}
+              aria-pressed={roofType === rt}
+              className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
+                roofType === rt
+                  ? 'bg-cyan-700 text-white'
+                  : 'text-stone-400 hover:bg-stone-800 hover:text-stone-200'
+              }`}
+            >
+              {rt === 'gable' ? 'Gable' : 'Canopy'}
             </button>
           ))}
         </div>
@@ -162,6 +219,51 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
         )}
       </div>
 
+      {/* Canopy sliders */}
+      {roofType === 'canopy' && (
+        <div className="mb-2 flex flex-wrap items-center gap-3 rounded-lg bg-stone-900/60 px-3 py-2">
+          <SliderInput
+            label="Span X"
+            value={canopyParams.spanX}
+            min={3}
+            max={30}
+            step={0.5}
+            onChange={(v) => updateCanopyParam('spanX', v)}
+          />
+          <SliderInput
+            label="Span Z"
+            value={canopyParams.spanZ}
+            min={3}
+            max={30}
+            step={0.5}
+            onChange={(v) => updateCanopyParam('spanZ', v)}
+          />
+          <SliderInput
+            label="Rise"
+            value={canopyParams.rise}
+            min={0}
+            max={5}
+            step={0.1}
+            onChange={(v) => updateCanopyParam('rise', v)}
+          />
+          <SliderInput
+            label="Density"
+            value={canopyParams.cellDensity}
+            min={3}
+            max={100}
+            step={1}
+            onChange={(v) => updateCanopyParam('cellDensity', v)}
+          />
+          <button
+            onClick={handleReseed}
+            className="rounded-md bg-violet-700 px-2.5 py-1 text-[11px] font-medium text-white transition-colors hover:bg-violet-600"
+            aria-label="Reseed canopy pattern"
+          >
+            Reseed
+          </button>
+        </div>
+      )}
+
       <Suspense
         fallback={
           <div
@@ -182,9 +284,43 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
           focusedRoomId={focusedRoomId}
           onBack={handleBack}
           onExitWalk={handleExitWalk}
+          roofType={roofType}
+          canopyParams={canopyParams}
           {...props}
         />
       </Suspense>
     </ErrorBoundary>
+  )
+}
+
+// ── Slider input sub-component ──
+
+interface SliderInputProps {
+  label: string
+  value: number
+  min: number
+  max: number
+  step: number
+  onChange: (value: number) => void
+}
+
+function SliderInput({ label, value, min, max, step, onChange }: SliderInputProps) {
+  const id = `canopy-slider-${label.toLowerCase().replace(/\s+/g, '-')}`
+  return (
+    <div className="flex items-center gap-2">
+      <label htmlFor={id} className="text-[11px] font-medium text-stone-400">{label}</label>
+      <input
+        id={id}
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        aria-label={`${label} slider`}
+        className="h-1.5 w-20 cursor-pointer appearance-none rounded-full bg-stone-700 accent-cyan-500"
+      />
+      <span className="w-8 text-right text-[10px] text-stone-400">{Number(value.toFixed(1))}</span>
+    </div>
   )
 }
