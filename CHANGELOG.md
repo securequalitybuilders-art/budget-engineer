@@ -1,18 +1,48 @@
 # Changelog
 
-## Unreleased
+## [0.5.0] - 2026-07-06
+
+### Interactive 2D CAD Editor — Sprints 67–70: Reliable room & opening editing with snap-to-grid, nudge, live dimension readout, undo/redo timeline, and IndexedDB persistence
+
+**Summary:** Complete interactive 2D CAD editing for rooms and openings, built on SVG-root pointer capture with `data-*` attribute routing. Rooms can be added, deleted, moved, and resized (8 handles); doors and windows can be added, moved along walls, and deleted. All operations flow through undo/redo (history stack) and persist to IndexedDB via `cadPersistenceService`. A snap-to-grid helper (`snapToGrid`) constrains moves and resizes at a user-selectable step (default 0.1m). Arrow-key nudge moves rooms/doors/windows by the snap step (Shift+10×). Live dimension readouts render W×H for rooms and offset‑% for openings. Toolbar is grouped with separator pipes and includes a snap‑step `<select>`. Debug readout (`debugInfo`) fully removed. 63 tests in `editablePlan.test.ts`; 766 total tests across 43 files.
+
+### Sprint 70 — Snap-to-grid, nudge, dimension readout, snap step selector
+- `snapToGrid(value, step)` pure helper in `src/lib/geometry/snap.ts` with guard for `step <= 0`
+- `snapStep` state (default 0.1m) + `setSnapStep` in `useEditablePlan`
+- Snap applied in `updatePointer` for move (position), resize (dimensions), opening-move (offset)
+- `nudgeRoom`/`nudgeOpening` through `history.set()` + `onCommit` with collision check
+- Arrow‑key nudge by `snapStep`; Shift+Arrow = 10×; only in `idle` mode
+- Live dimension readout (W×H / offset‑%) as SVG `<text>` with `pointerEvents="none"`
+- Snap step `<select>` in toolbar; toolbar grouped with `|` separators
+- `debugInfo` state and all `setDebugInfo` calls fully removed
 
 ### Sprint 69 — Editor: add/move/delete doors & windows (offset clamped to wall, undo/redo, persistence); openings flow to elevations, section, and 3D.
 
 ### Sprint 68 — Editor: add/delete rooms (auto wall rebuild, dangling-opening cleanup, undo/redo, persistence); guarded against deleting the last room.
 
-### Sprint 67B — Fixed live 2D editing: pointer capture moved from room rects to SVG root (data-attribute routing), replaced unreliable movementX/movementY with absolute clientX/Y deltas (frame-independent under capture), added on-screen debug readout. Edits now actually drag/resize without orphaned captures.
+### Sprint 67B — Fixed live 2D editing: pointer capture moved from room rects to SVG root (data-attribute routing), replaced unreliable movementX/movementY with absolute clientX/Y deltas (frame-independent under capture), added on-screen debug readout (removed in Sprint 70). Edits now actually drag/resize without orphaned captures.
 
 ### Sprint 67 — Reliable 2D room editing (cumulative-delta drag fix, pointer-capture pan/edit disambiguation, selection outline + 8 resize handles, undo/redo timeline); edits flow to all drawings + 3D and persist to IndexedDB.
 
 ### Sprint 65 — A1 sheet Floor Plan cell now renders white-paper CAD; fixed elevation opening projection (doors to ground, windows at sill, correct spacing, front/side filtering)
 
 ### Sprint 66 (hotfix) — 3D WebGL failures no longer crash the page — added error boundary + WebGL context-loss handling with a friendly "3D unavailable" fallback and Retry
+
+### Tests
+
+766 tests across 43 files. All interactive editing operations tested: room add/delete/move/resize, opening add/move/delete, undo/redo, persistence, snap-to-grid, nudge.
+
+### New Files (Sprints 65–70)
+
+| File | Sprint | Purpose |
+|------|--------|---------|
+| `src/lib/geometry/snap.ts` | 70 | `snapToGrid(value, step)` pure helper |
+| `src/__tests__/editablePlan.test.ts` | 67 | 63 tests: rooms, openings, snap, nudge, undo/redo, persistence |
+| `src/__tests__/errorBoundary.test.tsx` | 66 | Error boundary and WebGL fallback tests |
+| `src/components/common/ErrorBoundary.tsx` | 66 | React error boundary component |
+| `src/components/bim/Bim3DUnavailable.tsx` | 66 | Friendly "3D unavailable" fallback UI |
+| `src/lib/webgl.ts` | 66 | WebGL context-loss detection utility |
+| `src/components/drawings/planSheetModel.tsx` | 65 | White-paper CAD floor plan for A1 sheet |
 
 ## [0.4.0] - 2026-07-06
 

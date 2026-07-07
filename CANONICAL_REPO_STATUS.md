@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-06  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** v0.4.0 — DzeNhare OS with Professional Drawings Phase. All 11 construction-standard drawing types (Elevations, Section, Site Plan, Foundation Plan, Roof Plan, RCP, Electrical, Plumbing, HVAC) + A1 presentation sheet + PDF/PNG export. Coloured material/discipline system (BS 1192 / ISO 13567-2). Pure-heuristic MEP placement. Rich Section A‑A with solid cut poché, stairs, room labels, footings, entourage. Lint baseline at 9 warnings. All 681 unit tests pass (41 files). `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (681 passed, 41 files).
+> **Status:** v0.5.0 — DzeNhare OS with Interactive 2D CAD Editor + Professional Drawings Phase. Complete interactive 2D CAD editing for rooms and openings: add/delete/move/resize rooms, add/move/delete doors and windows, snap-to-grid (user-selectable step), keyboard nudge (Arrow/Shift+Arrow), live W×H and offset‑% dimension readouts, undo/redo timeline, IndexedDB persistence. All 11 construction-standard drawing types (Elevations, Section, Site Plan, Foundation Plan, Roof Plan, RCP, Electrical, Plumbing, HVAC) + A1 presentation sheet + PDF/PNG export. Coloured material/discipline system (BS 1192 / ISO 13567-2). Pure-heuristic MEP placement. Rich Section A‑A with solid cut poché, stairs, room labels, footings, entourage. Lint baseline at 9 warnings. All 766 unit tests pass (43 files). `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (766 passed, 43 files).
 
 ---
 
@@ -104,14 +104,20 @@ Per the WORKSPACE_MERGE_AUDIT.md (Section 4.1), WS1 was selected because:
 - WebLLM adapter (`lib/ai/webllm-parser.ts`) — lazy-imported, opt-in (`@mlc-ai/web-llm`), guarded with `@ts-ignore`
 - All 5 AI modules are pure TypeScript, no paid API, no store dependencies
 
-### 2D CAD (WS2 Phase A)
+### 2D CAD (WS2 Phase A + Sprints 67–70 Interactive Editor)
 - Interactive PlanCanvas with pan/zoom/viewport
 - Parametric floor plan generation
-- Room move/resize with undo/redo
+- Room add/delete/move/resize with undo/redo (history stack + TimelinePanel)
+- Room selection outline with 8 resize handles
+- Door and window add/move/delete (offset clamped to wall, undo/redo, persistence)
+- Snap-to-grid (`snapToGrid` in `src/lib/geometry/snap.ts`) with user-selectable step (default 0.1m)
+- Keyboard nudge: Arrow keys by snap step, Shift+Arrow = 10×
+- Live dimension readout: W×H for rooms, offset‑% for openings
+- SVG-root pointer capture with `data-room-id`/`data-opening-id`/`data-resize` routing via `closest()`
+- Absolute clientX/Y deltas (frame-independent, reliable under capture)
 - Dimension annotations and room labels
 - Wall-first CAD authoring (WallFirstCanvas)
 - Wall editing: draw, move endpoints, split, join, offset, trim
-- Opening editing: add/delete/move doors and windows
 - Layer management with visibility toggle
 - Multi-floor support
 - Block library (stairs, cores)
@@ -315,7 +321,7 @@ All algorithm modules are pure TypeScript, no side effects, no store dependencie
 | **External wall area missing in BOQ** | External walls were not costed separately | ✅ DONE (Sprint 13 — added as line item) |
 | **Partition/opening estimates in BOQ** | Used fixed m² estimates, not actual geometry | ✅ DONE (Sprint 13 — geometryQuantitiesAdapter provides derived quantities) |
 | **Web Workers** | No off-main-thread processing | Future |
-| **Tests** | 470 unit tests across 33 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 + Sprint 19 + Sprint 21 + Sprint 25 + Sprint 26 + Sprint 27 + Sprint 28 + Sprint 29 + Sprint 36 + Sprint 37 + Sprint 38 + Sprint 43 + Sprint 44 + Sprint 46 + Sprint 47 + Sprint 47A + Sprint 47B + Sprint 48 + Sprint 48A + Sprint 48C + Sprint 48D + Sprint 49 — vitest, all adapters tested, CI pipeline) |
+| **Tests** | 766 unit tests across 43 files | ✅ DONE (Sprint 9 + Sprint 16 + Sprint 17 + Sprint 19 + Sprint 21 + Sprint 25 + Sprint 26 + Sprint 27 + Sprint 28 + Sprint 29 + Sprint 36 + Sprint 37 + Sprint 38 + Sprint 43 + Sprint 44 + Sprint 46 + Sprint 47 + Sprint 47A + Sprint 47B + Sprint 48 + Sprint 48A + Sprint 48C + Sprint 48D + Sprint 49 + Sprint 65 + Sprint 66 + Sprint 67 + Sprint 67B + Sprint 68 + Sprint 69 + Sprint 70 — vitest, all adapters tested, CI pipeline) |
 | **Deployment docs** | DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects | ✅ DONE (Sprint 10 — Vercel/Netlify/static hosting, SPA fallback, release checklist) |
 | **Load path analysis** | UI-rendered in WS5, not a reusable algorithm | Extract from WS5 store into lib/ |
 | **Room layout optimization** | Grid-based layout may produce self-intersecting wall rings | Improve geometry adapter with proper floorplan algorithm |
