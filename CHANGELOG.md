@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Sprint 81 — First-run onboarding tour (accessible overlay, localStorage seen-flag, re-openable)
+
+**Summary:** An accessible, dismissible, multi-slide onboarding tour that explains the 6-step workflow (brief → design → 2D plan → 3D → checks → BOQ). Reuses the shared `JOURNEY_STEPS` constant from a new `src/components/dashboard/journeySteps.ts` module. The `hasSeenTour` flag is persisted in uiStore (Zustand + localStorage). First load shows the tour; completing or skipping sets the flag. A "How it works" (?) button next to the Builder Journey Guide header re-opens it anytime. 12 new tests. 876 test suite passes (48 files). 0 typecheck errors, 0 lint errors (9 warnings). Build green with 30 PWA entries.
+
+### Changed Files
+- `src/components/onboarding/OnboardingTour.tsx` — new: accessible modal overlay with 6 slides, progress dots, Next/Back/Skip, focus trap, Esc to close, aria-dialog
+- `src/components/dashboard/journeySteps.ts` — new: shared `JOURNEY_STEPS` constant and `JourneyStep` type
+- `src/components/dashboard/BuilderJourneyGuide.tsx` — uses shared `JOURNEY_STEPS` instead of local constant
+- `src/stores/uiStore.ts` — added `hasSeenTour` + `setHasSeenTour` (persisted to localStorage via partialize)
+- `src/pages/Dashboard.tsx` — wired first-run logic (`!hasSeenTour` → show tour), "How it works" button on tour re-open
+- `src/__tests__/onboardingTour.test.tsx` — new: 12 tests covering rendering, navigation, close/skip/complete, a11y, accessibile roles
+- `docs/SPRINT_81_ONBOARDING_TOUR_REPORT.md` — sprint report
+- `CHANGELOG.md` — release notes
 
 ## [0.8.0] - 2026-07-07
 

@@ -10,6 +10,7 @@ import { TransactionPanel } from '@/components/layout/TransactionPanel';
 import { AIChatPanel } from '@/components/layout/AIChatPanel';
 import { EngineeringStudioPanel } from '@/components/dashboard/EngineeringStudioPanel';
 import { BuilderJourneyGuide } from '@/components/dashboard/BuilderJourneyGuide';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { CadSyncControls } from '@/components/dashboard/CadSyncControls';
 import { Button } from '@/components/ui/Button';
 import { Layers, Box, Ruler, FileSpreadsheet, Wand2, Loader2, Boxes, LayoutGrid } from 'lucide-react';
@@ -38,8 +39,24 @@ import type { GeometrySource } from '@/adapters/cadToDesignSyncAdapter';
 export function Dashboard() {
   const { id } = useParams<{ id: string }>();
   const { loadProject, currentProject, currentBrief, currentDesigns, isLoading, generateDesigns, seed } = useProjectStore();
-  const { setActiveStage, selectedDesignId, setSelectedDesignId } = useUIStore();
+  const { setActiveStage, selectedDesignId, setSelectedDesignId, hasSeenTour, setHasSeenTour } = useUIStore();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
+
+  useEffect(() => {
+    if (!hasSeenTour) {
+      setTourOpen(true)
+    }
+  }, [hasSeenTour])
+
+  const handleTourComplete = useCallback(() => {
+    setHasSeenTour(true)
+    setTourOpen(false)
+  }, [setHasSeenTour])
+
+  const handleTourClose = useCallback(() => {
+    setTourOpen(false)
+  }, [])
   const [activeCanvasView, setActiveCanvasView] = useState<'plan' | 'bim' | 'drawings'>('plan');
   const [aiDesignOptions, setAiDesignOptions] = useState<DesignOption[]>([]);
   const [tier3Plans, setTier3Plans] = useState<FloorPlan[]>([]);
@@ -631,13 +648,23 @@ export function Dashboard() {
 
           {/* Right sidebar */}
           <div className="flex flex-shrink-0 overflow-x-auto lg:overflow-x-visible">
-            <BuilderJourneyGuide
-              hasDesignOptions={visibleDesignOptions.length > 0}
-              selectedDesignName={selectedDesign?.name}
-              activeCanvasView={activeCanvasView}
-              hasBoq={!!selectedDesign}
-              hasAnalysis={!!selectedDesign}
-            />
+            <div className="relative">
+              <BuilderJourneyGuide
+                hasDesignOptions={visibleDesignOptions.length > 0}
+                selectedDesignName={selectedDesign?.name}
+                activeCanvasView={activeCanvasView}
+                hasBoq={!!selectedDesign}
+                hasAnalysis={!!selectedDesign}
+              />
+              <button
+                onClick={() => setTourOpen(true)}
+                className="absolute -top-0.5 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-stone-800 text-[10px] font-bold text-stone-400 hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors"
+                aria-label="How it works — replay onboarding tour"
+                title="How it works"
+              >
+                ?
+              </button>
+            </div>
             <PropertiesPanel />
             <TransactionPanel />
             <EngineeringStudioPanel selectedDesign={selectedDesign} activePlan={activePlan} boq={currentBoq} onDesignOptionsGenerated={handleAiDesignOptions} onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }} onTier3Plans={handleTier3Plans} onBuildingTypeChange={setSelectedBuildingType} />
@@ -663,6 +690,7 @@ export function Dashboard() {
       </div>
 
       <AIChatPanel />
+      <OnboardingTour open={tourOpen} onClose={handleTourClose} onComplete={handleTourComplete} />
     </BentoShell>
     </>
   );

@@ -13,6 +13,7 @@ interface UIState {
   shortcutsOpen: boolean;
   activeStage: number;
   selectedDesignId: string | null;
+  hasSeenTour: boolean;
   setTheme: (theme: AppTheme) => void;
   toggleSidebar: () => void;
   togglePropertiesPanel: () => void;
@@ -21,6 +22,7 @@ interface UIState {
   toggleShortcutsHelp: () => void;
   setActiveStage: (stage: number) => void;
   setSelectedDesignId: (id: string | null) => void;
+  setHasSeenTour: (seen: boolean) => void;
 }
 
 function resolveTheme(theme: AppTheme): 'dark' | 'light' {
@@ -49,6 +51,7 @@ export const useUIStore = create<UIState>()(
         shortcutsOpen: false,
         activeStage: 1,
         selectedDesignId: null,
+        hasSeenTour: false,
 
         setTheme: (theme) => {
           const resolved = resolveTheme(theme);
@@ -87,11 +90,15 @@ export const useUIStore = create<UIState>()(
           set((s) => {
             s.selectedDesignId = id;
           }),
+        setHasSeenTour: (seen) =>
+          set((s) => {
+            s.hasSeenTour = seen;
+          }),
       }),
       {
         name: 'budget-engineer-ui-state',
         storage: createJSONStorage(() => localStorage),
-        partialize: (state) => ({ theme: state.theme }),
+        partialize: (state) => ({ theme: state.theme, hasSeenTour: state.hasSeenTour }),
         onRehydrateStorage: () => (state) => {
           if (!state) return;
           const resolved = resolveTheme(state.theme);
