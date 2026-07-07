@@ -13,6 +13,7 @@ import { Download, ArrowLeft } from 'lucide-react'
 import { computeVisibility } from './viewMode'
 import type { ViewMode } from './viewMode'
 import { computeRoomFocus } from './roomFocus'
+import { computeWalkStart, clampToFootprint } from './walkthrough'
 
 // ── Brand palette materials (PBR) ──
 const WALL_EXT_MAT = new THREE.MeshStandardMaterial({
@@ -61,6 +62,7 @@ interface BimModel3DProps {
   visibleStorey?: number | 'all'
   focusedRoomId?: string | null
   onBack?: () => void
+  onExitWalk?: () => void
 }
 
 // ── Mesh sub-components ──
@@ -261,6 +263,130 @@ function AccentEdges({ result }: { result: PlanTo3dResult }) {
   )
 }
 
+// ── WalkController ──
+
+interface WalkControllerProps {
+  bounds: { width: number; depth: number }
+  plan: PlanModel | null
+  onPointerLockChange: (locked: boolean) => void
+}
+
+function WalkController({ bounds, plan, onPointerLockChange }: WalkControllerProps) {
+  const camera = useThree(s => s.camera)
+  const gl = useThree(s => s.gl)
+  const invalidate = useThree(s => s.invalidate)
+  const keysRef = useRef<Set<string>>(new Set())
+  const yawRef = useRef(0)
+  const pitchRef = useRef(0)
+  const isLockedRef = useRef(false)
+  const initDoneRef = useRef(false)
+
+  // Place camera at walk start on mount
+  useEffect(() => {
+    const start = computeWalkStart(plan)
+    if (start) {
+      camera.position.set(start.position[0], start.position[1], start.position[2])
+    } else {
+      const cx = bounds.width / 2
+      const cz = bounds.depth / 2
+      camera.position.set(cx, 1.6, cz)
+    }
+    // Face toward centre of bounds
+    const dx = bounds.width / 2 - camera.position.x
+    const dz = bounds.depth / 2 - camera.position.z
+    yawRef.current = Math.atan2(-dx, -dz)
+    pitchRef.current = 0
+    initDoneRef.current = true
+    invalidate()
+  }, [bounds, plan, camera, invalidate])
+
+  // Keyboard listeners
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => { keysRef.current.add(e.code) }
+    const onKeyUp = (e: KeyboardEvent) => { keysRef.current.delete(e.code) }
+    document.addEventListener('keydown', onKeyDown)
+    document.addEventListener('keyup', onKeyUp)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('keyup', onKeyUp)
+    }
+  }, [])
+
+  // Pointer lock change
+  useEffect(() => {
+    const canvas = gl.domElement
+    const onChange = () => {
+      const locked = document.pointerLockElement === canvas
+      isLockedRef.current = locked
+      onPointerLockChange(locked)
+    }
+    document.addEventListener('pointerlockchange', onChange)
+    return () => document.removeEventListener('pointerlockchange', onChange)
+  }, [gl, onPointerLockChange])
+
+  // Mouse look (relative movement while pointer locked)
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isLockedRef.current) return
+      yawRef.current -= e.movementX * 0.002
+      pitchRef.current -= e.movementY * 0.002
+      pitchRef.current = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, pitchRef.current))
+    }
+    document.addEventListener('mousemove', onMouseMove)
+    return () => document.removeEventListener('mousemove', onMouseMove)
+  }, [])
+
+  // Click canvas to lock pointer
+  useEffect(() => {
+    const canvas = gl.domElement
+    const onClick = () => {
+      if (!isLockedRef.current) {
+        canvas.requestPointerLock()
+      }
+    }
+    canvas.addEventListener('click', onClick)
+    return () => canvas.removeEventListener('click', onClick)
+  }, [gl])
+
+  // Movement + camera update each frame
+  useFrame((_, delta) => {
+    if (!initDoneRef.current) return
+
+    const speed = 3
+    const keys = keysRef.current
+    const forward = new THREE.Vector3(-Math.sin(yawRef.current), 0, -Math.cos(yawRef.current))
+    const right = new THREE.Vector3(forward.z, 0, -forward.x)
+
+    const move = new THREE.Vector3()
+    if (keys.has('KeyW') || keys.has('ArrowUp')) move.add(forward)
+    if (keys.has('KeyS') || keys.has('ArrowDown')) move.sub(forward)
+    if (keys.has('KeyA') || keys.has('ArrowLeft')) move.sub(right)
+    if (keys.has('KeyD') || keys.has('ArrowRight')) move.add(right)
+
+    if (move.length() > 0) {
+      move.normalize().multiplyScalar(speed * delta)
+      camera.position.add(move)
+    }
+
+    // Clamp to footprint
+    const clamped = clampToFootprint(
+      [camera.position.x, camera.position.y, camera.position.z],
+      bounds,
+    )
+    camera.position.x = clamped[0]
+    camera.position.y = 1.6
+    camera.position.z = clamped[2]
+
+    // Camera look direction
+    const euler = new THREE.Euler(pitchRef.current, yawRef.current, 0, 'YXZ')
+    camera.quaternion.setFromEuler(euler)
+
+    invalidate()
+  })
+
+  return null
+}
+
 // ── Helpers ──
 
 function shouldShowStorey(
@@ -282,9 +408,10 @@ interface SceneProps {
   viewMode: ViewMode
   focusedRoomId: string | null | undefined
   plan: PlanModel | null
+  onPointerLockChange?: (locked: boolean) => void
 }
 
-function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, storeysToShow, viewMode, focusedRoomId, plan }: SceneProps) {
+function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, storeysToShow, viewMode, focusedRoomId, plan, onPointerLockChange }: SceneProps) {
   const camera = useThree(s => s.camera)
   const invalidate = useThree(s => s.invalidate)
   const controlsRef = useRef<React.ElementRef<typeof OrbitControls> | null>(null)
@@ -353,9 +480,9 @@ function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, store
     }
   }, [focusedRoomId, plan, camera, invalidate, result.bounds, viewMode, storeysToShow])
 
-  // Adjust camera when view mode changes (skip if room focus is active)
+  // Adjust camera when view mode changes (skip if room focus is active or walk mode)
   useEffect(() => {
-    if (focusedRoomId || animRef.current) return
+    if (focusedRoomId || animRef.current || viewMode === 'walk') return
     const c = controlsRef.current
     if (!c) return
     const b = result.bounds
@@ -442,7 +569,11 @@ function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, store
 
       <AccentEdges result={result} />
 
-      <OrbitControls ref={controlsRef} enableDamping dampingFactor={0.12} target={target} minDistance={1} maxDistance={60} />
+      {viewMode === 'walk' ? (
+        <WalkController bounds={result.bounds} plan={plan} onPointerLockChange={onPointerLockChange ?? (() => {})} />
+      ) : (
+        <OrbitControls ref={controlsRef} enableDamping dampingFactor={0.12} target={target} minDistance={1} maxDistance={60} />
+      )}
 
       <ambientLight intensity={0.5} />
       <directionalLight position={[15, 20, 10]} intensity={1.2} castShadow
@@ -457,11 +588,13 @@ function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, store
 
 // ── Main component ──
 
-export function BimModel3D({ plan, design, height = 480, viewMode = 'full', visibleStorey = 'all', focusedRoomId, onBack }: BimModel3DProps) {
+export function BimModel3D({ plan, design, height = 480, viewMode = 'full', visibleStorey = 'all', focusedRoomId, onBack, onExitWalk }: BimModel3DProps) {
   const numberOfStoreys = design?.floors ?? 1
   const buildingRef = useRef<THREE.Group | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [contextLost, setContextLost] = useState(false)
+  const [pointerLocked, setPointerLocked] = useState(false)
+  const isWalkMode = viewMode === 'walk'
 
   const handleCreated = useCallback((state: { gl: THREE.WebGLRenderer }) => {
     const canvas = state.gl.domElement
@@ -517,6 +650,14 @@ export function BimModel3D({ plan, design, height = 480, viewMode = 'full', visi
     onBack?.()
   }, [onBack])
 
+  const handlePointerLockChange = useCallback((locked: boolean) => {
+    setPointerLocked(locked)
+  }, [])
+
+  const handleExitWalk = useCallback(() => {
+    onExitWalk?.()
+  }, [onExitWalk])
+
   if (contextLost) {
     return (
       <div
@@ -552,7 +693,7 @@ export function BimModel3D({ plan, design, height = 480, viewMode = 'full', visi
   const camHeight = result.bounds.totalHeight + camDist * 0.5
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10">
+    <div className="relative overflow-hidden rounded-2xl border border-white/10">
       <Canvas
         camera={{
           position: [result.bounds.width / 2 + camDist * 0.6, camHeight, result.bounds.depth / 2 + camDist * 0.6],
@@ -579,11 +720,36 @@ export function BimModel3D({ plan, design, height = 480, viewMode = 'full', visi
           viewMode={viewMode}
           focusedRoomId={focusedRoomId}
           plan={plan}
+          onPointerLockChange={handlePointerLockChange}
         />
         <SnapshotCapture />
       </Canvas>
+
+      {/* Walk mode overlay when pointer is not locked */}
+      {isWalkMode && !pointerLocked && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-black/40 backdrop-blur-[2px]">
+          <p className="text-sm text-stone-200">Click the 3D view to enter walk mode</p>
+          <p className="text-[11px] text-stone-400">WASD / Arrow keys to move · Mouse to look around</p>
+          <button
+            onClick={handleExitWalk}
+            className="rounded-md bg-cyan-700 px-3 py-1.5 text-[11px] font-medium text-white transition-colors hover:bg-cyan-600"
+            aria-label="Exit walkthrough mode"
+          >
+            Exit Walkthrough
+          </button>
+        </div>
+      )}
+
       <div className="flex items-center gap-2 border-t border-white/10 px-4 py-2">
-        {focusedRoomId && (
+        {isWalkMode ? (
+          <button
+            onClick={handleExitWalk}
+            className="rounded-md bg-cyan-700 px-2.5 py-1 text-[11px] font-medium text-white transition-colors hover:bg-cyan-600"
+            aria-label="Exit walkthrough mode"
+          >
+            Exit Walkthrough
+          </button>
+        ) : focusedRoomId && (
           <Button
             variant="secondary"
             size="sm"

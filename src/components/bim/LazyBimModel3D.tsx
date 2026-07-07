@@ -20,6 +20,7 @@ const VIEW_MODES: { value: ViewMode; label: string }[] = [
   { value: 'full', label: 'Full' },
   { value: 'dollhouse', label: 'Dollhouse' },
   { value: 'noRoof', label: 'No Roof' },
+  { value: 'walk', label: 'Walk' },
 ]
 
 export function LazyBimModel3D(props: LazyBimModel3DProps) {
@@ -32,6 +33,32 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
   const savedStateRef = useRef<{ viewMode: ViewMode; visibleStorey: number | 'all' } | null>(null)
 
   const handleRetry = () => setRetryKey((k) => k + 1)
+
+  const handleViewModeChange = useCallback((mode: ViewMode) => {
+    if (mode === 'walk') {
+      // Save current state before entering walk mode
+      if (!savedStateRef.current) {
+        savedStateRef.current = { viewMode, visibleStorey }
+      }
+      // Walk mode auto-enables noRoof for visibility
+      setViewMode('walk')
+      if (props.design && props.design.floors > 1) {
+        setVisibleStorey(0)
+      }
+    } else {
+      setViewMode(mode)
+    }
+  }, [viewMode, visibleStorey, props.design])
+
+  const handleExitWalk = useCallback(() => {
+    if (savedStateRef.current) {
+      setViewMode(savedStateRef.current.viewMode)
+      setVisibleStorey(savedStateRef.current.visibleStorey)
+      savedStateRef.current = null
+    } else {
+      setViewMode('full')
+    }
+  }, [])
 
   const storeyCount = props.design?.floors ?? 1
   const storeyLabels: { value: number | 'all'; label: string }[] = useMemo(() => [
@@ -86,7 +113,7 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
           {VIEW_MODES.map((m) => (
             <button
               key={m.value}
-              onClick={() => setViewMode(m.value)}
+              onClick={() => handleViewModeChange(m.value)}
               aria-pressed={viewMode === m.value}
               className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
                 viewMode === m.value
@@ -154,6 +181,7 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
           visibleStorey={visibleStorey}
           focusedRoomId={focusedRoomId}
           onBack={handleBack}
+          onExitWalk={handleExitWalk}
           {...props}
         />
       </Suspense>

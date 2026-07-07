@@ -1,4 +1,4 @@
-export type ViewMode = 'full' | 'dollhouse' | 'noRoof'
+export type ViewMode = 'full' | 'dollhouse' | 'noRoof' | 'walk'
 
 export interface VisibilityState {
   showRoof: boolean
@@ -24,5 +24,7 @@ export function computeVisibility(
       return { showRoof: false, wallOpacity: 1, showCeilings: true, storeysToShow }
     case 'dollhouse':
       return { showRoof: false, wallOpacity: 0.4, showCeilings: false, storeysToShow }
+    case 'walk':
+      return { showRoof: false, wallOpacity: 1, showCeilings: true, storeysToShow }
   }
 }

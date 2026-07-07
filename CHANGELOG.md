@@ -2,7 +2,23 @@
 
 ## Unreleased
 
-### Sprint 73 — Interior inspection: Room fly-in focus
+### Sprint 74 — Interior inspection: First-person walkthrough (WASD + mouse-look, footprint clamp, eye-height, auto no-roof, Exit/Esc)
+
+**Summary:** First-person walkthrough mode for the 3D BIM view — click the "Walk" button to enter eye-level navigation. WASD/Arrow keys move on the horizontal plane; click the canvas for pointer-lock mouse-look. Camera is clamped to the building footprint (prevents walking outside). Eye height fixed at ~1.6m. An overlay with "Click to enter walk mode" + "Exit Walkthrough" button appears when pointer is unlocked. Esc releases pointer lock but does not exit walk mode (use the Exit button). Interior-wall collision is **deferred** for v1 — you can walk through interior walls; only the outer footprint is enforced. Completes the interior inspection trio (Dollhouse → Room fly-in → Walkthrough).
+
+### New Files
+- `src/components/bim/walkthrough.ts` — `computeWalkStart()` (largest room centre at 1.6m eye height), `clampToFootprint()` (clamp x/z to bounds with margin)
+- `src/__tests__/walkthrough.test.ts` — 16 tests covering `computeWalkStart` (null/empty/single/multi-room) and `clampToFootprint` (all axes, margins, inside unchanged)
+
+### Changed Files
+- `src/components/bim/viewMode.ts` — Added `'walk'` to `ViewMode` type and `computeVisibility` case (behaves like noRoof)
+- `src/components/bim/BimModel3D.tsx` — Added `WalkController` component (pointer-lock mouse-look, WASD movement, footprint clamp, eye height). Conditionally renders `WalkController` vs `OrbitControls` based on viewMode. Exits via `onExitWalk` prop. Shows overlay when pointer is unlocked during walk mode.
+- `src/components/bim/LazyBimModel3D.tsx` — Added "Walk" button. `handleViewModeChange` saves state on walk entry, auto-sets noRoof + storey 0. `handleExitWalk` restores saved viewMode/storey.
+
+### Tests
+807 tests across 46 files (16 new).
+
+---
 
 **Summary:** Room fly-in focus for the 3D BIM view — select a room from a dropdown to smoothly animate the camera to that room's centre at eye height. Pure helper `computeRoomFocus()` calculates camera target/position from plan geometry; `BimModel3D` animates via `useFrame` lerp (0.6s smoothstep). Lazy wrapper adds `<select>` room picker, Back button, and auto-assist (switches to noRoof + storey 0 on focus, restores previous viewMode/storey on exit).
 
