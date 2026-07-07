@@ -1,6 +1,6 @@
 # Feature Matrix — Budget Engineer OS Canonical
 
-> **Date:** 2026-07-06  
+> **Date:** 2026-07-07  
 > **Base:** WS1 (`workspace-chart 1`)  
 > **Legend:** ✅ Present | ❌ Missing | 🔄 Staged (not wired)
 > **Phase E (WS6 AI + Drawing Management) merged.**  
@@ -160,3 +160,4 @@
 | ✅ Present (Sprints 56–63 — Professional Drawings v0.4.0) | 11 drawing types (Elevations, Section, Site, Foundation, Roof, RCP, Electrical, Plumbing, HVAC) + A1 presentation sheet + PDF/PNG export, coloured material/discipline system, MEP placement heuristics, rich Section A‑A, presentation sheet export, 96 new tests across 4 test files, 25 new files, v0.4.0 tag |
 | ✅ Present (Sprints 67–70 — Interactive 2D CAD Editor v0.5.0) | Room add/delete/move/resize, door/window add/move/delete, snap-to-grid, keyboard nudge, live dimension readout, undo/redo timeline, IndexedDB persistence, 63 new tests (766 total across 43 files), 7 new files, v0.5.0 tag |
 | ✅ Present (Sprints 72–74 — Interior Inspection v0.6.0) | Dollhouse/cutaway 3D view (Full/Dollhouse/No Roof toggles + storey selector), click-a-room camera fly-in with smooth animation and Back button, first-person walkthrough (WASD + pointer-lock mouse-look, footprint clamp, eye height, auto no-roof, Exit/Esc), 41 new tests (807 total across 46 files), 6 new files, v0.6.0 tag |
+| ✅ Present (Sprints 76–77 — Parametric Canopy Roof v0.7.0) | Opt-in canopy roof type (alongside gable), Voronoi-cell surface (Bowyer–Watson Delaunay), ETFE panels, spine ribs + structural framing, Section A-A drawing integration, geometry disposal/debounce, 30 new tests (847 total across 47 files), 3 new files, v0.7.0 tag |
