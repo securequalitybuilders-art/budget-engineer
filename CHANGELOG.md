@@ -2,20 +2,39 @@
 
 ## Unreleased
 
+### Sprint 77 — Canopy in Section drawing + refined 3D framing
+**Summary:** The parametric canopy roof is now visible in the Section A-A drawing (curved profile, rib ticks, ETFE panel fill, support columns) when Canopy is selected in the DrawingsPanel. 3D framing refined toward dragonfly-wing look: spine ribs (primary structural ribs along X/Z axes, rendered as thick teal box segments), Voronoi edge lattice as secondary ribs, ETFE panels updated to cyan. `canopySectionProfile()` and `computeSpineRibs()` helpers added to `canopyGeometry.ts`.
+
+### Sprint 76B — Fix canopy WebGL context loss (dispose geometry, debounce, cap density) + structural framing
+**Summary:** Geometry disposal (`BufferGeometry.dispose()`) via `useEffect` + `useRef` prevents WebGL context loss on param changes. 120ms debounce on slider-driven canopy params in `LazyBimModel3D`. Density capped at `MAX_CELL_DENSITY = 60`. Structural framing look: ribs (violet line segments), ETFE-like panels (low-opacity), perimeter beam, support columns. `clampCanopyParams`, `computePerimeterEdges`, `computeSupports` helpers.
+
 ### Sprint 76 — Parametric biomimetic canopy (opt-in roof type)
 **Summary:** Curved surface + Voronoi cell network rendered in 3D with live sliders (span, rise, cell density, reseed). Opt-in roof type alongside existing gable — toggle via "Gable" / "Canopy" button in the 3D panel.
 
-### New Files
+### New Files (Sprint 77)
+- (none — all additions within existing files)
+
+### New Files (Sprint 76)
 - `src/engine/canopy/canopyGeometry.ts` — pure, deterministic Voronoi geometry engine (Bowyer–Watson Delaunay, Sutherland–Hodgman clip, surface projection)
 - `src/__tests__/canopyGeometry.test.ts` — 22 tests covering surfacePoint, seed generation, triangulation, cells, projection, edge cases, determinism
 - `src/components/bim/CanopyMesh.tsx` — React Three Fiber component rendering translucent cell surface + cyan edge network
 
-### Changed Files
-- `src/components/bim/BimModel3D.tsx` — accepts `roofType` and `canopyParams` props; conditionally renders CanopyMesh vs RoofMesh
-- `src/components/bim/LazyBimModel3D.tsx` — adds Gable/Canopy toggle, live sliders (Span X, Span Z, Rise, Cell Density, Reseed) when canopy active
+### Changed Files (Sprint 77)
+- `src/engine/canopy/canopyGeometry.ts` — adds `canopySectionProfile()`, `computeSpineRibs()`, `CanopySectionProfile`, `SpineRib` types
+- `src/components/drawings/sectionModel.tsx` — accepts `roofType` + `canopyParams`; renders canopy profile curve, rib ticks, support columns, ETFE fill, and label when canopy selected; falls back to gable on error
+- `src/components/drawings/SectionView.tsx` — accepts `roofType` + `canopyParams` props; threads to `renderSectionSheet`
+- `src/components/drawings/DrawingsPanel.tsx` — adds local `roofType` state toggle (Gable/Canopy) + Rise/Span sliders for section view; threads canopy params to SectionView
+- `src/components/bim/CanopyMesh.tsx` — updates panel material to cyan ETFE look; adds spine ribs (thick box mesh along X/Z axes); `SPINE_MAT` material; spineGeo disposal
+- `src/__tests__/canopyGeometry.test.ts` — 8 new tests: `canopySectionProfile` (4) + `computeSpineRibs` (4)
+
+### Changed Files (Sprint 76B)
+- `src/components/bim/CanopyMesh.tsx` — adds `disposeGeometry()` helper + geometry disposal in `useEffect` cleanup via `useRef`; `computePerimeterEdges` + `computeSupports` integration; structural framing render order
+- `src/components/bim/LazyBimModel3D.tsx` — adds 120ms `setTimeout` debounce on slider params; density slider capped at 60; `debouncedCanopyParams` passed to 3D
+- `src/engine/canopy/canopyGeometry.ts` — adds `clampCanopyParams()`, `computePerimeterEdges()`, `computeSupports()` with `MAX_CELL_DENSITY = 60`; internal clamp in `computeCanopy`
+- `src/components/bim/BimModel3D.tsx` — accepts `roofType` + `canopyParams` props; conditional CanopyMesh vs RoofMesh
 
 ### Tests
-829 tests across 47 files (22 new).
+847 tests across 47 files (8 new in Sprint 77, 4 new in Sprint 76B, 22 new in Sprint 76).
 
 ## [0.6.0] - 2026-07-07
 

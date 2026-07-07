@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import type { DesignOption } from '@/domain/boq'
 import type { PlanModel } from '@/domain/plan'
+import type { CanopyParams } from '@/engine/canopy/canopyGeometry'
 import { PlanCanvas } from '@/components/cad/PlanCanvas'
 import { ElevationView } from '@/components/drawings/ElevationView'
 import { SectionView } from '@/components/drawings/SectionView'
@@ -49,6 +50,24 @@ interface DrawingsPanelProps {
 
 export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAULT_STOREY_HEIGHT, pitchHeight = ROOF_PITCH_HEIGHT }: DrawingsPanelProps) {
   const [activeTab, setActiveTab] = useState<DrawingTab>('front')
+
+  // ── Roof type state for Section drawing ──
+  const [sectionRoofType, setSectionRoofType] = useState<'gable' | 'canopy'>('gable')
+
+  const defaultSectionCanopy: CanopyParams = useMemo(() => ({
+    spanX: activePlan ? Math.max(5, activePlan.width * 1.2) : 12,
+    spanZ: activePlan ? Math.max(5, activePlan.height * 1.2) : 10,
+    rise: 2,
+    cellDensity: 20,
+    seed: 42,
+    heightAboveBuilding: floors * storeyHeight,
+  }), [activePlan, floors, storeyHeight])
+
+  const [sectionCanopyParams, setSectionCanopyParams] = useState<CanopyParams>(defaultSectionCanopy)
+
+  const updateSectionCanopy = useCallback((patch: Partial<CanopyParams>) => {
+    setSectionCanopyParams(p => ({ ...p, ...patch }))
+  }, [])
 
   const frontDrawing = useMemo(() => {
     try { return computeFrontElevation(activePlan!, floors, storeyHeight, pitchHeight) } catch { return null }
@@ -137,13 +156,61 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
         />
       )}
       {activeTab === 'section' && (
-        <SectionView
-          drawing={sectionDrawing}
-          activePlan={activePlan}
-          floors={floors}
-          storeyHeight={storeyHeight}
-          pitchHeight={pitchHeight}
-        />
+        <div className="flex flex-col gap-2">
+          {/* Roof type toggle for section */}
+          <div className="flex items-center gap-3 rounded-lg border border-stone-700/60 bg-stone-900/50 px-3 py-2">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-stone-400">Section roof</span>
+            <button
+              onClick={() => setSectionRoofType('gable')}
+              className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                sectionRoofType === 'gable'
+                  ? 'bg-cyan-600/20 text-cyan-300'
+                  : 'text-stone-400 hover:bg-stone-800 hover:text-stone-300'
+              }`}
+            >
+              Gable
+            </button>
+            <button
+              onClick={() => setSectionRoofType('canopy')}
+              className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                sectionRoofType === 'canopy'
+                  ? 'bg-violet-600/20 text-violet-300'
+                  : 'text-stone-400 hover:bg-stone-800 hover:text-stone-300'
+              }`}
+            >
+              Canopy
+            </button>
+            {sectionRoofType === 'canopy' && (
+              <span className="ml-auto flex gap-3 text-[10px] text-stone-400">
+                <label>Rise: {sectionCanopyParams.rise.toFixed(1)}m
+                  <input
+                    type="range" min={0} max={5} step={0.1}
+                    value={sectionCanopyParams.rise}
+                    onChange={e => updateSectionCanopy({ rise: parseFloat(e.target.value) })}
+                    className="ml-1 w-16 align-middle"
+                  />
+                </label>
+                <label>Range: {sectionCanopyParams.spanX.toFixed(1)}m
+                  <input
+                    type="range" min={3} max={30} step={0.5}
+                    value={sectionCanopyParams.spanX}
+                    onChange={e => updateSectionCanopy({ spanX: parseFloat(e.target.value) })}
+                    className="ml-1 w-16 align-middle"
+                  />
+                </label>
+              </span>
+            )}
+          </div>
+          <SectionView
+            drawing={sectionDrawing}
+            activePlan={activePlan}
+            floors={floors}
+            storeyHeight={storeyHeight}
+            pitchHeight={pitchHeight}
+            roofType={sectionRoofType}
+            canopyParams={sectionRoofType === 'canopy' ? sectionCanopyParams : null}
+          />
+        </div>
       )}
       {activeTab === 'presentation' && (
         <PresentationSheetView

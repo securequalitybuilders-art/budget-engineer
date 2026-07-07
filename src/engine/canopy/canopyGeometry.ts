@@ -387,6 +387,81 @@ export function computeSupports(params: CanopyParams): CanopySupport[] {
   }))
 }
 
+// ── Canopy section profile (for 2D section drawings) ──
+
+export interface CanopySectionProfile {
+  points: [number, number, number][]  // 3D surface points along the section cut
+  leftX: number   // leftmost X coordinate (negative)
+  rightX: number  // rightmost X coordinate (positive)
+  maxY: number    // highest Y coordinate
+}
+
+export function canopySectionProfile(
+  params: CanopyParams,
+  cutAxis: 'x' | 'z',
+): CanopySectionProfile {
+  const safe = clampCanopyParams(params)
+  const samples = 32
+  const points: [number, number, number][] = []
+
+  for (let i = 0; i <= samples; i++) {
+    const t = i / samples
+    const u = cutAxis === 'x' ? t : 0.5
+    const v = cutAxis === 'x' ? 0.5 : t
+    points.push(surfacePoint(u, v, safe))
+  }
+
+  const hw = safe.spanX / 2
+  const hd = safe.spanZ / 2
+  const leftX = cutAxis === 'x' ? -hw : -hd
+  const rightX = cutAxis === 'x' ? hw : hd
+  const maxY = safe.heightAboveBuilding + safe.rise
+
+  return { points, leftX, rightX, maxY }
+}
+
+// ── Spine ribs (primary structural ribs for wing-like framing) ──
+
+export interface SpineRib {
+  start: [number, number, number]
+  end: [number, number, number]
+}
+
+export function computeSpineRibs(params: CanopyParams): SpineRib[] {
+  const safe = clampCanopyParams(params)
+  const ribs: SpineRib[] = []
+  const samples = 8
+
+  // X-axis spine: at v=0.5 (mid-depth), from u=0 to u=0.5, 0.5 to 1
+  for (const sign of [-1, 1]) {
+    const pts: [number, number, number][] = []
+    for (let i = 0; i <= samples; i++) {
+      const t = i / samples
+      // Start at centre (u=0.5) and go toward one edge
+      const u = 0.5 + sign * t * 0.5
+      pts.push(surfacePoint(u, 0.5, safe))
+    }
+    for (let i = 0; i < pts.length - 1; i++) {
+      ribs.push({ start: pts[i], end: pts[i + 1] })
+    }
+  }
+
+  // Z-axis spine: at u=0.5 (mid-width), from v=0 to v=0.5, 0.5 to 1
+  for (const sign of [-1, 1]) {
+    const pts: [number, number, number][] = []
+    for (let i = 0; i <= samples; i++) {
+      const t = i / samples
+      const v = 0.5 + sign * t * 0.5
+      pts.push(surfacePoint(0.5, v, safe))
+    }
+    for (let i = 0; i < pts.length - 1; i++) {
+      ribs.push({ start: pts[i], end: pts[i + 1] })
+    }
+  }
+
+  return ribs
+}
+
 // ── Main entry ──
 
 export function computeCanopy(params: CanopyParams): CanopyResult {

@@ -1,24 +1,36 @@
 import { useMemo, useRef, useEffect } from 'react'
 import * as THREE from 'three'
-import { computeCanopy, computePerimeterEdges, computeSupports, clampCanopyParams } from '@/engine/canopy/canopyGeometry'
+import {
+  computeCanopy,
+  computePerimeterEdges,
+  computeSupports,
+  computeSpineRibs,
+  clampCanopyParams,
+} from '@/engine/canopy/canopyGeometry'
 import type { CanopyParams } from '@/engine/canopy/canopyGeometry'
 
 // ── Module-level materials (never recreated) ──
 
 const PANEL_MAT = new THREE.MeshStandardMaterial({
-  color: '#8B5CF6',
-  roughness: 0.5,
-  metalness: 0.1,
+  color: '#06B6D4',
+  roughness: 0.3,
+  metalness: 0.05,
   transparent: true,
-  opacity: 0.15,
+  opacity: 0.2,
   side: THREE.DoubleSide,
   depthWrite: false,
 })
 
 const RIB_MAT = new THREE.LineBasicMaterial({
-  color: '#8B5CF6',
+  color: '#14b8a6',
   transparent: true,
   opacity: 0.9,
+})
+
+const SPINE_MAT = new THREE.MeshStandardMaterial({
+  color: '#0d9488',
+  roughness: 0.5,
+  metalness: 0.3,
 })
 
 const BEAM_MAT = new THREE.MeshStandardMaterial({
@@ -66,10 +78,12 @@ export function CanopyMesh({ params }: CanopyMeshProps) {
     const result = computeCanopy(safe)
     const perimeterEdges = computePerimeterEdges(safe)
     const supports = computeSupports(safe)
+    const spineRibs = computeSpineRibs(safe)
 
     let surfaceGeo: THREE.BufferGeometry | null = null
     let ribGeo: THREE.BufferGeometry | null = null
     let perimeterGeo: THREE.BufferGeometry | null = null
+    let spineGeo: THREE.BufferGeometry | null = null
     const columnGeos: THREE.BufferGeometry[] = []
 
     // Surface panels
@@ -185,6 +199,67 @@ export function CanopyMesh({ params }: CanopyMeshProps) {
       }
     }
 
+    // Spine ribs (primary structural ribs, thicker than Voronoi edges)
+    if (spineRibs.length > 0) {
+      const spinePositions: number[] = []
+      const spineIndices: number[] = []
+      const spineRad = 0.03
+      let svOffset = 0
+
+      for (const rib of spineRibs) {
+        const dx = rib.end[0] - rib.start[0]
+        const dy = rib.end[1] - rib.start[1]
+        const dz = rib.end[2] - rib.start[2]
+        const len = Math.hypot(dx, dy, dz)
+        if (len < 0.01) continue
+
+        const dirX = dx / len
+        const dirY = dy / len
+        const dirZ = dz / len
+
+        // Perpendicular vectors for cross-section
+        const up = Math.abs(dirY) < 0.9
+          ? new THREE.Vector3(0, 1, 0)
+          : new THREE.Vector3(1, 0, 0)
+        const perp = new THREE.Vector3(dirX, dirY, dirZ).cross(up).normalize()
+        const perp2 = new THREE.Vector3(dirX, dirY, dirZ).cross(perp).normalize()
+
+        const halfW = spineRad
+        const halfH = spineRad * 0.5
+        const csOffsets = [
+          perp.clone().multiplyScalar(-halfW).add(perp2.clone().multiplyScalar(-halfH)),
+          perp.clone().multiplyScalar(halfW).add(perp2.clone().multiplyScalar(-halfH)),
+          perp.clone().multiplyScalar(halfW).add(perp2.clone().multiplyScalar(halfH)),
+          perp.clone().multiplyScalar(-halfW).add(perp2.clone().multiplyScalar(halfH)),
+        ]
+
+        for (const off of csOffsets) {
+          spinePositions.push(
+            rib.start[0] + off.x, rib.start[1] + off.y, rib.start[2] + off.z,
+          )
+        }
+        for (const off of csOffsets) {
+          spinePositions.push(
+            rib.end[0] + off.x, rib.end[1] + off.y, rib.end[2] + off.z,
+          )
+        }
+
+        for (let i = 0; i < 4; i++) {
+          const next = (i + 1) % 4
+          spineIndices.push(svOffset + i, svOffset + next, svOffset + 4 + i)
+          spineIndices.push(svOffset + 4 + i, svOffset + next, svOffset + 4 + next)
+        }
+        svOffset += 8
+      }
+
+      if (spinePositions.length > 0) {
+        spineGeo = new THREE.BufferGeometry()
+        spineGeo.setAttribute('position', new THREE.Float32BufferAttribute(spinePositions, 3))
+        spineGeo.setIndex(spineIndices)
+        spineGeo.computeVertexNormals()
+      }
+    }
+
     // Support columns
     const colRadius = 0.04
     const colSeg = 6
@@ -214,7 +289,7 @@ export function CanopyMesh({ params }: CanopyMeshProps) {
       columnGeos.push(colGeo)
     }
 
-    return { surfaceGeo, ribGeo, perimeterGeo, columnGeos }
+    return { surfaceGeo, ribGeo, perimeterGeo, spineGeo, columnGeos }
   }, [safe])
 
   // ── Dispose old geometries on unmount or change ──
@@ -226,6 +301,7 @@ export function CanopyMesh({ params }: CanopyMeshProps) {
       disposeGeometry(prev.surfaceGeo)
       disposeGeometry(prev.ribGeo)
       disposeGeometry(prev.perimeterGeo)
+      disposeGeometry(prev.spineGeo)
       for (const cg of prev.columnGeos) disposeGeometry(cg)
       prevGeosRef.current = geos
     }
@@ -233,6 +309,7 @@ export function CanopyMesh({ params }: CanopyMeshProps) {
       disposeGeometry(geos.surfaceGeo)
       disposeGeometry(geos.ribGeo)
       disposeGeometry(geos.perimeterGeo)
+      disposeGeometry(geos.spineGeo)
       for (const cg of geos.columnGeos) disposeGeometry(cg)
     }
   }, [geos])
@@ -251,12 +328,17 @@ export function CanopyMesh({ params }: CanopyMeshProps) {
         <mesh key={`col-${i}`} geometry={cg} material={COLUMN_MAT} />
       ))}
 
+      {/* Spine ribs (primary structural ribs) */}
+      {geos.spineGeo && (
+        <mesh geometry={geos.spineGeo} material={SPINE_MAT} />
+      )}
+
       {/* Perimeter beam */}
       {geos.perimeterGeo && (
         <mesh geometry={geos.perimeterGeo} material={BEAM_MAT} />
       )}
 
-      {/* Ribs (Voronoi edge lattice, rendered on top) */}
+      {/* Ribs (Voronoi edge lattice, secondary ribs) */}
       <lineSegments geometry={geos.ribGeo} material={RIB_MAT} />
     </group>
   )

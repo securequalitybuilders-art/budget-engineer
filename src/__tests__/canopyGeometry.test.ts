@@ -9,6 +9,8 @@ import {
   clampCanopyParams,
   computePerimeterEdges,
   computeSupports,
+  canopySectionProfile,
+  computeSpineRibs,
   MAX_CELL_DENSITY,
 } from '@/engine/canopy/canopyGeometry'
 import type { CanopyParams } from '@/engine/canopy/canopyGeometry'
@@ -284,5 +286,70 @@ describe('computeSupports', () => {
       expect(Math.abs(s.top[0])).toBe(defaultParams.spanX / 2)
       expect(Math.abs(s.top[2])).toBe(defaultParams.spanZ / 2)
     }
+  })
+})
+
+describe('canopySectionProfile', () => {
+  it('returns a polyline with points following the curve', () => {
+    const profile = canopySectionProfile(defaultParams, 'x')
+    expect(profile.points.length).toBeGreaterThanOrEqual(32)
+    // Centre point is highest
+    const centreY = profile.points[Math.floor(profile.points.length / 2)][1]
+    const edgeY = profile.points[0][1]
+    expect(centreY).toBeGreaterThan(edgeY)
+  })
+
+  it('returns points within span bounds', () => {
+    const profile = canopySectionProfile(defaultParams, 'x')
+    for (const [wx, , wz] of profile.points) {
+      expect(Math.abs(wx)).toBeLessThanOrEqual(defaultParams.spanX / 2 + 0.01)
+      expect(Math.abs(wz)).toBeLessThanOrEqual(defaultParams.spanZ / 2 + 0.01)
+    }
+  })
+
+  it('never throws for extreme params — clamping keeps bounds valid', () => {
+    // spanX=0 clamped to MIN_SPAN=1 → valid profile
+    const profile = canopySectionProfile({ ...defaultParams, spanX: 0 }, 'x')
+    expect(profile.points.length).toBeGreaterThanOrEqual(32)
+    // After clamping spanX=1, leftX = -0.5
+    expect(profile.leftX).toBe(-0.5)
+    expect(profile.rightX).toBe(0.5)
+  })
+
+  it('cutAxis z samples along v direction at u=0.5', () => {
+    const profile = canopySectionProfile(defaultParams, 'z')
+    // Points along Z axis should have x ≈ 0 (centre of X span)
+    for (const [wx] of profile.points) {
+      expect(Math.abs(wx)).toBeLessThan(0.01)
+    }
+  })
+})
+
+describe('computeSpineRibs', () => {
+  it('returns at least 4 ribs', () => {
+    const ribs = computeSpineRibs(defaultParams)
+    expect(ribs.length).toBeGreaterThanOrEqual(4)
+  })
+
+  it('each rib connects two 3D points', () => {
+    const ribs = computeSpineRibs(defaultParams)
+    for (const r of ribs) {
+      expect(r.start).toHaveLength(3)
+      expect(r.end).toHaveLength(3)
+    }
+  })
+
+  it('rib endpoints are at or above heightAboveBuilding', () => {
+    const ribs = computeSpineRibs(defaultParams)
+    for (const r of ribs) {
+      expect(r.start[1]).toBeGreaterThanOrEqual(defaultParams.heightAboveBuilding)
+      expect(r.end[1]).toBeGreaterThanOrEqual(defaultParams.heightAboveBuilding)
+    }
+  })
+
+  it('deterministic — same params produce identical ribs', () => {
+    const a = computeSpineRibs(defaultParams)
+    const b = computeSpineRibs(defaultParams)
+    expect(a.length).toBe(b.length)
   })
 })

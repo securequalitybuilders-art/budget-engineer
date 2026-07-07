@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
 import type { ElevationDrawing } from '@/adapters/planToElevations'
 import type { PlanModel } from '@/domain/plan'
+import type { CanopyParams } from '@/engine/canopy/canopyGeometry'
+import { canopySectionProfile, computeSupports } from '@/engine/canopy/canopyGeometry'
 import { FALLBACK_WALL_THICKNESS } from '@/adapters/planTo3d'
-import { CAD_HAIR, CAD_HEAVY, CAD_THIN, INK, PAPER, metresToMm } from '@/components/drawings/cadConstants'
+import { CAD_HAIR, CAD_HEAVY, CAD_THIN, CAD_MEDIUM, INK, PAPER, metresToMm } from '@/components/drawings/cadConstants'
 import {
   SheetBorder, TitleBlock, DimensionLineH, DimensionLineV,
   GridBubble, LevelMarker, DrawingTitle,
@@ -30,6 +32,8 @@ export function renderSectionSheet(
   floors: number,
   storeyHeight: number,
   pitchHeight: number,
+  roofType?: 'gable' | 'canopy',
+  canopyParams?: CanopyParams | null,
 ): CadSheet | null {
   if (!drawing || !plan || plan.width <= 0 || floors < 1) return null
 
@@ -334,61 +338,184 @@ export function renderSectionSheet(
     }
   }
 
-  // ── Roof gable (solid black cut) ──
-  elements.push(
-    <polygon
-      key="roof-cut"
-      points={`${ox - 3},${eaveY} ${ridgeCx},${ridgeY} ${ox + s(bw) + 3},${eaveY}`}
-      fill={INK}
-      stroke="none"
-    />,
-  )
-  // Roof bottom edge (white line to separate from void)
-  elements.push(
-    <line
-      key="roof-bottom"
-      x1={ox - 3}
-      y1={eaveY}
-      x2={ox + s(bw) + 3}
-      y2={eaveY}
-      stroke={PAPER}
-      strokeWidth={CAD_HAIR}
-    />,
-  )
+  // ── Roof: gable OR canopy ──
+  const cp = roofType === 'canopy' ? canopyParams : null
+  const isCanopy = cp !== null && cp !== undefined
 
-  // ── Roof structure (truss/rafter lines) ──
-  const rafterCount = 4
-  for (let i = 0; i <= rafterCount; i++) {
-    const t = i / rafterCount
-    const rx = ox + t * s(bw)
-    const ry1 = eaveY
-    const ry2 = ridgeY + (eaveY - ridgeY) * (1 - Math.abs(t - 0.5) * 2)
+  if (isCanopy && cp) {
+    // ── Canopy roof in section ──
+    try {
+      const profile = canopySectionProfile(cp, 'x')
+      const supports = computeSupports(cp)
+      const centerX = ox + s(bw) / 2
+
+      // Build SVG polyline points for the canopy profile curve
+      const profilePts = profile.points.map(([wx, wy]) =>
+        `${centerX + s(wx)},${groundY - s(wy)}`
+      ).join(' ')
+      const baseY = groundY - s(cp.heightAboveBuilding)
+
+      // ETFE panel fill (light translucent fill under the curve)
+      const fillPts = `${centerX + s(profile.leftX)},${baseY} ${profilePts} ${centerX + s(profile.rightX)},${baseY}`
+      elements.push(
+        <polygon
+          key="canopy-fill"
+          points={fillPts}
+          fill={INK}
+          opacity={0.08}
+          stroke="none"
+        />,
+      )
+
+      // Canopy profile curve (medium weight line)
+      elements.push(
+        <polyline
+          key="canopy-curve"
+          points={profilePts}
+          fill="none"
+          stroke={INK}
+          strokeWidth={CAD_MEDIUM}
+        />,
+      )
+
+      // Canopy bottom edge line
+      elements.push(
+        <line
+          key="canopy-bottom"
+          x1={centerX + s(profile.leftX)}
+          y1={baseY}
+          x2={centerX + s(profile.rightX)}
+          y2={baseY}
+          stroke={INK}
+          strokeWidth={CAD_HAIR}
+          opacity={0.3}
+        />,
+      )
+
+      // Rib tick marks (sample every 4th point along profile)
+      for (let i = 4; i < profile.points.length - 4; i += 4) {
+        const [wx, wy] = profile.points[i]
+        const px = centerX + s(wx)
+        const py = groundY - s(wy)
+        const tickLen = 3
+        elements.push(
+          <line
+            key={`rib-tick-${i}`}
+            x1={px - tickLen / 2}
+            y1={py - tickLen}
+            x2={px + tickLen / 2}
+            y2={py + tickLen}
+            stroke={INK}
+            strokeWidth={CAD_HAIR}
+            opacity={0.5}
+          />,
+        )
+      }
+
+      // Support columns (vertical members from canopy corners down)
+      for (let si = 0; si < supports.length; si++) {
+        const sup = supports[si]
+        const topX = centerX + s(sup.top[0])
+        const topY = groundY - s(sup.top[1])
+        const baseX = centerX + s(sup.base[0])
+        const baseY2 = groundY - s(sup.base[1])
+        elements.push(
+          <line
+            key={`canopy-col-${si}`}
+            x1={topX}
+            y1={topY}
+            x2={baseX}
+            y2={baseY2}
+            stroke={INK}
+            strokeWidth={CAD_THIN}
+            strokeDasharray="2 1.5"
+          />,
+        )
+      }
+
+      // Label
+      elements.push(
+        <text
+          key="canopy-label"
+          x={centerX}
+          y={groundY - s(cp.heightAboveBuilding + cp.rise) - 10}
+          fontSize={5}
+          fill={INK}
+          fontFamily="system-ui, sans-serif"
+          textAnchor="middle"
+          dominantBaseline="text-after-edge"
+        >
+          CANOPY ROOF (parametric)
+        </text>,
+      )
+    } catch {
+      // Fallback to gable on error
+      elements.push(
+        <polygon
+          key="roof-cut"
+          points={`${ox - 3},${eaveY} ${ridgeCx},${ridgeY} ${ox + s(bw) + 3},${eaveY}`}
+          fill={INK}
+          stroke="none"
+        />,
+      )
+    }
+  } else {
+    // ── Gable roof (original) ──
+    elements.push(
+      <polygon
+        key="roof-cut"
+        points={`${ox - 3},${eaveY} ${ridgeCx},${ridgeY} ${ox + s(bw) + 3},${eaveY}`}
+        fill={INK}
+        stroke="none"
+      />,
+    )
+    // Roof bottom edge (white line to separate from void)
     elements.push(
       <line
-        key={`rafter-${i}`}
-        x1={rx}
-        y1={ry1}
-        x2={ridgeCx}
-        y2={ry2}
+        key="roof-bottom"
+        x1={ox - 3}
+        y1={eaveY}
+        x2={ox + s(bw) + 3}
+        y2={eaveY}
+        stroke={PAPER}
+        strokeWidth={CAD_HAIR}
+      />,
+    )
+
+    // ── Roof structure (truss/rafter lines) ──
+    const rafterCount = 4
+    for (let i = 0; i <= rafterCount; i++) {
+      const t = i / rafterCount
+      const rx = ox + t * s(bw)
+      const ry1 = eaveY
+      const ry2 = ridgeY + (eaveY - ridgeY) * (1 - Math.abs(t - 0.5) * 2)
+      elements.push(
+        <line
+          key={`rafter-${i}`}
+          x1={rx}
+          y1={ry1}
+          x2={ridgeCx}
+          y2={ry2}
+          stroke={INK}
+          strokeWidth={CAD_HAIR}
+          opacity={0.4}
+        />,
+      )
+    }
+    // Collar tie at mid-height
+    elements.push(
+      <line
+        key="collar-tie"
+        x1={ox + s(bw) * 0.15}
+        y1={eaveY - (eaveY - ridgeY) * 0.4}
+        x2={ox + s(bw) * 0.85}
+        y2={eaveY - (eaveY - ridgeY) * 0.4}
         stroke={INK}
         strokeWidth={CAD_HAIR}
-        opacity={0.4}
+        opacity={0.3}
       />,
     )
   }
-  // Collar tie at mid-height
-  elements.push(
-    <line
-      key="collar-tie"
-      x1={ox + s(bw) * 0.15}
-      y1={eaveY - (eaveY - ridgeY) * 0.4}
-      x2={ox + s(bw) * 0.85}
-      y2={eaveY - (eaveY - ridgeY) * 0.4}
-      stroke={INK}
-      strokeWidth={CAD_HAIR}
-      opacity={0.3}
-    />,
-  )
 
   // ── Horizontal dimension ──
   const dimY = MARGIN_TOP - 15

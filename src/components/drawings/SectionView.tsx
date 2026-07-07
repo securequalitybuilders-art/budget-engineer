@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import type { ElevationDrawing } from '@/adapters/planToElevations'
 import type { PlanModel } from '@/domain/plan'
+import type { CanopyParams } from '@/engine/canopy/canopyGeometry'
 import { renderSectionSheet } from '@/components/drawings/sectionModel'
 
 interface SectionViewProps {
@@ -9,16 +10,18 @@ interface SectionViewProps {
   floors: number
   storeyHeight: number
   pitchHeight: number
+  roofType?: 'gable' | 'canopy'
+  canopyParams?: CanopyParams | null
 }
 
-export function SectionView({ drawing, activePlan, floors, storeyHeight, pitchHeight }: SectionViewProps) {
+export function SectionView({ drawing, activePlan, floors, storeyHeight, pitchHeight, roofType = 'gable', canopyParams }: SectionViewProps) {
   const rendered = useMemo(() => {
     try {
-      return renderSectionSheet(drawing, activePlan, floors, storeyHeight, pitchHeight)
+      return renderSectionSheet(drawing, activePlan, floors, storeyHeight, pitchHeight, roofType, canopyParams)
     } catch {
       return null
     }
-  }, [drawing, activePlan, floors, storeyHeight, pitchHeight])
+  }, [drawing, activePlan, floors, storeyHeight, pitchHeight, roofType, canopyParams])
 
   if (!rendered) {
     return (
