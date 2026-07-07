@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useRef, useMemo, useCallback } from 'react'
+import { lazy, Suspense, useState, useRef, useMemo, useCallback, useEffect } from 'react'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -49,6 +49,20 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
   }, [props.plan?.width, props.plan?.height, props.design?.floors])
 
   const [canopyParams, setCanopyParams] = useState<CanopyParams>(defaultCanopyParams)
+  const [debouncedCanopyParams, setDebouncedCanopyParams] = useState<CanopyParams>(defaultCanopyParams)
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Debounce: raw slider input updates canopyParams immediately;
+  // debouncedCanopyParams (passed to 3D) updates 120ms after last change
+  useEffect(() => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedCanopyParams(canopyParams)
+    }, 120)
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    }
+  }, [canopyParams])
 
   // Sync canopy params when plan changes (reset to defaults)
   const lastPlanKeyRef = useRef<string>('')
@@ -250,7 +264,7 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
             label="Density"
             value={canopyParams.cellDensity}
             min={3}
-            max={100}
+            max={60}
             step={1}
             onChange={(v) => updateCanopyParam('cellDensity', v)}
           />
@@ -285,7 +299,7 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
           onBack={handleBack}
           onExitWalk={handleExitWalk}
           roofType={roofType}
-          canopyParams={canopyParams}
+          canopyParams={debouncedCanopyParams}
           {...props}
         />
       </Suspense>

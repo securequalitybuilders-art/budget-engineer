@@ -6,6 +6,10 @@ import {
   computeVoronoiCells,
   projectCellsToSurface,
   computeCanopy,
+  clampCanopyParams,
+  computePerimeterEdges,
+  computeSupports,
+  MAX_CELL_DENSITY,
 } from '@/engine/canopy/canopyGeometry'
 import type { CanopyParams } from '@/engine/canopy/canopyGeometry'
 
@@ -179,16 +183,14 @@ describe('computeCanopy', () => {
     expect(result.allEdges.length).toBeGreaterThan(0)
   })
 
-  it('returns safe empty structure for bad params (no throw)', () => {
-    const bad1 = computeCanopy({ ...defaultParams, spanX: 0 })
-    expect(bad1.cells).toHaveLength(0)
-    expect(bad1.allEdges).toHaveLength(0)
+  it('never throws — clamping prevents truly invalid params', () => {
+    // spanX=0 clamped to MIN_SPAN=1 → valid result
+    const result = computeCanopy({ ...defaultParams, spanX: 0 })
+    expect(result.cells.length).toBeGreaterThan(0)
 
-    const bad2 = computeCanopy({ ...defaultParams, cellDensity: 0 })
-    expect(bad2.cells).toHaveLength(0)
-
-    const bad3 = computeCanopy({ ...defaultParams, rise: -1 })
-    expect(bad3.cells).toHaveLength(0)
+    // rise=-1 clamped to 0 → valid (flat canopy)
+    const flat = computeCanopy({ ...defaultParams, rise: -1 })
+    expect(flat.cells.length).toBeGreaterThan(0)
   })
 
   it('deterministic — same params produce identical result', () => {
@@ -204,5 +206,83 @@ describe('computeCanopy', () => {
     // Different seeds → edge counts should differ (highly likely)
     const sameLength = a.allEdges.length === b.allEdges.length
     expect(sameLength).toBe(false)
+  })
+})
+
+describe('clampCanopyParams', () => {
+  it('caps cellDensity at MAX_CELL_DENSITY', () => {
+    const clamped = clampCanopyParams({ ...defaultParams, cellDensity: 999 })
+    expect(clamped.cellDensity).toBeLessThanOrEqual(MAX_CELL_DENSITY)
+  })
+
+  it('floors cellDensity at 3', () => {
+    const clamped = clampCanopyParams({ ...defaultParams, cellDensity: -5 })
+    expect(clamped.cellDensity).toBe(3)
+    const zero = clampCanopyParams({ ...defaultParams, cellDensity: 0 })
+    expect(zero.cellDensity).toBe(3)
+  })
+
+  it('clamps spanX/spanZ to [MIN_SPAN, MAX_SPAN]', () => {
+    const clamped = clampCanopyParams({ ...defaultParams, spanX: 0, spanZ: 100 })
+    expect(clamped.spanX).toBeGreaterThanOrEqual(1)
+    expect(clamped.spanZ).toBeLessThanOrEqual(50)
+  })
+
+  it('clamps rise to [0, MAX_RISE]', () => {
+    const clamped = clampCanopyParams({ ...defaultParams, rise: -1 })
+    expect(clamped.rise).toBe(0)
+    const big = clampCanopyParams({ ...defaultParams, rise: 20 })
+    expect(big.rise).toBeLessThanOrEqual(10)
+  })
+
+  it('applied within computeCanopy so extreme density is safe', () => {
+    // 999 clamped to 60 → valid canopy
+    const result = computeCanopy({ ...defaultParams, cellDensity: 999 })
+    expect(result.cells.length).toBeGreaterThan(0)
+    // -1 clamped to 3 → only 3 seeds → <2 incident triangles each → 0 cells but no crash
+    const safe = computeCanopy({ ...defaultParams, cellDensity: -1 })
+    expect(safe.cells.length).toBe(0)
+    expect(safe.allEdges.length).toBe(0)
+  })
+})
+
+describe('computePerimeterEdges', () => {
+  it('returns exactly 4 edges', () => {
+    const edges = computePerimeterEdges(defaultParams)
+    expect(edges).toHaveLength(4)
+  })
+
+  it('each edge connects two 3D points', () => {
+    const edges = computePerimeterEdges(defaultParams)
+    for (const e of edges) {
+      expect(e.start).toHaveLength(3)
+      expect(e.end).toHaveLength(3)
+      expect(e.start[1]).toBe(defaultParams.heightAboveBuilding)
+      expect(e.end[1]).toBe(defaultParams.heightAboveBuilding)
+    }
+  })
+})
+
+describe('computeSupports', () => {
+  it('returns exactly 4 supports', () => {
+    const supports = computeSupports(defaultParams)
+    expect(supports).toHaveLength(4)
+  })
+
+  it('each support has base and top at different heights', () => {
+    const supports = computeSupports(defaultParams)
+    for (const s of supports) {
+      expect(s.top).toHaveLength(3)
+      expect(s.base).toHaveLength(3)
+      expect(s.top[1]).toBeGreaterThan(s.base[1])
+    }
+  })
+
+  it('supports land at canopy edge in plan view', () => {
+    const supports = computeSupports(defaultParams)
+    for (const s of supports) {
+      expect(Math.abs(s.top[0])).toBe(defaultParams.spanX / 2)
+      expect(Math.abs(s.top[2])).toBe(defaultParams.spanZ / 2)
+    }
   })
 })

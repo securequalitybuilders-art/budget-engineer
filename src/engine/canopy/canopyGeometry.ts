@@ -1,5 +1,10 @@
 // ── Types ──
 
+export const MAX_CELL_DENSITY = 60
+export const MIN_SPAN = 1
+export const MAX_SPAN = 50
+export const MAX_RISE = 10
+
 export interface CanopyParams {
   spanX: number
   spanZ: number
@@ -18,6 +23,27 @@ export interface CanopyCell {
 export interface CanopyResult {
   cells: CanopyCell[]
   allEdges: [[number, number, number], [number, number, number]][]
+}
+
+export interface CanopySupport {
+  base: [number, number, number]
+  top: [number, number, number]
+}
+
+export interface CanopyPerimeterEdge {
+  start: [number, number, number]
+  end: [number, number, number]
+}
+
+export function clampCanopyParams(params: CanopyParams): CanopyParams {
+  return {
+    spanX: Math.max(MIN_SPAN, Math.min(MAX_SPAN, params.spanX)),
+    spanZ: Math.max(MIN_SPAN, Math.min(MAX_SPAN, params.spanZ)),
+    rise: Math.max(0, Math.min(MAX_RISE, params.rise)),
+    cellDensity: Math.max(3, Math.min(MAX_CELL_DENSITY, Math.round(params.cellDensity))),
+    seed: Math.floor(params.seed) || 42,
+    heightAboveBuilding: Math.max(0, params.heightAboveBuilding),
+  }
 }
 
 interface Point2D {
@@ -320,17 +346,59 @@ export function projectCellsToSurface(cells2d: VoronoiCell2D[], params: CanopyPa
   return { cells: canopyCells, allEdges }
 }
 
+// ── Perimeter edges (boundary of the canopy) ──
+
+export function computePerimeterEdges(params: CanopyParams): CanopyPerimeterEdge[] {
+  const hw = params.spanX / 2
+  const hd = params.spanZ / 2
+  const base = params.heightAboveBuilding
+  // 4 corners at base height (eave level)
+  const corners: [number, number, number][] = [
+    [-hw, base, -hd],
+    [hw, base, -hd],
+    [hw, base, hd],
+    [-hw, base, hd],
+  ]
+  const edges: CanopyPerimeterEdge[] = []
+  for (let i = 0; i < 4; i++) {
+    const j = (i + 1) % 4
+    edges.push({ start: corners[i], end: corners[j] })
+  }
+  return edges
+}
+
+// ── Support columns from canopy corners down to building height ──
+
+export function computeSupports(params: CanopyParams): CanopySupport[] {
+  const hw = params.spanX / 2
+  const hd = params.spanZ / 2
+  const base = params.heightAboveBuilding
+  // 4 corners at base + rise (apex of edge centre — approximate column height)
+  const apexY = base + params.rise * Math.sin(Math.PI * 0.5) * Math.sin(Math.PI * 0.5)
+  const corners: [number, number, number][] = [
+    [-hw, apexY, -hd],
+    [hw, apexY, -hd],
+    [hw, apexY, hd],
+    [-hw, apexY, hd],
+  ]
+  return corners.map((corner) => ({
+    top: corner,
+    base: [corner[0], base * 0.5, corner[2]] as [number, number, number],
+  }))
+}
+
 // ── Main entry ──
 
 export function computeCanopy(params: CanopyParams): CanopyResult {
-  if (params.spanX <= 0 || params.spanZ <= 0 || params.rise < 0 || params.cellDensity < 3) {
+  const safe = clampCanopyParams(params)
+  if (safe.spanX <= 0 || safe.spanZ <= 0 || safe.rise < 0 || safe.cellDensity < 3) {
     return { cells: [], allEdges: [] }
   }
 
   try {
-    const seeds = generateSeedPoints(params)
+    const seeds = generateSeedPoints(safe)
     const voronoiCells = computeVoronoiCells(seeds)
-    return projectCellsToSurface(voronoiCells, params)
+    return projectCellsToSurface(voronoiCells, safe)
   } catch {
     return { cells: [], allEdges: [] }
   }
