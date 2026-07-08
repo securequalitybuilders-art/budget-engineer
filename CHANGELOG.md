@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+### Lighthouse v1.0 Polish
+
+#### Sprint 93 — Lighthouse audit + a11y/SEO/PWA hardening
+
+**Summary:** Clean Lighthouse audit (headless, no extensions) on production build. A11y score increased from 92 to 100, Best Practices from un-scored to 100, SEO held at 100. Fixed: skip-to-content link, logo link missing text, stage nav `<div>` → `<button>`, 3 unlabelled `<select>` elements, heading-order violation, CommandPalette dialog/focus-trap role, PageLoader status role, BentoShell/BentoPanel landmarks, sitemap URL inconsistency, manifest missing scope/categories/purpose. Updated `lighthouserc.json` thresholds. 2 new a11y tests (978 total). PWA is unscored on localhost (HTTPS-required). 0 typecheck errors, 9 lint warnings.
+
+### Changed Files
+- `src/app/router.tsx` — skip-to-content link + `<main id="main-content">`
+- `src/components/layout/CommandBar.tsx` — nav button semantics, aria-labels
+- `src/components/layout/CommandPalette.tsx` — dialog role, focus trap, aria-labels
+- `src/components/layout/PageLoader.tsx` — `role="status"`, `aria-live="polite"`
+- `src/components/layout/BentoShell.tsx` — region landmark, `aria-labelledby`
+- `src/components/layout/BentoPanel.tsx` — region landmark, `aria-labelledby`
+- `src/pages/Home.tsx` — main aria-label, heading-order fix, section `aria-labelledby`
+- `src/components/rates/RateCardPanel.tsx` — select `id`/`htmlFor`
+- `src/components/cad/PlanCanvas.tsx` — select `aria-label`
+- `src/pages/PortfolioPage.tsx` — select `aria-label`
+- `vite.config.ts` — manifest `start_url`, `scope`, `lang`, `categories`, `purpose`
+- `public/robots.txt` — URL consistency
+- `public/sitemap.xml` — URL consistency
+- `lighthouserc.json` — updated assertion thresholds
+- `src/__tests__/a11ySeoConfig.test.ts` — new skip-link and manifest tests (2 new)
+- `docs/SPRINT_93_LIGHTHOUSE_REPORT.md` — new
+- `CHANGELOG.md` — updated
+
 ### Touch Editing
 
 #### Sprint 91 — Touch editing for the 2D plan (tap-select, drag move/resize, pinch-zoom/pan)

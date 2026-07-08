@@ -406,6 +406,7 @@ export function PlanCanvas({
             value={String(snapStep)}
             onChange={(e) => setSnapStep(Number(e.target.value))}
             className="rounded-xl border border-white/10 bg-slate-900 px-2 py-2 text-sm text-white"
+            aria-label="Snap grid step"
           >
             <option value="0.05">Snap 0.05m</option>
             <option value="0.1">Snap 0.1m</option>

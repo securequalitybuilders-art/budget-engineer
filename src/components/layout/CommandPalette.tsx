@@ -30,6 +30,8 @@ export function CommandPalette() {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevFocusRef = useRef<HTMLElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { setTheme, resolvedTheme, toggleSidebar, toggleAiChat, toggleBoqPanel, toggleShortcutsHelp } = useUIStore();
   const { currentProjectId } = useProjectStore();
@@ -119,11 +121,21 @@ export function CommandPalette() {
 
       if ((isMod && e.key.toLowerCase() === 'k') || (e.key === '/' && !open)) {
         e.preventDefault();
-        setOpen((prev) => !prev);
+        setOpen((prev) => {
+          if (prev) {
+            prevFocusRef.current?.focus();
+            prevFocusRef.current = null;
+          } else {
+            prevFocusRef.current = document.activeElement as HTMLElement;
+          }
+          return !prev;
+        });
       }
 
       if (e.key === 'Escape') {
         setOpen(false);
+        prevFocusRef.current?.focus();
+        prevFocusRef.current = null;
       }
     };
 
@@ -132,7 +144,34 @@ export function CommandPalette() {
   }, [open]);
 
   useEffect(() => {
-    if (open) inputRef.current?.focus();
+    if (open) {
+      inputRef.current?.focus();
+    } else if (prevFocusRef.current) {
+      prevFocusRef.current.focus();
+      prevFocusRef.current = null;
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open || !dialogRef.current) return;
+    const handleTabTrap = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener('keydown', handleTabTrap);
+    return () => window.removeEventListener('keydown', handleTabTrap);
   }, [open]);
 
   const run = (cmd: CommandItem) => {
@@ -158,7 +197,7 @@ export function CommandPalette() {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center bg-black/50 p-4 pt-[15vh] backdrop-blur-sm">
+    <div ref={dialogRef} className="fixed inset-0 z-[100] flex items-start justify-center bg-black/50 p-4 pt-[15vh] backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Command palette">
       <div className="w-full max-w-xl overflow-hidden rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-2xl">
         <div className="flex items-center gap-3 border-b border-[var(--border-default)] px-4 py-3">
           <Command size={18} className="text-[var(--text-muted)]" />
@@ -168,6 +207,7 @@ export function CommandPalette() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type a command or search..."
+            aria-label="Search commands"
             className="border-0 bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           <kbd className="rounded bg-[var(--bg-tertiary)] px-2 py-1 text-xs text-[var(--text-muted)]">Esc</kbd>

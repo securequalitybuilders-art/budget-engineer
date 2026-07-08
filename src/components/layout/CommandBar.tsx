@@ -33,8 +33,8 @@ export function CommandBar() {
         <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="Toggle sidebar">
           <Menu size={18} />
         </Button>
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--brand-primary)] text-[var(--brand-accent)]">
+        <Link to="/" className="flex items-center gap-2" aria-label="Home">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--brand-primary)] text-[var(--brand-accent)]" aria-hidden="true">
             <Sparkles size={18} />
           </div>
           <span className="hidden font-display font-bold md:inline">Dzenhare</span>
@@ -52,17 +52,19 @@ export function CommandBar() {
         )}
       </div>
 
-      <nav className="hidden items-center gap-1 lg:flex">
+      <nav className="hidden items-center gap-1 lg:flex" aria-label="Stage navigation">
         {stages.map((stage, idx) => {
           const isActive = idx + 1 === activeStage;
           const { accessible, reason } = isStageAccessible(idx);
           const isLocked = !accessible && !isActive;
           return (
-            <div
+            <button
               key={stage}
+              disabled={isLocked}
               title={isLocked ? reason : undefined}
+              aria-current={isActive ? 'step' : undefined}
               className={
-                'relative flex items-center gap-2 px-3 py-1 text-sm transition-colors ' +
+                'relative flex items-center gap-2 px-3 py-1 text-sm transition-colors rounded-md ' +
                 (isActive
                   ? 'font-medium text-[var(--brand-accent)]'
                   : isLocked
@@ -70,9 +72,9 @@ export function CommandBar() {
                     : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]')
               }
             >
-              {isActive && <span className="absolute inset-0 rounded-md border border-[var(--brand-accent)]/30 bg-[var(--brand-accent)]/10" />}
+              {isActive && <span className="absolute inset-0 rounded-md border border-[var(--brand-accent)]/30 bg-[var(--brand-accent)]/10" aria-hidden="true" />}
               <span className="relative">{stage}</span>
-            </div>
+            </button>
           );
         })}
       </nav>

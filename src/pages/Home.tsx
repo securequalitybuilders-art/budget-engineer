@@ -67,7 +67,7 @@ export function Home() {
   }
 
   return (
-    <main className="relative min-h-[calc(100vh-3.5rem)] overflow-y-auto">
+    <main className="relative min-h-[calc(100vh-3.5rem)] overflow-y-auto" aria-label="Home page">
       <div className="absolute inset-0 aurora opacity-30 pointer-events-none" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-12 lg:px-8">
@@ -109,12 +109,14 @@ export function Home() {
           </div>
         </div>
 
-        <motion.div
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
-        >
+        <section aria-labelledby="features-heading">
+          <h2 id="features-heading" className="sr-only">Platform Features</h2>
+          <motion.div
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+          >
           <motion.div variants={item} className="lg:col-span-2 lg:row-span-2">
             <Card className="h-full border-beam">
               <CardHeader>
@@ -194,10 +196,11 @@ export function Home() {
             </Card>
           </motion.div>
         </motion.div>
+        </section>
 
         {/* First-Time Builder Journey */}
-        <section className="mt-14">
-          <h2 className="mb-2 font-display text-2xl font-semibold">First-Time Builder Journey</h2>
+        <section className="mt-14" aria-labelledby="journey-heading">
+          <h2 id="journey-heading" className="mb-2 font-display text-2xl font-semibold">First-Time Builder Journey</h2>
           <p className="mb-6 max-w-2xl text-sm text-[var(--text-secondary)]">
             No CAD experience needed. Everything runs in your browser with no paid AI APIs.
             The numbers you get are early estimates — always consult a registered professional for final construction.

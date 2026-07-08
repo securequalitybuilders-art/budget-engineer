@@ -30,8 +30,9 @@ export function RateCardPanel({ card: externalCard, onChange }: RateCardPanelPro
       <h3 className="font-semibold text-stone-100">Regional Material-Cost Database</h3>
       <p className="mb-3 text-xs text-stone-400">Editable rate cards per region &amp; currency · CWICR-style</p>
 
-      <label className="mb-1 block text-xs font-medium text-stone-400">Region</label>
+      <label htmlFor="rate-region" className="mb-1 block text-xs font-medium text-stone-400">Region</label>
       <select
+        id="rate-region"
         value={card.id in RATE_CARDS ? card.id : ''}
         onChange={(e) => {
           const preset = RATE_CARDS[e.target.value];

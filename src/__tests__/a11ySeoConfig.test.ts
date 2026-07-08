@@ -52,7 +52,7 @@ describe('Sprint 52 — Accessibility & SEO fixes', () => {
   describe('C) <main> landmark', () => {
     it('GlobalLayout in router.tsx wraps content in <main>', () => {
       const content = readFileSync('src/app/router.tsx', 'utf-8')
-      expect(content).toContain('<main>')
+      expect(content).toContain('<main')
       expect(content).toContain('</main>')
     })
   })
@@ -78,7 +78,7 @@ describe('Sprint 52 — Accessibility & SEO fixes', () => {
     it('contains expected routes', () => {
       const content = readFileSync(`${publicDir}/sitemap.xml`, 'utf-8')
       expect(content).toContain('urlset')
-      expect(content).toContain('https://budgetengineer.app/')
+      expect(content).toContain('https://budget-engineer.vercel.app/')
       expect(content).toContain('/new')
       expect(content).toContain('/portfolio')
       expect(content).toContain('/feedback')
@@ -101,6 +101,22 @@ describe('Sprint 52 — Accessibility & SEO fixes', () => {
     it('icon-512.png is properly sized (was 937 KB 1024×1024)', () => {
       const st = statSync('public/icon-512.png')
       expect(st.size).toBeLessThan(400 * 1024)
+    })
+  })
+
+  describe('H) Skip-to-content link', () => {
+    it('router.tsx contains a skip-to-content link', () => {
+      const content = readFileSync('src/app/router.tsx', 'utf-8')
+      expect(content).toContain('href="#main-content"')
+      expect(content).toContain('Skip to main content')
+    })
+  })
+
+  describe('I) Manifest fields', () => {
+    it('vite.config.ts has manifest with categories', () => {
+      const content = readFileSync('vite.config.ts', 'utf-8')
+      expect(content).toContain('categories')
+      expect(content).toContain('maskable')
     })
   })
 })
