@@ -10,7 +10,9 @@ import { TransactionPanel } from '@/components/layout/TransactionPanel';
 import { AIChatPanel } from '@/components/layout/AIChatPanel';
 import { BuilderJourneyGuide } from '@/components/dashboard/BuilderJourneyGuide';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { STAGES } from '@/components/dashboard/stages';
 import { StageRail } from '@/components/dashboard/StageRail';
+import { MobileNavDrawer } from '@/components/dashboard/MobileNavDrawer';
 import { BriefStage } from '@/components/dashboard/stages/BriefStage';
 import { ConceptStage } from '@/components/dashboard/stages/ConceptStage';
 import { DesignStage } from '@/components/dashboard/stages/DesignStage';
@@ -69,6 +71,7 @@ export function Dashboard() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [statusType, setStatusType] = useState<'success' | 'error' | 'info' | null>(null);
   const [isManualSaving, setIsManualSaving] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [backdrop, setBackdrop] = useState<BackdropState>(createInitialBackdropState());
   const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadedPersistenceRef = useRef(false);
@@ -539,21 +542,57 @@ export function Dashboard() {
     );
   }
 
+  const stageLabel = STAGES.find((s) => s.id === activeStage)?.label ?? 'Dashboard'
+
   return (
     <>
       <BentoShell>
       <Sidebar />
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex flex-1 overflow-hidden">
-          {/* Stage Rail */}
-          <StageRail
+        {/* Mobile top bar */}
+        <div className="flex items-center gap-2 border-b border-stone-700/60 bg-stone-950/90 px-3 py-2 md:hidden">
+          <MobileNavDrawer
+            open={mobileNavOpen}
+            onOpenChange={setMobileNavOpen}
             activeStage={activeStage}
-            onStageChange={(stage) => { setActiveStage(stage); setActiveView(stage); }}
+            onStageChange={(stage) => { setMobileNavOpen(false); setActiveStage(stage); setActiveView(stage); }}
             stageStatus={stageStatus}
             activeTool={typeof activeView === 'string' ? activeView : null}
-            onToolChange={setActiveView}
+            onToolChange={(tool) => { setMobileNavOpen(false); setActiveView(tool); }}
+            currentStageLabel={stageLabel}
           />
+          <div className="ml-auto flex items-center gap-1">
+            <button
+              onClick={toggleJourneyGuide}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-800 text-[10px] font-bold text-stone-400 hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors"
+              aria-label="Toggle builder journey guide"
+              title="Builder Guide"
+            >
+              G
+            </button>
+            <button
+              onClick={() => setTourOpen(true)}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-800 text-[10px] font-bold text-stone-400 hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors"
+              aria-label="How it works — replay onboarding tour"
+              title="How it works"
+            >
+              ?
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-1 overflow-hidden">
+          {/* Stage Rail — hidden on mobile */}
+          <div className="hidden md:flex">
+            <StageRail
+              activeStage={activeStage}
+              onStageChange={(stage) => { setActiveStage(stage); setActiveView(stage); }}
+              stageStatus={stageStatus}
+              activeTool={typeof activeView === 'string' ? activeView : null}
+              onToolChange={setActiveView}
+            />
+          </div>
 
           {/* Main content area */}
           <div className="relative flex flex-1 flex-col overflow-hidden bg-[var(--bg-primary)]">
@@ -660,8 +699,8 @@ export function Dashboard() {
             ) : null}
           </div>
 
-          {/* Journey Guide toggle + Onboarding button */}
-          <div className="absolute left-[232px] top-2 z-20 flex gap-1">
+          {/* Journey Guide toggle + Onboarding button — desktop only */}
+          <div className="absolute left-4 top-2 z-20 hidden gap-1 md:flex">
             <button
               onClick={toggleJourneyGuide}
               className="flex h-7 w-7 items-center justify-center rounded-full bg-stone-800 text-[10px] font-bold text-stone-400 hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors"

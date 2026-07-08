@@ -140,7 +140,8 @@ export function DesignStage({
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden">
       {/* Toolbar */}
-      <div className="absolute left-4 top-4 z-10 flex items-center gap-1 rounded-full glass px-2 py-1">
+      <div className="absolute left-0 top-4 z-10 w-full overflow-x-auto px-4 scrollbar-none">
+        <div className="inline-flex items-center gap-1 rounded-full glass px-2 py-1 whitespace-nowrap">
         <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-[var(--brand-accent)]" aria-label="Select">
           <Box size={16} />
         </Button>
@@ -242,6 +243,7 @@ export function DesignStage({
           <Boxes size={14} />
           <span className="hidden sm:inline">3D</span>
         </Button>
+        </div>
       </div>
 
       {/* Detection status bar */}
