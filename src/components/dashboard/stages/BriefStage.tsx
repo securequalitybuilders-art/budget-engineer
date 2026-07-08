@@ -39,29 +39,29 @@ export function BriefStage({
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 overflow-y-auto">
-      <div className="flex items-center justify-between">
-        <AiBriefPanel
-          onParsed={onParsed}
-          onDesignOptionsGenerated={onDesignOptionsGenerated}
-          onTier3Plans={onTier3Plans}
-          onBuildingTypeChange={onBuildingTypeChange}
+      {/* Import bar — full-width, above the Brief panel */}
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-stone-700/40 bg-stone-900/60 px-4 py-2">
+        <p className="text-[10px] text-stone-400">Supported: DXF, images, PDF. For AutoCAD/ArchiCAD, export to DXF first.</p>
+        <Button variant="secondary" size="sm" className="gap-2 shrink-0" onClick={() => importInputRef.current?.click()}>
+          <Upload size={14} />
+          Import (DXF / image / PDF)
+        </Button>
+        <input
+          ref={importInputRef}
+          type="file"
+          accept=".dxf,image/*,application/pdf"
+          onChange={handleImportChange}
+          className="hidden"
+          aria-label="Select a DXF, image, or PDF file to import"
         />
-        <div className="shrink-0">
-          <Button variant="secondary" size="sm" className="gap-2" onClick={() => importInputRef.current?.click()}>
-            <Upload size={14} />
-            Import (DXF / image / PDF)
-          </Button>
-          <input
-            ref={importInputRef}
-            type="file"
-            accept=".dxf,image/*,application/pdf"
-            onChange={handleImportChange}
-            className="hidden"
-            aria-label="Select a DXF, image, or PDF file to import"
-          />
-          <p className="mt-1 text-right text-[10px] text-stone-400">Supported: DXF, images. For AutoCAD/ArchiCAD, export to DXF first.</p>
-        </div>
       </div>
+
+      <AiBriefPanel
+        onParsed={onParsed}
+        onDesignOptionsGenerated={onDesignOptionsGenerated}
+        onTier3Plans={onTier3Plans}
+        onBuildingTypeChange={onBuildingTypeChange}
+      />
 
       {visibleDesignOptions.length > 0 && (
         <div className="rounded-2xl border-2 border-cyan-500/25 bg-slate-900/80 p-5 shadow-lg shadow-cyan-500/5">
