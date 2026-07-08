@@ -16,6 +16,7 @@ interface ConceptStageProps {
   handleGenerate: () => Promise<void>
   isGenerating: boolean
   onDxfImported?: (plan: PlanModel) => void
+  onImportFile?: (file: File) => void
 }
 
 export function ConceptStage({
@@ -26,26 +27,32 @@ export function ConceptStage({
   handleGenerate,
   isGenerating,
   onDxfImported,
+  onImportFile,
 }: ConceptStageProps) {
-  const dxfInputRef = useRef<HTMLInputElement>(null)
+  const importInputRef = useRef<HTMLInputElement>(null)
 
-  const handleDxfFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !onDxfImported) return
-    try {
-      const text = await file.text()
-      const { parseDxfToPlan } = await import('@/lib/import/dxf-importer')
-      const plan = parseDxfToPlan(text)
-      if (plan) {
-        onDxfImported(plan)
-      } else {
+    if (!file) return
+    if (onImportFile) {
+      onImportFile(file)
+    } else if (file.name.toLowerCase().endsWith('.dxf') && onDxfImported) {
+      try {
+        const text = await file.text()
+        const { parseDxfToPlan } = await import('@/lib/import/dxf-importer')
+        const plan = parseDxfToPlan(text)
+        if (plan) {
+          onDxfImported(plan)
+        } else {
+          alert('Could not read this DXF file. The file may be empty, invalid, or use unsupported entities.')
+        }
+      } catch {
         alert('Could not read this DXF file. The file may be empty, invalid, or use unsupported entities.')
       }
-    } catch {
-      alert('Could not read this DXF file. The file may be empty, invalid, or use unsupported entities.')
     }
     if (e.target) e.target.value = ''
-  }, [onDxfImported])
+  }, [onImportFile, onDxfImported])
+
   const { currentBrief } = useProjectStore()
   const designOptionsRef = useRef<HTMLDivElement>(null)
 
@@ -75,19 +82,20 @@ export function ConceptStage({
               {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
               {isGenerating ? 'Generating designs...' : 'Generate Design Options'}
             </Button>
-            <Button variant="secondary" className="gap-2" onClick={() => dxfInputRef.current?.click()}>
+            <Button variant="secondary" className="gap-2" onClick={() => importInputRef.current?.click()}>
               <Upload size={16} />
-              Import DXF
+              Import (DXF / image / PDF)
             </Button>
-            <input
-              ref={dxfInputRef}
-              type="file"
-              accept=".dxf"
-              onChange={handleDxfFile}
-              className="hidden"
-              aria-label="Select a DXF file to import"
-            />
+            <p className="mt-1 text-[10px] text-stone-400">Supported: DXF, images. For AutoCAD/ArchiCAD, export to DXF first.</p>
           </div>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".dxf,image/*,application/pdf"
+            onChange={handleImportChange}
+            className="hidden"
+            aria-label="Select a DXF, image, or PDF file to import"
+          />
           <p className="mt-6 max-w-xs text-[10px] text-stone-400">
             Mobile: review, estimates, exports supported. For best CAD editing, use a tablet or desktop.
           </p>

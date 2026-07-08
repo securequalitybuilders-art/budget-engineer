@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { PlanCanvas } from '@/components/cad/PlanCanvas'
 import { LazyBimModel3D } from '@/components/bim/LazyBimModel3D'
 import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
 import { CadSyncControls } from '@/components/dashboard/CadSyncControls'
 import { Button } from '@/components/ui/Button'
-import { Box, Layers, Ruler, Wand2, LayoutGrid, Boxes } from 'lucide-react'
+import { Box, Layers, Ruler, Wand2, Upload, LayoutGrid, Boxes } from 'lucide-react'
 import { motion } from 'framer-motion'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
+import type { BackdropState } from '@/lib/import/backdropUtils'
 
 interface DesignStageProps {
   projectId: string | null
@@ -24,6 +25,11 @@ interface DesignStageProps {
   onResetToGeneratedPlan: () => void
   handleGenerate: () => Promise<void>
   isGenerating: boolean
+  backdrop: BackdropState | null
+  onBackdropUpdate: (update: Partial<BackdropState>) => void
+  onBackdropSetScale: (knownWidth: number, knownHeight: number) => void
+  onBackdropClear: () => void
+  onImportFile: (file: File) => void
 }
 
 export function DesignStage({
@@ -41,8 +47,21 @@ export function DesignStage({
   onResetToGeneratedPlan,
   handleGenerate,
   isGenerating,
+  backdrop,
+  onBackdropUpdate,
+  onBackdropSetScale,
+  onBackdropClear,
+  onImportFile,
 }: DesignStageProps) {
   const [canvasView, setCanvasView] = useState<'plan' | 'bim' | 'drawings'>('plan')
+  const importInputRef = useRef<HTMLInputElement>(null)
+
+  const handleImportChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    onImportFile(file)
+    if (e.target) e.target.value = ''
+  }, [onImportFile])
 
   if (!selectedDesign) {
     return (
@@ -64,7 +83,20 @@ export function DesignStage({
               <Wand2 size={16} />
               Generate Design Options
             </Button>
+            <Button variant="secondary" className="gap-2" onClick={() => importInputRef.current?.click()}>
+              <Upload size={16} />
+              Import (DXF / image / PDF)
+            </Button>
+            <p className="mt-1 text-[10px] text-stone-400">{'Supported: DXF, images. For AutoCAD/ArchiCAD, export to DXF first.'}</p>
           </div>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".dxf,image/*,application/pdf"
+            onChange={handleImportChange}
+            className="hidden"
+            aria-label="Select a DXF, image, or PDF file to import"
+          />
         </motion.div>
       </div>
     )
@@ -105,6 +137,21 @@ export function DesignStage({
           onReset={onResetToGeneratedPlan}
         />
 
+        <span className="mx-1 h-5 w-px bg-white/10" />
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 rounded-full"
+          aria-label="Import DXF, image, or PDF"
+          title="Import DXF, image, or PDF"
+          onClick={() => importInputRef.current?.click()}
+        >
+          <Upload size={16} />
+        </Button>
+
+        <span className="mx-1 h-5 w-px bg-white/10" />
+
         <Button
           variant={canvasView === 'plan' ? 'default' : 'ghost'}
           size="sm"
@@ -143,7 +190,16 @@ export function DesignStage({
       {/* Canvas area */}
       <div className="flex flex-1 flex-col overflow-auto p-4 pt-20">
         {canvasView === 'plan' ? (
-          <PlanCanvas projectId={projectId} design={selectedDesign} persistedPlan={activePlan} onSavePlan={handleSavePlan} />
+          <PlanCanvas
+            projectId={projectId}
+            design={selectedDesign}
+            persistedPlan={activePlan}
+            onSavePlan={handleSavePlan}
+            backdrop={backdrop}
+            onBackdropUpdate={onBackdropUpdate}
+            onBackdropSetScale={onBackdropSetScale}
+            onBackdropClear={onBackdropClear}
+          />
         ) : canvasView === 'bim' ? (
           <>
             <LazyBimModel3D plan={activePlan} design={selectedDesign} height={480} />
@@ -168,6 +224,15 @@ export function DesignStage({
           Mobile: review, estimates, exports supported. For best CAD editing, use a tablet or desktop.
         </p>
       </div>
+
+      <input
+        ref={importInputRef}
+        type="file"
+        accept=".dxf,image/*,application/pdf"
+        onChange={handleImportChange}
+        className="hidden"
+        aria-label="Select a DXF, image, or PDF file to import"
+      />
     </div>
   )
 }

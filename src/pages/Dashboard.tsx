@@ -32,6 +32,9 @@ import { savePlanModel, loadPlanModel, loadPlanModelMeta, deletePlanModel } from
 import type { DesignOption } from '@/domain/boq';
 import type { PlanModel } from '@/domain/plan';
 import type { GeometrySource } from '@/adapters/cadToDesignSyncAdapter';
+import { routeImportFile } from '@/lib/import/importRouter';
+import type { BackdropState } from '@/lib/import/backdropUtils';
+import { createInitialBackdropState, computeScaleCalibration } from '@/lib/import/backdropUtils';
 
 export function Dashboard() {
   const { id } = useParams<{ id: string }>();
@@ -66,6 +69,7 @@ export function Dashboard() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [statusType, setStatusType] = useState<'success' | 'error' | 'info' | null>(null);
   const [isManualSaving, setIsManualSaving] = useState(false);
+  const [backdrop, setBackdrop] = useState<BackdropState>(createInitialBackdropState());
   const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadedPersistenceRef = useRef(false);
   const loadedCadRef = useRef<string | null>(null);
@@ -268,6 +272,96 @@ export function Dashboard() {
     }
   }, [selectedDesign, id, currentBoq])
 
+  const handleBackdropUpdate = useCallback((update: Partial<BackdropState>) => {
+    setBackdrop((prev) => ({ ...prev, ...update }))
+  }, [])
+
+  const handleBackdropSetScale = useCallback((knownWidth: number, knownHeight: number) => {
+    setBackdrop((prev) => {
+      if (!prev.imageDataUrl || prev.naturalWidth <= 0 || prev.naturalHeight <= 0) return prev
+      const cal = computeScaleCalibration(prev.naturalWidth, prev.naturalHeight, knownWidth, knownHeight)
+      if (!cal) return prev
+      return { ...prev, pxPerMetre: cal.pxPerMetre }
+    })
+  }, [])
+
+  const handleBackdropClear = useCallback(() => {
+    setBackdrop(createInitialBackdropState())
+  }, [])
+
+  const handleImportFile = useCallback(async (file: File) => {
+    const result = routeImportFile(file)
+    if (result.type === 'dxf') {
+      try {
+        const text = await file.text()
+        const { parseDxfToPlan } = await import('@/lib/import/dxf-importer')
+        const plan = parseDxfToPlan(text)
+        if (plan && id) {
+          const dxfDesignOption: DesignOption = {
+            id: `dxf-import-${Date.now()}`,
+            name: 'Imported DXF',
+            grossFloorArea: plan.width * plan.height,
+            floors: 1,
+            buildingType: 'imported',
+            elements: [],
+          }
+          plan.designOptionId = dxfDesignOption.id
+          setAiDesignOptions((prev) => [...prev, dxfDesignOption])
+          setSelectedDesignId(dxfDesignOption.id)
+          savePlanModel(id, dxfDesignOption.id, plan)
+          setPersistedPlan(plan)
+          logTransaction(id, 'CREATE', 'design', dxfDesignOption.id, 'DXF imported — verify scale')
+          setActiveView(3)
+          showStatus('DXF imported — verify scale', 'success')
+        } else {
+          showStatus('Could not read this DXF file.', 'error')
+        }
+      } catch {
+        showStatus('Could not read this DXF file.', 'error')
+      }
+      return
+    }
+
+    if (result.type === 'image') {
+      try {
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result as string)
+          reader.onerror = () => reject(new Error('Failed to read image'))
+          reader.readAsDataURL(file)
+        })
+        const img = new Image()
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve()
+          img.onerror = () => reject(new Error('Failed to decode image'))
+          img.src = dataUrl
+        })
+        setBackdrop({
+          imageDataUrl: dataUrl,
+          opacity: 0.3,
+          visible: true,
+          pxPerMetre: null,
+          naturalWidth: img.naturalWidth,
+          naturalHeight: img.naturalHeight,
+        })
+        setActiveView(3)
+        showStatus('Image loaded as traceable backdrop. Set the scale for accurate tracing.', 'success')
+      } catch {
+        showStatus('Could not load this image.', 'error')
+      }
+      return
+    }
+
+    if (result.type === 'pdf') {
+      showStatus('PDF import as backdrop is not yet available. Take a screenshot or export your PDF page as an image, then import that.', 'info')
+      return
+    }
+
+    if (result.type === 'unsupported') {
+      showStatus(result.message, 'info')
+    }
+  }, [id, setSelectedDesignId, setActiveView])
+
   const handleDxfImport = useCallback((plan: PlanModel) => {
     if (!id) return;
     const dxfDesignOption: DesignOption = {
@@ -457,6 +551,7 @@ export function Dashboard() {
                     selectedDesignId={selectedDesignId}
                     setSelectedDesignId={setSelectedDesignId}
                     selectedDesign={selectedDesign}
+                    onImportFile={handleImportFile}
                   />
                 )}
                 {activeView === 2 && (
@@ -468,6 +563,7 @@ export function Dashboard() {
                     handleGenerate={handleGenerate}
                     isGenerating={isGenerating}
                     onDxfImported={handleDxfImport}
+                    onImportFile={handleImportFile}
                   />
                 )}
                 {activeView === 3 && (
@@ -486,6 +582,11 @@ export function Dashboard() {
                     onResetToGeneratedPlan={handleResetToGeneratedPlan}
                     handleGenerate={handleGenerate}
                     isGenerating={isGenerating}
+                    backdrop={backdrop.imageDataUrl ? backdrop : null}
+                    onBackdropUpdate={handleBackdropUpdate}
+                    onBackdropSetScale={handleBackdropSetScale}
+                    onBackdropClear={handleBackdropClear}
+                    onImportFile={handleImportFile}
                   />
                 )}
                 {activeView === 4 && (

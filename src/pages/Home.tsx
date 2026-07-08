@@ -96,15 +96,15 @@ export function Home() {
             </Link>
             <Button variant="secondary" size="lg" className="gap-2" onClick={() => dxfInputRef.current?.click()}>
               <FileBarChart size={18} />
-              Import DXF/IFC
+              Import (DXF / image / PDF)
             </Button>
             <input
               ref={dxfInputRef}
               type="file"
-              accept=".dxf"
+              accept=".dxf,image/*,application/pdf"
               onChange={handleDxfFile}
               className="hidden"
-              aria-label="Select a DXF file to import"
+              aria-label="Select a DXF, image, or PDF file to import"
             />
           </div>
         </div>

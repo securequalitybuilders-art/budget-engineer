@@ -1,4 +1,7 @@
+import { useRef, useCallback } from 'react'
 import { AiBriefPanel } from '@/components/ai/AiBriefPanel'
+import { Button } from '@/components/ui/Button'
+import { Upload } from 'lucide-react'
 import type { ParseResult } from '@/lib/ai/ai-provider'
 import type { DesignOption } from '@/domain/boq'
 import type { FloorPlan } from '@/engine/tier3/layoutEngine'
@@ -12,6 +15,7 @@ interface BriefStageProps {
   selectedDesignId: string | null
   setSelectedDesignId: (id: string | null) => void
   selectedDesign: DesignOption | null
+  onImportFile?: (file: File) => void
 }
 
 export function BriefStage({
@@ -22,15 +26,42 @@ export function BriefStage({
   visibleDesignOptions,
   selectedDesignId,
   setSelectedDesignId,
+  onImportFile,
 }: BriefStageProps) {
+  const importInputRef = useRef<HTMLInputElement>(null)
+
+  const handleImportChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !onImportFile) return
+    onImportFile(file)
+    if (e.target) e.target.value = ''
+  }, [onImportFile])
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 overflow-y-auto">
-      <AiBriefPanel
-        onParsed={onParsed}
-        onDesignOptionsGenerated={onDesignOptionsGenerated}
-        onTier3Plans={onTier3Plans}
-        onBuildingTypeChange={onBuildingTypeChange}
-      />
+      <div className="flex items-center justify-between">
+        <AiBriefPanel
+          onParsed={onParsed}
+          onDesignOptionsGenerated={onDesignOptionsGenerated}
+          onTier3Plans={onTier3Plans}
+          onBuildingTypeChange={onBuildingTypeChange}
+        />
+        <div className="shrink-0">
+          <Button variant="secondary" size="sm" className="gap-2" onClick={() => importInputRef.current?.click()}>
+            <Upload size={14} />
+            Import (DXF / image / PDF)
+          </Button>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".dxf,image/*,application/pdf"
+            onChange={handleImportChange}
+            className="hidden"
+            aria-label="Select a DXF, image, or PDF file to import"
+          />
+          <p className="mt-1 text-right text-[10px] text-stone-400">Supported: DXF, images. For AutoCAD/ArchiCAD, export to DXF first.</p>
+        </div>
+      </div>
 
       {visibleDesignOptions.length > 0 && (
         <div className="rounded-2xl border-2 border-cyan-500/25 bg-slate-900/80 p-5 shadow-lg shadow-cyan-500/5">

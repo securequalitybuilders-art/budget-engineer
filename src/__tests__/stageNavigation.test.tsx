@@ -272,6 +272,11 @@ describe('DesignStage', () => {
         onResetToGeneratedPlan={vi.fn()}
         handleGenerate={vi.fn()}
         isGenerating={false}
+        backdrop={null}
+        onBackdropUpdate={vi.fn()}
+        onBackdropSetScale={vi.fn()}
+        onBackdropClear={vi.fn()}
+        onImportFile={vi.fn()}
       />
     )
     expect(screen.getByText('2D / 3D Design Canvas')).toBeTruthy()
@@ -295,6 +300,11 @@ describe('DesignStage', () => {
         onResetToGeneratedPlan={vi.fn()}
         handleGenerate={vi.fn()}
         isGenerating={false}
+        backdrop={null}
+        onBackdropUpdate={vi.fn()}
+        onBackdropSetScale={vi.fn()}
+        onBackdropClear={vi.fn()}
+        onImportFile={vi.fn()}
       />
     )
     expect(screen.getByLabelText('2D Plan View')).toBeTruthy()

@@ -9,18 +9,33 @@ import { useEditablePlan } from '../../hooks/useEditablePlan'
 import { downloadTextFile } from '../../lib/export/file-export'
 import { exportPlanToDxf, exportPlanToMakerJson } from '../../lib/export/maker-export'
 import { exportPlanToSvg } from '../../lib/export/svg-export'
+import { TraceBackdrop, BackdropControls } from './TraceBackdrop'
+import type { BackdropState } from '@/lib/import/backdropUtils'
 
 interface PlanCanvasProps {
   projectId: string | null
   design: DesignOption | null
   persistedPlan?: PlanModel | null
   onSavePlan?: (projectId: string, designId: string, plan: PlanModel) => void
+  backdrop?: BackdropState | null
+  onBackdropUpdate?: (update: Partial<BackdropState>) => void
+  onBackdropSetScale?: (knownWidth: number, knownHeight: number) => void
+  onBackdropClear?: () => void
 }
 
 const canvasWidth = 920
 const canvasHeight = 640
 
-export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan }: PlanCanvasProps) {
+export function PlanCanvas({
+  projectId,
+  design,
+  persistedPlan = null,
+  onSavePlan,
+  backdrop,
+  onBackdropUpdate,
+  onBackdropSetScale,
+  onBackdropClear,
+}: PlanCanvasProps) {
   const baseModel = useMemo<PlanModel | null>(() => (design ? generatePlanModel(design) : null), [design])
   const { view, zoomIn, zoomOut, reset, onPointerDown, onPointerMove, onPointerUp } = usePlanViewport()
   const {
@@ -234,6 +249,17 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
         </div>
       </div>
 
+      {backdrop && onBackdropUpdate && onBackdropSetScale && onBackdropClear && (
+        <div className="mb-3">
+          <BackdropControls
+            backdrop={backdrop}
+            onUpdate={onBackdropUpdate}
+            onSetScale={onBackdropSetScale}
+            onClear={onBackdropClear}
+          />
+        </div>
+      )}
+
       <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950/80">
         <svg
           viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
@@ -253,6 +279,10 @@ export function PlanCanvas({ projectId, design, persistedPlan = null, onSavePlan
           <rect x="0" y="0" width={canvasWidth} height={canvasHeight} fill="url(#grid)" />
 
           <g transform={`translate(${tx} ${ty}) scale(${scale})`}>
+            {backdrop && (
+              <TraceBackdrop backdrop={backdrop} planWidth={model.width} planHeight={model.height} />
+            )}
+
             {model.rooms.map((room) => (
               <EditableRoom
                 key={room.id}
