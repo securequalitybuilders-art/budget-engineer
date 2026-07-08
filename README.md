@@ -1,7 +1,7 @@
 # Dzenhare Budget Engineer Studio
 
 [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions)
-**Current release:** v0.8.0 — [View on GitHub](https://github.com/securequalitybuilders-art/budget-engineer/releases/tag/v0.8.0)
+**Current release:** v0.9.0 — [View on GitHub](https://github.com/securequalitybuilders-art/budget-engineer/releases/tag/v0.9.0)
 
 > AI-powered computational design → 2D CAD → 3D BIM → engineering checks → quantities → BOQ → export.
 > Offline-first, open-source, Africa-focused.
@@ -64,6 +64,13 @@ Then open http://localhost:5173.
 | **Sprints 72–74: Interior Inspection v0.6.0** | Dollhouse/cutaway 3D view (Full/Dollhouse/No Roof, storey selector), click-a-room camera fly-in with smooth animation and Back button, first-person walkthrough (WASD + mouse-look, footprint clamp, eye height, auto no-roof) | Sprints 72–74 |
 | **Sprints 76–77: Parametric Canopy Roof v0.7.0** | Opt-in canopy roof type with Voronoi-cell surface, ETFE panels, spine ribs + structural framing, Section A-A drawing integration, geometry disposal/debounce for stability | Sprints 76–77 |
 | **Sprints 79–80: SADC Building-Code Compliance v0.8.0** | Four jurisdictions (Zimbabwe ZBC, South Africa SANS 10400, Zambia CAP 295, Botswana Building Control Regs), jurisdiction picker in Analysis & BOQ panels, 28 compliance rules, all approximate | Sprints 79–80 |
+| **Sprint 81: First-run onboarding tour** | 6-step interactive overlay, first-visit only, re-openable from Home footer, accessible ARIA + keyboard nav | Sprint 81 |
+| **Sprint 82: 6-Stage workflow navigation rail** | Left rail with Brief→Concept→Design→Engineering→Docs&BIM→Cost&Deliver, status indicators, empty-state CTAs | Sprint 82 |
+| **Sprint 83: Unified left sidebar dashboard** | Combined stage rail + cross-cutting project tools in left sidebar, responsive collapse | Sprint 83 |
+| **Sprint 84: DXF import** | LINE + LWPOLYLINE parsing, mm auto-detect, editable PlanModel + DesignOption | Sprint 84 |
+| **Sprint 85: Multi-format import + traceable backdrop** | Unified Import button, image backdrop with scale calibration, opacity/visibility controls | Sprint 85 |
+| **Sprint 86: Backdrop canvas fix** | Canvas renders without selectedDesign when backdrop exists, synthetic DesignOption on first room | Sprint 86 |
+| **Sprint 87: Offline wall detection (OpenCV.js/WASM)** | Detect-then-correct flow, lazy-loaded OpenCV.js, HoughLinesP pipeline, editable PlanModel | Sprint 87 |
 
 **Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Checks → Quantities → BOQ → Export (CSV / HTML / PDF)
 
@@ -114,18 +121,18 @@ Each push to `main` runs via GitHub Actions:
 1. `npm ci`
 2. `npm run typecheck`
 3. `npm run lint`
-4. `npm test` (864 tests, 47 files)
+4. `npm test` (949 tests, 52 files)
 5. `npm run build`
 
 ## Release
 
 | Detail | Value |
 |--------|-------|
-| Current version | v0.8.0 |
+| Current version | v0.9.0 |
 | Live demo | https://budget-engineer.vercel.app/ |
 | GitHub | https://github.com/securequalitybuilders-art/budget-engineer |
 | CI status | [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions) |
-| Tests | 864 across 47 files |
+| Tests | 949 across 52 files |
 | Architecture | Local-first, no paid APIs, no backend, no cloud LLM |
 
 See [CHANGELOG.md](CHANGELOG.md) for full release history.

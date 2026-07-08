@@ -2,34 +2,46 @@
 
 ## [Unreleased]
 
-### Sprint 87 — Offline floor-plan image → wall/room detection (OpenCV.js/WASM), detect-then-correct into an editable plan
+(No unreleased changes yet.)
 
-**Summary:** After loading a floor-plan image as a tracing backdrop and setting the scale (pxPerMetre), a "Detect walls" button appears in the DesignStage toolbar. Clicking it lazy-loads OpenCV.js (separate 14.5 MB chunk, not in main bundle, not in PWA precache), runs: grayscale → adaptive threshold → morphology denoise → HoughLinesP → collinear merge → axis snap → room derivation. Detected walls are assembled into a PlanModel with a bounding room, then auto-saved as a "Traced Plan" DesignOption — the user immediately enters the editable canvas to correct dimensions. Pure helper functions (`mergeCollinearSegments`, `snapToAxis`, `pixelsToMetresSegment`, `segmentsToPlan`, `computeConfidence`) are unit-tested without OpenCV. Detection is labelled "auto-detected — review and correct." OpenCV.js credit added to ATTRIBUTIONS.md. 17 new tests (949 total, 52 files). 0 typecheck, 0 lint errors (9 warnings). Build green with 32 PWA entries.
+## [0.9.0] - 2026-07-07
 
-### Sprint 86 — Image/PDF backdrop renders tracing canvas without selectedDesign
+### Workspace UX
+
+#### Sprint 81 — First-run onboarding tour
+
+**Summary:** A 6-step interactive onboarding tour introduces new users to the app's pipeline (Brief → Concept → Design → Engineering → Docs & BIM → Cost & Deliver). The overlay uses accessible ARIA attributes, keyboard navigation (left/right/Esc), progress dots, and a "Skip tour" button. The tour is shown only on first visit (localStorage `seen-onboarding` flag) and can be re-opened from the Home page footer. "Get started" sets `activeStage=1` in the Dashboard store.
+
+#### Sprint 82 — 6-Stage workflow navigation rail + stage-based Dashboard refactor
+
+**Summary:** Restructured the single-view Dashboard into 6 discrete workflow stages (Brief → Concept → Design → Engineering → Docs & BIM → Cost & Deliver) with a persistent left navigation rail (`StageRail.tsx`). Each stage renders only its relevant panels. Stage-inappropriate panels removed from the right sidebar, which now shows only cross-cutting tools (BuilderJourneyGuide, Properties, Transactions, Governance, Snapshots, Feedback). Empty-state fallbacks with CTAs guide users. `stageStatus` map provides blocked/done/active/upcoming visual indicators. StageRail uses `role="navigation"` and `aria-current="step"`. 18 new tests (894 total, 49 files).
+
+### Changed Files
+- `src/components/dashboard/stages.ts`, `StageRail.tsx`, `BriefStage.tsx`, `ConceptStage.tsx`, `DesignStage.tsx`, `EngineeringStage.tsx`, `DocsBimStage.tsx`, `CostDeliverStage.tsx` — new
+- `src/pages/Dashboard.tsx` — refactored
+- `src/components/dashboard/BuilderJourneyGuide.tsx` — updated
+
+#### Sprint 83 — Unified left sidebar dashboard + project tools
+
+**Summary:** Merged the 6-stage navigation rail and cross-cutting project tools (BuilderJourneyGuide, Properties, Transactions, Governance, Snapshots, Feedback) into a unified left sidebar. The sidebar uses `aside` with `aria-label="Project workspace"` and responsive collapse on mobile. Stage rail remains the primary navigation with tool panels below a divider.
+
+### Import & Extraction
+
+#### Sprint 84 — Working DXF import
+
+**Summary:** DXF files can be imported and parsed into an editable PlanModel with walls, rooms, and bounding dimensions. The `dxf-importer.ts` module uses a simple polyline parser (no external DXF library — pure TypeScript). Supports LINE and LWPOLYLINE entities. Millimeter heuristic auto-detects units. Opens immediately in the PlanCanvas as an editable plan with a created DesignOption. 7 new tests.
+
+#### Sprint 85 — Unified multi-format import (DXF/image/PDF) + traceable backdrop with scale calibration
+
+**Summary:** A unified "Import (DXF / image / PDF)" button is always reachable across Brief, Concept, and Design stages plus Home. Images (PNG/JPG/WebP) load as a traceable SVG backdrop on the 2D PlanCanvas with opacity slider, show/hide toggle, and scale calibration (user enters known width/height in metres to set px-per-metre). Users trace rooms over the backdrop using the existing editor. DXF continues to parse into an editable PlanModel. PDF, .dwg, and .pln files show honest guidance messages. A shared `importRouter.ts` routes files by extension. Backdrop utilities (`pixelsToMetres`, `calibrateScale`) are tested. 13 new tests (922 total, 51 files).
+
+#### Sprint 86 — Image/PDF backdrop renders tracing canvas without selectedDesign
 
 **Summary:** Fixed the Sprint 85 canvas-empty-state guard so that importing an image/PDF (which sets `backdrop.imageDataUrl` but not `selectedDesign`) renders the PlanCanvas immediately instead of showing "Select a design option." A synthetic "Traced Plan" DesignOption is created when the user places their first room. DXF import unchanged.
 
-### Sprint 85 — Unified multi-format import (DXF/image/PDF) + traceable backdrop with scale calibration
+#### Sprint 87 — Offline floor-plan image → wall/room detection (OpenCV.js/WASM), detect-then-correct into an editable plan
 
-**Summary:** A unified "Import (DXF / image / PDF)" button is always reachable across Brief, Concept, and Design stages plus Home. Images (PNG/JPG/WebP) load as a traceable SVG backdrop on the 2D PlanCanvas with opacity slider, show/hide toggle, and scale calibration (user enters known width/height in metres to set px-per-metre). Users trace rooms over the backdrop using the existing editor. DXF continues to parse into an editable PlanModel. PDF, .dwg, and .pln files show honest guidance messages. A shared `importRouter.ts` routes files by extension. Backdrop utilities (`pixelsToMetres`, `calibrateScale`) are tested. No new npm dependencies added. 13 new tests (922 total, 51 files). 0 typecheck errors, 0 lint errors (9 warnings). Build green with 30 PWA entries.
-
-### Sprint 82 — 6-Stage workflow navigation rail + stage-based Dashboard refactor
-
-**Summary:** Restructured the single-view Dashboard into 6 discrete workflow stages (Brief → Concept → Design → Engineering → Docs & BIM → Cost & Deliver) with a persistent left navigation rail (`StageRail.tsx`). Each stage renders only its relevant panels (AiBriefPanel in Brief, design option cards + PlanComparison in Concept, PlanCanvas + 2D/3D/Drawings viewer in Design, EngineeringStudioPanel + EngineeringAnalysisPanel in Engineering, DrawingsPanel + 3D viewer in Docs & BIM, BoqExportPanel in Cost & Deliver). Stage-inappropriate panels removed from the right sidebar, which now shows only cross-cutting tools (BuilderJourneyGuide, Properties, Transactions, Governance, Snapshots, Feedback). Empty-state fallbacks with CTAs guide users when prerequisite data is missing (e.g. "Select a design option in the Concept stage first"). A `stageStatus` map provides blocked/done/active/upcoming visual indicators on the rail. StageRail uses `role="navigation"` and `aria-current="step"` for accessibility. The onboarding tour's "Get started" now sets `activeStage=1` (Brief). 18 new tests (894 total, 49 files). 0 typecheck errors, 0 lint errors (9 warnings). Build green with 30 PWA entries.
-
-### Changed Files
-- `src/components/dashboard/stages.ts` — new: shared `STAGES` constant and `WorkflowStage` type (6 stages, icons, descriptions)
-- `src/components/dashboard/StageRail.tsx` — new: left vertical navigation rail with active highlight, status indicators, aria-current
-- `src/components/dashboard/stages/BriefStage.tsx` — new: AiBriefPanel + generated design cards
-- `src/components/dashboard/stages/ConceptStage.tsx` — new: design option cards + PlanComparison + empty state
-- `src/components/dashboard/stages/DesignStage.tsx` — new: toolbar + PlanCanvas/3D/Drawings viewer + CadSyncControls
-- `src/components/dashboard/stages/EngineeringStage.tsx` — new: EngineeringStudioPanel + EngineeringAnalysisPanel
-- `src/components/dashboard/stages/DocsBimStage.tsx` — new: DrawingsPanel + 3D model viewer toggle
-- `src/components/dashboard/stages/CostDeliverStage.tsx` — new: BoqExportPanel + empty state
-- `src/pages/Dashboard.tsx` — refactored: StageRail + stage switch replaces monolithic content; EngineeringStudioPanel/BoqExportPanel/EngineeringAnalysisPanel moved to stage content; cross-cutting panels remain in right sidebar; onboarding tour sets activeStage=1 on complete
-- `src/components/dashboard/BuilderJourneyGuide.tsx` — updated: uses `activeStage` from uiStore instead of computing step from UI state
-- `src/__tests__/stageNavigation.test.tsx` — new: 18 tests covering StageRail rendering, aria-current, stage switching, all 6 component empty states and data states
+**Summary:** After loading a floor-plan image as a tracing backdrop and setting the scale (pxPerMetre), a "Detect walls" button appears in the DesignStage toolbar. Clicking it lazy-loads OpenCV.js (separate 14.5 MB chunk, not in main bundle, not in PWA precache), runs: grayscale → adaptive threshold → morphology denoise → HoughLinesP → collinear merge → axis snap → room derivation. Detected walls are assembled into a PlanModel with a bounding room, then auto-saved as a "Traced Plan" DesignOption — the user immediately enters the editable canvas to correct dimensions. Pure helper functions are unit-tested without OpenCV. Detection is labelled "auto-detected — review and correct." OpenCV.js credit added to ATTRIBUTIONS.md. 17 new tests (949 total, 52 files).
 
 ## [0.8.0] - 2026-07-07
 

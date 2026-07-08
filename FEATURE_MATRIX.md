@@ -1,6 +1,6 @@
 # Feature Matrix — Budget Engineer OS Canonical
 
-> **Date:** 2026-07-07 (v0.8.0)  
+> **Date:** 2026-07-07 (v0.9.0)  
 > **Base:** WS1 (`workspace-chart 1`)  
 > **Legend:** ✅ Present | ❌ Missing | 🔄 Staged (not wired)
 > **Phase E (WS6 AI + Drawing Management) merged.**  
@@ -162,3 +162,10 @@
 | ✅ Present (Sprints 72–74 — Interior Inspection v0.6.0) | Dollhouse/cutaway 3D view (Full/Dollhouse/No Roof toggles + storey selector), click-a-room camera fly-in with smooth animation and Back button, first-person walkthrough (WASD + pointer-lock mouse-look, footprint clamp, eye height, auto no-roof, Exit/Esc), 41 new tests (807 total across 46 files), 6 new files, v0.6.0 tag |
 | ✅ Present (Sprints 76–77 — Parametric Canopy Roof v0.7.0) | Opt-in canopy roof type (alongside gable), Voronoi-cell surface (Bowyer–Watson Delaunay), ETFE panels, spine ribs + structural framing, Section A-A drawing integration, geometry disposal/debounce, 30 new tests (847 total across 47 files), 3 new files, v0.7.0 tag |
 | ✅ Present (Sprints 79–80 — SADC Building-Code Compliance v0.8.0) | 4 jurisdictions: Zimbabwe (ZBC), South Africa (SANS 10400, 10 rules), Zambia (CAP 295, 9 rules), Botswana (Building Control, 9 rules); jurisdiction picker in Analysis + BOQ panels; 17 new tests (864 total across 47 files), 3 new files, v0.8.0 tag |
+| ✅ Present (Sprint 81 — Onboarding tour) | 6-step interactive overlay, first-visit only, re-openable, accessible, 6 tests (894 total) |
+| ✅ Present (Sprint 82 — 6-Stage navigation rail) | Left rail with Brief→Concept→Design→Engineering→Docs&BIM→Cost&Deliver, status indicators, empty-state CTAs, 18 tests (894 total, 49 files) |
+| ✅ Present (Sprint 83 — Unified sidebar dashboard) | Combined stage rail + project tools sidebar, responsive collapse |
+| ✅ Present (Sprint 84 — DXF import) | LINE + LWPOLYLINE parser, mm auto-detect, editable PlanModel, 7 tests (922 total, 51 files) |
+| ✅ Present (Sprint 85 — Multi-format import + backdrop) | Unified Import, image backdrop + scale calibration, importRouter, 13 tests (922 total, 51 files) |
+| ✅ Present (Sprint 86 — Backdrop canvas fix) | Canvas renders without selectedDesign when backdrop exists, 932 total tests |
+| ✅ Present (Sprint 87 — Offline wall detection) | Detect-then-correct, lazy-loaded OpenCV.js/WASM, 17 tests (949 total, 52 files) |
