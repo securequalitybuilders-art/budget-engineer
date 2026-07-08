@@ -30,6 +30,7 @@ interface DesignStageProps {
   onBackdropSetScale: (knownWidth: number, knownHeight: number) => void
   onBackdropClear: () => void
   onImportFile: (file: File) => void
+  onDesignCreated: (projectId: string, plan: PlanModel) => void
 }
 
 export function DesignStage({
@@ -52,6 +53,7 @@ export function DesignStage({
   onBackdropSetScale,
   onBackdropClear,
   onImportFile,
+  onDesignCreated,
 }: DesignStageProps) {
   const [canvasView, setCanvasView] = useState<'plan' | 'bim' | 'drawings'>('plan')
   const importInputRef = useRef<HTMLInputElement>(null)
@@ -63,7 +65,7 @@ export function DesignStage({
     if (e.target) e.target.value = ''
   }, [onImportFile])
 
-  if (!selectedDesign) {
+  if (!selectedDesign && !backdrop?.imageDataUrl) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center p-4">
         <motion.div
@@ -76,7 +78,7 @@ export function DesignStage({
           </div>
           <h2 className="font-display text-2xl font-bold text-[var(--text-primary)]">2D / 3D Design Canvas</h2>
           <p className="mt-2 max-w-md text-sm text-[var(--text-secondary)]">
-            Select a design option in the Concept stage first. Once selected, 2D plans and 3D views appear here.
+            Select a design option in the Concept stage first, or import an image as a tracing backdrop.
           </p>
           <div className="mt-6 flex flex-col items-center gap-3">
             <Button className="gap-2" onClick={handleGenerate} disabled={isGenerating}>
@@ -199,6 +201,7 @@ export function DesignStage({
             onBackdropUpdate={onBackdropUpdate}
             onBackdropSetScale={onBackdropSetScale}
             onBackdropClear={onBackdropClear}
+            onDesignCreated={onDesignCreated}
           />
         ) : canvasView === 'bim' ? (
           <>

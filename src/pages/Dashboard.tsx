@@ -289,6 +289,24 @@ export function Dashboard() {
     setBackdrop(createInitialBackdropState())
   }, [])
 
+  const handleDesignCreated = (projectId: string, plan: PlanModel) => {
+    const tracedDesign: DesignOption = {
+      id: `traced-${Date.now()}`,
+      name: 'Traced Plan',
+      grossFloorArea: plan.width * plan.height,
+      floors: 1,
+      buildingType: 'imported',
+      elements: [],
+    }
+    plan.designOptionId = tracedDesign.id
+    setAiDesignOptions((prev) => [...prev, tracedDesign])
+    setSelectedDesignId(tracedDesign.id)
+    savePlanModel(projectId, tracedDesign.id, plan)
+    setPersistedPlan(plan)
+    logTransaction(projectId, 'CREATE', 'design', tracedDesign.id, 'Traced plan created from backdrop')
+    showStatus('First room placed — traced plan created. Continue tracing or edit rooms.', 'success')
+  }
+
   const handleImportFile = useCallback(async (file: File) => {
     const result = routeImportFile(file)
     if (result.type === 'dxf') {
@@ -587,6 +605,7 @@ export function Dashboard() {
                     onBackdropSetScale={handleBackdropSetScale}
                     onBackdropClear={handleBackdropClear}
                     onImportFile={handleImportFile}
+                    onDesignCreated={handleDesignCreated}
                   />
                 )}
                 {activeView === 4 && (

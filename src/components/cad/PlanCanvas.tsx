@@ -21,6 +21,21 @@ interface PlanCanvasProps {
   onBackdropUpdate?: (update: Partial<BackdropState>) => void
   onBackdropSetScale?: (knownWidth: number, knownHeight: number) => void
   onBackdropClear?: () => void
+  onDesignCreated?: (projectId: string, plan: PlanModel) => void
+}
+
+function createEmptyPlan(): PlanModel {
+  return {
+    id: `trace-canvas-${Date.now()}`,
+    designOptionId: '',
+    width: 20,
+    height: 20,
+    wallThickness: 0.23,
+    rooms: [],
+    walls: [],
+    openings: [],
+    scaleLabel: '1:100 @ A3',
+  }
 }
 
 const canvasWidth = 920
@@ -35,8 +50,14 @@ export function PlanCanvas({
   onBackdropUpdate,
   onBackdropSetScale,
   onBackdropClear,
+  onDesignCreated,
 }: PlanCanvasProps) {
-  const baseModel = useMemo<PlanModel | null>(() => (design ? generatePlanModel(design) : null), [design])
+  const createdRef = useRef(false)
+  const baseModel = useMemo<PlanModel | null>(() => {
+    if (design) return generatePlanModel(design)
+    if (backdrop?.imageDataUrl) return createEmptyPlan()
+    return null
+  }, [design, backdrop?.imageDataUrl])
   const { view, zoomIn, zoomOut, reset, onPointerDown, onPointerMove, onPointerUp } = usePlanViewport()
   const {
     model,
@@ -66,7 +87,12 @@ export function PlanCanvas({
     baseModel,
     persistedPlan,
     (next) => {
-      if (projectId && design && onSavePlan) onSavePlan(projectId, design.id, next)
+      if (projectId && design && onSavePlan) {
+        onSavePlan(projectId, design.id, next)
+      } else if (projectId && !design && backdrop?.imageDataUrl && next.rooms.length > 0 && !createdRef.current && onDesignCreated) {
+        createdRef.current = true
+        onDesignCreated(projectId, next)
+      }
     },
   )
 
@@ -115,7 +141,7 @@ export function PlanCanvas({
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [selectedRoomId, selectedOpeningId, deleteRoom, deleteOpening, snapStep, activeMode])
 
-  if (!design || !model) {
+  if (!model) {
     return (
       <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-slate-300">
         No active design selected. Choose a design option to render a 2D floor plan.
@@ -243,9 +269,9 @@ export function PlanCanvas({
 
           <span className="text-slate-600">|</span>
 
-          <button onClick={() => downloadTextFile(`${design.name.toLowerCase().replace(/\s+/g, '-')}.json`, exportPlanToMakerJson(model), 'application/json;charset=utf-8')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">Maker JSON</button>
-          <button onClick={() => downloadTextFile(`${design.name.toLowerCase().replace(/\s+/g, '-')}.dxf`, exportPlanToDxf(model), 'application/dxf')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">DXF</button>
-          <button onClick={() => downloadTextFile(`${design.name.toLowerCase().replace(/\s+/g, '-')}.svg`, exportPlanToSvg(model), 'image/svg+xml;charset=utf-8')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">SVG</button>
+          <button onClick={() => downloadTextFile(`${(design?.name ?? 'tracing-canvas').toLowerCase().replace(/\s+/g, '-')}.json`, exportPlanToMakerJson(model), 'application/json;charset=utf-8')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">Maker JSON</button>
+          <button onClick={() => downloadTextFile(`${(design?.name ?? 'tracing-canvas').toLowerCase().replace(/\s+/g, '-')}.dxf`, exportPlanToDxf(model), 'application/dxf')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">DXF</button>
+          <button onClick={() => downloadTextFile(`${(design?.name ?? 'tracing-canvas').toLowerCase().replace(/\s+/g, '-')}.svg`, exportPlanToSvg(model), 'image/svg+xml;charset=utf-8')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">SVG</button>
         </div>
       </div>
 
@@ -265,7 +291,7 @@ export function PlanCanvas({
           viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
           className="block h-auto w-full cursor-grab active:cursor-grabbing"
           role="img"
-          aria-label={`2D floor plan for ${design.name}`}
+          aria-label={design ? `2D floor plan for ${design.name}` : 'Tracing canvas'}
           onPointerDown={handleSvgPointerDown}
           onPointerMove={handleSvgPointerMove}
           onPointerUp={handleSvgPointerUp}
