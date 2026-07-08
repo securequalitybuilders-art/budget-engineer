@@ -2,6 +2,7 @@ import { useMemo, type ReactNode } from 'react'
 import type { ElevationDrawing } from '@/adapters/planToElevations'
 import type { PlanModel } from '@/domain/plan'
 import { CAD_HEAVY, CAD_MEDIUM, CAD_THIN, INK, PAPER, metresToMm } from '@/components/drawings/cadConstants'
+import { ZoomableDrawing } from '@/components/drawings/ZoomableDrawing'
 import { MATERIAL } from '@/components/drawings/drawingColors'
 import {
   HatchDefs, SheetBorder, TitleBlock, DimensionLineH, DimensionLineV,
@@ -41,7 +42,7 @@ export function ElevationView({ drawing, activePlan, floors, storeyHeight, pitch
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-stone-700/60 bg-stone-950/80">
+    <ZoomableDrawing>
       <svg
         viewBox={`0 0 ${rendered.sheetW} ${rendered.sheetH}`}
         className="block h-auto w-full"
@@ -52,7 +53,7 @@ export function ElevationView({ drawing, activePlan, floors, storeyHeight, pitch
       >
         {rendered.elements}
       </svg>
-    </div>
+    </ZoomableDrawing>
   )
 }
 

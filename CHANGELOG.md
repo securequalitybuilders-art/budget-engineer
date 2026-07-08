@@ -14,6 +14,32 @@
 - `src/__tests__/touchViewport.test.ts` — new (17 tests)
 - `docs/SPRINT_91_TOUCH_EDITING_REPORT.md` — new
 
+### Touch 3D & Drawings
+
+#### Sprint 92 — Touch support for 3D viewer + drawings/sheets (orbit/pinch/pan)
+
+**Summary:** The 3D viewer (BimModel3D and BimViewer) now supports touch via OrbitControls `touches` config: one-finger rotate, two-finger pinch-zoom/pan. `touch-action: none` on Canvas prevents browser gesture hijacking. Walkthrough button is disabled on touch devices with a tooltip (pointer-lock unavailable). All 10 drawing/A1 sheet SVG views are wrapped in a new `<ZoomableDrawing>` component providing pinch-zoom, two-finger pan, wheel-zoom, and zoom controls (In/Out/Reset) visible only on touch. New utilities: `isTouchDevice()`, `clamp()`, `DRAWING_ZOOM_MIN/MAX` (0.5–5). Desktop interaction is unchanged. 10 new tests (976 total).
+
+### Changed Files
+- `src/lib/isTouchDevice.ts` — new touch detection utility
+- `src/lib/drawingZoom.ts` — new: `clamp`, `DRAWING_ZOOM_MIN`, `DRAWING_ZOOM_MAX`
+- `src/components/drawings/ZoomableDrawing.tsx` — new pinch-zoom/pan wrapper for SVGs
+- `src/components/bim/BimModel3D.tsx` — `touches` config + `touchAction:none`
+- `src/components/bim/BimViewer.tsx` — `import * as THREE`, `touches` config, `touchAction:none`
+- `src/components/bim/LazyBimModel3D.tsx` — walk button disabled on touch
+- `src/components/drawings/ElevationView.tsx` — wrapped with `<ZoomableDrawing>`
+- `src/components/drawings/SectionView.tsx` — wrapped with `<ZoomableDrawing>`
+- `src/components/drawings/SitePlanView.tsx` — wrapped with `<ZoomableDrawing>`
+- `src/components/drawings/FoundationPlanView.tsx` — wrapped with `<ZoomableDrawing>`
+- `src/components/drawings/RoofPlanView.tsx` — wrapped with `<ZoomableDrawing>`
+- `src/components/drawings/CeilingPlanView.tsx` — wrapped with `<ZoomableDrawing>`
+- `src/components/drawings/ElectricalPlanView.tsx` — wrapped with `<ZoomableDrawing>`
+- `src/components/drawings/PlumbingPlanView.tsx` — wrapped with `<ZoomableDrawing>`
+- `src/components/drawings/HvacPlanView.tsx` — wrapped with `<ZoomableDrawing>`
+- `src/components/drawings/PresentationSheetView.tsx` — wrapped with `<ZoomableDrawing>`
+- `src/__tests__/touchViewport.test.ts` — added `isTouchDevice`, `clamp`, drawing zoom tests
+- `docs/SPRINT_92_TOUCH_3D_DRAWINGS_REPORT.md` — new
+
 ## [0.9.0] - 2026-07-07
 
 ### Workspace UX

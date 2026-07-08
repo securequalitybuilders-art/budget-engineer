@@ -579,7 +579,7 @@ function Scene({ result, buildingRef, wallOpacity, showRoof, showCeilings, store
       {viewMode === 'walk' ? (
         <WalkController bounds={result.bounds} plan={plan} onPointerLockChange={onPointerLockChange ?? (() => {})} />
       ) : (
-        <OrbitControls ref={controlsRef} enableDamping dampingFactor={0.12} target={target} minDistance={1} maxDistance={60} />
+        <OrbitControls ref={controlsRef} enableDamping dampingFactor={0.12} target={target} minDistance={1} maxDistance={60} touches={{ ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }} />
       )}
 
       <ambientLight intensity={0.5} />
@@ -707,7 +707,7 @@ export function BimModel3D({ plan, design, height = 480, viewMode = 'full', visi
           fov: 40,
         }}
         shadows
-        style={{ height }}
+        style={{ height, touchAction: 'none' as const }}
         onCreated={handleCreated}
         frameloop="demand"
         gl={{

@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Html } from '@react-three/drei'
+import * as THREE from 'three'
 import type { BimModel, BimElement } from '../../domain/bim'
 
 interface BimViewerProps {
@@ -50,10 +51,10 @@ export function BimViewer({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10">
-      <Canvas camera={{ position: [15, 12, 15], fov: 45 }} style={{ height }}>
+      <Canvas camera={{ position: [15, 12, 15], fov: 45 }} style={{ height, touchAction: 'none' as const }}>
         <ambientLight intensity={0.6} />
         <directionalLight position={[10, 15, 10]} intensity={0.8} />
-        <OrbitControls enableDamping />
+        <OrbitControls enableDamping touches={{ ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }} />
         <gridHelper args={[30, 20]} position={[0, -0.1, 0]} />
         {filteredElements.map((element) => (
           <BimElementMesh

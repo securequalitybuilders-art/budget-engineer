@@ -7,6 +7,7 @@ import {
 } from '@/components/drawings/cadPrimitives'
 import { NorthArrow, ScaleBar } from '@/components/drawings/entourage'
 import { LightFixture, Socket, Switch, DistributionBoard } from '@/components/drawings/mepSymbols'
+import { ZoomableDrawing } from '@/components/drawings/ZoomableDrawing'
 import { placeElectrical } from '@/components/drawings/mepPlacement'
 
 const MARGIN = 15
@@ -47,7 +48,7 @@ export function ElectricalPlanView({ activePlan }: ElectricalPlanViewProps): Rea
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-stone-700/60 bg-stone-950/80">
+    <ZoomableDrawing>
       <svg
         viewBox={`0 0 ${rendered.sheetW} ${rendered.sheetH}`}
         className="block h-auto w-full"
@@ -58,7 +59,7 @@ export function ElectricalPlanView({ activePlan }: ElectricalPlanViewProps): Rea
       >
         {rendered.elements}
       </svg>
-    </div>
+    </ZoomableDrawing>
   )
 }
 

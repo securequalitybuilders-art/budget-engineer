@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { midpoint, pinchScale, ZOOM_MIN, ZOOM_MAX } from '../hooks/usePlanViewport'
+import { isTouchDevice } from '../lib/isTouchDevice'
+import { clamp, DRAWING_ZOOM_MIN, DRAWING_ZOOM_MAX } from '../lib/drawingZoom'
 
 describe('midpoint', () => {
   it('returns the midpoint of two points', () => {
@@ -106,5 +108,57 @@ describe('pan delta with midpoint-based pinch', () => {
     expect(distA).toBe(distB)
     const scale = pinchScale(distA, distB, 1)
     expect(scale).toBe(1)
+  })
+})
+
+describe('isTouchDevice', () => {
+  it('returns false in jsdom/test environment (no touch support)', () => {
+    expect(isTouchDevice()).toBe(false)
+  })
+
+  it('checks ontouchstart on window (logic path test)', () => {
+    const fn = isTouchDevice.toString()
+    expect(fn).toContain('ontouchstart')
+    expect(fn).toContain('maxTouchPoints')
+  })
+})
+
+describe('clamp', () => {
+  it('returns value within range', () => {
+    expect(clamp(5, 0, 10)).toBe(5)
+  })
+
+  it('clamps to min when below', () => {
+    expect(clamp(-1, 0, 10)).toBe(0)
+  })
+
+  it('clamps to max when above', () => {
+    expect(clamp(15, 0, 10)).toBe(10)
+  })
+
+  it('handles equal bounds', () => {
+    expect(clamp(5, 5, 5)).toBe(5)
+  })
+})
+
+describe('clamp with drawing zoom bounds', () => {
+  it('clamps a ratio-scaled value within drawing zoom bounds', () => {
+    const r = clamp(1 * (200 / 100), DRAWING_ZOOM_MIN, DRAWING_ZOOM_MAX)
+    expect(r).toBeCloseTo(2)
+  })
+
+  it('clamps to DRAWING_ZOOM_MIN', () => {
+    const r = clamp(0.1, DRAWING_ZOOM_MIN, DRAWING_ZOOM_MAX)
+    expect(r).toBe(DRAWING_ZOOM_MIN)
+  })
+
+  it('clamps to DRAWING_ZOOM_MAX', () => {
+    const r = clamp(10, DRAWING_ZOOM_MIN, DRAWING_ZOOM_MAX)
+    expect(r).toBe(DRAWING_ZOOM_MAX)
+  })
+
+  it('passes through values within range', () => {
+    const r = clamp(1.5, DRAWING_ZOOM_MIN, DRAWING_ZOOM_MAX)
+    expect(r).toBe(1.5)
   })
 })

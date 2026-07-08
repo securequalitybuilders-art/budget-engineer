@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import type { PlanModel } from '@/domain/plan'
 import { renderRoofPlan } from '@/components/drawings/roofPlanModel'
+import { ZoomableDrawing } from '@/components/drawings/ZoomableDrawing'
 
 interface RoofPlanViewProps {
   activePlan: PlanModel | null
@@ -24,7 +25,7 @@ export function RoofPlanView({ activePlan }: RoofPlanViewProps) {
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-stone-700/60 bg-stone-950/80">
+    <ZoomableDrawing>
       <svg
         viewBox={`0 0 ${rendered.sheetW} ${rendered.sheetH}`}
         className="block h-auto w-full"
@@ -35,6 +36,6 @@ export function RoofPlanView({ activePlan }: RoofPlanViewProps) {
       >
         {rendered.elements}
       </svg>
-    </div>
+    </ZoomableDrawing>
   )
 }

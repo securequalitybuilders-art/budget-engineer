@@ -3,6 +3,7 @@ import type { ElevationDrawing } from '@/adapters/planToElevations'
 import type { PlanModel } from '@/domain/plan'
 import type { CanopyParams } from '@/engine/canopy/canopyGeometry'
 import { renderSectionSheet } from '@/components/drawings/sectionModel'
+import { ZoomableDrawing } from '@/components/drawings/ZoomableDrawing'
 
 interface SectionViewProps {
   drawing: ElevationDrawing | null
@@ -32,7 +33,7 @@ export function SectionView({ drawing, activePlan, floors, storeyHeight, pitchHe
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-stone-700/60 bg-stone-950/80">
+    <ZoomableDrawing>
       <svg
         viewBox={`0 0 ${rendered.sheetW} ${rendered.sheetH}`}
         className="block h-auto w-full"
@@ -43,6 +44,6 @@ export function SectionView({ drawing, activePlan, floors, storeyHeight, pitchHe
       >
         {rendered.elements}
       </svg>
-    </div>
+    </ZoomableDrawing>
   )
 }

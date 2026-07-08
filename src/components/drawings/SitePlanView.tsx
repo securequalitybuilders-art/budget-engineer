@@ -3,6 +3,7 @@ import type { DesignOption } from '@/domain/boq'
 import type { PlanModel } from '@/domain/plan'
 import { CAD_HAIR, CAD_MEDIUM, CAD_THIN, INK, PAPER, metresToMm } from '@/components/drawings/cadConstants'
 import { MATERIAL } from '@/components/drawings/drawingColors'
+import { ZoomableDrawing } from '@/components/drawings/ZoomableDrawing'
 import {
   SheetBorder, TitleBlock, DimensionLineH,
 } from '@/components/drawings/cadPrimitives'
@@ -34,7 +35,7 @@ export function SitePlanView({ activePlan, design }: SitePlanViewProps): ReactNo
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-stone-700/60 bg-stone-950/80">
+    <ZoomableDrawing>
       <svg
         viewBox={`0 0 ${rendered.sheetW} ${rendered.sheetH}`}
         className="block h-auto w-full"
@@ -45,7 +46,7 @@ export function SitePlanView({ activePlan, design }: SitePlanViewProps): ReactNo
       >
         {rendered.elements}
       </svg>
-    </div>
+    </ZoomableDrawing>
   )
 }
 

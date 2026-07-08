@@ -12,6 +12,7 @@ import {
 } from '@/components/drawings/cadConstants'
 import { DISCIPLINE } from '@/components/drawings/drawingColors'
 import { SheetBorder } from '@/components/drawings/cadPrimitives'
+import { ZoomableDrawing } from '@/components/drawings/ZoomableDrawing'
 import { placeElectrical, placePlumbing, placeHvac } from '@/components/drawings/mepPlacement'
 import { LightFixture, Socket, Switch, DistributionBoard } from '@/components/drawings/mepSymbols'
 import { WaterCloset, Basin, Shower, Sink, FloorDrain, StackRiser } from '@/components/drawings/mepSymbols'
@@ -111,7 +112,7 @@ export function PresentationSheetView({ activePlan, design: _design, floors, sto
         </div>
       )}
 
-      <div className="overflow-hidden rounded-lg border border-stone-700/60 bg-stone-950/80">
+      <ZoomableDrawing>
         <svg
           ref={svgRef}
           viewBox={`0 0 ${layout.sheetW} ${layout.sheetH}`}
@@ -123,7 +124,7 @@ export function PresentationSheetView({ activePlan, design: _design, floors, sto
         >
           {rendered}
         </svg>
-      </div>
+      </ZoomableDrawing>
     </div>
   )
 }

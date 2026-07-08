@@ -3,6 +3,7 @@ import type { PlanModel } from '@/domain/plan'
 import { FALLBACK_WALL_THICKNESS } from '@/adapters/planTo3d'
 import { CAD_HAIR, CAD_MEDIUM, INK, PAPER, metresToMm } from '@/components/drawings/cadConstants'
 import { MATERIAL_LEGEND } from '@/components/drawings/drawingColors'
+import { ZoomableDrawing } from '@/components/drawings/ZoomableDrawing'
 import {
   SheetBorder, TitleBlock, DimensionLineH, DimensionLineV, GridBubble,
 } from '@/components/drawings/cadPrimitives'
@@ -34,7 +35,7 @@ export function FoundationPlanView({ activePlan }: FoundationPlanViewProps): Rea
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-stone-700/60 bg-stone-950/80">
+    <ZoomableDrawing>
       <svg
         viewBox={`0 0 ${rendered.sheetW} ${rendered.sheetH}`}
         className="block h-auto w-full"
@@ -45,7 +46,7 @@ export function FoundationPlanView({ activePlan }: FoundationPlanViewProps): Rea
       >
         {rendered.elements}
       </svg>
-    </div>
+    </ZoomableDrawing>
   )
 }
 

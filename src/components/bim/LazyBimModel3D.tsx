@@ -4,6 +4,7 @@ import type { DesignOption } from '@/domain/boq'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Bim3DUnavailable } from '@/components/bim/Bim3DUnavailable'
 import { isWebGLAvailable } from '@/lib/webgl'
+import { isTouchDevice } from '@/lib/isTouchDevice'
 import type { ViewMode } from './viewMode'
 import type { CanopyParams } from '@/engine/canopy/canopyGeometry'
 import { DEFAULT_STOREY_HEIGHT } from '@/adapters/planTo3d'
@@ -158,20 +159,27 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
       <div className="mb-2 flex flex-wrap items-center gap-2">
         {/* View-mode buttons */}
         <div className="flex items-center gap-0.5 rounded-lg bg-stone-900/80 p-0.5" role="group" aria-label="3D view mode">
-          {VIEW_MODES.map((m) => (
-            <button
-              key={m.value}
-              onClick={() => handleViewModeChange(m.value)}
-              aria-pressed={viewMode === m.value}
-              className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                viewMode === m.value
-                  ? 'bg-cyan-700 text-white'
-                  : 'text-stone-400 hover:bg-stone-800 hover:text-stone-200'
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
+          {VIEW_MODES.map((m) => {
+            const isTouchWalk = m.value === 'walk' && isTouchDevice()
+            return (
+              <button
+                key={m.value}
+                onClick={() => !isTouchWalk && handleViewModeChange(m.value)}
+                aria-pressed={viewMode === m.value}
+                disabled={isTouchWalk}
+                title={isTouchWalk ? 'Walkthrough is best on desktop (pointer-lock not available on touch)' : undefined}
+                className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                  viewMode === m.value
+                    ? 'bg-cyan-700 text-white'
+                    : isTouchWalk
+                      ? 'text-stone-400/50 cursor-not-allowed'
+                      : 'text-stone-400 hover:bg-stone-800 hover:text-stone-200'
+                }`}
+              >
+                {m.label}
+              </button>
+            )
+          })}
         </div>
 
         {/* Roof type toggle */}
