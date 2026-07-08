@@ -40,6 +40,22 @@ function createEmptyPlan(): PlanModel {
 
 const canvasWidth = 920
 const canvasHeight = 640
+const TAP_MOVEMENT_THRESHOLD_PX = 10
+const TAP_TIME_THRESHOLD_MS = 300
+const HANDLE_VISUAL = 0.2
+const HANDLE_TOUCH = 0.8
+
+interface TapCandidate {
+  pointerId: number
+  startX: number
+  startY: number
+  startTime: number
+  elementType: 'room' | 'opening' | 'empty'
+  elementId: string | null
+  isResize: boolean
+  ctrlX: number
+  ctrlY: number
+}
 
 export function PlanCanvas({
   projectId,
@@ -58,11 +74,13 @@ export function PlanCanvas({
     if (backdrop?.imageDataUrl) return createEmptyPlan()
     return null
   }, [design, backdrop?.imageDataUrl])
-  const { view, zoomIn, zoomOut, reset, onPointerDown, onPointerMove, onPointerUp } = usePlanViewport()
+  const { view, zoomIn, zoomOut, reset, onPointerDown, onPointerMove, onPointerUp, pinchZoom } = usePlanViewport()
   const {
     model,
     selectedRoomId,
     selectedOpeningId,
+    setSelectedRoomId,
+    setSelectedOpeningId,
     clearSelection,
     beginMove,
     beginResize,
@@ -96,7 +114,6 @@ export function PlanCanvas({
     },
   )
 
-  const lastPointer = useRef({ x: 0, y: 0 })
   const modelRef = useRef(model)
   modelRef.current = model
   const nudgeRoomRef = useRef(nudgeRoom)
@@ -141,6 +158,16 @@ export function PlanCanvas({
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [selectedRoomId, selectedOpeningId, deleteRoom, deleteOpening, snapStep, activeMode])
 
+  const activePointers = useRef<Map<number, { x: number; y: number }>>(new Map())
+  const pinchState = useRef<{ active: boolean; prevP1: { x: number; y: number }; prevP2: { x: number; y: number } }>({
+    active: false,
+    prevP1: { x: 0, y: 0 },
+    prevP2: { x: 0, y: 0 },
+  })
+  const tapCandidate = useRef<TapCandidate | null>(null)
+  const committed = useRef(false)
+  const pointerAccum = useRef({ dx: 0, dy: 0 })
+
   if (!model) {
     return (
       <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-slate-300">
@@ -175,56 +202,181 @@ export function PlanCanvas({
     } else if ((activeMode === 'move' || activeMode === 'resize') && selectedRoomId) {
       const room = model.rooms.find((r) => r.id === selectedRoomId)
       if (room) {
-        dimensionLabel = { text: `${room.width.toFixed(2)} × ${room.height.toFixed(2)}`, x: room.x + room.width / 2, y: room.y + room.height / 2 }
+        dimensionLabel = { text: `${room.width.toFixed(2)} \u00d7 ${room.height.toFixed(2)}`, x: room.x + room.width / 2, y: room.y + room.height / 2 }
       }
     }
+  }
+
+  function commitDrag(candidate: TapCandidate) {
+    committed.current = true
+    pointerAccum.current = { dx: 0, dy: 0 }
+    const cx = candidate.ctrlX
+    const cy = candidate.ctrlY
+
+    if (candidate.elementType === 'opening' && candidate.elementId) {
+      beginMoveOpening(candidate.elementId)
+      return
+    }
+    if (candidate.elementType === 'room' && candidate.elementId) {
+      if (candidate.isResize) {
+        beginResize(candidate.elementId, cx, cy)
+      } else {
+        beginMove(candidate.elementId, cx, cy)
+      }
+      return
+    }
+    if (candidate.elementType === 'empty') {
+      clearSelection()
+      onPointerDown(cx, cy)
+    }
+  }
+
+  function resolveHit(event: React.PointerEvent<SVGSVGElement>): {
+    elementType: 'room' | 'opening' | 'empty'
+    elementId: string | null
+    isResize: boolean
+    ctrlX: number
+    ctrlY: number
+  } {
+    const target = event.target as Element | null
+    const openingEl = target?.closest('[data-opening-id]') as Element | null
+    if (openingEl) {
+      const openingId = openingEl.getAttribute('data-opening-id')
+      return { elementType: 'opening', elementId: openingId, isResize: false, ctrlX: event.clientX, ctrlY: event.clientY }
+    }
+    const roomEl = target?.closest('[data-room-id]') as Element | null
+    if (roomEl) {
+      const roomId = roomEl.getAttribute('data-room-id')
+      const isResize = roomEl.getAttribute('data-resize') === 'true'
+      return { elementType: 'room', elementId: roomId, isResize, ctrlX: event.clientX, ctrlY: event.clientY }
+    }
+    return { elementType: 'empty', elementId: null, isResize: false, ctrlX: event.clientX, ctrlY: event.clientY }
   }
 
   function handleSvgPointerDown(event: React.PointerEvent<SVGSVGElement>) {
     const svg = event.currentTarget as Element
     svg.setPointerCapture(event.pointerId)
-    lastPointer.current = { x: event.clientX, y: event.clientY }
 
-    const target = event.target as Element | null
-    const openingEl = target?.closest('[data-opening-id]') as Element | null
-    const openingId = openingEl?.getAttribute('data-opening-id')
+    const p = { x: event.clientX, y: event.clientY }
+    activePointers.current.set(event.pointerId, p)
 
-    if (openingId) {
-      beginMoveOpening(openingId)
+    if (activePointers.current.size === 2) {
+      const all = [...activePointers.current.values()]
+      pinchState.current = { active: true, prevP1: { x: all[0].x, y: all[0].y }, prevP2: { x: all[1].x, y: all[1].y } }
+      if (activeMode !== 'idle') {
+        endPointer()
+      }
+      tapCandidate.current = null
+      committed.current = false
       return
     }
 
-    const roomEl = target?.closest('[data-room-id]') as Element | null
-    const roomId = roomEl?.getAttribute('data-room-id')
+    if (activePointers.current.size > 2) return
 
-    if (roomId) {
-      const isResize = roomEl?.getAttribute('data-resize') === 'true'
-      if (isResize) {
-        beginResize(roomId, event.clientX, event.clientY)
-      } else {
-        beginMove(roomId, event.clientX, event.clientY)
-      }
-    } else {
-      clearSelection()
-      onPointerDown(event.clientX, event.clientY)
+    const hit = resolveHit(event)
+    const tc: TapCandidate = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startTime: Date.now(),
+      elementType: hit.elementType,
+      elementId: hit.elementId,
+      isResize: hit.isResize,
+      ctrlX: hit.ctrlX,
+      ctrlY: hit.ctrlY,
+    }
+    tapCandidate.current = tc
+    committed.current = false
+
+    if (tc.elementType === 'opening' && tc.elementId) {
+      setSelectedRoomId(null)
+      setSelectedOpeningId(tc.elementId)
+    } else if (tc.elementType === 'room' && tc.elementId) {
+      setSelectedRoomId(tc.elementId)
+      setSelectedOpeningId(null)
     }
   }
 
   function handleSvgPointerMove(event: React.PointerEvent<SVGSVGElement>) {
-    const dx = event.clientX - lastPointer.current.x
-    const dy = event.clientY - lastPointer.current.y
-    lastPointer.current = { x: event.clientX, y: event.clientY }
+    activePointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
 
-    onPointerMove(event.clientX, event.clientY)
-    if (activeMode !== 'idle') {
+    if (pinchState.current.active && activePointers.current.size >= 2) {
+      const all = [...activePointers.current.values()]
+      const curP1 = { x: all[0].x, y: all[0].y }
+      const curP2 = { x: all[1].x, y: all[1].y }
+      pinchZoom(curP1, curP2, pinchState.current.prevP1, pinchState.current.prevP2)
+      pinchState.current = { active: true, prevP1: curP1, prevP2: curP2 }
+      return
+    }
+
+    if (committed.current && activeMode !== 'idle') {
+      const dx = event.clientX - tapCandidate.current!.ctrlX
+      const dy = event.clientY - tapCandidate.current!.ctrlY
+      pointerAccum.current.dx += dx
+      pointerAccum.current.dy += dy
       const world = toWorldDelta(dx, dy)
+      onPointerMove(event.clientX, event.clientY)
       updatePointer(world.dx, world.dy)
+      tapCandidate.current!.ctrlX = event.clientX
+      tapCandidate.current!.ctrlY = event.clientY
+      return
+    }
+
+    if (committed.current && activeMode === 'idle' && tapCandidate.current && tapCandidate.current.elementType === 'empty') {
+      onPointerMove(event.clientX, event.clientY)
+      return
+    }
+
+    if (tapCandidate.current && !committed.current) {
+      const dx = event.clientX - tapCandidate.current.startX
+      const dy = event.clientY - tapCandidate.current.startY
+      const dist = Math.sqrt(dx * dx + dy * dy)
+      if (dist > TAP_MOVEMENT_THRESHOLD_PX) {
+        commitDrag(tapCandidate.current)
+      }
     }
   }
 
-  function handleSvgPointerUp() {
-    onPointerUp()
-    endPointer()
+  function handleSvgPointerUp(event: React.PointerEvent<SVGSVGElement>) {
+    activePointers.current.delete(event.pointerId)
+
+    if (pinchState.current.active) {
+      pinchState.current.active = false
+      tapCandidate.current = null
+      committed.current = false
+      return
+    }
+
+    if (!committed.current && tapCandidate.current) {
+      const elapsed = Date.now() - tapCandidate.current.startTime
+      if (elapsed < TAP_TIME_THRESHOLD_MS) {
+        if (tapCandidate.current.elementType === 'empty') {
+          clearSelection()
+        }
+        tapCandidate.current = null
+        committed.current = false
+        return
+      }
+    }
+
+    if (committed.current) {
+      onPointerUp()
+      endPointer()
+    }
+
+    tapCandidate.current = null
+    committed.current = false
+  }
+
+  function handleSvgPointerCancel(event: React.PointerEvent<SVGSVGElement>) {
+    activePointers.current.delete(event.pointerId)
+    pinchState.current.active = false
+    if (committed.current) {
+      onPointerUp()
+      endPointer()
+    }
+    tapCandidate.current = null
+    committed.current = false
   }
 
   return (
@@ -235,7 +387,7 @@ export function PlanCanvas({
           <p className="mt-1 text-sm text-slate-300">Editable parametric SVG plan with snapping, constraints, undo/redo, and export actions.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button onClick={zoomOut} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">−</button>
+          <button onClick={zoomOut} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">\u2212</button>
           <div className="min-w-[72px] text-center text-sm text-slate-300">{Math.round(view.zoom * 100)}%</div>
           <button onClick={zoomIn} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">+</button>
           <button onClick={reset} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">Reset</button>
@@ -243,7 +395,7 @@ export function PlanCanvas({
           <span className="text-slate-600">|</span>
 
           <button onClick={() => addRoom()} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700">+ Room</button>
-          <button onClick={() => selectedRoomId && deleteRoom(selectedRoomId)} disabled={!selectedRoomId} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700 disabled:text-slate-400">− Room</button>
+          <button onClick={() => selectedRoomId && deleteRoom(selectedRoomId)} disabled={!selectedRoomId} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700 disabled:text-slate-400">\u2212 Room</button>
 
           <span className="text-slate-600">|</span>
 
@@ -289,13 +441,13 @@ export function PlanCanvas({
       <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950/80">
         <svg
           viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
-          className="block h-auto w-full cursor-grab active:cursor-grabbing"
+          className="block h-auto w-full cursor-grab active:cursor-grabbing touch-none"
           role="img"
           aria-label={design ? `2D floor plan for ${design.name}` : 'Tracing canvas'}
           onPointerDown={handleSvgPointerDown}
           onPointerMove={handleSvgPointerMove}
           onPointerUp={handleSvgPointerUp}
-          onPointerLeave={handleSvgPointerUp}
+          onPointerCancel={handleSvgPointerCancel}
         >
           <defs>
             <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
@@ -347,7 +499,7 @@ export function PlanCanvas({
               </text>
             )}
 
-            <text x={0} y={-1.9} fill="#67e8f9" fontSize={0.56}>Footprint: {model.width.toFixed(1)}m × {model.height.toFixed(1)}m</text>
+            <text x={0} y={-1.9} fill="#67e8f9" fontSize={0.56}>Footprint: {model.width.toFixed(1)}m \u00d7 {model.height.toFixed(1)}m</text>
           </g>
 
           <g transform={`translate(24 ${canvasHeight - 36})`}>
@@ -358,7 +510,7 @@ export function PlanCanvas({
 
         {activeMode !== 'idle' && (
           <div className="pointer-events-none absolute bottom-2 right-2 flex items-center gap-3 rounded border border-slate-700/50 bg-slate-900/80 px-3 py-1.5 text-[10px] text-cyan-300">
-            {activeMode === 'opening-move' ? 'dragging opening…' : activeMode === 'move' ? 'moving…' : 'resizing…'}
+            {activeMode === 'opening-move' ? 'dragging opening\u2026' : activeMode === 'move' ? 'moving\u2026' : 'resizing\u2026'}
           </div>
         )}
       </div>
@@ -387,7 +539,7 @@ function TimelinePanel({ timeline, onUndo, onRedo, activeMode }: {
           <div
             key={i}
             className="shrink-0 cursor-pointer rounded border border-slate-700/50 bg-slate-800/60 px-2 py-1 text-[10px] text-slate-400 transition-colors hover:border-slate-500 hover:text-slate-200"
-            title={`Snapshot ${i + 1} — ${plan.rooms.length} rooms, ${plan.openings.length} openings`}
+            title={`Snapshot ${i + 1} \u2014 ${plan.rooms.length} rooms, ${plan.openings.length} openings`}
             onClick={onUndo}
           >
             {plan.rooms.length}r {plan.openings.length}o
@@ -400,7 +552,7 @@ function TimelinePanel({ timeline, onUndo, onRedo, activeMode }: {
           <div
             key={i}
             className="shrink-0 cursor-pointer rounded border border-slate-700/50 bg-slate-800/60 px-2 py-1 text-[10px] text-slate-400 transition-colors hover:border-slate-500 hover:text-slate-200"
-            title={`Future ${i + 1} — ${plan.rooms.length} rooms, ${plan.openings.length} openings`}
+            title={`Future ${i + 1} \u2014 ${plan.rooms.length} rooms, ${plan.openings.length} openings`}
             onClick={onRedo}
           >
             {plan.rooms.length}r {plan.openings.length}o
@@ -409,14 +561,12 @@ function TimelinePanel({ timeline, onUndo, onRedo, activeMode }: {
       </div>
       {activeMode !== 'idle' && (
         <span className="shrink-0 text-[10px] text-amber-400 italic">
-          {activeMode === 'move' ? 'moving…' : activeMode === 'resize' ? 'resizing…' : 'opening…'}
+          {activeMode === 'move' ? 'moving\u2026' : activeMode === 'resize' ? 'resizing\u2026' : 'opening\u2026'}
         </span>
       )}
     </div>
   )
 }
-
-const HANDLE = 0.2
 
 function EditableRoom({
   room,
@@ -453,24 +603,44 @@ function EditableRoom({
       />
       {selected && (
         <>
-          <rect x={room.x - HANDLE / 2} y={room.y - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="nwse-resize"
-            data-room-id={room.id} data-resize="true" />
-          <rect x={room.x + room.width / 2 - HANDLE / 2} y={room.y - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="ns-resize"
-            data-room-id={room.id} data-resize="true" />
-          <rect x={room.x + room.width - HANDLE / 2} y={room.y - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="nesw-resize"
-            data-room-id={room.id} data-resize="true" />
-          <rect x={room.x - HANDLE / 2} y={room.y + room.height / 2 - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="ew-resize"
-            data-room-id={room.id} data-resize="true" />
-          <rect x={room.x + room.width - HANDLE / 2} y={room.y + room.height / 2 - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="ew-resize"
-            data-room-id={room.id} data-resize="true" />
-          <rect x={room.x - HANDLE / 2} y={room.y + room.height - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="nesw-resize"
-            data-room-id={room.id} data-resize="true" />
-          <rect x={room.x + room.width / 2 - HANDLE / 2} y={room.y + room.height - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="ns-resize"
-            data-room-id={room.id} data-resize="true" />
-          <rect x={room.x + room.width - HANDLE / 2} y={room.y + room.height - HANDLE / 2} width={HANDLE} height={HANDLE} rx={0.04} fill="#67e8f9" cursor="nwse-resize"
-            data-room-id={room.id} data-resize="true" />
+          {renderHandle(room.x, room.y, 'nwse-resize', room.id)}
+          {renderHandle(room.x + room.width / 2, room.y, 'ns-resize', room.id)}
+          {renderHandle(room.x + room.width, room.y, 'nesw-resize', room.id)}
+          {renderHandle(room.x, room.y + room.height / 2, 'ew-resize', room.id)}
+          {renderHandle(room.x + room.width, room.y + room.height / 2, 'ew-resize', room.id)}
+          {renderHandle(room.x, room.y + room.height, 'nesw-resize', room.id)}
+          {renderHandle(room.x + room.width / 2, room.y + room.height, 'ns-resize', room.id)}
+          {renderHandle(room.x + room.width, room.y + room.height, 'nwse-resize', room.id)}
         </>
       )}
+    </g>
+  )
+}
+
+function renderHandle(cx: number, cy: number, cursor: string, roomId: string) {
+  return (
+    <g>
+      <rect
+        x={cx - HANDLE_TOUCH / 2}
+        y={cy - HANDLE_TOUCH / 2}
+        width={HANDLE_TOUCH}
+        height={HANDLE_TOUCH}
+        rx={0.08}
+        fill="transparent"
+        cursor={cursor}
+        data-room-id={roomId}
+        data-resize="true"
+      />
+      <rect
+        x={cx - HANDLE_VISUAL / 2}
+        y={cy - HANDLE_VISUAL / 2}
+        width={HANDLE_VISUAL}
+        height={HANDLE_VISUAL}
+        rx={0.04}
+        fill="#67e8f9"
+        cursor={cursor}
+        pointerEvents="none"
+      />
     </g>
   )
 }

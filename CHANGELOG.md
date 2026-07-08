@@ -2,7 +2,17 @@
 
 ## [Unreleased]
 
-(No unreleased changes yet.)
+### Touch Editing
+
+#### Sprint 91 — Touch editing for the 2D plan (tap-select, drag move/resize, pinch-zoom/pan)
+
+**Summary:** The 2D plan editor (PlanCanvas) now supports full touch interaction on phones and tablets. Pointer Events track multiple fingers: one finger for tap-select/drag-move/resize, two fingers for pinch-zoom centered on the midpoint with two-finger pan. A tap-vs-drag classifier (10px / 300ms threshold) prevents tiny finger movements from triggering drags. Room resize handles have enlarged invisible touch targets (0.8m) behind the visual (0.2m) handles. `touch-action: none` on the SVG canvas prevents browser gesture hijacking. Zoom range extended to [0.3, 3.0] for pinch. Pure math helpers (`midpoint`, `pinchScale`) unit-tested (17 new tests, 966 total). Mouse editing is unchanged.
+
+### Changed Files
+- `src/hooks/usePlanViewport.ts` — pinch zoom midpoint math, exported helpers
+- `src/components/cad/PlanCanvas.tsx` — multi-pointer tracking, tap-vs-drag, pinch-zoom, two-layer handles, `touch-action: none`, `onPointerCancel`
+- `src/__tests__/touchViewport.test.ts` — new (17 tests)
+- `docs/SPRINT_91_TOUCH_EDITING_REPORT.md` — new
 
 ## [0.9.0] - 2026-07-07
 
