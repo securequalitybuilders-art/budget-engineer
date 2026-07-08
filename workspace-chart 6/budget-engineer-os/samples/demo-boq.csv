@@ -1,0 +1,18 @@
+Category,Description,Quantity,Unit,Rate (USD),Total (USD)
+Beams,Concrete structural beam,80,m,220.00,17600.00
+Excavation,Bulk & pit excavation for foundations (incl. working space),24.79,m³,18.00,446.22
+Footings,RC pad footings 2.1×2.1×0.7 m on Medium clay / loose sand (150 kPa),12.36,m³,380.00,4696.80
+Formwork,Formwork to footing sides,23.52,m²,32.00,752.64
+Objects,Fixtures & fittings,3,each,120.00,360.00
+Openings,Door / window assembly,2,each,250.00,500.00
+Reinforcement,Footing reinforcement Y12 @ 200 c/c (double layer) (bottom mat),0.31,tonne,1200.00,372.00
+Reinforcement,Slab reinforcement Y12 @ 200 c/c (double layer),3.41,tonne,1200.00,4091.05
+Roof,Roof construction & covering,96,m²,75.00,7200.00
+Slabs,Reinforced concrete floor slab,192,m²,110.00,21120.00
+Walls,Concrete wall construction,288,m²,85.00,24480.00
+
+,,,,Subtotal,81618.71
+,,,,Contingency,4080.94
+,,,,Professional fees,5713.31
+,,,,VAT,13711.94
+,,,,Grand Total,105124.90

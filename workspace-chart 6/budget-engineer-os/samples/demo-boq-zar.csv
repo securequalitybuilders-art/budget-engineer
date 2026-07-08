@@ -1,0 +1,15 @@
+Category,Description,Quantity,Unit,Rate (ZAR),Total (ZAR)
+Beams,Concrete structural beam,40,m,4000.00,160000.00
+Footings,RC pad footings 1.55×1.55×0.55 m on Medium clay / loose sand (150 kPa),5.28,m³,6900.00,36432.00
+Objects,Fixtures & fittings,1,each,2180.00,2180.00
+Openings,Door / window assembly,1,each,4550.00,4550.00
+Reinforcement,Slab reinforcement Y12 @ 200 c/c (double layer),1.7,tonne,21800.00,37160.35
+Roof,Roof construction & covering,96,m²,1360.00,130560.00
+Slabs,Reinforced concrete floor slab,96,m²,2000.00,192000.00
+Walls,Concrete wall construction,144,m²,1550.00,223200.00
+
+,,,,Subtotal,786082.35
+,,,,Contingency,39304.12
+,,,,Professional fees,62886.59
+,,,,VAT,133240.96
+,,,,Grand Total,1021514.02

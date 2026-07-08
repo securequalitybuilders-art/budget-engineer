@@ -1,0 +1,1 @@
+export interface ProjectRecord { id: string; name: string; region: string; currency: string; status: 'active' | 'archived'; createdAt: number; }

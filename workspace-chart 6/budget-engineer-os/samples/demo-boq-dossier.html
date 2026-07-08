@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<title>BOQ — Demo</title>
+<style>
+  @page { size: A4 portrait; margin: 18mm; }
+  * { box-sizing: border-box; }
+  body { font-family: Inter, Arial, sans-serif; color: #0f172a; margin: 0; }
+  .cover { background: linear-gradient(135deg, #1a365d, #d4a574); color: #fff; padding: 28px 24px; border-radius: 12px; }
+  .cover h1 { font-family: 'Space Grotesk', Arial, sans-serif; margin: 0 0 6px; font-size: 26px; }
+  .cover p { margin: 2px 0; opacity: .92; font-size: 13px; }
+  .meta { display: flex; gap: 24px; margin: 18px 0; flex-wrap: wrap; }
+  .meta div { font-size: 12px; color: #475569; }
+  .meta b { display: block; color: #0f172a; font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+  th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid #e2e8f0; }
+  th { background: #f1f5f9; color: #475569; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .tag { font-size: 10px; padding: 2px 7px; border-radius: 999px; background: #e0f2fe; color: #0369a1; }
+  .summary { margin-top: 14px; margin-left: auto; width: 320px; }
+  .summary tr td { border: none; padding: 5px 9px; }
+  .summary tr.total td { border-top: 2px solid #1a365d; font-weight: 700; font-size: 15px; color: #1a365d; }
+  h2 { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 16px; color: #1a365d; margin: 20px 0 8px; }
+  .plan { margin-top: 14px; }
+  .planbox { border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: #0b1220; padding: 8px; text-align: center; page-break-inside: avoid; }
+  .planbox svg { max-width: 100%; height: auto; }
+  table { page-break-before: auto; }
+  .footer { margin-top: 24px; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+  .printbar { position: sticky; top: 0; background: #0b1220; padding: 10px; text-align: center; }
+  .printbar button { background: #06b6d4; color: #04202a; border: none; padding: 9px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; }
+  @media print { .printbar { display: none; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style></head>
+<body>
+  <div class="printbar"><button onclick="window.print()">🖨 Print / Save as PDF</button></div>
+  <div style="padding: 18mm;">
+    <div class="cover">
+      <h1>Bill of Quantities</h1>
+      <p>Demo</p>
+      <p>Budget Engineer Studio — DZENHARE OS · Construction Affordable for Everyone</p>
+    </div>
+    <div class="meta">
+      <div><b>Standard Budget Engineering Scheme</b>Scheme</div>
+      <div><b>USD</b>Currency</div>
+      <div><b>11</b>Line items</div>
+      <div><b>6/29/2026, 2:22:10 PM</b>Generated</div>
+    </div>
+    <h2>Drawing Register</h2>
+    <table>
+      <thead><tr><th>Sheet</th><th>Title</th><th>Discipline</th><th>Scale</th><th class="num">Rev</th></tr></thead>
+      <tbody>
+    <tr>
+      <td><b>A-101</b></td>
+      <td>Floor Plan — Ground Floor</td>
+      <td>Architectural</td>
+      <td>1:100 @ A4</td>
+      <td class="num">A</td>
+    </tr>
+    <tr>
+      <td><b>A-102</b></td>
+      <td>Floor Plan — First Floor</td>
+      <td>Architectural</td>
+      <td>1:100 @ A4</td>
+      <td class="num">A</td>
+    </tr>
+    <tr>
+      <td><b>A-201</b></td>
+      <td>Section A–A</td>
+      <td>Architectural</td>
+      <td>1:100 @ A4</td>
+      <td class="num">A</td>
+    </tr></tbody>
+    </table>
+    <h2>Revision History</h2>
+    <table>
+      <thead><tr><th>Sheet</th><th class="num">Rev</th><th>Date</th><th>Description</th><th>By</th></tr></thead>
+      <tbody>
+    <tr>
+      <td><b>A-101</b></td>
+      <td class="num">A</td>
+      <td>2026-06-29</td>
+      <td>First issue</td>
+      <td>Budget Engineer Studio</td>
+    </tr>
+    <tr>
+      <td><b>A-102</b></td>
+      <td class="num">A</td>
+      <td>2026-06-29</td>
+      <td>First issue</td>
+      <td>Budget Engineer Studio</td>
+    </tr>
+    <tr>
+      <td><b>A-201</b></td>
+      <td class="num">A</td>
+      <td>2026-06-29</td>
+      <td>First issue</td>
+      <td>Budget Engineer Studio</td>
+    </tr></tbody>
+    </table>
+    
+    <div class="plan">
+      <h2>A-101 · Floor Plan — Ground Floor</h2>
+      <div class="planbox"><svg xmlns="http://www.w3.org/2000/svg" width="396" height="330" viewBox="0 0 396 330"><rect width="396" height="330" fill="#0b1220"/><g stroke="#1a2540" stroke-width="1"><line x1="0" y1="0" x2="0" y2="284"/><line x1="28" y1="0" x2="28" y2="284"/><line x1="56" y1="0" x2="56" y2="284"/><line x1="84" y1="0" x2="84" y2="284"/><line x1="112" y1="0" x2="112" y2="284"/><line x1="140" y1="0" x2="140" y2="284"/><line x1="168" y1="0" x2="168" y2="284"/><line x1="196" y1="0" x2="196" y2="284"/><line x1="224" y1="0" x2="224" y2="284"/><line x1="252" y1="0" x2="252" y2="284"/><line x1="280" y1="0" x2="280" y2="284"/><line x1="308" y1="0" x2="308" y2="284"/><line x1="336" y1="0" x2="336" y2="284"/><line x1="364" y1="0" x2="364" y2="284"/><line x1="392" y1="0" x2="392" y2="284"/><line x1="0" y1="0" x2="396" y2="0"/><line x1="0" y1="28" x2="396" y2="28"/><line x1="0" y1="56" x2="396" y2="56"/><line x1="0" y1="84" x2="396" y2="84"/><line x1="0" y1="112" x2="396" y2="112"/><line x1="0" y1="140" x2="396" y2="140"/><line x1="0" y1="168" x2="396" y2="168"/><line x1="0" y1="196" x2="396" y2="196"/><line x1="0" y1="224" x2="396" y2="224"/><line x1="0" y1="252" x2="396" y2="252"/><line x1="0" y1="280" x2="396" y2="280"/></g><line x1="30.0" y1="254.0" x2="366.0" y2="254.0" stroke="#1a365d" stroke-width="6.0" stroke-linecap="round"/><line x1="366.0" y1="254.0" x2="366.0" y2="30.0" stroke="#1a365d" stroke-width="6.0" stroke-linecap="round"/><line x1="366.0" y1="30.0" x2="30.0" y2="30.0" stroke="#1a365d" stroke-width="6.0" stroke-linecap="round"/><line x1="30.0" y1="30.0" x2="30.0" y2="254.0" stroke="#1a365d" stroke-width="6.0" stroke-linecap="round"/><line x1="198.0" y1="254.0" x2="198.0" y2="30.0" stroke="#475569" stroke-width="4.2" stroke-linecap="round"/><circle cx="86.0" cy="254.0" r="6" fill="#22c55e" stroke="#0b1220" stroke-width="2"/><rect x="86.0" y="88.8" width="56.0" height="25.2" fill="#334155" stroke="#64748b" stroke-width="1.5" opacity="0.75" rx="2"/><rect x="181.2" y="114.0" width="28.0" height="84.0" fill="#334155" stroke="#64748b" stroke-width="1.5" opacity="0.75" rx="2"/><text x="198" y="276" fill="#94a3b8" font-size="12" font-family="Inter,Arial" text-anchor="middle">12.0 m</text><text x="12" y="142" fill="#94a3b8" font-size="12" font-family="Inter,Arial" text-anchor="middle" transform="rotate(-90 12 142)">8.0 m</text><line x1="198.0" y1="6" x2="198.0" y2="278.0" stroke="#d4a574" stroke-width="1.5" stroke-dasharray="10 4 2 4"/><circle cx="198.0" cy="14.0" r="9" fill="#0b1220" stroke="#d4a574" stroke-width="1.5"/><text x="198.0" y="18.0" fill="#d4a574" font-size="11" font-weight="700" text-anchor="middle" font-family="Inter,Arial">B</text><circle cx="198.0" cy="270.0" r="9" fill="#0b1220" stroke="#d4a574" stroke-width="1.5"/><text x="198.0" y="274.0" fill="#d4a574" font-size="11" font-weight="700" text-anchor="middle" font-family="Inter,Arial">B</text><g font-family="Inter,Arial"><rect x="0" y="284" width="396" height="46" fill="#0e1830"/><line x1="0" y1="284" x2="396" y2="284" stroke="#d4a574" stroke-width="2"/><text x="10" y="302" fill="#f8fafc" font-size="12" font-weight="700" font-family="'Space Grotesk',Arial">DZENHARE OS</text><text x="10" y="318" fill="#94a3b8" font-size="10">Demo</text><text x="198" y="302" fill="#e2e8f0" font-size="12" font-weight="600" text-anchor="middle">Floor Plan — Ground Floor</text><text x="198" y="318" fill="#64748b" font-size="9" text-anchor="middle">Budget Engineer Studio · Sheet A-101</text><line x1="176" y1="284" x2="176" y2="330" stroke="#24324b" stroke-width="1"/><line x1="306" y1="284" x2="306" y2="330" stroke="#24324b" stroke-width="1"/><text x="184" y="302" fill="#94a3b8" font-size="9">SCALE</text><text x="184" y="316" fill="#e2e8f0" font-size="11">1:100 @ A4</text><text x="314" y="302" fill="#94a3b8" font-size="9">REV</text><text x="314" y="318" fill="#d4a574" font-size="16" font-weight="700">A</text><text x="184" y="327" fill="#64748b" font-size="8">2026-06-29</text></g></svg></div>
+    </div>
+    <div class="plan">
+      <h2>A-102 · Floor Plan — First Floor</h2>
+      <div class="planbox"><svg xmlns="http://www.w3.org/2000/svg" width="396" height="330" viewBox="0 0 396 330"><rect width="396" height="330" fill="#0b1220"/><g stroke="#1a2540" stroke-width="1"><line x1="0" y1="0" x2="0" y2="284"/><line x1="28" y1="0" x2="28" y2="284"/><line x1="56" y1="0" x2="56" y2="284"/><line x1="84" y1="0" x2="84" y2="284"/><line x1="112" y1="0" x2="112" y2="284"/><line x1="140" y1="0" x2="140" y2="284"/><line x1="168" y1="0" x2="168" y2="284"/><line x1="196" y1="0" x2="196" y2="284"/><line x1="224" y1="0" x2="224" y2="284"/><line x1="252" y1="0" x2="252" y2="284"/><line x1="280" y1="0" x2="280" y2="284"/><line x1="308" y1="0" x2="308" y2="284"/><line x1="336" y1="0" x2="336" y2="284"/><line x1="364" y1="0" x2="364" y2="284"/><line x1="392" y1="0" x2="392" y2="284"/><line x1="0" y1="0" x2="396" y2="0"/><line x1="0" y1="28" x2="396" y2="28"/><line x1="0" y1="56" x2="396" y2="56"/><line x1="0" y1="84" x2="396" y2="84"/><line x1="0" y1="112" x2="396" y2="112"/><line x1="0" y1="140" x2="396" y2="140"/><line x1="0" y1="168" x2="396" y2="168"/><line x1="0" y1="196" x2="396" y2="196"/><line x1="0" y1="224" x2="396" y2="224"/><line x1="0" y1="252" x2="396" y2="252"/><line x1="0" y1="280" x2="396" y2="280"/></g><line x1="30.0" y1="254.0" x2="366.0" y2="254.0" stroke="#1a365d" stroke-width="6.0" stroke-linecap="round"/><line x1="366.0" y1="254.0" x2="366.0" y2="30.0" stroke="#1a365d" stroke-width="6.0" stroke-linecap="round"/><line x1="366.0" y1="30.0" x2="30.0" y2="30.0" stroke="#1a365d" stroke-width="6.0" stroke-linecap="round"/><line x1="30.0" y1="30.0" x2="30.0" y2="254.0" stroke="#1a365d" stroke-width="6.0" stroke-linecap="round"/><line x1="198.0" y1="254.0" x2="198.0" y2="30.0" stroke="#475569" stroke-width="4.2" stroke-linecap="round"/><circle cx="114.0" cy="254.0" r="6" fill="#06b6d4" stroke="#0b1220" stroke-width="2"/><rect x="254.0" y="69.2" width="56.0" height="44.8" fill="#334155" stroke="#64748b" stroke-width="1.5" opacity="0.75" rx="2"/><rect x="181.2" y="114.0" width="28.0" height="84.0" fill="#0b1220" stroke="#d4a574" stroke-width="2.5" stroke-dasharray="6 4"/><line x1="181.2" y1="198.0" x2="209.2" y2="114.0" stroke="#d4a574" stroke-width="1" opacity="0.6"/><text x="195.2" y="156.0" fill="#d4a574" font-size="9" font-family="Inter,Arial" text-anchor="middle">VOID</text><text x="198" y="276" fill="#94a3b8" font-size="12" font-family="Inter,Arial" text-anchor="middle">12.0 m</text><text x="12" y="142" fill="#94a3b8" font-size="12" font-family="Inter,Arial" text-anchor="middle" transform="rotate(-90 12 142)">8.0 m</text><line x1="198.0" y1="6" x2="198.0" y2="278.0" stroke="#d4a574" stroke-width="1.5" stroke-dasharray="10 4 2 4"/><circle cx="198.0" cy="14.0" r="9" fill="#0b1220" stroke="#d4a574" stroke-width="1.5"/><text x="198.0" y="18.0" fill="#d4a574" font-size="11" font-weight="700" text-anchor="middle" font-family="Inter,Arial">B</text><circle cx="198.0" cy="270.0" r="9" fill="#0b1220" stroke="#d4a574" stroke-width="1.5"/><text x="198.0" y="274.0" fill="#d4a574" font-size="11" font-weight="700" text-anchor="middle" font-family="Inter,Arial">B</text><g font-family="Inter,Arial"><rect x="0" y="284" width="396" height="46" fill="#0e1830"/><line x1="0" y1="284" x2="396" y2="284" stroke="#d4a574" stroke-width="2"/><text x="10" y="302" fill="#f8fafc" font-size="12" font-weight="700" font-family="'Space Grotesk',Arial">DZENHARE OS</text><text x="10" y="318" fill="#94a3b8" font-size="10">Demo</text><text x="198" y="302" fill="#e2e8f0" font-size="12" font-weight="600" text-anchor="middle">Floor Plan — First Floor</text><text x="198" y="318" fill="#64748b" font-size="9" text-anchor="middle">Budget Engineer Studio · Sheet A-102</text><line x1="176" y1="284" x2="176" y2="330" stroke="#24324b" stroke-width="1"/><line x1="306" y1="284" x2="306" y2="330" stroke="#24324b" stroke-width="1"/><text x="184" y="302" fill="#94a3b8" font-size="9">SCALE</text><text x="184" y="316" fill="#e2e8f0" font-size="11">1:100 @ A4</text><text x="314" y="302" fill="#94a3b8" font-size="9">REV</text><text x="314" y="318" fill="#d4a574" font-size="16" font-weight="700">A</text><text x="184" y="327" fill="#64748b" font-size="8">2026-06-29</text></g></svg></div>
+    </div>
+    <div class="plan">
+      <h2>A-201 · Building Section B–B</h2>
+      <div class="planbox"><svg xmlns="http://www.w3.org/2000/svg" width="304" height="316" viewBox="0 0 304 316.4"><rect width="304" height="316.4" fill="#0b1220"/><rect x="0" y="208.0" width="304" height="108.4" fill="#15203a"/><line x1="0" y1="208.0" x2="304" y2="208.0" stroke="#475569" stroke-width="2"/><text x="8" y="202.0" fill="#94a3b8" font-size="11" font-family="Inter,Arial">±0.000 GL</text><rect x="40.0" y="202.4" width="224.0" height="5.6" fill="#334155" stroke="#475569" stroke-width="1"/><rect x="40.0" y="124.0" width="5.6" height="84.0" fill="#1a365d" opacity="0.9"/><rect x="258.4" y="124.0" width="5.6" height="84.0" fill="#1a365d" opacity="0.9"/><rect x="27.4" y="149.2" width="25.2" height="58.8" fill="#22c55e" opacity="0.5" stroke="#0b1220" stroke-width="1"/><text x="270.0" y="206.0" fill="#94a3b8" font-size="11" font-family="Inter,Arial">Ground Floor +0.00</text><line x1="96.0" y1="208.0" x2="180.0" y2="124.0" stroke="#d4a574" stroke-width="3"/><line x1="112.8" y1="191.2" x2="118.8" y2="191.2" stroke="#d4a574" stroke-width="1.5"/><line x1="129.6" y1="174.4" x2="135.6" y2="174.4" stroke="#d4a574" stroke-width="1.5"/><line x1="146.4" y1="157.6" x2="152.4" y2="157.6" stroke="#d4a574" stroke-width="1.5"/><line x1="163.2" y1="140.8" x2="169.2" y2="140.8" stroke="#d4a574" stroke-width="1.5"/><rect x="40.0" y="118.4" width="56.0" height="5.6" fill="#334155" stroke="#475569" stroke-width="1"/><rect x="180.0" y="118.4" width="84.0" height="5.6" fill="#334155" stroke="#475569" stroke-width="1"/><rect x="93.0" y="118.4" width="6" height="10.1" fill="#06b6d4"/><rect x="177.0" y="118.4" width="6" height="10.1" fill="#06b6d4"/><rect x="40.0" y="40.0" width="5.6" height="84.0" fill="#1a365d" opacity="0.9"/><rect x="258.4" y="40.0" width="5.6" height="84.0" fill="#1a365d" opacity="0.9"/><rect x="23.2" y="65.2" width="33.6" height="33.6" fill="#06b6d4" opacity="0.5" stroke="#0b1220" stroke-width="1"/><text x="270.0" y="122.0" fill="#94a3b8" font-size="11" font-family="Inter,Arial">First Floor +3.00</text><rect x="34.0" y="35.8" width="236.0" height="4.2" fill="#475569" stroke="#64748b" stroke-width="1"/><text x="8" y="16" fill="#e2e8f0" font-size="13" font-family="'Space Grotesk',Arial" font-weight="700">Section B–B</text><text x="8" y="30" fill="#64748b" font-size="9" font-family="Inter,Arial">cut @ X=6.0 m · looking East</text><text x="296" y="262" fill="#94a3b8" font-size="11" font-family="Inter,Arial" text-anchor="end">Overall height 6.00 m · 2 storey</text><g font-family="Inter,Arial"><rect x="0" y="270.4" width="304" height="46" fill="#0e1830"/><line x1="0" y1="270.4" x2="304" y2="270.4" stroke="#d4a574" stroke-width="2"/><text x="10" y="288.4" fill="#f8fafc" font-size="12" font-weight="700" font-family="'Space Grotesk',Arial">DZENHARE OS</text><text x="10" y="304.4" fill="#94a3b8" font-size="10">Demo</text><text x="152" y="288.4" fill="#e2e8f0" font-size="12" font-weight="600" text-anchor="middle">Section B–B</text><text x="152" y="304.4" fill="#64748b" font-size="9" text-anchor="middle">Budget Engineer Studio · Sheet A-201</text><line x1="84" y1="270.4" x2="84" y2="316.4" stroke="#24324b" stroke-width="1"/><line x1="214" y1="270.4" x2="214" y2="316.4" stroke="#24324b" stroke-width="1"/><text x="92" y="288.4" fill="#94a3b8" font-size="9">SCALE</text><text x="92" y="302.4" fill="#e2e8f0" font-size="11">1:100 @ A4</text><text x="222" y="288.4" fill="#94a3b8" font-size="9">REV</text><text x="222" y="304.4" fill="#d4a574" font-size="16" font-weight="700">A</text><text x="92" y="313.4" fill="#64748b" font-size="8">2026-06-29</text></g></svg></div>
+    </div>
+    <h2>Bill of Quantities</h2>
+    <table>
+      <thead><tr>
+        <th>Category</th><th>Description</th><th class="num">Qty</th><th>Unit</th>
+        <th class="num">Rate</th><th class="num">Total</th>
+      </tr></thead>
+      <tbody>
+    <tr>
+      <td><span class="tag">Beams</span></td>
+      <td>Concrete structural beam</td>
+      <td class="num">88</td>
+      <td>m</td>
+      <td class="num">$220.00</td>
+      <td class="num">$19,360.00</td>
+    </tr>
+    <tr>
+      <td><span class="tag">Excavation</span></td>
+      <td>Bulk & pit excavation for foundations (incl. working space)</td>
+      <td class="num">24.79</td>
+      <td>m³</td>
+      <td class="num">$18.00</td>
+      <td class="num">$446.22</td>
+    </tr>
+    <tr>
+      <td><span class="tag">Footings</span></td>
+      <td>RC pad footings 2.1×2.1×0.7 m on Medium clay / loose sand (150 kPa)</td>
+      <td class="num">12.36</td>
+      <td>m³</td>
+      <td class="num">$380.00</td>
+      <td class="num">$4,696.80</td>
+    </tr>
+    <tr>
+      <td><span class="tag">Formwork</span></td>
+      <td>Formwork to footing sides</td>
+      <td class="num">23.52</td>
+      <td>m²</td>
+      <td class="num">$32.00</td>
+      <td class="num">$752.64</td>
+    </tr>
+    <tr>
+      <td><span class="tag">Objects</span></td>
+      <td>Fixtures & fittings</td>
+      <td class="num">3</td>
+      <td>each</td>
+      <td class="num">$120.00</td>
+      <td class="num">$360.00</td>
+    </tr>
+    <tr>
+      <td><span class="tag">Openings</span></td>
+      <td>Door / window assembly</td>
+      <td class="num">2</td>
+      <td>each</td>
+      <td class="num">$250.00</td>
+      <td class="num">$500.00</td>
+    </tr>
+    <tr>
+      <td><span class="tag">Reinforcement</span></td>
+      <td>Footing reinforcement Y12 @ 200 c/c (double layer) (bottom mat)</td>
+      <td class="num">0.31</td>
+      <td>tonne</td>
+      <td class="num">$1,200.00</td>
+      <td class="num">$372.00</td>
+    </tr>
+    <tr>
+      <td><span class="tag">Reinforcement</span></td>
+      <td>Slab reinforcement Y12 @ 200 c/c (double layer)</td>
+      <td class="num">3.36</td>
+      <td>tonne</td>
+      <td class="num">$1,200.00</td>
+      <td class="num">$4,027.12</td>
+    </tr>
+    <tr>
+      <td><span class="tag">Roof</span></td>
+      <td>Roof construction & covering</td>
+      <td class="num">96</td>
+      <td>m²</td>
+      <td class="num">$75.00</td>
+      <td class="num">$7,200.00</td>
+    </tr>
+    <tr>
+      <td><span class="tag">Slabs</span></td>
+      <td>Reinforced concrete floor slab</td>
+      <td class="num">189</td>
+      <td>m²</td>
+      <td class="num">$110.00</td>
+      <td class="num">$20,790.00</td>
+    </tr>
+    <tr>
+      <td><span class="tag">Walls</span></td>
+      <td>Concrete wall construction</td>
+      <td class="num">288</td>
+      <td>m²</td>
+      <td class="num">$85.00</td>
+      <td class="num">$24,480.00</td>
+    </tr></tbody>
+    </table>
+    <table class="summary">
+      <tr><td>Subtotal</td><td class="num">$82,984.78</td></tr>
+      <tr><td>Contingency (5%)</td><td class="num">$4,149.24</td></tr>
+      <tr><td>Professional fees (7%)</td><td class="num">$5,808.93</td></tr>
+      <tr><td>VAT</td><td class="num">$13,941.44</td></tr>
+      <tr class="total"><td>Grand Total</td><td class="num">$106,884.39</td></tr>
+    </table>
+    <div class="footer">
+      Generated by Budget Engineer Studio. Quantities are derived from the parametric BIM model;
+      rates are early-stage estimates from the active regional rate card and are fully editable.
+      This document is a budgeting aid, not a tendered contract sum.
+    </div>
+  </div>
+</body></html>

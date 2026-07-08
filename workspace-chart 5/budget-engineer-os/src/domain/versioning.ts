@@ -1,0 +1,1 @@
+export interface ProjectSnapshot { id: string; projectId: string; name: string; createdAt: number; cadId: string; bimId: string; boqId: string; }
