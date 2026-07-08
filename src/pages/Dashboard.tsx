@@ -5,7 +5,7 @@ import { useUIStore } from '@/stores/uiStore';
 import { BentoShell } from '@/components/layout/BentoShell';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { PropertiesPanel } from '@/components/layout/PropertiesPanel';
-import { BOQPanel } from '@/components/layout/BOQPanel';
+import { LazyBOQPanel } from '@/components/layout/LazyBOQPanel';
 import { TransactionPanel } from '@/components/layout/TransactionPanel';
 import { AIChatPanel } from '@/components/layout/AIChatPanel';
 import { BuilderJourneyGuide } from '@/components/dashboard/BuilderJourneyGuide';
@@ -17,7 +17,7 @@ import { BriefStage } from '@/components/dashboard/stages/BriefStage';
 import { ConceptStage } from '@/components/dashboard/stages/ConceptStage';
 import { DesignStage } from '@/components/dashboard/stages/DesignStage';
 import { EngineeringStage } from '@/components/dashboard/stages/EngineeringStage';
-import { DocsBimStage } from '@/components/dashboard/stages/DocsBimStage';
+import { LazyDocsBimStage } from '@/components/dashboard/stages/LazyDocsBimStage';
 import { CostDeliverStage } from '@/components/dashboard/stages/CostDeliverStage';
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
 import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
@@ -659,7 +659,7 @@ export function Dashboard() {
                   />
                 )}
                 {activeView === 5 && (
-                  <DocsBimStage
+                  <LazyDocsBimStage
                     activePlan={activePlan}
                     selectedDesign={selectedDesign}
                   />
@@ -674,7 +674,7 @@ export function Dashboard() {
                   />
                 )}
 
-                <BOQPanel />
+                <LazyBOQPanel />
               </>
             ) : activeView === 'history' ? (
               <TransactionPanel variant="full" />

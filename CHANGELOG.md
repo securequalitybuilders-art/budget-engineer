@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### Clean Lighthouse + Performance
+
+#### Sprint 95 — Clean Lighthouse audit + perf wins (self-hosted offline fonts, Dashboard code-split)
+
+**Summary:** Ran a truly clean Lighthouse audit (no browser extensions) that confirmed prior Performance 0.34 was extension noise — clean score is **Performance 74, A11y 100, BP 100, SEO 100**. Fixed the two legitimate performance issues: self-hosted all fonts (Inter, Space Grotesk, JetBrains Mono) from Google Fonts CDN → `public/fonts/` with `@font-face` + `font-display: swap`, removing the render-blocking Network font request and making fonts available offline. Code-split the Dashboard bundle: `BOQPanel` (defers `recharts`) and `DocsBimStage` (defers all 11 SVG drawing views) are now `React.lazy` loaded. Initial Dashboard chunk reduced from ~1 MB to 575 KB. No app logic changed. Documented extension-distortion finding in the sprint report.
+
+### Changed Files
+- `public/fonts/*.ttf` — 10 self-hosted font files (Inter, Space Grotesk, JetBrains Mono)
+- `src/styles/index.css` — replaced `@import` Google Fonts with `@font-face` rules
+- `index.html` — added `<link rel="preload" as="font" crossorigin>`
+- `src/components/layout/LazyBOQPanel.tsx` — new lazy wrapper
+- `src/components/dashboard/stages/LazyDocsBimStage.tsx` — new lazy wrapper
+- `src/pages/Dashboard.tsx` — switched to lazy imports
+- `docs/SPRINT_95_CLEAN_PERF_REPORT.md` — new
+- `CHANGELOG.md` — updated
+
 ### README + Docs Refresh
 
 #### Sprint 94 — Rewrote README to reflect full product (v1.0.0 polish)
