@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Sprint 87 — Offline floor-plan image → wall/room detection (OpenCV.js/WASM), detect-then-correct into an editable plan
+
+**Summary:** After loading a floor-plan image as a tracing backdrop and setting the scale (pxPerMetre), a "Detect walls" button appears in the DesignStage toolbar. Clicking it lazy-loads OpenCV.js (separate 14.5 MB chunk, not in main bundle, not in PWA precache), runs: grayscale → adaptive threshold → morphology denoise → HoughLinesP → collinear merge → axis snap → room derivation. Detected walls are assembled into a PlanModel with a bounding room, then auto-saved as a "Traced Plan" DesignOption — the user immediately enters the editable canvas to correct dimensions. Pure helper functions (`mergeCollinearSegments`, `snapToAxis`, `pixelsToMetresSegment`, `segmentsToPlan`, `computeConfidence`) are unit-tested without OpenCV. Detection is labelled "auto-detected — review and correct." OpenCV.js credit added to ATTRIBUTIONS.md. 17 new tests (949 total, 52 files). 0 typecheck, 0 lint errors (9 warnings). Build green with 32 PWA entries.
+
+### Sprint 86 — Image/PDF backdrop renders tracing canvas without selectedDesign
+
+**Summary:** Fixed the Sprint 85 canvas-empty-state guard so that importing an image/PDF (which sets `backdrop.imageDataUrl` but not `selectedDesign`) renders the PlanCanvas immediately instead of showing "Select a design option." A synthetic "Traced Plan" DesignOption is created when the user places their first room. DXF import unchanged.
+
 ### Sprint 85 — Unified multi-format import (DXF/image/PDF) + traceable backdrop with scale calibration
 
 **Summary:** A unified "Import (DXF / image / PDF)" button is always reachable across Brief, Concept, and Design stages plus Home. Images (PNG/JPG/WebP) load as a traceable SVG backdrop on the 2D PlanCanvas with opacity slider, show/hide toggle, and scale calibration (user enters known width/height in metres to set px-per-metre). Users trace rooms over the backdrop using the existing editor. DXF continues to parse into an editable PlanModel. PDF, .dwg, and .pln files show honest guidance messages. A shared `importRouter.ts` routes files by extension. Backdrop utilities (`pixelsToMetres`, `calibrateScale`) are tested. No new npm dependencies added. 13 new tests (922 total, 51 files). 0 typecheck errors, 0 lint errors (9 warnings). Build green with 30 PWA entries.

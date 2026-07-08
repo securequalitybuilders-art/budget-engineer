@@ -6,6 +6,7 @@ import { CadSyncControls } from '@/components/dashboard/CadSyncControls'
 import { Button } from '@/components/ui/Button'
 import { Box, Layers, Ruler, Wand2, Upload, LayoutGrid, Boxes } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { segmentsToPlan, detectWallsFromImage } from '@/lib/import/wallDetection'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
 import type { BackdropState } from '@/lib/import/backdropUtils'
@@ -56,6 +57,9 @@ export function DesignStage({
   onDesignCreated,
 }: DesignStageProps) {
   const [canvasView, setCanvasView] = useState<'plan' | 'bim' | 'drawings'>('plan')
+  const [detecting, setDetecting] = useState(false)
+  const [detectMessage, setDetectMessage] = useState<string | null>(null)
+  const [detectError, setDetectError] = useState(false)
   const importInputRef = useRef<HTMLInputElement>(null)
 
   const handleImportChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,6 +68,35 @@ export function DesignStage({
     onImportFile(file)
     if (e.target) e.target.value = ''
   }, [onImportFile])
+
+  const handleDetectWalls = useCallback(async () => {
+    if (!backdrop?.imageDataUrl || !backdrop.pxPerMetre || !projectId) return
+    setDetecting(true)
+    setDetectMessage('Detecting walls...')
+    setDetectError(false)
+    try {
+      const result = await detectWallsFromImage(backdrop.imageDataUrl, backdrop.pxPerMetre)
+      if (result.walls.length > 0) {
+        const plan = segmentsToPlan(result.walls, backdrop.pxPerMetre)
+        if (plan) {
+          plan.id = `detected-${Date.now()}`
+          onDesignCreated(projectId, plan)
+          setDetectMessage(`Auto-detected ${result.detectedLines} walls (confidence: ${result.confidence}) — review and correct.`)
+        } else {
+          setDetectMessage('No walls could be derived from detection.')
+          setDetectError(true)
+        }
+      } else {
+        setDetectMessage(result.message || 'No walls detected. Try adjusting image contrast or trace manually.')
+        setDetectError(true)
+      }
+    } catch {
+      setDetectMessage('Wall detection failed. Trace manually over the backdrop.')
+      setDetectError(true)
+    } finally {
+      setDetecting(false)
+    }
+  }, [backdrop, projectId, onDesignCreated])
 
   if (!selectedDesign && !backdrop?.imageDataUrl) {
     return (
@@ -152,6 +185,28 @@ export function DesignStage({
           <Upload size={16} />
         </Button>
 
+        {backdrop?.imageDataUrl && backdrop.pxPerMetre !== null && (
+          <>
+            <span className="mx-1 h-5 w-px bg-white/10" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
+              onClick={handleDetectWalls}
+              disabled={detecting}
+              aria-label="Auto-detect walls from backdrop image"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+              </svg>
+              {detecting ? 'Detecting...' : 'Detect walls'}
+            </Button>
+          </>
+        )}
+
         <span className="mx-1 h-5 w-px bg-white/10" />
 
         <Button
@@ -188,6 +243,17 @@ export function DesignStage({
           <span className="hidden sm:inline">3D</span>
         </Button>
       </div>
+
+      {/* Detection status bar */}
+      {detectMessage && (
+        <div className={`absolute left-4 right-4 z-10 mt-2 rounded-lg px-3 py-1.5 text-[11px] ${
+          detectError
+            ? 'border border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.1)] text-[#ef4444]'
+            : 'border border-[rgba(6,182,212,0.3)] bg-[rgba(6,182,212,0.1)] text-[#06B6D4]'
+        }`}>
+          {detectMessage}
+        </div>
+      )}
 
       {/* Canvas area */}
       <div className="flex flex-1 flex-col overflow-auto p-4 pt-20">

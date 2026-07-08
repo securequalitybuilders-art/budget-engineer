@@ -19,8 +19,17 @@ This project adapts (re-implements in TypeScript) formulas and calculation logic
 
 Both source repositories are MIT-licensed. This project retains the MIT license. See [LICENSE](./LICENSE).
 
+## OpenCV.js
+
+Floor-plan wall detection (Sprint 87) uses **[OpenCV.js](https://opencv.org/)** (Apache 2.0 license) — a JavaScript binding of OpenCV compiled to WebAssembly via Emscripten.
+
+- **Usage**: Lazy-loaded on first "Detect walls" click (not in main bundle). Runs entirely client-side in a WebAssembly sandbox.
+- **Integration**: The `@techstark/opencv-js` npm package provides `opencv.js` (WASM inlined). Dynamic `import()` creates a separate 14.5 MB chunk, excluded from PWA precache. Loaded on-demand, cached by the browser after first use.
+- **Pipeline**: grayscale → adaptive threshold → morphology cleanup → HoughLinesP → collinear merge → axis snap → room derivation → PlanModel construction.
+- **Accuracy caveat**: Detection is approximate. Results are labelled "auto-detected — review and correct." Users must verify dimensions.
+
 ## Compliance rule structure
 
 The **jurisdiction-keyed compliance rule structure** (per-jurisdiction files with `ComplianceRuleDef` / `evaluate()` interface) is inspired by the country-code dossier pattern in [Skills-Architects](https://github.com/Abhinavbwj/Skills-Architects). The Zimbabwe (ZBC) rule values are based on ZBC 1996 / SI references already cited in the app's typology knowledge base; all TypeScript re-implementation is original.
 
-*ATTRIBUTIONS.md — Sprint 55, July 2026*
+*ATTRIBUTIONS.md — Sprint 87, July 2026*
