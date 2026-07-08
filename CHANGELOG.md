@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### README + Docs Refresh
+
+#### Sprint 94 — Rewrote README to reflect full product (v1.0.0 polish)
+
+**Summary:** Complete README rewrite with product mission, accurate feature descriptions (6-stage workspace, AI design, 2D CAD, 3D BIM, import with OpenCV detection, SADC compliance, BOQ, PWA), placeholders for screenshots, tech stack table, known limitations section marked as honest/approximate. Updated FEATURE_MATRIX.md and CANONICAL_REPO_STATUS.md dates and test counts (978). Created docs/screenshots/ placeholder folder. No app code changed.
+
+### Changed Files
+- `README.md` — full rewrite (mission, features, quick start, screenshots placeholders, tech stack, commands, quality, deploy, release, contributing, known limitations, license)
+- `FEATURE_MATRIX.md` — date bumped, Sprint 93 audit entry added, test counts consistent
+- `CANONICAL_REPO_STATUS.md` — date bumped, test count 978 across 53 files
+- `docs/screenshots/README.md` — new placeholder note
+- `CHANGELOG.md` — updated
+
 ### Lighthouse v1.0 Polish
 
 #### Sprint 93 — Lighthouse audit + a11y/SEO/PWA hardening

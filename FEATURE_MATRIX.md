@@ -1,6 +1,6 @@
 # Feature Matrix — Budget Engineer OS Canonical
 
-> **Date:** 2026-07-07 (v0.9.0)  
+> **Date:** 2026-07-08 (v0.9.0)  
 > **Base:** WS1 (`workspace-chart 1`)  
 > **Legend:** ✅ Present | ❌ Missing | 🔄 Staged (not wired)
 > **Phase E (WS6 AI + Drawing Management) merged.**  
@@ -8,6 +8,7 @@
 > **Sprint 1.1:** Stabilized Engineering Studio — WebLLM button disabled, NaN guards, smoke report created.  
 > **Sprint 2:** 3D BIM viewer integrated into Dashboard with 2D/3D toggle + design-to-BIM adapter.  
 > **Sprint 3:** Local AI brief-to-design flow wired — brief parser + design engine produce visible design options in Dashboard via AiBriefPanel.
+> **Sprint 93:** Lighthouse audit + a11y/SEO/PWA hardening (A11y 100, BP 100, SEO 100).
 
 ---
 
@@ -169,3 +170,4 @@
 | ✅ Present (Sprint 85 — Multi-format import + backdrop) | Unified Import, image backdrop + scale calibration, importRouter, 13 tests (922 total, 51 files) |
 | ✅ Present (Sprint 86 — Backdrop canvas fix) | Canvas renders without selectedDesign when backdrop exists, 932 total tests |
 | ✅ Present (Sprint 87 — Offline wall detection) | Detect-then-correct, lazy-loaded OpenCV.js/WASM, 17 tests (949 total, 52 files) |
+| ✅ Present (Sprint 93 — Lighthouse audit + a11y/SEO/PWA hardening) | A11y 100, BP 100, SEO 100, manifest fields, skip-to-content, dialog roles, landmarks, 2 new tests (978 total, 53 files) |

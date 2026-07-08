@@ -1,8 +1,8 @@
 # Canonical Repo Status — Budget Engineer OS
 
-> **Date:** 2026-07-07 (v0.9.0)  
+> **Date:** 2026-07-08 (v0.9.0)  
 > **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** v0.9.0 — Workspace UX, Import & Offline Extraction Phase. First-run onboarding tour (S81), 6-stage workflow navigation rail + stage-based Dashboard (S82), unified left sidebar dashboard with project tools (S83), DXF import (S84), multi-format image/PDF backdrop with scale calibration (S85), backdrop canvas fix (S86), offline floor-plan image wall/room detection via OpenCV.js/WASM with detect-then-correct flow (S87). Builds on all prior phases: SADC Building-Code Compliance (4 jurisdictions, 28 rules), Parametric Biomimetic Canopy (Voronoi-cell, ETFE, spine ribs), Interior Inspection (dollhouse/fly-in/walkthrough), Interactive 2D CAD Editor, Professional Drawings (11 types + A1 sheet), Governance approval workflow, Snapshot history, Portfolio dashboard, and all earlier features. Lint baseline at 9 warnings. All 949 unit tests pass (52 files). `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (949 passed, 52 files).
+> **Status:** v0.9.0 — Workspace UX, Import & Offline Extraction Phase. First-run onboarding tour (S81), 6-stage workflow navigation rail + stage-based Dashboard (S82), unified left sidebar dashboard with project tools (S83), DXF import (S84), multi-format image/PDF backdrop with scale calibration (S85), backdrop canvas fix (S86), offline floor-plan image wall/room detection via OpenCV.js/WASM with detect-then-correct flow (S87). Builds on all prior phases: SADC Building-Code Compliance (4 jurisdictions, 28 rules), Parametric Biomimetic Canopy (Voronoi-cell, ETFE, spine ribs), Interior Inspection (dollhouse/fly-in/walkthrough), Interactive 2D CAD Editor, Professional Drawings (11 types + A1 sheet), Governance approval workflow, Snapshot history, Portfolio dashboard, and all earlier features. Lint baseline at 9 warnings. All 978 unit tests pass (53 files). `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (978 passed, 53 files).
 
 ---
 

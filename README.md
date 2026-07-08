@@ -1,16 +1,65 @@
-# Dzenhare Budget Engineer Studio
+# Budget Engineer / DzeNhare OS
 
 [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions)
-**Current release:** v0.9.0 — [View on GitHub](https://github.com/securequalitybuilders-art/budget-engineer/releases/tag/v0.9.0)
+[![Version](https://img.shields.io/badge/version-0.9.0-blue)]()
+[![Tests](https://img.shields.io/badge/tests-978-green)]()
+[![License](https://img.shields.io/badge/license-MIT-green)]()
+[![PWA](https://img.shields.io/badge/PWA-offline--first-purple)]()
 
-> AI-powered computational design → 2D CAD → 3D BIM → engineering checks → quantities → BOQ → export.
-> Offline-first, open-source, Africa-focused.
->
-> **Interactive 2D CAD editor with room add/delete/move/resize, door/window add/move/delete, snap-to-grid, keyboard nudge, live dimension readout, undo/redo timeline, and IndexedDB persistence. Local AI brief-to-design flow, 3D BIM viewer with walls/slabs/multi-storey/doors/windows/roof and GLB export, interior inspection (dollhouse cutaway, click-a-room fly-in, first-person walkthrough of your 3D model), BOQ dashboard panel with CSV/HTML export, engineering analysis panel with clash/solar/MEP, IndexedDB persistence, generated rooms/doors/windows/zones, regional rate card BOQ pricing, geometry-derived BOQ quantities (door/window/partition/finish quantities from actual CAD geometry — not GFA estimates), guided first-time builder journey with 6-step progress and template briefs, governance/audit readiness panel with approval checklist and RBAC roles, local governance approval workflow with submit/approve/request-changes/comments/timeline, snapshot history panel with save/compare/cost and quantity deltas, portfolio dashboard with executive metrics and cross-project overview, portfolio filters (search, active/archived, sort by cost/name), archive/restore actions on project cards, mobile review support (review, estimates, exports on phone — CAD editing best on tablet/desktop), per-building-type room layout strategies (single-storey/duplex/clinic/shop) with circulation corridors and wet-core grouping, CAD editing persisted to IndexDB with auto-save and downstream sync metadata, PlanModel→CadDocument roundtrip for downstream analysis, BOQ/export source traceability (geometry source, CAD-edited labels, warnings in CSV/HTML), manual CAD save/restore controls with status messages, feedback and issue reporting workflow, parametric biomimetic canopy roof with Voronoi-cell surface, structural spine ribs, ETFE panels, and Section drawing integration, 864 automated tests across the full pipeline, 11 construction-standard drawing types (Elevations, Section, Site, Foundation, Roof, RCP, Electrical, Plumbing, HVAC) + A1 presentation sheet + PDF/PNG export.** CI validates typecheck, lint, tests, and production build on every push.
+**AI-assisted architectural design → 2D CAD → 3D BIM → engineering → BOQ. Making construction affordable for everyone.**
+
+Free, open-source, local-first — works fully **offline**. Installed as a PWA, no backend, no paid APIs, no data leaves your machine.
+
+**Live demo:** [budget-engineer.vercel.app](https://budget-engineer.vercel.app/) — install as an app (PWA) for offline use.
+
+---
+
+## Key Features
+
+### Workflow
+Six-stage workspace: **Brief · Concept · Design · Engineering · Docs & BIM · Cost & Deliver** — with guided onboarding tour and stage-based empty states.
+
+### AI Design
+Brief → 3-tier engine → design options. Fully offline (local rules engine; optional WebLLM via `@mlc-ai/web-llm`). Deterministic fallback when GPU is unavailable.
+
+### 2D CAD Editor
+Draw, move, resize, and delete rooms, doors, and windows. Snap-to-grid, keyboard nudge, live dimension readout, unlimited undo/redo. Touch editing works on mobile. All data persisted to IndexedDB.
+
+### 3D BIM
+Walls, slabs, multi-storey, doors, windows, and roof rendered in React Three Fiber. Dollhouse cutaway, click-a-room camera fly-in, first-person walkthrough (**desktop only**). GLB export.
+
+### Parametric Canopy Roof
+Optional biomimetic Voronoi-cell canopy with ETFE panels, structural spine ribs, and Section A-A drawing integration.
+
+### Construction Drawings
+Eleven drawing types: Plan, Site, Foundation, Roof, Reflected Ceiling, Electrical, Plumbing, HVAC, Front/Side Elevation, Section A-A — plus A1 presentation sheet. Export to PDF or PNG.
+
+### Import
+- **DXF** → editable plan (LINE + LWPOLYLINE)
+- **Image/PDF** → backdrop with scale calibration for tracing
+- **Offline wall detection** (OpenCV.js/WASM, lazy-loaded) — detect-then-correct floor plans from images
+
+For AutoCAD or ArchiCAD: export to DXF.
+
+### Engineering
+Seven calculators (load combinations, footing sizing, rebar specification, etc.) plus clash detection, solar orientation analysis, and MEP takeoff.
+
+**SADC Compliance** — approximate rule checks for Zimbabwe (ZBC), South Africa (SANS 10400), Zambia (CAP 295), and Botswana Building Control. **Verify locally.**
+
+### BOQ + Cost
+BOQ with geometry-derived quantities, regional rate cards (Zimbabwe, South Africa, Kenya, Global), rate source metadata. Export to CSV, HTML dossier, or PDF (print-to-PDF).
+
+### Mobile + PWA
+Responsive layout, touch interactions throughout review panels and canvas. Installable PWA — works fully offline.
+
+### Missing Something?
+See [Known Limitations](#known-limitations) below. Dashboard review works on all screen sizes; CAD editing is best on tablet/desktop.
 
 **Live demo:** [budget-engineer.vercel.app](https://budget-engineer.vercel.app/)
 
-## Quick start
+
+
+## Quick Start
 
 ```bash
 git clone https://github.com/securequalitybuilders-art/budget-engineer
@@ -19,96 +68,82 @@ npm install
 npm run dev
 ```
 
-Then open http://localhost:5173.
+Open [http://localhost:5173](http://localhost:5173).
 
-## What is built so far
+For production build + preview:
+```bash
+npm run build
+npm run preview
+```
 
-**All 5 BLAST Blueprint phases merged from 5 workspaces (WS1–WS6).** Full pipeline:
 
-| Phase | Scope | Source |
-|-------|-------|--------|
-| Base + UX | Vite/React 18, Tailwind, PWA, Zustand, Dexie, routing, command palette, themes, project wizard, pipeline UI | WS1 |
-| 2D CAD | PlanCanvas, WallFirstCanvas, DXF/SVG/MakerJS export, undo/redo, multi-floor, block library, dimensions | WS2 |
-| BIM + IFC | React Three Fiber 3D viewer, BIM legend/inspector, IFC4 STEP import/export, governance/RBAC types, versioning, zones, cross-project, export package | WS3 |
-| Advanced Eng | Wall corner solver (intersection math), clash detection (3 BIM rules), solar analysis, MEP takeoff, executive dossier (HTML print-to-PDF) | WS4 |
-| Structural | Column/beam/footing placement algorithms, rebar calculator, material rates, clash auto-healing | WS5 |
-| AI + Drawings + Engineering Studio | Deterministic brief parser, design engine, WebLLM adapter (opt-in), SVG plan/section/title-block generators, drawing register, regional rate cards, load analysis, footing sizing, rebar spec, design fingerprint, 6 wired panel components in Engineering Studio tabbed section **+ local AI brief-to-design flow wired into Dashboard** | WS6 |
-| **Sprint 4: BOQ & Export** | designToBoq adapter, BoqExportPanel sidebar, CSV export, HTML dossier export, print-to-PDF, roof type fix in designToBim | Sprint 4 |
-| **Sprint 5: Engineering Analysis** | designToAnalysis adapter, EngineeringAnalysisPanel sidebar, clash detection, solar orientation, MEP takeoff, recommendation cards | Sprint 5 |
-| **Sprint 6: IndexedDB Persistence** | projectPersistenceService, AI designs/BIM/BOQ/export persisted to Dexie, survives page refresh | Sprint 6 |
-| **Sprint 7: Generated CAD Detail** | designGeometryAdapter with rooms, doors, windows, internal walls, zones; richer BIM/CAD/BOQ output | Sprint 7 |
-| **Sprint 8: Regional BOQ Pricing** | rateCardAdapter, region selector in BoqExportPanel, rate assumptions in CSV/HTML export | Sprint 8 |
-| **Sprint 9: Automated Tests + CI** | 58 tests across 7 files, vitest, fake-indexeddb, GitHub CI workflow | Sprint 9 |
-| **Sprint 10: Deployment polish** | DEPLOYMENT_GUIDE.md, RELEASE_CHECKLIST.md, vercel.json, _redirects, README updates | Sprint 10 |
-| **Sprint 11: Live deployment** | Verified Vercel deployment, updated live URL | Sprint 11 |
-| **Sprint 12: Public demo audit** | SEO meta tags, accessibility fixes, mobile polish, bundle audit | Sprint 12 |
-| **Sprint 13: Geometry-derived BOQ quantities** | geometryQuantitiesAdapter, external wall line item, quantity-basis UI section + CSV headers, 73 tests | Sprint 13 |
-| **Sprint 14: Builder journey guide** | Home page 6-step journey, Project Wizard template briefs, BuilderJourneyGuide dashboard panel, beginner-friendly empty states | Sprint 14 |
-| **Sprint 15: Mobile polish** | Right sidebar horizontal scroll, BOQ table scroll, engineering tabs scroll, BuilderJourneyGuide collapsed by default, design option truncation, mobile note in canvas, Home button wrap | Sprint 15 |
-| **Sprint 16: Governance & audit panel** | GovernanceAdapter with buildGovernanceSummary, GovernancePanel in Dashboard sidebar, approval readiness checklist, RBAC roles, audit trail, design fingerprint, 86 tests | Sprint 16 |
-| **Sprint 17: Snapshot history & comparison** | projectSnapshotService (save/load/compare), SnapshotHistoryPanel in Dashboard sidebar, cost/quantity deltas, 99 tests | Sprint 17 |
-| **Sprint 18: Portfolio dashboard** | PortfolioPage at `/portfolio`, executive summary stats, category distribution bar chart, project cards, Home page button | Sprint 18 |
-| **Sprint 19: Portfolio filters & archive** | Search, status filter (All/Active/Archived), sort (newest/name/cost), archive/restore buttons, status messages, 117 tests | Sprint 19 |
-| **Sprint 20: v0.1.0 public MVP release** | Package version → 0.1.0, CHANGELOG.md, release notes, tag v0.1.0, final validation | Sprint 20 |
-| **Sprint 21: Feedback & issue reporting** | FeedbackPanel, `/feedback` route, copy/GitHub/email actions, privacy-first, 127 tests | Sprint 21 |
-| **Sprint 22: Mobile UX deep polish** | Hero text sizes, mobile messages, always-visible archive/restore on touch, larger tap targets | Sprint 22 |
-| **Sprint 23: Better CAD room layout** | Per-building-type layout strategies (single-storey, duplex/2-storey, clinic, commercial/shop), circulation corridors, wet-core grouping, improved opening placement | Sprint 23 |
-| **Sprint 24: CAD editing persistence & export sync** | PlanModel saved/loaded from IndexedDB (Dexie v4), auto-save on edit commit, CAD sync status in toolbar, fallback sync adapter for BIM/BOQ/analysis with GeometrySource metadata | Sprint 24 |
-| **Sprint 25: Governance approval actions & comments** | Local-first approval workflow: submit for review, approve, request changes, add reviewer comments with type selector, governance timeline, role selector (Owner/Reviewer/Viewer), permission-based controls, transaction logging | Sprint 25 |
-| **Sprint 26: CAD persistence & sync tests** | 33 tests for cadPersistenceService (CRUD) and cadToDesignSyncAdapter (fallback adapters), test fixtures, bug-free validation | Sprint 26 |
-| **Sprint 27: PlanModel→CadDocument roundtrip** | PlanModel→CadDocument converter (planModelToCadAdapter.ts), sync adapter fallback in deriveAnalysisFromCadOrDesign, 22 new tests (13 converter + 9 sync) | Sprint 27 |
-| **Sprint 28: Export source metadata & CAD-edited BOQ sync** | Source metadata in BOQ/CSV/HTML, CAD-edited labels, cadQuantitiesAdapter, 21 new tests | Sprint 28 |
-| **Sprint 29: Manual CAD save/restore UI** | CadSyncControls dropdown (save/restore/reset), loadPlanModelMeta service, status messages, 3 new tests | Sprint 29 |
-| **Sprints 56–63: Professional Drawings v0.4.0** | 11 drawing types (Elevations, Section, Site, Foundation, Roof, RCP, Electrical, Plumbing, HVAC) + A1 presentation sheet + PDF/PNG export | Sprints 56–63 |
-| **Sprints 67–70: Interactive 2D CAD Editor v0.5.0** | Room add/delete/move/resize, door/window add/move/delete, snap-to-grid, keyboard nudge, live dimension readout, undo/redo timeline, IndexedDB persistence | Sprints 67–70 |
-| **Sprints 72–74: Interior Inspection v0.6.0** | Dollhouse/cutaway 3D view (Full/Dollhouse/No Roof, storey selector), click-a-room camera fly-in with smooth animation and Back button, first-person walkthrough (WASD + mouse-look, footprint clamp, eye height, auto no-roof) | Sprints 72–74 |
-| **Sprints 76–77: Parametric Canopy Roof v0.7.0** | Opt-in canopy roof type with Voronoi-cell surface, ETFE panels, spine ribs + structural framing, Section A-A drawing integration, geometry disposal/debounce for stability | Sprints 76–77 |
-| **Sprints 79–80: SADC Building-Code Compliance v0.8.0** | Four jurisdictions (Zimbabwe ZBC, South Africa SANS 10400, Zambia CAP 295, Botswana Building Control Regs), jurisdiction picker in Analysis & BOQ panels, 28 compliance rules, all approximate | Sprints 79–80 |
-| **Sprint 81: First-run onboarding tour** | 6-step interactive overlay, first-visit only, re-openable from Home footer, accessible ARIA + keyboard nav | Sprint 81 |
-| **Sprint 82: 6-Stage workflow navigation rail** | Left rail with Brief→Concept→Design→Engineering→Docs&BIM→Cost&Deliver, status indicators, empty-state CTAs | Sprint 82 |
-| **Sprint 83: Unified left sidebar dashboard** | Combined stage rail + cross-cutting project tools in left sidebar, responsive collapse | Sprint 83 |
-| **Sprint 84: DXF import** | LINE + LWPOLYLINE parsing, mm auto-detect, editable PlanModel + DesignOption | Sprint 84 |
-| **Sprint 85: Multi-format import + traceable backdrop** | Unified Import button, image backdrop with scale calibration, opacity/visibility controls | Sprint 85 |
-| **Sprint 86: Backdrop canvas fix** | Canvas renders without selectedDesign when backdrop exists, synthetic DesignOption on first room | Sprint 86 |
-| **Sprint 87: Offline wall detection (OpenCV.js/WASM)** | Detect-then-correct flow, lazy-loaded OpenCV.js, HoughLinesP pipeline, editable PlanModel | Sprint 87 |
 
-**Pipeline:** Brief → AI Design → 2D CAD → 3D BIM → Engineering Checks → Quantities → BOQ → Export (CSV / HTML / PDF)
+## Screenshots
 
-**Repository:** [github.com/securequalitybuilders-art/budget-engineer](https://github.com/securequalitybuilders-art/budget-engineer)
+> Screenshots coming. Placeholder paths:
 
-## Feedback
+![Workspace](docs/screenshots/workspace.png "6-stage workspace with sidebar dashboard")
 
-Found a bug? Have a suggestion? Feedback is local-first and privacy-respecting:
+![CAD Editor](docs/screenshots/cad-editor.png "2D CAD editing canvas with rooms, doors, snap grid")
 
-- **File a GitHub issue** at [github.com/securequalitybuilders-art/budget-engineer/issues/new](https://github.com/securequalitybuilders-art/budget-engineer/issues/new)
-- **Use the in-app form** at [/feedback](https://budget-engineer.vercel.app/feedback) — copy report, open GitHub issue, or send email
-- **Email directly:** securequalitybuilders.art@gmail.com
+![3D BIM View](docs/screenshots/bim-view.png "3D model with dollhouse cutaway and fly-to-room")
 
-No analytics, no telemetry, no automatic data collection. You choose what to share.
+![Construction Drawings](docs/screenshots/drawings.png "Construction-standard drawing set with A1 presentation sheet")
+
+![BOQ Export](docs/screenshots/boq.png "Bill of Quantities with CSV/HTML/PDF export")
+
+![Mobile](docs/screenshots/mobile.png "Mobile review of estimates and drawings")
+
+
+
+## Tech Stack
+
+| Layer | Technologies | License |
+|---|---|---|
+| UI | React 18, TypeScript, Tailwind CSS, shadcn/ui patterns | MIT |
+| Build | Vite, vite-plugin-pwa | MIT |
+| 2D CAD | MakerJS | MIT |
+| 3D BIM | three.js, React Three Fiber, drei | MIT |
+| Charts | Recharts | MIT |
+| State | Zustand + Immer | MIT |
+| Storage | Dexie (IndexedDB) | Apache 2.0 |
+| AI (local) | Transformers.js (ONNX) | Apache 2.0 |
+| AI (opt-in) | WebLLM (`@mlc-ai/web-llm`) | Apache 2.0 |
+| CAD Parser | OpenCV.js (WASM) | Apache 2.0 |
+| Exports | jsPDF, pdf-lib, SheetJS | MIT/Apache 2.0 |
+
+See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for full details.
+
+
 
 ## Commands
 
 | Command | Description |
 |---|---|
 | `npm run dev` | Start the dev server |
-| `npm run build` | Build for production |
+| `npm run build` | Build for production (TypeScript + Vite + PWA) |
 | `npm run typecheck` | TypeScript strict check |
 | `npm run lint` | ESLint |
 | `npm test` | Run all tests (vitest) |
-| `npm run test:watch` | Run tests in watch mode |
-| `npm run lighthouse` | Build + audit with Lighthouse CI (requires Chrome) |
+| `npm run test:watch` | Tests in watch mode |
+| `npm run lighthouse` | Build + Lighthouse audit |
+
+
 
 ## Quality / Lighthouse
 
-Repeatable Lighthouse audits can be run locally against the production build:
+Clean audit environment (headless, no extensions):
 
-```bash
-npm run lighthouse
-```
+| Category | Score |
+|---|---|
+| Accessibility | 100 |
+| Best Practices | 100 |
+| SEO | 100 |
+| Performance | 76 (varies per machine) |
 
-This builds the app, serves it via `vite preview` on port 4173, and runs Lighthouse CI (3 runs per route, median). Reports are saved to `./lighthouse-report/` as HTML files.
+Audit notes in [docs/SPRINT_93_LIGHTHOUSE_REPORT.md](docs/SPRINT_93_LIGHTHOUSE_REPORT.md).
 
-Audited routes: `/`, `/portfolio`, `/feedback` (static routes that render without project data). All assertions are set to `"warn"` (baseline mode) — the command reports scores without failing. See [docs/SPRINT_51_LIGHTHOUSE_TOOLING_REPORT.md](docs/SPRINT_51_LIGHTHOUSE_TOOLING_REPORT.md) for full details.
+
 
 ## Deploy
 
@@ -121,32 +156,50 @@ Each push to `main` runs via GitHub Actions:
 1. `npm ci`
 2. `npm run typecheck`
 3. `npm run lint`
-4. `npm test` (949 tests, 52 files)
-5. `npm run build`
+4. `npm test` (978 across 53 files)
+5. `npm run build` (PWA service worker generated)
+
+
 
 ## Release
 
 | Detail | Value |
-|--------|-------|
+|---|---|
 | Current version | v0.9.0 |
-| Live demo | https://budget-engineer.vercel.app/ |
-| GitHub | https://github.com/securequalitybuilders-art/budget-engineer |
+| Live demo | [budget-engineer.vercel.app](https://budget-engineer.vercel.app/) |
+| GitHub | [github.com/securequalitybuilders-art/budget-engineer](https://github.com/securequalitybuilders-art/budget-engineer) |
 | CI status | [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions) |
-| Tests | 949 across 52 files |
+| Tests | 978 across 53 files |
 | Architecture | Local-first, no paid APIs, no backend, no cloud LLM |
 
-See [CHANGELOG.md](CHANGELOG.md) for full release history.
+See [CHANGELOG.md](CHANGELOG.md) for full release history. Release notes for each version (v0.1.0 through v0.9.0) are in `docs/RELEASE_NOTES_v*.md`. GitHub Release pages are created separately for distribution announcements.
+
+## Feedback
+
+Found a bug? Have a suggestion? Feedback is local-first and privacy-respecting:
+
+- **File a GitHub issue** at [github.com/securequalitybuilders-art/budget-engineer/issues/new](https://github.com/securequalitybuilders-art/budget-engineer/issues/new)
+- **Use the in-app form** at [/feedback](https://budget-engineer.vercel.app/feedback) — copy report, open GitHub issue, or send email
+- **Email directly:** securequalitybuilders.art@gmail.com
+
+No analytics, no telemetry, no data collection. You choose what to share.
+
+## Contributing
+
+Contributions welcome. See [project_constitution.md](project_constitution.md) for coding rules and constraints. All code is MIT. **No paid APIs may be added.**
 
 ## Known Limitations
 
-- **Approximate cost rates** — BOQ totals are based on regional rate cards with default assumptions. Not suitable for procurement or final budgeting.
-- **No structural engineer sign-off** — generated designs are concept/feasibility only. Always engage a registered structural engineer for detailed design.
-- **Early-stage CAD** — generated room layouts are deterministic with per-building-type strategies (residential, clinic, commercial). Manual editing in the 2D CAD canvas is recommended for real projects.
-- **WebLLM not installed** — `@mlc-ai/web-llm` is opt-in. The app works fully offline without it using the deterministic local-rules engine.
-- **Not a replacement for professional review** — this tool aids early-stage design and cost estimation. It does not replace qualified quantity surveyors, structural engineers, or architects.
-- **Same room template per floor** — multi-floor designs use the same room layout for all levels (no ground/upper variation).
-- **Finishes/services are estimates** — finishes and services line items are percentage-based allowances, not detailed takeoffs.
-- **Mobile review, not CAD editing** — the Dashboard supports reviewing estimates and exports on mobile. For best CAD drawing experience, use a tablet or desktop.
+- **Approximate compliance** — building code checks (ZBC, SANS 10400, Zambia, Botswana) are for early guidance only. Always verify with a local authority or registered professional.
+- **No .dwg or .rvt import** — only DXF for import. Use DXF export from AutoCAD/ArchiCAD.
+- **Walkthrough (first-person)** only on **desktop** with mouse + keyboard.
+- **Wall detection is assistive** — it detects edges from uploaded images. You must review and correct results in the CAD editor.
+- **Finishes and services** in the BOQ are percentage-based estimates, not detailed takeoffs.
+- **Same room template per floor** — multi-floor designs use the same layout for all levels (no variation).
+- **WebLLM opt-in** — `@mlc-ai/web-llm` must be installed separately. The app works fully offline without it.
+- **Cost rates** are based on regional defaults. Not suitable for procurement.
+- **Mobile review, CAD best on larger screen** — dashboard review works on phones; for best CAD editing experience, use a tablet or desktop.
+- **Not a professional replacement** — this tool aids early-stage design and cost estimation but does not replace qualified architects or engineers.
 
 ## License
 
