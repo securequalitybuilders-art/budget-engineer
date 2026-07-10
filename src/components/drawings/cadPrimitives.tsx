@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import { CAD_THIN, CAD_HAIR, INK, PAPER } from '@/components/drawings/cadConstants'
+import type { DimensionStyle } from '@/lib/drawings/dimensionStyles'
+import { dimArrowPath } from '@/lib/drawings/dimensionStyles'
 
 // ── SVG defs for hatch patterns ──
 export function HatchDefs(): ReactNode {
@@ -77,45 +79,96 @@ export function TitleBlock({ title, projectName, date, sheetWidth, sheetHeight, 
   )
 }
 
-// ── Horizontal dimension line (top) ──
+// ── Horizontal dimension line (top) — enhanced ──
 interface DimHProps {
   x1: number
   x2: number
   y: number
   label: string
+  style?: DimensionStyle
 }
 
-export function DimensionLineH({ x1, x2, y, label }: DimHProps): ReactNode {
+export function DimensionLineH({ x1, x2, y, label, style }: DimHProps): ReactNode {
   const mid = (x1 + x2) / 2
+  const col = style?.lineColor ?? INK
+  const txtCol = style?.textColor ?? INK
+  const fontSize = style?.textHeight ?? 6
+  const ext = style?.extensionLineExtend ?? 2.5
+  const off = style?.offsetFromOrigin ?? 2
+  const arrowPath = style ? dimArrowPath(style) : null
+
   return (
     <g>
-      <line x1={x1} y1={y} x2={x2} y2={y} stroke={INK} strokeWidth={CAD_HAIR} />
-      <line x1={x1} y1={y - 2.5} x2={x1} y2={y + 2.5} stroke={INK} strokeWidth={CAD_HAIR} />
-      <line x1={x2} y1={y - 2.5} x2={x2} y2={y + 2.5} stroke={INK} strokeWidth={CAD_HAIR} />
-      <line x1={mid} y1={y - 1.5} x2={mid} y2={y} stroke={INK} strokeWidth={CAD_HAIR} />
-      <text x={mid} y={y - 3} fontSize={6} fill={INK} fontFamily="system-ui, sans-serif" textAnchor="middle">
+      <line x1={x1} y1={y} x2={x2} y2={y} stroke={col} strokeWidth={CAD_HAIR} />
+      <line x1={x1} y1={y - ext} x2={x1} y2={y + ext} stroke={col} strokeWidth={CAD_HAIR} />
+      <line x1={x2} y1={y - ext} x2={x2} y2={y + ext} stroke={col} strokeWidth={CAD_HAIR} />
+      {arrowPath ? (
+        <>
+          <path d={arrowPath} fill={col} transform={`translate(${x1}, ${y}) rotate(0)`} />
+          <path d={arrowPath} fill={col} transform={`translate(${x2}, ${y}) rotate(180)`} />
+        </>
+      ) : (
+        <>
+          <line x1={mid} y1={y - 1.5} x2={mid} y2={y} stroke={col} strokeWidth={CAD_HAIR} />
+        </>
+      )}
+      <text x={mid} y={y - off - 1} fontSize={fontSize} fill={txtCol} fontFamily="Arial, Helvetica, sans-serif" textAnchor="middle" style={{ fontVariantNumeric: 'tabular-nums' }}>
         {label}
       </text>
     </g>
   )
 }
 
-// ── Vertical dimension line (left) ──
+// ── Vertical dimension line (left) — enhanced ──
 interface DimVProps {
   y1: number
   y2: number
   x: number
   label: string
+  style?: DimensionStyle
 }
 
-export function DimensionLineV({ y1, y2, x, label }: DimVProps): ReactNode {
+export function DimensionLineV({ y1, y2, x, label, style }: DimVProps): ReactNode {
   const mid = (y1 + y2) / 2
+  const col = style?.lineColor ?? INK
+  const txtCol = style?.textColor ?? INK
+  const fontSize = style?.textHeight ?? 6
+  const ext = style?.extensionLineExtend ?? 2.5
+  const off = style?.offsetFromOrigin ?? 2
+
   return (
     <g>
-      <line x1={x} y1={y1} x2={x} y2={y2} stroke={INK} strokeWidth={CAD_HAIR} />
-      <line x1={x - 2.5} y1={y1} x2={x + 2.5} y2={y1} stroke={INK} strokeWidth={CAD_HAIR} />
-      <line x1={x - 2.5} y1={y2} x2={x + 2.5} y2={y2} stroke={INK} strokeWidth={CAD_HAIR} />
-      <text x={x - 3} y={mid + 2} fontSize={6} fill={INK} fontFamily="system-ui, sans-serif" textAnchor="end" transform={`rotate(-90, ${x - 3}, ${mid + 2})`}>
+      <line x1={x} y1={y1} x2={x} y2={y2} stroke={col} strokeWidth={CAD_HAIR} />
+      <line x1={x - ext} y1={y1} x2={x + ext} y2={y1} stroke={col} strokeWidth={CAD_HAIR} />
+      <line x1={x - ext} y1={y2} x2={x + ext} y2={y2} stroke={col} strokeWidth={CAD_HAIR} />
+      <text x={x - off - 1} y={mid + fontSize * 0.35} fontSize={fontSize} fill={txtCol} fontFamily="Arial, Helvetica, sans-serif" textAnchor="end" transform={`rotate(-90, ${x - off - 1}, ${mid + fontSize * 0.35})`} style={{ fontVariantNumeric: 'tabular-nums' }}>
+        {label}
+      </text>
+    </g>
+  )
+}
+
+// ── Aligned dimension (angled) ──
+interface DimAlignedProps {
+  x1: number; y1: number; x2: number; y2: number
+  label: string
+  style?: DimensionStyle
+}
+export function DimensionLineAligned({ x1, y1, x2, y2, label, style }: DimAlignedProps): ReactNode {
+  const midX = (x1 + x2) / 2
+  const midY = (y1 + y2) / 2
+  const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI)
+  const col = style?.lineColor ?? INK
+  const txtCol = style?.textColor ?? INK
+  const fontSize = style?.textHeight ?? 6
+  const ext = style?.extensionLineExtend ?? 2.5
+
+  return (
+    <g>
+      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={col} strokeWidth={CAD_HAIR} />
+      <line x1={x1} y1={y1 - ext} x2={x1} y2={y1 + ext} stroke={col} strokeWidth={CAD_HAIR} transform={`rotate(${angle}, ${x1}, ${y1})`} />
+      <line x1={x2} y1={y2 - ext} x2={x2} y2={y2 + ext} stroke={col} strokeWidth={CAD_HAIR} transform={`rotate(${angle}, ${x2}, ${y2})`} />
+      <text x={midX} y={midY - ext - 1} fontSize={fontSize} fill={txtCol} fontFamily="Arial, Helvetica, sans-serif" textAnchor="middle" style={{ fontVariantNumeric: 'tabular-nums' }}>
         {label}
       </text>
     </g>
