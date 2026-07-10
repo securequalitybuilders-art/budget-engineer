@@ -4,8 +4,43 @@
 > **Status:** Current capability matrix for the Premium Architectural Studio release.  
 > **Legend:** ✅ Present | ❌ Missing | 🔄 Staged (not wired)  
 > **Release baseline:** 1,059 tests across 61 test files, strict TypeScript green, build green, lint within warning budget.  
-> **Note:** Historical merge/audit detail below is retained for reference where still relevant, but the current release truth is v1.0.0.
-> **Sprint 93:** Lighthouse audit + a11y/SEO/PWA hardening (A11y 100, BP 100, SEO 100).
+> **Architecture baseline:** Local-first, offline-capable, zero paid APIs, no backend, no cloud LLM.  
+> **Note:** Historical merge/audit detail below is retained for reference where still useful, but the current release truth is **v1.0.0 Premium Architectural Studio**.
+
+---
+
+## Current Release Summary
+
+Budget Engineer v1.0.0 expands the original design-cost workflow into a **premium multi-discipline architectural studio** with:
+
+- Professional drafting standards (AIA-style layers, dimension styles, A4–A0 sheet support, title blocks)
+- Multi-discipline framework with discipline-scoped stage arrays and filtering
+- Interior Design Studio with fixtures, room templates, finishes, and BOQ integration
+- Heliodon and environmental site analysis tools
+- Guided image-to-floor-plan workflow
+- Professional DXF export pipeline
+- Presentation board engine
+- Architecture Academy learning layer
+
+## Current Quality Snapshot
+
+| Metric | Value |
+|---|---|
+| Version | v1.0.0 |
+| Tests | 1,059 |
+| Test files | 61 |
+| TypeScript | Strict mode, green |
+| Build | Green |
+| Lint | Within warning budget |
+| PWA | Enabled |
+| Deployment target | Vercel / static hosting |
+
+## Interpretation Notes
+
+- **✅ Present** means implemented and available in the current release.
+- **🔄 Staged** means present in code or architecture but not yet fully surfaced in user workflow.
+- **❌ Missing** means not implemented in the current release.
+- Where older WS1/WS2/WS3 merge notes remain below, they should be read as **historical implementation lineage**, not as the current release headline.
 
 ---
 

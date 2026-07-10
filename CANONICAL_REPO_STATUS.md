@@ -2,10 +2,64 @@
 
 > **Date:** 2026-07-11 (v1.0.0)  
 > **Base:** Canonical GitHub `main` branch  
-> **Status:** v1.0.0 — Premium Architectural Studio release complete.  
-> **Summary:** The canonical repo now includes the original 6-stage pipeline plus premium drafting standards, multi-discipline stage registry, interior studio, heliodon/site analysis, guided image-to-plan workflow, professional DXF pipeline, presentation board engine, and architecture academy.  
-> **Quality baseline:** 1,059 tests across 61 test files, strict TypeScript green, build green, lint within warning budget.  
-> **Note:** Historical sprint integration detail below is retained for reference; the current release truth is v1.0.0.
+> **Status:** v1.0.0 — Premium Architectural Studio release complete  
+> **Quality baseline:** 1,059 tests across 61 test files, strict TypeScript green, build green, lint within warning budget  
+> **Architecture baseline:** Local-first, offline-first PWA, zero paid APIs, no backend, no cloud LLM  
+> **Note:** Historical sprint and merge lineage below is retained for reference, but the current repository truth is **v1.0.0 Premium Architectural Studio**.
+
+---
+
+## Canonical Release Summary
+
+The canonical repository now represents the completed **Premium Architectural Studio** release.
+
+It preserves the original Budget Engineer core:
+
+- Brief → Concept → Design → Engineering → Docs & BIM → Cost & Deliver
+- 2D CAD editing
+- 3D BIM viewing
+- BOQ generation
+- offline-first local persistence
+- PWA installability
+
+And extends it with premium studio capabilities:
+
+- Professional drafting standards and title blocks
+- AIA-style layer conventions and dimension styling
+- Multi-discipline workspace framework
+- Interior Design Studio
+- Heliodon / site analysis tools
+- Guided image-to-plan workflow
+- DXF export pipeline
+- Presentation board engine
+- Architecture Academy learning layer
+
+## Current Release Validation Snapshot
+
+| Metric | Value |
+|---|---|
+| Version | v1.0.0 |
+| Tests | 1,059 |
+| Test files | 61 |
+| TypeScript | 0 errors (strict mode) |
+| Build | Green |
+| Lint | Within warning budget |
+| PWA | Enabled |
+| Primary deployment | Vercel |
+
+## Repository Truth Rules
+
+When older sections below reference:
+- WS1 / canonical merge base
+- earlier sprint counts
+- earlier version numbers
+- historical pipeline milestones
+
+they should be interpreted as **historical provenance**, not as the active product status.
+
+The active product status is:
+
+> **Budget Engineer v1.0.0 — Premium Architectural Studio**
 
 ---
 
