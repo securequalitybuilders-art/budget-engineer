@@ -19,6 +19,7 @@ const FeedbackPage = lazy(() => import('@/pages/FeedbackPage').then((m) => ({ de
 const PresentationStudio = lazy(() => import('@/pages/studio/PresentationStudio'));
 const AcademyHome = lazy(() => import('@/pages/Academy').then((m) => ({ default: m.AcademyHome })));
 const AcademyLesson = lazy(() => import('@/pages/Academy').then((m) => ({ default: m.AcademyLesson })));
+const SiteAnalysis = lazy(() => import('@/pages/SiteAnalysis'));
 
 function GlobalLayout() {
   useKeyboardShortcuts();
@@ -92,6 +93,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <PresentationStudio />
+          </Suspense>
+        ),
+      },
+      {
+        path: '/site-analysis',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <SiteAnalysis />
           </Suspense>
         ),
       },
