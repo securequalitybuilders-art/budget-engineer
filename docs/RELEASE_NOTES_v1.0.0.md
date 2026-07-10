@@ -90,7 +90,7 @@ The drawing output layer now meets professional architecture office standards:
 
 A discipline-aware workspace system that enables profession-specific workflows:
 
-- **6 disciplines:** Architecture, Structure, MEP, Interior, Site, Quantity Surveying
+- **8 disciplines** — Architecture, Structural, Mechanical, Electrical, Plumbing, Interior, Landscape, Civil
 - **Discipline-specific stage arrays** — each discipline shows only its relevant pipeline stages
 - **Store-backed discipline switching** — persistent across sessions via Zustand + IndexedDB
 - **Discipline switcher UI** — sidebar tab bar with discipline breadcrumb in the command bar

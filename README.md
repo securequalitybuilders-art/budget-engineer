@@ -83,7 +83,7 @@ Budget Engineer is a **multi-discipline architectural design operating system** 
 Six-stage workspace: **Brief → Concept → Design → Engineering → Docs & BIM → Cost & Deliver**
 
 - Guided onboarding tour with stage-based empty states and contextual CTAs
-- Multi-discipline switching (Architecture, Structure, MEP, Interior, Site, QS)
+- Multi-discipline switching across 8 disciplines: Architecture, Structural, Mechanical, Electrical, Plumbing, Interior, Landscape, Civil
 - Each discipline sees only its relevant stages
 
 ### 🤖 AI-Assisted Design
