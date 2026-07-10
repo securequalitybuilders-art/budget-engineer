@@ -6,17 +6,71 @@
 > **Tests:** 1,059 across 61 test files  
 > **Typecheck:** ✅ Green (strict mode)  
 > **Build:** ✅ Green  
-> **Lint:** ✅ Within budget (≤10 warnings)
+> **Lint:** ✅ Within warning budget
 
 ---
 
 ## Overview
 
-**Budget Engineer v1.0.0** is the first major release of the **Premium Architectural Studio** — a transformative upgrade that evolves Budget Engineer from a budgeting tool into a professional-grade, multi-discipline architectural design operating system.
+**Budget Engineer v1.0.0** is the first major release of the **Premium Architectural Studio**.
 
-This release delivers **8 implementation phases** (P0–P8) adding 53 new files, ~265 new tests, and 6 major feature modules — all while preserving the core local-first, offline-capable, zero-API-cost architecture.
+This release evolves Budget Engineer from a design-cost workflow tool into a broader **multi-discipline architectural design operating system**, while preserving its original architectural principles:
 
-**Mission:** *Making Construction Affordable for Everyone.*
+- local-first
+- offline-first
+- zero paid APIs
+- no backend dependency
+- privacy by architecture
+
+The v1.0.0 release adds major premium capabilities across drafting, discipline workflows, interior design, site analysis, image-assisted plan reconstruction, DXF export, presentation boards, and in-app learning.
+
+---
+
+## Release Summary
+
+This release preserves the original 6-stage project pipeline:
+
+**Brief → Concept → Design → Engineering → Docs & BIM → Cost & Deliver**
+
+and extends the platform with:
+
+- **Professional Drafting Standards** — AIA-style layers, dimension styles, sheet sizing, title blocks
+- **Multi-Discipline Framework** — discipline-specific stage arrays and filtering
+- **Interior Design Studio** — fixtures, room templates, materials, finishes, BOQ integration
+- **Heliodon & Site Analysis** — sun-path, shadow casting, wind analysis, orientation support
+- **Image-to-Floor-Plan Workflow** — guided detection, calibration, review, and cleanup
+- **Professional DXF Pipeline** — layer-aware DXF output with dimensions and blocks
+- **Presentation Board Engine** — board templates, annotations, snapshots, PDF/PNG/SVG export
+- **Architecture Academy** — lesson engine, skill paths, progress tracking, context tips
+
+---
+
+## Quality Snapshot
+
+| Metric | Value |
+|---|---|
+| Version | v1.0.0 |
+| Tests | 1,059 |
+| Test files | 61 |
+| TypeScript | 0 errors (strict mode) |
+| Build | Green |
+| Lint | Within warning budget |
+| PWA | Enabled |
+| Primary deployment | Vercel |
+
+---
+
+## Architecture Invariants Preserved
+
+Throughout all implementation phases, the following core constraints were preserved:
+
+- ✅ **Local-first** — project data remains on the user's machine
+- ✅ **Offline-first** — all major workflows remain usable without network access
+- ✅ **No paid APIs** — all logic uses existing dependencies or pure TypeScript/math
+- ✅ **No forced cloud dependency** — deployable as a static application
+- ✅ **Privacy-first** — no telemetry, no analytics, no mandatory sync
+- ✅ **Modular architecture** — domain, store, adapter, and UI layers remain separated
+- ✅ **Test-first discipline** — feature delivery accompanied by automated validation
 
 ---
 

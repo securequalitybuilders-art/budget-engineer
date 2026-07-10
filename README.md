@@ -7,11 +7,59 @@
 [![PWA](https://img.shields.io/badge/PWA-offline--first-purple)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)]()
 
-**The open-source, local-first architectural design OS.** Brief → 2D CAD → 3D BIM → engineering analysis → construction drawings → BOQ → presentation boards — all offline, no paid APIs, no data leaves your machine.
+**The open-source, local-first architectural design OS.**  
+Brief → 2D CAD → 3D BIM → engineering analysis → construction drawings → BOQ → presentation boards — all offline, with no paid APIs and no data leaving your machine.
 
 > *Making Construction Affordable for Everyone.*
 
 **Live demo:** [budget-engineer.vercel.app](https://budget-engineer.vercel.app/) — install as a PWA for full offline use.
+
+---
+
+## Release Snapshot
+
+**Budget Engineer v1.0.0** is the first full **Premium Architectural Studio** release.
+
+It preserves the original core workflow:
+
+- Brief
+- Concept
+- Design
+- Engineering
+- Docs & BIM
+- Cost & Deliver
+
+And expands it into a broader premium architecture platform with:
+
+- professional drafting standards
+- multi-discipline workflows
+- interior design studio
+- heliodon and site analysis
+- guided image-to-floor-plan workflow
+- professional DXF export
+- premium presentation boards
+- architecture academy learning tools
+
+### Quality Baseline
+
+| Metric | Value |
+|---|---|
+| Version | v1.0.0 |
+| Tests | 1,059 |
+| Test files | 61 |
+| TypeScript | Strict mode, green |
+| Build | Green |
+| Lint | Within warning budget |
+| PWA | Enabled |
+| Deployment | Vercel / static hosting |
+
+### Architecture Principles
+
+- **Local-first** — data is stored in IndexedDB on the user's device
+- **Offline-first** — works as a PWA after first load
+- **Zero paid APIs** — no OpenAI, Anthropic, Gemini, or paid SDK dependency
+- **No backend required** — deployable as a static web app
+- **Privacy by architecture** — no telemetry, no analytics, no forced cloud sync
 
 ---
 
