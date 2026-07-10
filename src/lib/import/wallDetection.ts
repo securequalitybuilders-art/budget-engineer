@@ -18,6 +18,7 @@ export interface DetectedSegment {
   y1: number
   x2: number
   y2: number
+  importConfidence?: number
 }
 
 export interface DetectionResult {
@@ -26,6 +27,69 @@ export interface DetectionResult {
   confidence: 'low' | 'medium' | 'high'
   detectedLines: number
   message: string
+}
+
+export function mergeOverlappingSegments(segments: DetectedSegment[], minOverlap = 0.6): DetectedSegment[] {
+  const result: DetectedSegment[] = [...segments];
+  let changed = true;
+
+  while (changed) {
+    changed = false;
+    for (let i = 0; i < result.length; i++) {
+      for (let j = i + 1; j < result.length; j++) {
+        const merged = tryMergeTwoSegments(result[i], result[j], minOverlap);
+        if (merged) {
+          result[i] = merged;
+          result.splice(j, 1);
+          changed = true;
+          break;
+        }
+      }
+      if (changed) break;
+    }
+  }
+
+  return result;
+}
+
+function tryMergeTwoSegments(a: DetectedSegment, b: DetectedSegment, minOverlap: number): DetectedSegment | null {
+  const aLen = Math.sqrt((a.x2 - a.x1) ** 2 + (a.y2 - a.y1) ** 2);
+  const bLen = Math.sqrt((b.x2 - b.x1) ** 2 + (b.y2 - b.y1) ** 2);
+  if (aLen === 0 || bLen === 0) return null;
+
+  const aDx = (a.x2 - a.x1) / aLen;
+  const aDy = (a.y2 - a.y1) / aLen;
+  const bDx = (b.x2 - b.x1) / bLen;
+  const bDy = (b.y2 - b.y1) / bLen;
+
+  const dot = aDx * bDx + aDy * bDy;
+  if (Math.abs(dot) < 0.9) return null;
+
+  const proj1 = (b.x1 - a.x1) * aDx + (b.y1 - a.y1) * aDy;
+  const proj2 = (b.x2 - a.x1) * aDx + (b.y2 - a.y1) * aDy;
+  const aEnd1 = 0;
+  const aEnd2 = aLen;
+
+  const overlapStart = Math.max(aEnd1, Math.min(proj1, proj2));
+  const overlapEnd = Math.min(aEnd2, Math.max(proj1, proj2));
+  const overlap = Math.max(0, overlapEnd - overlapStart);
+  const overlapRatio = overlap / Math.max(aLen, bLen);
+
+  if (overlapRatio < minOverlap) return null;
+
+  const allProjections = [aEnd1, aEnd2, proj1, proj2];
+  const minP = Math.min(...allProjections);
+  const maxP = Math.max(...allProjections);
+
+  const newConfidence = Math.max(a.importConfidence ?? 0.5, b.importConfidence ?? 0.5);
+
+  return {
+    x1: a.x1 + aDx * minP,
+    y1: a.y1 + aDy * minP,
+    x2: a.x1 + aDx * maxP,
+    y2: a.y1 + aDy * maxP,
+    importConfidence: newConfidence,
+  };
 }
 
 function segmentAngle(seg: DetectedSegment): number {
