@@ -1,0 +1,168 @@
+{
+  "paths": [
+    {
+      "id": "design-principles",
+      "title": "Architectural Design Principles",
+      "description": "Core concepts of composition, proportion, and spatial organization",
+      "icon": "compass",
+      "color": "#2c3e50",
+      "lessons": [
+        {
+          "id": "proportion-scale",
+          "title": "Proportion & Scale",
+          "summary": "Understanding human scale, the golden ratio, and modular coordination",
+          "duration": "12 min",
+          "content": "# Proportion & Scale\n\n## Introduction\nProportion and scale are fundamental to architectural design. They govern how spaces feel and how buildings relate to the human body.\n\n## Key Concepts\n\n### Human Scale\n- The human body as a measure (Le Corbusier's Modulor)\n- Ergonomics in spatial planning\n- Thresholds: intimate (≤2.4m), social (2.4–3.6m), public (≥3.6m)\n\n### The Golden Ratio\n- φ ≈ 1.618 — found in nature and classical architecture\n- Application: room proportions, facade composition\n- The Parthenon, Notre-Dame, and modern examples\n\n### Modular Coordination\n- 100 mm × 100 mm basic module\n- 300 mm vertical module for floor-to-floor\n- Grid-based planning for efficiency\n\n## Exercise\nTake a floor plan you are working on. Check each room's aspect ratio against 1:1, 3:2, and φ:1. Note which feels most balanced.\n"
+        },
+        {
+          "id": "spatial-organization",
+          "title": "Spatial Organization",
+          "summary": "Ways to organize spaces: linear, radial, clustered, grid, and narrative",
+          "duration": "15 min",
+          "content": "# Spatial Organization\n\n## Introduction\nHow spaces are arranged determines the experience of a building. Five archetypal organizations appear across architectural history.\n\n## Organization Types\n\n### Linear\n- Spaces arranged along a path or axis\n- Examples: museum galleries, school corridors\n- Creates clear circulation and hierarchy\n\n### Radial\n- Central hub with radiating spokes\n- Examples: Palmanova, airport terminals\n- Efficient distribution with central reference\n\n### Clustered\n- Groups of related spaces without rigid geometry\n- Examples: villages, organic modern houses\n- Flexible, adaptable to site constraints\n\n### Grid\n- Spaces on a regular matrix\n- Examples: Mies van der Rohe's plans, Roman castra\n- Rational, expandable, efficient\n\n### Narrative\n- Sequence of spaces tells a story\n- Examples: Kahn's Exeter Library, Zumthor's Therme Vals\n- Journey-based design\n\n## Exercise\nChoose one of your current projects. Identify which organization type(s) it uses. Sketch an alternative using a different type.\n"
+        },
+        {
+          "id": "hierarchy-emphasis",
+          "title": "Hierarchy & Emphasis",
+          "summary": "Creating visual hierarchy through form, size, and material contrast",
+          "duration": "10 min",
+          "content": "# Hierarchy & Emphasis\n\n## Introduction\nNot all parts of a building are equal. Hierarchy guides the eye and communicates function.\n\n## Creating Hierarchy\n\n### By Size\n- Larger forms dominate smaller ones\n- Main entrance taller than service doors\n- Primary volume distinct from wings\n\n### By Shape\n- Unique shapes draw attention\n- A circular hall in a rectilinear plan\n- Contrasting roof forms\n\n### By Material\n- Rich materials for focal elements\n- Stone entry vs. stucco walls\n- Glazing to emphasize transparency\n\n### By Contrast\n- Light vs. dark\n- Solid vs. void\n- Rough vs. smooth\n\n## Exercise\nIn your current facade design, label elements by hierarchy level (primary, secondary, tertiary). Adjust at least one element to strengthen the hierarchy.\n"
+        },
+        {
+          "id": "rhythm-repetition",
+          "title": "Rhythm & Repetition",
+          "summary": "Using repetition, rhythm, and pattern to create cohesive architectural compositions",
+          "duration": "11 min",
+          "content": "# Rhythm & Repetition\n\n## Introduction\nRhythm in architecture works like rhythm in music — it creates order, movement, and expectation.\n\n## Types of Rhythmic Patterns\n\n### Regular Rhythm\n- Equal spacing of identical elements\n- Example: colonnades, window grids\n- Creates stability and order\n\n### Progressive Rhythm\n- Gradual change in size or spacing\n- Example: Alvar Aalto's ceiling fins\n- Adds dynamism without chaos\n\n### Alternating Rhythm\n- Two or more elements in sequence\n- Example: bay window, solid, bay window\n- Relieves monotony\n\n### Free Rhythm\n- Irregular but intentional placement\n- Example: Frank Lloyd Wright's window bands\n- Organic, nature-inspired\n\n## Exercise\nCount the rhythmic patterns in your current elevation. Classify each as regular, progressive, alternating, or free. Introduce one change to enhance the rhythm.\n"
+        }
+      ]
+    },
+    {
+      "id": "structures-systems",
+      "title": "Building Structures & Systems",
+      "description": "How buildings stand, move air, water, and energy",
+      "icon": "grid",
+      "color": "#c0392b",
+      "lessons": [
+        {
+          "id": "load-paths",
+          "title": "Load Paths & Structural Logic",
+          "summary": "Understanding gravity and lateral load paths through a building",
+          "duration": "14 min",
+          "content": "# Load Paths & Structural Logic\n\n## Introduction\nEvery building transfers loads from roof to foundation. Understanding load paths is critical for architects to collaborate with engineers.\n\n## Load Types\n\n### Gravity Loads\n- Dead load: self-weight of materials\n- Live load: occupants, furniture, snow\n- Distributed vs. concentrated\n\n### Lateral Loads\n- Wind pressure (varies by height and exposure)\n- Seismic forces (mass × acceleration)\n- Soil pressure on retaining walls\n\n## Load Path\n1. Roof/floor deck → joists → beams → girders → columns/walls → footings → soil\n2. Each element must be sized for the load it carries\n3. Continuity: the path must be unbroken\n\n## Structural Systems\n- **Masonry bearing wall**: walls carry everything\n- **Concrete frame**: columns and beams\n- **Steel frame**: efficient for tall buildings\n- **Timber**: renewable, limited spans\n\n## Exercise\nDraw a simple section through your building. Trace the load path from roof to foundation. Label each element and its load type.\n"
+        },
+        {
+          "id": "building-envelope",
+          "title": "Building Envelope & Thermal Performance",
+          "summary": "Walls, roofs, windows, and how they control heat and moisture",
+          "duration": "16 min",
+          "content": "# Building Envelope & Thermal Performance\n\n## Introduction\nThe building envelope separates inside from outside. It must manage heat, air, moisture, and light.\n\n## Key Principles\n\n### Thermal Control\n- Insulation: continuous layer, minimise thermal bridges\n- U-value: measure of heat transfer (lower = better)\n- Passivhaus standard: ≤0.15 W/m²K for walls\n\n### Air Barrier\n- Airtight layer on the warm side\n- Uncontrolled leakage = 20–40% of heat loss\n- Tested via blower door (≤0.6 ACH @50Pa for Passivhaus)\n\n### Moisture Management\n- Vapour barrier on warm side in cold climates\n- Drainage plane behind cladding\n- Drip edges at all horizontal interruptions\n\n### Fenestration\n- Window-to-wall ratio: 30–40% typical\n- Triple glazing for cold climates\n- Solar heat gain coefficient (SHGC) for warm climates\n\n## Exercise\nCheck your current project's wall assembly. Identify the insulation layer, air barrier, and vapour control layer. Is the U-value within Passivhaus range?\n"
+        },
+        {
+          "id": "services-integration",
+          "title": "MEP Services Integration",
+          "summary": "Coordinating mechanical, electrical, and plumbing systems in architectural design",
+          "duration": "13 min",
+          "content": "# MEP Services Integration\n\n## Introduction\nModern buildings require complex services. Early coordination avoids costly clashes.\n\n## Mechanical Systems\n\n### HVAC Types\n- **Split system**: simple, per-zone control\n- **VAV (Variable Air Volume)**: efficient for large commercial\n- **Underfloor**: radiant heating/cooling, better comfort\n- **Heat recovery ventilation (HRV)**: essential for airtight buildings\n\n### Ductwork\n- Main ducts: 600×400 mm typical\n- Ceiling zone requirement: 300–400 mm for ducts\n- Coordinate with structure — ducts go below beams\n\n## Electrical Systems\n\n### Power Distribution\n- Main switchboard → sub-boards → final circuits\n- Floor outlets every 3–4 m in commercial\n- Data/IT: separate conduit from power\n\n### Lighting\n- Zonal controls with occupancy sensors\n- Daylight harvesting dims electric lights near windows\n- Emergency lighting on separate circuit\n\n## Plumbing\n\n### Water Supply\n- Main incoming: typically 25 mm diameter\n- Hot water circulation loop for large buildings\n- Access panels at all valves\n\n### Drainage\n- Slope: minimum 1:40 for waste pipes\n- Vent pipes to prevent siphonage\n- Rainwater: separate from foul water\n\n## Exercise\nIn your current plan, designate a 300 mm service zone in ceilings and a 150 mm raised floor zone. Check if all spaces can accommodate the required ducts and pipes.\n"
+        }
+      ]
+    },
+    {
+      "id": "sustainable-design",
+      "title": "Sustainable & Net-Zero Design",
+      "description": "Environmental strategies from passive solar to embodied carbon",
+      "icon": "leaf",
+      "color": "#27ae60",
+      "lessons": [
+        {
+          "id": "passive-design",
+          "title": "Passive Design Strategies",
+          "summary": "Orientation, shading, natural ventilation, and thermal mass",
+          "duration": "15 min",
+          "content": "# Passive Design Strategies\n\n## Introduction\nPassive design uses building form and fabric to regulate comfort without mechanical systems.\n\n## Orientation\n- Long axis east–west in temperate climates\n- South-facing glazing for winter solar gain (northern hemisphere)\n- Minimise west-facing glazing to avoid overheating\n\n## Shading\n- Fixed overhangs sized for summer sun angle\n- Horizontal devices on south; vertical on east/west\n- External blinds more effective than internal\n\n## Natural Ventilation\n- Cross-ventilation: openings on opposite sides\n- Stack effect: warm air rises out of high openings\n- Night purge: cool night air flushes daytime heat\n\n## Thermal Mass\n- Concrete, stone, or rammed earth floors\n- Absorbs daytime heat, releases at night\n- Best in climates with large diurnal temperature swings\n\n## Exercise\nReview your building's orientation. Add overhangs at south windows. Add at least one cross-ventilation path through each plan.\n"
+        },
+        {
+          "id": "embodied-carbon",
+          "title": "Embodied Carbon & Material Choice",
+          "summary": "Understanding upfront carbon emissions and low-carbon material selection",
+          "duration": "14 min",
+          "content": "# Embodied Carbon & Material Choice\n\n## Introduction\nEmbodied carbon — the CO₂ emitted during extraction, manufacturing, transport, and construction — is now recognised as critical to climate action.\n\n## Why It Matters\n- Embodied carbon accounts for 50% of whole-life carbon in high-performance buildings\n- It is emitted upfront, when we can least afford it (carbon budget)\n- Operational carbon can be reduced over time; embodied carbon is locked in at completion\n\n## Material Comparison\n\n| Material | kg CO₂e / kg | kg CO₂e / m³ |\n|----------|-------------|--------------|\n| Timber (glulam) | 0.5 | 250 |\n| Steel (recycled) | 0.5 | 3,900 |\n| Concrete (standard) | 0.15 | 360 |\n| Concrete (low-carbon) | 0.08 | 190 |\n| Aluminium | 8.5 | 22,950 |\n\n## Reduction Strategies\n1. **Build less** — smaller, smarter plans\n2. **Build light** — timber instead of steel/concrete\n3. **Use low-carbon concrete** — slag or fly ash substitution\n4. **Design for disassembly** — bolted connections, not glued\n5. **Reuse** — structural salvage, reclaimed bricks\n\n## Exercise\nFor a 1 m³ column, compare embodied carbon in steel vs. glulam. If the building has 12 such columns, what is the total carbon saving from choosing timber?\n"
+        },
+        {
+          "id": "net-zero-operational",
+          "title": "Net-Zero Operational Energy",
+          "summary": "Energy hierarchy, on-site renewables, and grid interaction",
+          "duration": "12 min",
+          "content": "# Net-Zero Operational Energy\n\n## Introduction\nA net-zero energy building produces as much energy as it consumes annually.\n\n## Energy Hierarchy\n\n### 1. Reduce Demand\n- Super-insulated envelope (Passivhaus)\n- Efficient appliances and lighting\n- Daylight-first design\n\n### 2. Recover Energy\n- Heat recovery ventilation (≥80% efficiency)\n- Greywater heat recovery\n\n### 3. Supply Renewables\n- **Photovoltaics**: 1 kWp ≈ 800–1,200 kWh/year\n- **Solar thermal**: hot water pre-heat\n- **Heat pumps**: 3–4× more efficient than resistance heating\n- **Wind**: only viable in exposed rural sites\n\n## Calculation\n- Annual energy use intensity (EUI): target ≤ 50 kWh/m²/year (Passivhaus ≤ 15)\n- PV area needed ≈ EUI × floor area / (annual yield per m²)\n- Typical PV yield: 150 kWh/m²/year in temperate climate\n\n## Grid Interaction\n- Net metering: export excess, import deficit\n- Battery storage: 5–10 kWh typical for residential\n- Smart controls: shift load to sunny hours\n\n## Exercise\nCalculate the PV array area needed for your project to reach net-zero. Use the formula above. Does your roof have enough area?\n"
+        }
+      ]
+    },
+    {
+      "id": "construction-docs",
+      "title": "Construction Documentation",
+      "description": "Drawings, specifications, and BIM standards for contract documentation",
+      "icon": "file-text",
+      "color": "#8e44ad",
+      "lessons": [
+        {
+          "id": "drawing-sets",
+          "title": "Drawing Sets & Organisation",
+          "summary": "How to structure a complete construction drawing set",
+          "duration": "13 min",
+          "content": "# Drawing Sets & Organisation\n\n## Introduction\nA well-organised drawing set communicates design intent clearly and reduces RFIs.\n\n## Standard Sheet Order (AIA / BS 1192)\n\n| Division | Content |\n|----------|---------|\n| G | General — cover sheet, site location, drawing index |\n| A | Architectural — plans, elevations, sections, details |\n| S | Structural — foundation, framing, schedules |\n| M | Mechanical — HVAC, ductwork, controls |\n| E | Electrical — power, lighting, data |\n| P | Plumbing — water supply, drainage, fixtures |\n\n## Each Sheet Should Include\n- Project name, number, and address\n- Sheet title and number\n- North arrow and scale (graphic + numeric)\n- Drawing notes and abbreviations\n- Revision block with date and description\n- Professional title block with firm name\n\n## Best Practices\n- Use consistent line weights (heavy for cut, medium for visible, light for hidden)\n- Annotate once — reference elsewhere\n- Include key plans for partial plans\n- Maintain a drawing index on sheet G-001\n\n## Exercise\nCreate a drawing index for your current project. Assign each sheet a discipline prefix and sequential number. Ensure every drawing has a unique identifier.\n"
+        },
+        {
+          "id": "specifications",
+          "title": "Specifications & Schedules",
+          "summary": "Writing clear specifications, finish schedules, and door/window schedules",
+          "duration": "12 min",
+          "content": "# Specifications & Schedules\n\n## Introduction\nSpecifications describe what drawings cannot: quality, standards, and installation methods.\n\n## Specification Sections (CSI MasterFormat)\n\n| Division | Title |\n|----------|-------|\n| 03 | Concrete |\n| 04 | Masonry |\n| 05 | Metals |\n| 06 | Wood, Plastics, Composites |\n| 07 | Thermal & Moisture Protection |\n| 08 | Openings (doors, windows, hardware) |\n| 09 | Finishes |\n| 22 | Plumbing |\n| 23 | HVAC |\n| 26 | Electrical |\n\n## Writing Style\n- **Use prescriptive language**: \"shall be\" not \"should be\"\n- **Reference standards**: ASTM, ISO, BS\n- **Avoid opinion**: not \"high quality\" but \"Class A\" per standard\n- **Three-part format**: General → Products → Execution\n\n## Schedules\n- **Finish schedule**: room-by-room floor, wall, ceiling materials\n- **Door schedule**: mark, size, type, hardware set, fire rating\n- **Window schedule**: mark, dimensions, frame type, glazing spec\n\n## Exercise\nWrite a finish schedule for three rooms in your project. Include floor, wall (paint/wall covering), and ceiling finish for each. Use consistent codes.\n"
+        },
+        {
+          "id": "bim-standards",
+          "title": "BIM Standards & Information Management",
+          "summary": "ISO 19650, level of development (LOD), and model coordination",
+          "duration": "14 min",
+          "content": "# BIM Standards & Information Management\n\n## Introduction\nBuilding Information Modelling (BIM) is a process for managing project information throughout its lifecycle.\n\n## ISO 19650 Framework\n\n### Key Concepts\n- **CDE**: Common Data Environment — single source of truth\n- **LOD**: Level of Development (100–500)\n  - LOD 200: Schematic design (approximate quantities)\n  - LOD 300: Detailed design (coordinated, accurate)\n  - LOD 350: Construction documents (with interfaces)\n  - LOD 400: Fabrication/assembly (shop drawings)\n- **MI**: Model Information — metadata attached to each element\n\n### Information Exchange\n- **PIR**: Project Information Requirements\n- **AIR**: Asset Information Requirements\n- **EIR**: Exchange Information Requirements\n- **BEP**: BIM Execution Plan — how the team will deliver\n\n## Coordination\n- **Clash detection**: find conflicts between disciplines\n- **Model federation**: combine architectural, structural, MEP\n- **COBie**: Construction Operations Building Information Exchange\n\n## Exercise\nDownload your current model. Check each element's LOD. Are any elements below LOD 300? Create a BEP checklist for your project team.\n"
+        },
+        {
+          "id": "revision-control",
+          "title": "Revision Control & Issue Management",
+          "summary": "Managing drawing revisions, transmittals, and document control",
+          "duration": "10 min",
+          "content": "# Revision Control & Issue Management\n\n## Introduction\nClear revision tracking prevents construction errors and legal disputes.\n\n## Revision Identification\n| Code | Meaning |\n|------|---------|\n| S1–S9 | Sequential sketch (internal) |\n| P1–P9 | Planning issue |\n| T1–T9 | Tender issue |\n| C1–C9 | Construction issue (IFC) |\n| A1–A9 | As-built |\n\n## Revision Block\nEach revision should include:\n- Unique revision number (e.g., P01, C02)\n- Date of issue\n- Description of change\n- Authorisation (signature or initials)\n- Related RFI or change order number\n\n## Process\n1. **Internal review** → mark-up in red\n2. **Issue for comment** (IFC) → to consultant team\n3. **Incorporate comments** → next revision\n4. **Issue for construction** → final approval\n5. **As-built** → record actual conditions\n\n## Exercise\nAdd a revision block to one of your sheets. Log a mock revision (C01) with a description. Update the issue date and authorisation.\n"
+        }
+      ]
+    },
+    {
+      "id": "history-theory",
+      "title": "Architectural History & Theory",
+      "description": "Key movements, architects, and ideas that shaped the built environment",
+      "icon": "book",
+      "color": "#f39c12",
+      "lessons": [
+        {
+          "id": "classical-to-modern",
+          "title": "From Classicism to Modernism",
+          "summary": "The evolution of architectural thought from Vitruvius to Mies",
+          "duration": "18 min",
+          "content": "# From Classicism to Modernism\n\n## Introduction\nArchitectural history reveals recurring themes: order, ornament, truth to materials, and the relationship of building to society.\n\n## Classical Orders\n- **Doric**: sturdy, masculine\n- **Ionic**: elegant, feminine volutes\n- **Corinthian**: ornate acanthus leaves\n- Vitruvius: firmitas, utilitas, venustas (strength, utility, beauty)\n\n## Gothic\n- Pointed arches, ribbed vaults, flying buttresses\n- Verticality and light (Sainte-Chapelle, Chartres)\n- Structural innovation allowing taller, lighter buildings\n\n## Renaissance\n- Brunelleschi's dome, Alberti's facades\n- Centralised plans, perspective in drawing\n- Return to classical orders with mathematical precision\n\n## Baroque\n- Drama, movement, and illusion (Bernini, Borromini)\n- Curved walls, theatrical light\n- Urban interventions: piazzas, fountains\n\n## Modernism\n- **Form follows function** (Louis Sullivan)\n- **Less is more** (Mies van der Rohe)\n- **House is a machine for living** (Le Corbusier)\n- International Style: glass, steel, minimalism\n\n## Exercise\nPick one building from your city built before 1900 and one built after 1950. Compare their approach to facade composition, material use, and relation to the street.\n"
+        },
+        {
+          "id": "postmodern-contemporary",
+          "title": "Postmodernism to Contemporary",
+          "summary": "Pluralism, contextualism, parametricism, and digital fabrication",
+          "duration": "15 min",
+          "content": "# Postmodernism to Contemporary\n\n## Introduction\nPostmodernism rejected Modernism's austerity. Contemporary architecture embraces multiplicity.\n\n## Postmodernism\n- **Complexity and Contradiction** (Robert Venturi)\n- **Learning from Las Vegas** — symbolism and iconography\n- Historical references, humour, colour\n- Examples: Piazza d'Italia (Moore), AT&T Building (Johnson)\n\n## Deconstructivism\n- Fragmentation, non-rectilinear shapes\n- **Peter Eisenman**, **Zaha Hadid**, **Frank Gehry**\n- Digital tools enabling complex geometry\n\n## Critical Regionalism\n- **Kenneth Frampton**: resist universal civilisation\n- Modernism inflected by local climate, materials, culture\n- Examples: Tadao Ando, Alvar Aalto, Alvaro Siza\n\n## Parametricism\n- **Patrik Schumacher** — all design elements as variables\n- Algorithm-driven form-finding\n- Digital fabrication: CNC, 3D printing, robotic assembly\n\n## Contemporary Themes\n- **Sustainability** — passive house, net-zero, biophilic\n- **Adaptive reuse** — low-carbon, heritage-sensitive\n- **Participatory design** — community engagement in process\n- **Computational design** — generative AI, optimisation\n\n## Exercise\nChoose a contemporary building and analyse it through three lenses: 1) How does it reference its context? 2) What technologies enabled its form? 3) How does it address environmental performance?\n"
+        },
+        {
+          "id": "urban-theory",
+          "title": "Urban Design Theory",
+          "summary": "Streets, blocks, public space, and the making of the city",
+          "duration": "14 min",
+          "content": "# Urban Design Theory\n\n## Introduction\nBuildings exist within urban fabric. Understanding urban design is essential for contextual architecture.\n\n## Key Thinkers\n\n### Jane Jacobs (The Death and Life of Great American Cities)\n- Mixed-use, short blocks, aged buildings\n- \"Eyes on the street\" — natural surveillance\n- Bottom-up, organic urbanism\n\n### Kevin Lynch (The Image of the City)\n- Five elements: paths, edges, districts, nodes, landmarks\n- Legibility: how well people navigate a city\n- Mental maps: every user constructs their own\n\n### Jan Gehl (Life Between Buildings)\n- Human scale at street level\n- Soft edges: active frontages, seating, detail\n- 5 km/h design vs. 50 km/h design\n\n## Transit-Oriented Development (TOD)\n- Mix of uses within 400–800 m of transit station\n- Pedestrian-first, reduced parking\n- Higher density near transit\n\n## 15-Minute City\n- All daily needs within a 15-minute walk or cycle\n- Distributed amenities, reduced car dependence\n- Post-pandemic urban ideal\n\n## Exercise\nMap a 400 m radius around your project site using Google Maps or OpenStreetMap. Identify: paths, edges, districts, nodes, and landmarks. Is the area legible?\n"
+        }
+      ]
+    }
+  ]
+}

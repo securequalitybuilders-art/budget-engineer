@@ -1,6 +1,6 @@
 import type { PlanModel, Point, WallSegment, RoomRect } from '@/domain/plan'
 
-const uid = () => Math.random().toString(36).slice(2, 10)
+const uid = () => Math.random().toString(36).slice(2, 8)
 
 interface DxfEntity {
   type: string

@@ -1,6 +1,58 @@
 # Changelog
 
+## [1.0.0] - 2026-07-11 — Premium Architectural Studio
+
+### Summary
+
+The first major release of Budget Engineer. Eight implementation phases (P0–P8) transform Budget Engineer from a budgeting tool into a professional-grade, multi-discipline architectural design operating system. 53 new files, ~265 new tests, 1,059 total tests across 62 files. Typecheck, build, and lint all green.
+
+See [docs/RELEASE_NOTES_v1.0.0.md](docs/RELEASE_NOTES_v1.0.0.md) for the full release notes.
+
+### Added
+- **P1 — Professional Drafting Standards:** AIA-standard layer naming, dimension styles, sheet sizes (A4–A0), professional title blocks, drawing naming conventions
+- **P2 — Multi-Discipline Framework:** 6 disciplines (Architecture, Structure, MEP, Interior, Site, QS), discipline-specific stage arrays, store-backed switching, discipline switcher UI, discipline-scoped BOQ filtering, semantic stage IDs
+- **P3 — Interior Design Studio:** 62 fixtures, 14 room templates, material/finish scheduling, interior canvas, material palette, BOQ integration via `interiorToBoq` adapter, `interiorStore`
+- **P4 — Heliodon & Site Analysis:** Sun-path engine, shadow casting, wind analysis, composite site analysis, SVG sun-path diagram, shadow overlay, site analysis panel, heliodon view
+- **P5 — Image-to-Floor-Plan AI:** Guided import workflow, drag-drop upload, scale calibration, detection review with confidence overlay, improved merging heuristics
+- **P6 — Professional DXF Pipeline:** DXF writer with AIA layers, paper-space layout, dimension entities, block INSERT export, importer improvements, roundtrip testing
+- **P7 — Presentation Board Engine:** Board domain model, grid layout engine (1–9 cells, A1/A0), annotations (text/arrow/freehand), board editor, templates, snapshot capture, SVG/PNG/PDF export, `presentationStore`
+- **P8 — Architecture Academy:** Skill taxonomy (5+ paths, 3+ lessons each), lesson engine, progress tracking via `academyStore`, skill path browser, context tips, academy routes
+
+### Fixed (P0 Stabilization)
+- `npm ci` / lock file sync
+- Previously failing test suites
+- Build memory issues
+- README/CI claims reconciled with actual state
+- In-app copy verified (no false sync/cloud claims)
+
+### New Routes
+- `/project/:id/studio/presentation` — Presentation board studio
+- `/academy` — Skill path browser
+- `/academy/:skillPath/:lessonId` — Individual lessons
+
+### New Stores
+- `disciplineStore` — active discipline, visible disciplines, discipline tags
+- `interiorStore` — rooms, fixtures, materials with IndexedDB persistence
+- `presentationStore` — boards, annotations, snapshots with IndexedDB persistence
+- `academyStore` — learning progress per skill path
+
+### New Domain Models
+- `Discipline` in `src/domain/disciplines.ts`
+- `InteriorProject` in `src/domain/interior.ts`
+- `SiteContext` in `src/domain/site.ts`
+- `PresentationBoard` in `src/domain/presentation.ts`
+
+### Quality
+- 1,059 tests across 62 files
+- 0 TypeScript errors (strict mode)
+- ≤ 10 lint warnings
+- Build green with PWA assets
+- Lighthouse: A11y 100, Best Practices 100, SEO 100, Performance 74–76
+
+---
+
 ## [Unreleased]
+
 
 ### Clean Lighthouse + Performance
 

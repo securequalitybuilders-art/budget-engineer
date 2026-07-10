@@ -16,6 +16,9 @@ const ProjectWizard = lazy(() => import('@/pages/ProjectWizard').then((m) => ({ 
 const Dashboard = lazy(() => import('@/pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 const PortfolioPage = lazy(() => import('@/pages/PortfolioPage').then((m) => ({ default: m.PortfolioPage })));
 const FeedbackPage = lazy(() => import('@/pages/FeedbackPage').then((m) => ({ default: m.FeedbackPage })));
+const PresentationStudio = lazy(() => import('@/pages/studio/PresentationStudio'));
+const AcademyHome = lazy(() => import('@/pages/Academy').then((m) => ({ default: m.AcademyHome })));
+const AcademyLesson = lazy(() => import('@/pages/Academy').then((m) => ({ default: m.AcademyLesson })));
 
 function GlobalLayout() {
   useKeyboardShortcuts();
@@ -81,6 +84,30 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <FeedbackPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: '/project/:id/studio/presentation',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <PresentationStudio />
+          </Suspense>
+        ),
+      },
+      {
+        path: '/academy',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AcademyHome />
+          </Suspense>
+        ),
+      },
+      {
+        path: '/academy/:skillPath/:lessonId',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AcademyLesson />
           </Suspense>
         ),
       },
