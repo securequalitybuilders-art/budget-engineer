@@ -1,13 +1,10 @@
-# Feature Matrix — Budget Engineer OS Canonical
+# Feature Matrix — Budget Engineer Premium Architectural Studio
 
-> **Date:** 2026-07-08 (v0.9.0)  
-> **Base:** WS1 (`workspace-chart 1`)  
-> **Legend:** ✅ Present | ❌ Missing | 🔄 Staged (not wired)
-> **Phase E (WS6 AI + Drawing Management) merged.**  
-> **Sprint 1:** 6 staged WS6 panels wired into Engineering Studio dashboard section.  
-> **Sprint 1.1:** Stabilized Engineering Studio — WebLLM button disabled, NaN guards, smoke report created.  
-> **Sprint 2:** 3D BIM viewer integrated into Dashboard with 2D/3D toggle + design-to-BIM adapter.  
-> **Sprint 3:** Local AI brief-to-design flow wired — brief parser + design engine produce visible design options in Dashboard via AiBriefPanel.
+> **Date:** 2026-07-11 (v1.0.0)  
+> **Status:** Current capability matrix for the Premium Architectural Studio release.  
+> **Legend:** ✅ Present | ❌ Missing | 🔄 Staged (not wired)  
+> **Release baseline:** 1,059 tests across 61 test files, strict TypeScript green, build green, lint within warning budget.  
+> **Note:** Historical merge/audit detail below is retained for reference where still relevant, but the current release truth is v1.0.0.
 > **Sprint 93:** Lighthouse audit + a11y/SEO/PWA hardening (A11y 100, BP 100, SEO 100).
 
 ---

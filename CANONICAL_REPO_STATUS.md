@@ -1,8 +1,11 @@
-# Canonical Repo Status — Budget Engineer OS
+# Canonical Repo Status — Budget Engineer Premium Architectural Studio
 
-> **Date:** 2026-07-08 (v0.9.0)  
-> **Base:** WS1 (`workspace-chart 1/budget-engineer-os`)  
-> **Status:** v0.9.0 — Workspace UX, Import & Offline Extraction Phase. First-run onboarding tour (S81), 6-stage workflow navigation rail + stage-based Dashboard (S82), unified left sidebar dashboard with project tools (S83), DXF import (S84), multi-format image/PDF backdrop with scale calibration (S85), backdrop canvas fix (S86), offline floor-plan image wall/room detection via OpenCV.js/WASM with detect-then-correct flow (S87). Builds on all prior phases: SADC Building-Code Compliance (4 jurisdictions, 28 rules), Parametric Biomimetic Canopy (Voronoi-cell, ETFE, spine ribs), Interior Inspection (dollhouse/fly-in/walkthrough), Interactive 2D CAD Editor, Professional Drawings (11 types + A1 sheet), Governance approval workflow, Snapshot history, Portfolio dashboard, and all earlier features. Lint baseline at 9 warnings. All 978 unit tests pass (53 files). `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (978 passed, 53 files).
+> **Date:** 2026-07-11 (v1.0.0)  
+> **Base:** Canonical GitHub `main` branch  
+> **Status:** v1.0.0 — Premium Architectural Studio release complete.  
+> **Summary:** The canonical repo now includes the original 6-stage pipeline plus premium drafting standards, multi-discipline stage registry, interior studio, heliodon/site analysis, guided image-to-plan workflow, professional DXF pipeline, presentation board engine, and architecture academy.  
+> **Quality baseline:** 1,059 tests across 61 test files, strict TypeScript green, build green, lint within warning budget.  
+> **Note:** Historical sprint integration detail below is retained for reference; the current release truth is v1.0.0.
 
 ---
 

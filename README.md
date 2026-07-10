@@ -289,7 +289,7 @@ See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for full details.
 
 | Metric | Value |
 |---|---|
-| Tests | 1,059 across 62 files |
+| Tests | 1,059 across 61 test files |
 | TypeScript | 0 errors (strict mode) |
 | Lighthouse A11y | 100 |
 | Lighthouse Best Practices | 100 |
@@ -352,7 +352,7 @@ Each push to `main` runs via GitHub Actions:
 1. `npm ci`
 2. `npm run typecheck`
 3. `npm run lint`
-4. `npm test` (1,059 tests across 62 files)
+4. `npm test` (1,059 tests across 61 test files)
 5. `npm run build` (PWA service worker generated)
 
 ---
@@ -365,7 +365,7 @@ Each push to `main` runs via GitHub Actions:
 | Codename | Premium Architectural Studio |
 | Live demo | [budget-engineer.vercel.app](https://budget-engineer.vercel.app/) |
 | GitHub | [github.com/securequalitybuilders-art/budget-engineer](https://github.com/securequalitybuilders-art/budget-engineer) |
-| Tests | 1,059 across 62 files |
+| Tests | 1,059 across 61 test files |
 | Architecture | Local-first, no paid APIs, no backend, no cloud LLM |
 
 See [CHANGELOG.md](CHANGELOG.md) for full release history. Release notes for each version are in `docs/RELEASE_NOTES_v*.md`.

@@ -3,7 +3,7 @@
 > **Release date:** 2026-07-11  
 > **Codename:** Premium Architectural Studio  
 > **Previous version:** v0.9.0  
-> **Tests:** 1,059 across 62 files  
+> **Tests:** 1,059 across 61 test files  
 > **Typecheck:** ✅ Green (strict mode)  
 > **Build:** ✅ Green  
 > **Lint:** ✅ Within budget (≤10 warnings)
