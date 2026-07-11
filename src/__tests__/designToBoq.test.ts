@@ -230,4 +230,78 @@ describe('designToBoq', () => {
     const html = buildExportHtml('Test House 3', boq, 150, 1, 'Zimbabwe (CWICR)', boq.assumptions, boq.sourceMetadata)
     expect(html).toContain('no walls')
   })
+
+  // ── P10 Fix 6: BOQ correctness assertions ──
+
+  it('no duplicate wall items — single source of truth from GeometryQuantities', () => {
+    const design = makeDesign({ name: 'Wall Duplication Check', grossFloorArea: 100 })
+    const boq = buildBoqFromDesignOption(design, 'zimbabwe')!
+    const wallItems = boq.items.filter((i) => i.category === 'Walls')
+    // Expect exactly 2 wall items: external walls + partitions
+    expect(wallItems.length).toBe(2)
+    expect(wallItems.some((i) => i.quantityRef === 'external-walls')).toBe(true)
+    expect(wallItems.some((i) => i.quantityRef === 'partitions')).toBe(true)
+    // No duplicated summary items
+    const extWalls = wallItems.filter((i) => i.quantityRef === 'external-walls')
+    expect(extWalls.length).toBe(1)
+    const parts = wallItems.filter((i) => i.quantityRef === 'partitions')
+    expect(parts.length).toBe(1)
+  })
+
+  it('no duplicate opening items — doors and windows appear once each', () => {
+    const design = makeDesign({ name: 'Opening Duplication Check', grossFloorArea: 100 })
+    const boq = buildBoqFromDesignOption(design, 'zimbabwe')!
+    const openingItems = boq.items.filter((i) => i.category === 'Openings')
+    // Expect exactly 2 opening items: doors + windows
+    expect(openingItems.length).toBe(2)
+    expect(openingItems.some((i) => i.quantityRef === 'doors')).toBe(true)
+    expect(openingItems.some((i) => i.quantityRef === 'windows')).toBe(true)
+    const doors = openingItems.filter((i) => i.quantityRef === 'doors')
+    expect(doors.length).toBe(1)
+    const windows = openingItems.filter((i) => i.quantityRef === 'windows')
+    expect(windows.length).toBe(1)
+  })
+
+  it('no duplicate slab or roof items', () => {
+    const design = makeDesign({ name: 'Slab Roof Check', grossFloorArea: 100 })
+    const boq = buildBoqFromDesignOption(design, 'zimbabwe')!
+    const slabItems = boq.items.filter((i) => i.category === 'Slabs')
+    expect(slabItems.length).toBe(1)
+    const roofItems = boq.items.filter((i) => i.category === 'Roof')
+    expect(roofItems.length).toBe(1)
+  })
+
+  it('roof type concrete-slab uses rate ~75', () => {
+    const design = makeDesign({ name: 'Concrete Roof Check', grossFloorArea: 100 })
+    const boq = buildBoqFromDesignOption(design, 'zimbabwe', undefined, undefined, 'concrete-slab')!
+    const roofItem = boq.items.find((i) => i.category === 'Roof')
+    expect(roofItem).toBeDefined()
+    expect(roofItem!.rate).toBeGreaterThan(70)
+    expect(roofItem!.rate).toBeLessThan(80)
+  })
+
+  it('roof type cgi-truss uses lower rate than concrete-slab', () => {
+    const design = makeDesign({ name: 'CGI Roof Check', grossFloorArea: 100 })
+    const slabBoq = buildBoqFromDesignOption(design, 'zimbabwe', undefined, undefined, 'concrete-slab')!
+    const cgiBoq = buildBoqFromDesignOption(design, 'zimbabwe', undefined, undefined, 'cgi-truss')!
+    const slabRoof = slabBoq.items.find((i) => i.category === 'Roof')!
+    const cgiRoof = cgiBoq.items.find((i) => i.category === 'Roof')!
+    expect(cgiRoof.rate).toBeLessThan(slabRoof.rate)
+  })
+
+  it('estimateDepth is populated', () => {
+    const design = makeDesign({ name: 'Depth Check', grossFloorArea: 100 })
+    const boq = buildBoqFromDesignOption(design, 'zimbabwe')!
+    expect(boq.estimateDepth).toBeDefined()
+    expect(['shell', 'shell-with-allowances', 'detailed']).toContain(boq.estimateDepth)
+  })
+
+  it('BOQ items have deterministic IDs (no uuid per call)', () => {
+    const design = makeDesign({ name: 'Idempotent Check', grossFloorArea: 100 })
+    const boq1 = buildBoqFromDesignOption(design, 'zimbabwe')!
+    const boq2 = buildBoqFromDesignOption(design, 'zimbabwe')!
+    const ids1 = boq1.items.map((i) => i.id).sort()
+    const ids2 = boq2.items.map((i) => i.id).sort()
+    expect(ids1).toEqual(ids2)
+  })
 })

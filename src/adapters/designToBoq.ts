@@ -1,16 +1,10 @@
 import type { DesignOption } from '@/domain/boq'
-import type { BOQ, BOQLineItem } from '@/lib/boq/boq-types'
-import { designOptionToBimModel } from './designToBim'
-import { generateBoqFromBim } from '@/engine/boq-generator'
+import type { BOQ, BOQLineItem, EstimateDepth } from '@/lib/boq/boq-types'
 import { resolveBoqRate, getContingencyRate, getFeesRate, getVatRate } from './rateCardAdapter'
 import { getRegionRateCard } from './rateCardAdapter'
 import type { RateAssumption } from './rateCardAdapter'
 import { extractGeometryQuantities, type GeometryQuantities } from './geometryQuantitiesAdapter'
 import type { CadQuantities } from './cadQuantitiesAdapter'
-
-function safe<T>(fn: () => T, fallback: T): T {
-  try { return fn() } catch { return fallback }
-}
 
 export type GeometrySource = 'generated-design' | 'persisted-cad' | 'fallback-generated' | 'unknown'
 
@@ -28,10 +22,18 @@ export interface BoqResult extends BOQ {
   assumptions: RateAssumption[]
   quantities?: GeometryQuantities
   sourceMetadata?: BoqSourceMetadata
+  estimateDepth: EstimateDepth
 }
+
+export type RoofType = 'concrete-slab' | 'cgi-truss'
 
 const QTY_SOURCE_GENERATED = 'generated geometry'
 const QTY_SOURCE_EDITED_CAD = 'edited CAD'
+
+const ROOF_TYPE_RATES: Record<RoofType, number> = {
+  'concrete-slab': 75,
+  'cgi-truss': 55,
+}
 
 function applyCadQuantityOverrides(qty: GeometryQuantities, cadQuantities: CadQuantities | null): { qty: GeometryQuantities; sourceLabel: string } {
   if (!cadQuantities) return { qty, sourceLabel: QTY_SOURCE_GENERATED }
@@ -49,41 +51,48 @@ function applyCadQuantityOverrides(qty: GeometryQuantities, cadQuantities: CadQu
   return { qty: { ...qty, ...overrides }, sourceLabel: QTY_SOURCE_EDITED_CAD }
 }
 
+function determineEstimateDepth(qty: GeometryQuantities, sourceLabel: string): EstimateDepth {
+  if (sourceLabel === QTY_SOURCE_EDITED_CAD && qty.finishFloorArea > 0) return 'detailed'
+  if (qty.finishFloorArea > 0) return 'shell-with-allowances'
+  return 'shell'
+}
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100
+}
+
 export function buildBoqFromDesignOption(
   design: DesignOption | null,
   region = 'zimbabwe',
   sourceMetadata?: BoqSourceMetadata,
   cadQuantities?: CadQuantities | null,
+  roofType: RoofType = 'concrete-slab',
 ): BoqResult | null {
   if (!design || design.grossFloorArea <= 0) return null
 
   const baseQty = extractGeometryQuantities(design)
-  const { qty: qty, sourceLabel: qtySourceLabel } = applyCadQuantityOverrides(baseQty, cadQuantities ?? null)
-
-  const bim = designOptionToBimModel(design)
-  if (!bim) return null
-
-  const baseBoq = safe(() => generateBoqFromBim(bim), null)
-  if (!baseBoq) return null
+  const { qty, sourceLabel: qtySourceLabel } = applyCadQuantityOverrides(baseQty, cadQuantities ?? null)
 
   const card = getRegionRateCard(region)
 
   const isCad = qtySourceLabel === QTY_SOURCE_EDITED_CAD
-  const wallLabel = isCad ? `External walls (${qty.externalWallArea.toFixed(0)} m² from ${qtySourceLabel})` : `External walls (${qty.externalWallArea.toFixed(0)} m² from generated geometry)`
-  const partitionLabel = isCad ? `Internal partitions (${qty.partitionArea.toFixed(0)} m² from ${qtySourceLabel})` : `Internal partitions (${qty.partitionArea.toFixed(0)} m² from generated geometry)`
-  const doorLabel = isCad ? `Doors (${qty.doorCount} nr from ${qtySourceLabel})` : `Doors (${qty.doorCount} nr from generated openings)`
-  const windowLabel = isCad ? `Windows (${qty.windowCount} nr from ${qtySourceLabel})` : `Windows (${qty.windowCount} nr from generated openings)`
+  const wallRef = isCad ? `${qtySourceLabel}` : 'generated geometry'
+  const wallLabel = `External walls (${qty.externalWallArea.toFixed(0)} m² from ${wallRef})`
+  const partitionLabel = `Internal partitions (${qty.partitionArea.toFixed(0)} m² from ${wallRef})`
+  const doorLabel = `Doors (${qty.doorCount} nr from ${wallRef})`
+  const windowLabel = `Windows (${qty.windowCount} nr from ${wallRef})`
+  const roofTypeLabel = roofType === 'concrete-slab' ? 'Concrete roof slab' : 'CGI/truss roof'
 
   const assumptions: RateAssumption[] = [
     { ...resolveBoqRate(region, 'wall', 85), itemKey: 'wall', label: wallLabel },
     { ...resolveBoqRate(region, 'slab', 110), itemKey: 'slab', label: 'Floor slabs' },
-    { ...resolveBoqRate(region, 'roof', 75), itemKey: 'roof', label: 'Roof' },
+    { ...resolveBoqRate(region, roofType, ROOF_TYPE_RATES[roofType]), itemKey: 'roof', label: roofTypeLabel },
     { ...resolveBoqRate(region, 'partition', 65), itemKey: 'partition', label: partitionLabel },
     { ...resolveBoqRate(region, 'door', 180), itemKey: 'door', label: doorLabel },
     { ...resolveBoqRate(region, 'window', 320), itemKey: 'window', label: windowLabel },
     { ...resolveBoqRate(region, 'opening', 250), itemKey: 'opening', label: 'Generic openings' },
-    { itemKey: 'finishes', label: `Finishes allowance (${qty.finishFloorArea.toFixed(0)} m² from generated rooms)`, rate: 35, currency: card.currency, source: 'fallback' as const, warning: 'Finishes rate is a fixed estimate, not from rate card' },
-    { itemKey: 'services', label: `Services allowance (${qty.serviceZoneArea.toFixed(0)} m² from generated zones)`, rate: 45, currency: card.currency, source: 'fallback' as const, warning: 'Services rate is a fixed estimate, not from rate card' },
+    { ...resolveBoqRate(region, 'finishes', 35), itemKey: 'finishes', label: `Finishes allowance (${qty.finishFloorArea.toFixed(0)} m² from generated rooms)` },
+    { ...resolveBoqRate(region, 'services', 45), itemKey: 'services', label: `Services allowance (${qty.serviceZoneArea.toFixed(0)} m² from generated zones)` },
   ]
 
   if (qty.warnings.length > 0) {
@@ -92,129 +101,140 @@ export function buildBoqFromDesignOption(
     }
   }
 
-  // Post-process base BOQ items to use rate card rates
-  const baseItems: BOQLineItem[] = baseBoq.items.map((item) => {
-    let itemKey: string | null = null
-    if (item.category === 'Walls') itemKey = 'wall'
-    else if (item.category === 'Slabs') itemKey = 'slab'
-    else if (item.category === 'Roof') itemKey = 'roof'
-    else if (item.category === 'Openings') {
-      const desc = item.description.toLowerCase()
-      if (desc.includes('door')) itemKey = 'door'
-      else if (desc.includes('window') || desc.includes('glazing')) itemKey = 'window'
-      else itemKey = 'opening'
-    }
-    else if (item.category === 'Objects') itemKey = 'object'
+  // All items generated directly from GeometryQuantities — single source of truth.
+  // No BIM-based path to eliminate wall/opening double-counting (P10 Fix 6).
+  const items: BOQLineItem[] = []
 
-    if (itemKey) {
-      const resolved = resolveBoqRate(region, itemKey, item.rate)
-      const newTotal = Math.round(item.quantity * resolved.rate * 100) / 100
-      return { ...item, rate: resolved.rate, total: newTotal }
-    }
-    return item
-  })
+  if (qty.slabArea > 0) {
+    const r = resolveBoqRate(region, 'slab', 110)
+    items.push({
+      id: 'boq-slabs',
+      quantityRef: 'slabs',
+      category: 'Slabs',
+      description: `Floor slabs (${qty.slabArea.toFixed(0)} m² across ${qty.floors} floor(s))`,
+      unit: 'm²',
+      quantity: round2(qty.slabArea),
+      rate: r.rate,
+      total: round2(qty.slabArea * r.rate),
+    })
+  }
 
-  const extraItems: BOQLineItem[] = []
+  if (qty.roofArea > 0) {
+    const r = resolveBoqRate(region, roofType, ROOF_TYPE_RATES[roofType])
+    items.push({
+      id: 'boq-roof',
+      quantityRef: 'roof',
+      category: 'Roof',
+      description: `${roofTypeLabel} (${qty.roofArea.toFixed(0)} m²)`,
+      unit: 'm²',
+      quantity: round2(qty.roofArea),
+      rate: r.rate,
+      total: round2(qty.roofArea * r.rate),
+    })
+  }
+
+  if (qty.externalWallArea > 0) {
+    const r = resolveBoqRate(region, 'wall', 85)
+    items.push({
+      id: 'boq-ext-walls',
+      quantityRef: 'external-walls',
+      category: 'Walls',
+      description: `External wall area (${qty.externalWallArea.toFixed(0)} m²) — from ${qtySourceLabel}`,
+      unit: 'm²',
+      quantity: round2(qty.externalWallArea),
+      rate: r.rate,
+      total: round2(qty.externalWallArea * r.rate),
+    })
+  }
+
+  if (qty.partitionArea > 0) {
+    const r = resolveBoqRate(region, 'partition', 65)
+    items.push({
+      id: 'boq-partitions',
+      quantityRef: 'partitions',
+      category: 'Walls',
+      description: `Internal partitions (${qty.partitionArea.toFixed(0)} m²) — from ${qtySourceLabel}`,
+      unit: 'm²',
+      quantity: round2(qty.partitionArea),
+      rate: r.rate,
+      total: round2(qty.partitionArea * r.rate),
+    })
+  }
 
   if (qty.doorCount > 0) {
     const r = resolveBoqRate(region, 'door', 180)
-    extraItems.push({
-      id: 'boq-extra-doors',
+    items.push({
+      id: 'boq-doors',
       quantityRef: 'doors',
       category: 'Openings',
       description: `Internal doors (${qty.doorCount} nr) — from ${qtySourceLabel}`,
       unit: 'each',
       quantity: qty.doorCount,
       rate: r.rate,
-      total: Math.round(qty.doorCount * r.rate * 100) / 100,
+      total: round2(qty.doorCount * r.rate),
     })
   }
 
   if (qty.windowCount > 0) {
     const r = resolveBoqRate(region, 'window', 320)
-    extraItems.push({
-      id: 'boq-extra-windows',
+    items.push({
+      id: 'boq-windows',
       quantityRef: 'windows',
       category: 'Openings',
       description: `Windows with glazing (${qty.windowCount} nr) — from ${qtySourceLabel}`,
       unit: 'each',
       quantity: qty.windowCount,
       rate: r.rate,
-      total: Math.round(qty.windowCount * r.rate * 100) / 100,
-    })
-  }
-
-  if (qty.partitionArea > 0) {
-    const r = resolveBoqRate(region, 'partition', 65)
-    extraItems.push({
-      id: 'boq-extra-partitions',
-      quantityRef: 'partitions',
-      category: 'Walls',
-      description: `Internal partitions (${qty.partitionArea.toFixed(0)} m²) — from ${qtySourceLabel}`,
-      unit: 'm²',
-      quantity: Math.round(qty.partitionArea * 100) / 100,
-      rate: r.rate,
-      total: Math.round(qty.partitionArea * r.rate * 100) / 100,
-    })
-  }
-
-  if (qty.externalWallArea > 0) {
-    const r = resolveBoqRate(region, 'wall', 85)
-    extraItems.push({
-      id: 'boq-extra-ext-walls',
-      quantityRef: 'external-walls',
-      category: 'Walls',
-      description: `External wall area (${qty.externalWallArea.toFixed(0)} m²) — from ${qtySourceLabel}`,
-      unit: 'm²',
-      quantity: Math.round(qty.externalWallArea * 100) / 100,
-      rate: r.rate,
-      total: Math.round(qty.externalWallArea * r.rate * 100) / 100,
+      total: round2(qty.windowCount * r.rate),
     })
   }
 
   if (qty.finishFloorArea > 0) {
-    extraItems.push({
-      id: 'boq-extra-finishes',
+    const r = resolveBoqRate(region, 'finishes', 35)
+    items.push({
+      id: 'boq-finishes',
       quantityRef: 'finishes',
       category: 'Finishes',
       description: `Floor, wall & ceiling finishes (${qty.finishFloorArea.toFixed(0)} m²) — from generated rooms`,
       unit: 'm²',
-      quantity: Math.round(qty.finishFloorArea * 100) / 100,
-      rate: 35,
-      total: Math.round(qty.finishFloorArea * 35 * 100) / 100,
+      quantity: round2(qty.finishFloorArea),
+      rate: r.rate,
+      total: round2(qty.finishFloorArea * r.rate),
     })
   }
 
   if (qty.serviceZoneArea > 0) {
-    extraItems.push({
-      id: 'boq-extra-services',
+    const r = resolveBoqRate(region, 'services', 45)
+    items.push({
+      id: 'boq-services',
       quantityRef: 'services',
       category: 'MEP',
       description: `Electrical, plumbing & drainage (${qty.serviceZoneArea.toFixed(0)} m² from ${qty.roomCount} rooms, ${qty.wetRoomCount} wet rooms)`,
       unit: 'm²',
-      quantity: Math.round(qty.serviceZoneArea * 100) / 100,
-      rate: 45,
-      total: Math.round(qty.serviceZoneArea * 45 * 100) / 100,
+      quantity: round2(qty.serviceZoneArea),
+      rate: r.rate,
+      total: round2(qty.serviceZoneArea * r.rate),
     })
   }
 
-  const allItems = [...baseItems, ...extraItems]
-  const subtotal = Math.round(allItems.reduce((sum, item) => sum + item.total, 0) * 100) / 100
+  const subtotal = round2(items.reduce((sum, item) => sum + item.total, 0))
   const contingencyPct = getContingencyRate(region)
   const feesPct = getFeesRate(region)
   const vatPct = getVatRate(region)
-  const contingency = Math.round(subtotal * contingencyPct * 100) / 100
-  const professionalFees = Math.round(subtotal * feesPct * 100) / 100
-  const vat = Math.round((subtotal + contingency + professionalFees) * vatPct * 100) / 100
-  const grandTotal = Math.round((subtotal + contingency + professionalFees + vat) * 100) / 100
+  const contingency = round2(subtotal * contingencyPct)
+  const professionalFees = round2(subtotal * feesPct)
+  const vat = round2((subtotal + contingency + professionalFees) * vatPct)
+  const grandTotal = round2(subtotal + contingency + professionalFees + vat)
 
   const result: BoqResult = {
-    ...baseBoq,
+    id: `boq-${design.id}`,
+    projectId: design.id,
     currency: card.currency,
-    items: allItems,
+    items,
     summary: { subtotal, contingency, professionalFees, vat, grandTotal },
     assumptions,
     quantities: qty,
+    estimateDepth: determineEstimateDepth(qty, qtySourceLabel),
   }
 
   if (sourceMetadata) {

@@ -127,6 +127,8 @@ export interface BOQ {
   contingencyCents: number;
   currency: string;
   generatedAt: string;
+  pricingRegion?: string;
+  estimateDepth?: 'shell' | 'shell-with-allowances' | 'detailed';
 }
 
 export type TransactionAction =

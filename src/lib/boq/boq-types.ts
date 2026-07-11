@@ -17,10 +17,13 @@ export type BOQSummary = {
   grandTotal: number
 }
 
+export type EstimateDepth = 'shell' | 'shell-with-allowances' | 'detailed'
+
 export type BOQ = {
   id: string
   projectId: string
   currency: string
   items: BOQLineItem[]
   summary: BOQSummary
+  estimateDepth?: EstimateDepth
 }

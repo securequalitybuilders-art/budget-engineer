@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { fmtCents } from '@/lib/utils';
 import { CostBreakdownChart } from '@/components/charts/CostBreakdownChart';
-import { Table, ChevronDown, FileDown, Loader2, Calculator } from 'lucide-react';
+import { Table, ChevronDown, FileDown, Loader2, Calculator, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function BOQPanel() {
-  const { currentBOQ, currentDesigns, generateBOQ } = useProjectStore();
+  const { currentBOQ, currentDesigns, generateBOQ, boqStale, currentProject } = useProjectStore();
   const { boqPanelOpen, toggleBoqPanel } = useUIStore();
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -42,9 +42,17 @@ export function BOQPanel() {
         <div className="flex items-center gap-3">
           <h3 className="font-display font-semibold">Bill of Quantities</h3>
           {currentBOQ ? (
-            <Badge variant="success">
-              {fmtCents(currentBOQ.totalCents, currentBOQ.currency)}
-            </Badge>
+            <>
+              <Badge variant="success">
+                {fmtCents(currentBOQ.totalCents, currentBOQ.currency)}
+              </Badge>
+              {currentBOQ.estimateDepth && (
+                <Badge variant={currentBOQ.estimateDepth === 'detailed' ? 'success' : currentBOQ.estimateDepth === 'shell-with-allowances' ? 'secondary' : 'warning'} className="gap-1">
+                  <Layers size={12} />
+                  {currentBOQ.estimateDepth === 'detailed' ? 'Detailed' : currentBOQ.estimateDepth === 'shell-with-allowances' ? 'Shell + Allowances' : 'Shell'}
+                </Badge>
+              )}
+            </>
           ) : (
             <Badge variant="secondary">No BOQ yet</Badge>
           )}
@@ -72,6 +80,16 @@ export function BOQPanel() {
         </div>
       </div>
 
+      {boqStale && currentBOQ && currentProject && (
+        <div className="flex items-center gap-2 bg-amber-500/10 px-4 py-1.5 text-xs text-amber-400 border-b border-amber-500/20">
+          <span className="font-medium">⚠ Rates changed</span>
+          <span>
+            — BOQ was generated for <strong>{currentBOQ.pricingRegion ?? currentProject.region}</strong> but
+            project is now set to <strong>{currentProject.region}</strong>.
+            Recalculate BOQ to reflect current pricing.
+          </span>
+        </div>
+      )}
       <div className="h-[calc(100%-3rem)] overflow-auto">
         {currentBOQ ? (
           <div className="grid h-full grid-cols-1 lg:grid-cols-3">

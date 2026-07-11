@@ -73,6 +73,7 @@ const MINIMAL_BOQ: BoqResult = {
   items: [],
   summary: { subtotal: 50000, contingency: 5000, professionalFees: 2500, vat: 7500, grandTotal: 65000 },
   assumptions: [],
+  estimateDepth: 'shell-with-allowances',
   sourceMetadata: undefined,
   quantities: {
     designId: 'test', designName: 'Test', floors: 1,
@@ -307,6 +308,7 @@ function realisticBoq(): BoqResult {
     ],
     summary: { subtotal: 13584, contingency: 1358.40, professionalFees: 679.20, vat: 2037.60, grandTotal: 17659.20 },
     assumptions: [],
+    estimateDepth: 'shell-with-allowances',
     sourceMetadata: { quantitySourceLabel: 'Generated Design', geometrySource: 'generated-design', computedAt: '2024-01-01T00:00:00.000Z' },
     quantities: {
       designId: 'proj-1', designName: 'Real Design', floors: 1,

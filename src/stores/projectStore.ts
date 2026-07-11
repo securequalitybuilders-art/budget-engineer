@@ -15,6 +15,7 @@ interface ProjectState {
   currentBrief: Brief | null;
   currentDesigns: Design[];
   currentBOQ: BOQ | null;
+  boqStale: boolean;
   transactions: ProjectTransaction[];
   isLoading: boolean;
   isHydrated: boolean;
@@ -47,6 +48,7 @@ export const useProjectStore = create<ProjectState>()(
         currentBrief: null,
         currentDesigns: [],
         currentBOQ: null,
+        boqStale: false,
         transactions: [],
         isLoading: false,
         isHydrated: false,
@@ -85,11 +87,18 @@ export const useProjectStore = create<ProjectState>()(
             (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
 
+          const loadedBoq = boqs[0] || null
+          const boqStale = loadedBoq !== null && project !== undefined && (
+            loadedBoq.pricingRegion !== project.region ||
+            loadedBoq.currency !== project.currency
+          )
+
           set((s) => {
             s.currentProject = project || null;
             s.currentBrief = brief || null;
             s.currentDesigns = designs || [];
-            s.currentBOQ = boqs[0] || null;
+            s.currentBOQ = loadedBoq;
+            s.boqStale = boqStale;
             s.transactions = sortedTransactions;
             s.isLoading = false;
           });
@@ -129,6 +138,7 @@ export const useProjectStore = create<ProjectState>()(
             s.currentBrief = null;
             s.currentDesigns = [];
             s.currentBOQ = null;
+            s.boqStale = false;
             s.transactions = [];
           });
 
@@ -232,6 +242,8 @@ export const useProjectStore = create<ProjectState>()(
           if (!targetDesignId) throw new Error('No design found to cost');
 
           const boq = await generateBOQ(projectId, targetDesignId, project.region, 10);
+          boq.pricingRegion = project.region;
+          boq.currency = project.currency;
 
           // Remove any existing BOQ for this design and store the new one
           await db.boqs.where({ designId: targetDesignId }).delete();

@@ -702,6 +702,7 @@ export function Dashboard() {
                     onExport={handleExport}
                     activePlan={activePlan}
                     buildingType={buildingType}
+                    projectRegion={currentProject?.region}
                   />
                 )}
 

@@ -16,11 +16,12 @@ interface BoqExportPanelProps {
   onExport?: (type: 'csv' | 'html' | 'print') => void
   activePlan?: PlanModel | null
   buildingType?: string
+  projectRegion?: string
 }
 
 const regions = getSupportedRegions()
 
-export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, activePlan, buildingType }: BoqExportPanelProps) {
+export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, activePlan, buildingType, projectRegion }: BoqExportPanelProps) {
   const [exported, setExported] = useState(false)
   const [regionId, setRegionId] = useState(getDefaultRegionId())
   const [jurisdiction, setJurisdiction] = useState('zimbabwe')
@@ -223,6 +224,14 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, act
               <option key={r.id} value={r.id}>{r.label}</option>
             ))}
           </select>
+          {projectRegion && projectRegion !== regionId && (
+            <p className="mt-1 flex items-center gap-1 text-[10px] text-amber-400">
+              <span>⚠</span>
+              <span>
+                Project is set to <strong>{projectRegion}</strong> — prices shown use <strong>{regionId}</strong> rates.
+              </span>
+            </p>
+          )}
         </div>
 
         {/* Jurisdiction selector */}
@@ -260,6 +269,14 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, act
             <span className="text-stone-400">Currency</span>
             <span className="text-stone-200">{currency}</span>
           </div>
+          {boq?.estimateDepth && (
+            <div className="flex justify-between">
+              <span className="text-stone-400">Estimate Basis</span>
+              <span className={`text-xs font-medium ${boq.estimateDepth === 'detailed' ? 'text-emerald-400' : boq.estimateDepth === 'shell-with-allowances' ? 'text-blue-400' : 'text-amber-400'}`}>
+                {boq.estimateDepth === 'detailed' ? 'Detailed' : boq.estimateDepth === 'shell-with-allowances' ? 'Shell + Allowances' : 'Shell Only'}
+              </span>
+            </div>
+          )}
           {costPerM2 > 0 && (
             <div className="flex justify-between border-t border-stone-700/60 pt-1">
               <span className="text-stone-400">Cost / m²</span>

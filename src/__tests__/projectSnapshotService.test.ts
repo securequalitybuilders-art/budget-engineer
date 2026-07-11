@@ -47,6 +47,7 @@ function makeBoq(overrides?: Partial<BoqResult>): BoqResult {
     items: [],
     summary: { subtotal: 50000, contingency: 5000, professionalFees: 5000, vat: 6000, grandTotal: 66000 },
     assumptions: [],
+    estimateDepth: 'shell-with-allowances',
     quantities: {
       designId: 'design-1',
       designName: 'Test House',

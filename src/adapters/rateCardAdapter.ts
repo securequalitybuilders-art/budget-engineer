@@ -21,7 +21,8 @@ export function getDefaultRegionId(): string {
 }
 
 export function getRegionRateCard(regionId: string): RateCard {
-  return RATE_CARDS[regionId] ?? RATE_CARDS.zimbabwe
+  const normalized = regionId.replace(/-/g, '').toLowerCase()
+  return RATE_CARDS[normalized] ?? RATE_CARDS.zimbabwe
 }
 
 export function getSupportedRegions(): { id: string; label: string; currency: string }[] {
@@ -32,11 +33,26 @@ export function getSupportedRegions(): { id: string; label: string; currency: st
   }))
 }
 
+function getNested(card: RateCard, key: string): number | undefined {
+  const plumbing = card.plumbing as unknown as Record<string, number>
+  const electrical = card.electrical as unknown as Record<string, number>
+  const hvac = card.hvac as unknown as Record<string, number>
+  const finishes = card.finishes as unknown as Record<string, number>
+  const earthworks = card.earthworks as unknown as Record<string, number>
+  const concrete = card.concrete as unknown as Record<string, number>
+  const steel = card.steel as unknown as Record<string, number>
+  const prelims = card.prelims as unknown as Record<string, number>
+  return plumbing[key] ?? electrical[key] ?? hvac[key] ?? finishes[key]
+    ?? earthworks[key] ?? concrete[key] ?? steel[key] ?? prelims[key]
+}
+
 function rawRateForKey(card: RateCard, key: string): number | undefined {
   const map: Record<string, number | (() => number)> = {
     wall: card.wall.concrete,
     slab: card.slab_m2,
     roof: card.roof_m2,
+    'concrete-slab': card.roof_m2,
+    'cgi-truss': Math.round(card.roof_m2 * 0.73 * 100) / 100,
     opening: card.opening_each,
     object: card.object_each,
     door: card.opening_each,
@@ -46,10 +62,12 @@ function rawRateForKey(card: RateCard, key: string): number | undefined {
     rebar: card.rebar_tonne,
     excavation: card.excavation_m3,
     formwork: card.formwork_m2,
+    finishes: card.finishes_m2,
+    services: card.services_m2,
   }
   const result = map[key]
-  if (result === undefined) return undefined
-  return typeof result === 'function' ? result() : result
+  if (result !== undefined) return typeof result === 'function' ? result() : result
+  return getNested(card, key)
 }
 
 export function resolveBoqRate(regionId: string, itemKey: string, fallbackRate: number): ResolvedRate {

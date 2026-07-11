@@ -101,7 +101,49 @@ export function Sidebar() {
         Academy
       </Link>
 
-      <div className="border-t border-[var(--border-default)] p-3">
+      {currentProjectId && (
+        <>
+          <div className="mb-1 mt-3 px-3 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">
+            Project Tools
+          </div>
+          <div className="space-y-0.5">
+            <button
+              onClick={async () => {
+                const { exportProjectPackage, downloadBlob } = await import('@/services/projectExportImportService')
+                const blob = await exportProjectPackage(currentProjectId)
+                if (blob) {
+                  const project = (await import('@/stores/projectStore')).useProjectStore.getState().currentProject
+                  downloadBlob(blob, `${project?.name ?? 'project'}.beproj`)
+                }
+              }}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+            >
+              <Folder size={16} />
+              Export Project
+            </button>
+            <button
+              onClick={async () => {
+                const { openProjectFilePicker, importProjectPackage } = await import('@/services/projectExportImportService')
+                const { useProjectStore } = await import('@/stores/projectStore')
+                const file = await openProjectFilePicker()
+                if (!file) return
+                const projectId = await importProjectPackage(file)
+                if (projectId) {
+                  await useProjectStore.getState().loadProjects()
+                  window.location.href = `/project/${projectId}`
+                }
+              }}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+            >
+              <Settings size={16} />
+              Import Project
+            </button>
+          </div>
+          <hr className="my-3 border-t border-[var(--border-default)]" />
+        </>
+      )}
+
+      <div className="p-3">
         <Link
           to="/"
           className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"

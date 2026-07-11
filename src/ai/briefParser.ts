@@ -8,21 +8,98 @@ import { toCents } from '@/lib/utils';
  * for richer reasoning without changing the interface.
  */
 
-const CITY_TO_REGION: Record<string, string> = {
-  harare: 'zimbabwe',
-  bulawayo: 'zimbabwe',
-  mutare: 'zimbabwe',
-  gweru: 'zimbabwe',
-  masvingo: 'zimbabwe',
-  kwekwe: 'zimbabwe',
-  lusaka: 'zambia',
-  kitwe: 'zambia',
-  gaborone: 'botswana',
-  francistown: 'botswana',
-  johannesburg: 'south-africa',
-  cape: 'south-africa',
-  durban: 'south-africa',
-};
+type Region = 'zimbabwe' | 'south-africa' | 'zambia' | 'botswana' | 'other';
+
+const CITY_TO_REGION: [string, Region][] = [
+  ['harare', 'zimbabwe'],
+  ['bulawayo', 'zimbabwe'],
+  ['chitungwiza', 'zimbabwe'],
+  ['mutare', 'zimbabwe'],
+  ['gweru', 'zimbabwe'],
+  ['kwekwe', 'zimbabwe'],
+  ['kadoma', 'zimbabwe'],
+  ['masvingo', 'zimbabwe'],
+  ['bindura', 'zimbabwe'],
+  ['chinhoyi', 'zimbabwe'],
+  ['marondera', 'zimbabwe'],
+  ['chegutu', 'zimbabwe'],
+  ['karoi', 'zimbabwe'],
+  ['kariba', 'zimbabwe'],
+  ['hwange', 'zimbabwe'],
+  ['victoria falls', 'zimbabwe'],
+  ['rusape', 'zimbabwe'],
+  ['chiredzi', 'zimbabwe'],
+  ['chipinge', 'zimbabwe'],
+  ['zvishavane', 'zimbabwe'],
+  ['shurugwi', 'zimbabwe'],
+  ['gwanda', 'zimbabwe'],
+  ['plumtree', 'zimbabwe'],
+  ['beitbridge', 'zimbabwe'],
+  ['chirundu', 'zimbabwe'],
+  ['cape town', 'south-africa'],
+  ['johannesburg', 'south-africa'],
+  ['pretoria', 'south-africa'],
+  ['durban', 'south-africa'],
+  ['port elizabeth', 'south-africa'],
+  ['bloemfontein', 'south-africa'],
+  ['east london', 'south-africa'],
+  ['nelspruit', 'south-africa'],
+  ['polokwane', 'south-africa'],
+  ['rustenburg', 'south-africa'],
+  ['kimberley', 'south-africa'],
+  ['richards bay', 'south-africa'],
+  ['pietermaritzburg', 'south-africa'],
+  ['vereeniging', 'south-africa'],
+  ['welkom', 'south-africa'],
+  ['upington', 'south-africa'],
+  ['george', 'south-africa'],
+  ['stellenbosch', 'south-africa'],
+  ['soweto', 'south-africa'],
+  ['lusaka', 'zambia'],
+  ['kitwe', 'zambia'],
+  ['ndola', 'zambia'],
+  ['livingstone', 'zambia'],
+  ['mufulira', 'zambia'],
+  ['chingola', 'zambia'],
+  ['kabwe', 'zambia'],
+  ['chipata', 'zambia'],
+  ['kasama', 'zambia'],
+  ['solwezi', 'zambia'],
+  ['mongu', 'zambia'],
+  ['mansa', 'zambia'],
+  ['choma', 'zambia'],
+  ['mazabuka', 'zambia'],
+  ['kafue', 'zambia'],
+  ['luanshya', 'zambia'],
+  ['gaborone', 'botswana'],
+  ['francistown', 'botswana'],
+  ['molepolole', 'botswana'],
+  ['maun', 'botswana'],
+  ['serowe', 'botswana'],
+  ['kanye', 'botswana'],
+  ['selibe phikwe', 'botswana'],
+  ['kasane', 'botswana'],
+  ['ghantsi', 'botswana'],
+  ['tshabong', 'botswana'],
+  ['lentsweletau', 'botswana'],
+  ['ramotswa', 'botswana'],
+  ['mochudi', 'botswana'],
+  ['palapye', 'botswana'],
+]
+
+const COUNTRY_TO_REGION: [string, Region][] = [
+  ['zimbabwe', 'zimbabwe'],
+  ['zw', 'zimbabwe'],
+  ['zim', 'zimbabwe'],
+  ['south africa', 'south-africa'],
+  ['za', 'south-africa'],
+  ['rsa', 'south-africa'],
+  ['zambia', 'zambia'],
+  ['zm', 'zambia'],
+  ['botswana', 'botswana'],
+  ['bw', 'botswana'],
+  ['bot', 'botswana'],
+]
 
 function normalize(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9.,\s]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -55,10 +132,15 @@ function extractBudget(text: string): number | undefined {
 }
 
 function extractLocation(text: string, fallback: string): string {
-  for (const [city, region] of Object.entries(CITY_TO_REGION)) {
-    if (text.includes(city)) return region;
+  const sorted = [...CITY_TO_REGION].sort((a, b) => b[0].length - a[0].length)
+  for (const [city, region] of sorted) {
+    if (text.includes(city)) return region
   }
-  return fallback;
+  const sortedCountry = [...COUNTRY_TO_REGION].sort((a, b) => b[0].length - a[0].length)
+  for (const [country, region] of sortedCountry) {
+    if (text.includes(country)) return region
+  }
+  return fallback
 }
 
 function extractFeatures(text: string): string[] {
