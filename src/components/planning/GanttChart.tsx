@@ -1,4 +1,11 @@
 import type { GanttResult } from '@/lib/planning/gantt'
+import { dayToDate } from '@/lib/planning/gantt'
+
+function formatDate(iso: string): string {
+  const d = new Date(iso + 'T12:00:00')
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  return `${d.getDate()} ${months[d.getMonth()]}`
+}
 
 interface GanttChartProps {
   gantt: GanttResult
@@ -36,7 +43,7 @@ export function GanttChart({ gantt, currency, compact }: GanttChartProps) {
     <div className="overflow-auto rounded-lg border border-stone-700/60 bg-stone-900/50">
       <div className="p-3 text-xs font-medium text-stone-400 border-b border-stone-700/60 flex items-center justify-between">
         <span>Construction Programme — {totalDays} days | {gantt.criticalPath.length} tasks on critical path</span>
-        <span className="text-cyan-400">{currency}</span>
+        <span className="text-cyan-400">{currency} | Start: {formatDate(gantt.startDate)}</span>
       </div>
       <div style={{ minWidth: chartWidth + labelWidth + 20 }}>
         <div className="relative">
@@ -60,7 +67,7 @@ export function GanttChart({ gantt, currency, compact }: GanttChartProps) {
                   color: '#78716c',
                   whiteSpace: 'nowrap',
                 }}>
-                  W{Math.floor(d / 7) + 1}
+                  {formatDate(dayToDate(gantt.startDate, d))}
                 </span>
               </div>
             ))}
@@ -135,7 +142,7 @@ export function GanttChart({ gantt, currency, compact }: GanttChartProps) {
                       whiteSpace: 'nowrap',
                       minWidth: 12,
                     }}
-                    title={`${task.name}: Day ${task.startDay}–${task.finishDay} (${task.durationDays} days)`}
+                    title={`${task.name}: ${formatDate(dayToDate(gantt.startDate, task.startDay))} – ${formatDate(dayToDate(gantt.startDate, task.finishDay))} (${task.durationDays} days)`}
                   >
                     {!compact && task.name}
                   </div>

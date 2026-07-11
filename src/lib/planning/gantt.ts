@@ -18,6 +18,17 @@ export interface GanttResult {
   totalDurationDays: number
   criticalPath: string[]
   generatedAt: string
+  startDate: string
+}
+
+export function dayToDate(startDate: string, day: number): string {
+  const d = new Date(startDate + 'T12:00:00')
+  d.setDate(d.getDate() + day)
+  return d.toISOString().split('T')[0]
+}
+
+function todayDateStr(): string {
+  return new Date().toISOString().split('T')[0]
 }
 
 const TRADE_SEQUENCE: string[] = [
@@ -75,6 +86,7 @@ export function generateProgramme(
   _floors: number,
   _roomCount: number,
   isDetailed: boolean,
+  startDate?: string,
 ): GanttResult {
   const trades: TradeDuration[] = TRADE_DEFAULTS.map((t) => ({
     ...t,
@@ -125,11 +137,14 @@ export function generateProgramme(
   const criticalPath = tasks.filter((t) => t.isCritical).map((t) => t.code)
   const totalDurationDays = tasks.length > 0 ? tasks[tasks.length - 1].finishDay + 1 : 0
 
+  const projectStart = startDate ?? todayDateStr()
+
   return {
     tasks,
     totalDurationDays,
     criticalPath,
     generatedAt: new Date().toISOString(),
+    startDate: projectStart,
   }
 }
 
@@ -138,13 +153,15 @@ export function buildProgrammeCsv(gantt: GanttResult, currency: string): string 
     const s = String(v)
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
   }
+  const d2d = (day: number) => dayToDate(gantt.startDate, day)
+
   const lines: string[] = [
-    ['Code', 'Task', 'Trade', 'Duration (days)', 'Predecessors', 'Start Day', 'Finish Day',
+    ['Code', 'Task', 'Trade', 'Duration (days)', 'Predecessors', 'Start Date', 'Finish Date',
      `Labour (${currency})`, `Material (${currency})`, `Equipment (${currency})`, `Total (${currency})`, 'Critical'].map(esc).join(','),
   ]
   for (const t of gantt.tasks) {
     lines.push([
-      t.code, t.name, t.trade, t.durationDays, t.predecessors.join('; '), t.startDay, t.finishDay,
+      t.code, t.name, t.trade, t.durationDays, t.predecessors.join('; '), d2d(t.startDay), d2d(t.finishDay),
       t.labourCost.toFixed(2), t.materialCost.toFixed(2), t.equipmentCost.toFixed(2), t.totalCost.toFixed(2),
       t.isCritical ? 'Yes' : 'No',
     ].map(esc).join(','))

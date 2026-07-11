@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { computeCashflow, buildCashflowCsv } from '@/lib/planning/cashflow'
+import { dayToDate } from '@/lib/planning/gantt'
 import type { WbsTask } from '@/lib/planning/gantt'
 
 function makeSimpleTasks(count = 3): WbsTask[] {
@@ -32,6 +33,36 @@ describe('computeCashflow', () => {
     const result = computeCashflow(tasks, 40)
     expect(result.weekly.length).toBeGreaterThan(0)
     expect(result.monthly.length).toBeGreaterThan(0)
+  })
+
+  it('includes startDate defaulting to today', () => {
+    const result = computeCashflow(makeSimpleTasks(3), 40)
+    expect(result.startDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+
+  it('accepts custom startDate parameter', () => {
+    const result = computeCashflow(makeSimpleTasks(3), 40, '2026-04-15')
+    expect(result.startDate).toBe('2026-04-15')
+  })
+
+  it('populates startDate and endDate on each period', () => {
+    const result = computeCashflow(makeSimpleTasks(3), 40, '2026-01-01')
+    for (const w of result.weekly) {
+      expect(w.startDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      expect(w.endDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      const expectedStart = dayToDate('2026-01-01', w.weekStart)
+      const expectedEnd = dayToDate('2026-01-01', w.weekEnd)
+      expect(w.startDate).toBe(expectedStart)
+      expect(w.endDate).toBe(expectedEnd)
+    }
+  })
+
+  it('monthly periods inherit startDate/endDate from first/last week', () => {
+    const result = computeCashflow(makeSimpleTasks(3), 40, '2026-01-01')
+    for (const m of result.monthly) {
+      expect(m.startDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      expect(m.endDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    }
   })
 
   it('cumulative cost grows monotonically', () => {
@@ -152,21 +183,25 @@ describe('buildCashflowCsv', () => {
     expect(csv).toContain(cf.totalCost.toFixed(2))
   })
 
-  it('includes all weekly rows', () => {
+  it('includes all weekly rows with dates', () => {
     const tasks = makeSimpleTasks(3)
     const cf = computeCashflow(tasks, 40)
     const csv = buildCashflowCsv(cf, 'USD')
     for (let i = 0; i < cf.weekly.length; i++) {
       expect(csv).toContain(`Week ${i + 1}`)
+      expect(csv).toContain(cf.weekly[i].startDate)
+      expect(csv).toContain(cf.weekly[i].endDate)
     }
   })
 
-  it('includes all monthly rows', () => {
+  it('includes all monthly rows with dates', () => {
     const tasks = makeSimpleTasks(3)
     const cf = computeCashflow(tasks, 40)
     const csv = buildCashflowCsv(cf, 'USD')
     for (let i = 0; i < cf.monthly.length; i++) {
       expect(csv).toContain(`Month ${i + 1}`)
+      expect(csv).toContain(cf.monthly[i].startDate)
+      expect(csv).toContain(cf.monthly[i].endDate)
     }
   })
 
@@ -175,5 +210,13 @@ describe('buildCashflowCsv', () => {
     const cf = computeCashflow(tasks, 40)
     const csv = buildCashflowCsv(cf, 'USD')
     expect(csv).not.toThrow
+  })
+
+  it('CSV header uses Start Date / End Date columns', () => {
+    const tasks = makeSimpleTasks(3)
+    const cf = computeCashflow(tasks, 40)
+    const csv = buildCashflowCsv(cf, 'USD')
+    expect(csv).toContain('Start Date')
+    expect(csv).toContain('End Date')
   })
 })

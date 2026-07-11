@@ -1,5 +1,11 @@
 import type { CashflowResult } from '@/lib/planning/cashflow'
 
+function formatDate(iso: string): string {
+  const d = new Date(iso + 'T12:00:00')
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  return `${d.getDate()} ${months[d.getMonth()]}`
+}
+
 interface CashflowChartProps {
   cashflow: CashflowResult
   currency: string
@@ -49,7 +55,7 @@ export function CashflowChart({ cashflow, currency, compact }: CashflowChartProp
                     position: 'relative',
                     flexShrink: 0,
                   }}
-                  title={`Week ${w.period + 1}: ${currency} ${w.periodCost.toFixed(2)}`}
+                  title={`${formatDate(w.startDate)}–${formatDate(w.endDate)}: ${currency} ${w.periodCost.toFixed(2)}`}
                 >
                   {!compact && barH > 20 && (
                     <span style={{
@@ -69,8 +75,8 @@ export function CashflowChart({ cashflow, currency, compact }: CashflowChartProp
             })}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8, color: '#78716c', marginTop: 2 }}>
-            <span>Week 1</span>
-            <span>Week {weekly.length}</span>
+            <span>{formatDate(weekly[0].startDate)}</span>
+            <span>{formatDate(weekly[weekly.length - 1].endDate)}</span>
           </div>
         </div>
 
@@ -112,7 +118,7 @@ export function CashflowChart({ cashflow, currency, compact }: CashflowChartProp
           </div>
           <div>
             <div className="text-[10px] text-stone-400">Peak Week</div>
-            <div className="font-mono text-amber-400">{fmt(cashflow.peakCost)} (W{cashflow.peakPeriod + 1})</div>
+            <div className="font-mono text-amber-400">{fmt(cashflow.peakCost)} ({formatDate(cashflow.weekly[cashflow.peakPeriod]?.startDate ?? cashflow.startDate)})</div>
           </div>
         </div>
       </div>

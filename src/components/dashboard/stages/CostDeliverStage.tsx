@@ -1,18 +1,19 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { BoqExportPanel } from '@/components/dashboard/BoqExportPanel'
 import { SchedulesPanel } from '@/components/planning/SchedulesPanel'
 import { GanttChart } from '@/components/planning/GanttChart'
 import { CashflowChart } from '@/components/planning/CashflowChart'
-import { Box, ClipboardList, CalendarDays, TrendingUp } from 'lucide-react'
+import { Box, ClipboardList, CalendarDays, TrendingUp, FileText } from 'lucide-react'
 import { motion } from 'framer-motion'
 import type { DesignOption } from '@/domain/boq'
 import type { BoqResult } from '@/adapters/designToBoq'
 import type { PlanModel } from '@/domain/plan'
 import { generateSchedules } from '@/adapters/designToSchedules'
-import { generateDetailedBoq } from '@/lib/boq/detailedBoq'
+import { generateDetailedBoq, buildFormalBOQ } from '@/lib/boq/detailedBoq'
 import { generateProgramme } from '@/lib/planning/gantt'
 import { computeCashflow } from '@/lib/planning/cashflow'
 import type { RoofType } from '@/adapters/designToBoq'
+import { downloadTextFile } from '@/adapters/designToBoq'
 
 interface CostDeliverStageProps {
   selectedDesign: DesignOption | null
@@ -41,6 +42,7 @@ export function CostDeliverStage({
   projectRegion,
 }: CostDeliverStageProps) {
   const [activeTab, setActiveTab] = useState<TabId>('boq')
+  const projectStartDate = new Date().toISOString().split('T')[0]
   const region = projectRegion ?? 'zimbabwe'
 
   const detailedBoq = useMemo(() => {
@@ -63,13 +65,26 @@ export function CostDeliverStage({
     if (!detailedBoq) return null
     const areaM2 = selectedDesign?.grossFloorArea ?? 150
     const floors = selectedDesign?.floors ?? 1
-    return generateProgramme(detailedBoq.boq.summary.subtotal, areaM2, floors, detailedBoq.quantities.roomCount, true)
+    return generateProgramme(detailedBoq.boq.summary.subtotal, areaM2, floors, detailedBoq.quantities.roomCount, true, projectStartDate)
   }, [detailedBoq, selectedDesign])
 
   const cashflow = useMemo(() => {
     if (!programme) return null
-    return computeCashflow(programme.tasks, programme.totalDurationDays)
+    return computeCashflow(programme.tasks, programme.totalDurationDays, programme.startDate)
   }, [programme])
+
+  const handleExportFormalBoq = useCallback(() => {
+    if (!detailedBoq || !selectedDesign) return
+    const html = buildFormalBOQ(detailedBoq, selectedDesign, region, {
+      region,
+      roofType: 'concrete-slab' as RoofType,
+      depth: 'trade-detailed',
+      areaM2: selectedDesign.grossFloorArea,
+      floorCount: selectedDesign.floors,
+    })
+    const slug = selectedDesign.name.toLowerCase().replace(/\s+/g, '-')
+    downloadTextFile(`formal-boq-${slug}.html`, html, 'text/html')
+  }, [detailedBoq, selectedDesign, region])
 
   if (!selectedDesign) {
     return (
@@ -116,7 +131,7 @@ export function CostDeliverStage({
 
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'boq' && (
-          <div className="p-4">
+          <div className="p-4 space-y-3">
             <BoqExportPanel
               selectedDesign={selectedDesign}
               boq={boq}
@@ -125,6 +140,15 @@ export function CostDeliverStage({
               buildingType={buildingType}
               projectRegion={projectRegion}
             />
+            {detailedBoq && (
+              <button
+                onClick={handleExportFormalBoq}
+                className="flex w-full items-center gap-2 rounded-lg border border-stone-700/60 bg-stone-900/60 px-3 py-2 text-xs text-stone-300 transition-colors hover:border-cyan-600/40 hover:bg-cyan-500/5 hover:text-cyan-200"
+              >
+                <FileText size={14} />
+                Download Full Formal BOQ — Material Schedule &amp; Gantt Included
+              </button>
+            )}
           </div>
         )}
 

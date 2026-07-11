@@ -72,12 +72,15 @@ export function SchedulesPanel({ schedules }: SchedulesPanelProps) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-stone-200">Schedules of Materials & Works</h3>
-        <button
-          onClick={handleExportCsv}
-          className="rounded bg-cyan-600/20 px-2.5 py-1 text-[10px] font-medium text-cyan-400 hover:bg-cyan-600/30"
-        >
-          Export CSV
-        </button>
+        <div className="flex items-center gap-3">
+          <span className="text-[9px] text-stone-400">Generated: {new Date(schedules.generatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+          <button
+            onClick={handleExportCsv}
+            className="rounded bg-cyan-600/20 px-2.5 py-1 text-[10px] font-medium text-cyan-400 hover:bg-cyan-600/30"
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-3">

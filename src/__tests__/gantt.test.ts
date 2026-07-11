@@ -1,11 +1,35 @@
 import { describe, it, expect } from 'vitest'
-import { generateProgramme, buildProgrammeCsv } from '@/lib/planning/gantt'
+import { generateProgramme, buildProgrammeCsv, dayToDate } from '@/lib/planning/gantt'
+
+describe('dayToDate', () => {
+  it('converts day 0 to start date', () => {
+    expect(dayToDate('2026-07-11', 0)).toBe('2026-07-11')
+  })
+
+  it('adds days correctly', () => {
+    expect(dayToDate('2026-01-01', 31)).toBe('2026-02-01')
+  })
+
+  it('handles negative days', () => {
+    expect(dayToDate('2026-07-11', -11)).toBe('2026-06-30')
+  })
+})
 
 describe('generateProgramme', () => {
   it('returns tasks for valid input', () => {
     const result = generateProgramme(100000, 150, 1, 6, true)
     expect(result.tasks.length).toBeGreaterThan(0)
     expect(result.totalDurationDays).toBeGreaterThan(0)
+  })
+
+  it('includes startDate defaulting to today', () => {
+    const result = generateProgramme(100000, 150, 1, 6, true)
+    expect(result.startDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+
+  it('accepts custom startDate parameter', () => {
+    const result = generateProgramme(100000, 150, 1, 6, true, '2026-03-01')
+    expect(result.startDate).toBe('2026-03-01')
   })
 
   it('all 10 trade sequences are present', () => {
@@ -92,12 +116,14 @@ describe('generateProgramme', () => {
 })
 
 describe('buildProgrammeCsv', () => {
-  it('returns a CSV string with headers', () => {
+  it('returns a CSV string with headers including dates', () => {
     const gantt = generateProgramme(100000, 150, 1, 6, true)
     const csv = buildProgrammeCsv(gantt, 'USD')
     expect(csv).toContain('Code')
     expect(csv).toContain('Task')
     expect(csv).toContain('Trade')
+    expect(csv).toContain('Start Date')
+    expect(csv).toContain('Finish Date')
     expect(csv).toContain('Duration')
   })
 
@@ -115,5 +141,14 @@ describe('buildProgrammeCsv', () => {
     for (const t of gantt.tasks) {
       expect(csv).toContain(t.code)
     }
+  })
+
+  it('uses calendar dates in CSV rows', () => {
+    const gantt = generateProgramme(100000, 150, 1, 6, true, '2026-01-05')
+    const csv = buildProgrammeCsv(gantt, 'USD')
+    expect(csv).toContain('2026-01-05')
+    const firstTask = gantt.tasks[0]
+    const startDate = dayToDate('2026-01-05', firstTask.startDay)
+    expect(csv).toContain(startDate)
   })
 })
