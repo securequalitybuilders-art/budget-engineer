@@ -1,27 +1,24 @@
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
+import { useDisciplineStore } from '@/stores/disciplineStore';
 import { ThemeToggleSimple } from './ThemeToggle';
 import { OfflineIndicator } from './OfflineIndicator';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Menu, Save, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const stages = [
-  'Brief',
-  'Concept',
-  'Design',
-  'Engineering',
-  'Docs & BIM',
-  'Cost & Deliver',
-];
+import { getStagesForDiscipline, type StageId } from '@/lib/studio/stageRegistry';
+import { DisciplineSwitcher } from '@/components/studio/DisciplineSwitcher';
 
 export function CommandBar() {
   const { currentProject } = useProjectStore();
-  const { toggleSidebar, activeStage, selectedDesignId } = useUIStore();
+  const { toggleSidebar, activeStageId, setActiveStage, selectedDesignId } = useUIStore();
+  const currentDiscipline = useDisciplineStore((s) => s.currentDiscipline);
 
-  function isStageAccessible(idx: number): { accessible: boolean; reason?: string } {
-    if (idx >= 2 && !selectedDesignId) {
+  const disciplineStages = getStagesForDiscipline(currentDiscipline);
+
+  function isStageAccessible(stageId: StageId): { accessible: boolean; reason?: string } {
+    if ((stageId === 'design' || stageId === 'engineering' || stageId === 'docs-bim' || stageId === 'cost-deliver') && !selectedDesignId) {
       return { accessible: false, reason: 'Select a design option first' };
     }
     return { accessible: true };
@@ -53,14 +50,15 @@ export function CommandBar() {
       </div>
 
       <nav className="hidden items-center gap-1 lg:flex" aria-label="Stage navigation">
-        {stages.map((stage, idx) => {
-          const isActive = idx + 1 === activeStage;
-          const { accessible, reason } = isStageAccessible(idx);
+        {disciplineStages.map((stage) => {
+          const isActive = stage.id === activeStageId;
+          const { accessible, reason } = isStageAccessible(stage.id);
           const isLocked = !accessible && !isActive;
           return (
             <button
-              key={stage}
+              key={stage.id}
               disabled={isLocked}
+              onClick={() => setActiveStage(stage.id)}
               title={isLocked ? reason : undefined}
               aria-current={isActive ? 'step' : undefined}
               className={
@@ -73,7 +71,7 @@ export function CommandBar() {
               }
             >
               {isActive && <span className="absolute inset-0 rounded-md border border-[var(--brand-accent)]/30 bg-[var(--brand-accent)]/10" aria-hidden="true" />}
-              <span className="relative">{stage}</span>
+              <span className="relative">{stage.shortLabel}</span>
             </button>
           );
         })}
@@ -84,6 +82,7 @@ export function CommandBar() {
           <Save size={14} />
           <span>Auto-saved</span>
         </div>
+        <DisciplineSwitcher compact />
         <ThemeToggleSimple />
       </div>
       <OfflineIndicator />

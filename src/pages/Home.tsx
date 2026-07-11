@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import {
   Plus, Folder, ArrowRight, Cpu, HardHat, FileBarChart,
   MessageSquare, LayoutGrid, Boxes, Activity, Calculator, BarChart3, Bug,
+  Sofa, Globe, Monitor, BookOpen,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -269,6 +270,41 @@ export function Home() {
             </div>
           </div>
         )}
+
+        {/* Premium Studio Modules */}
+        <section className="mt-14" aria-labelledby="studio-heading">
+          <h2 id="studio-heading" className="mb-2 font-display text-2xl font-semibold">Premium Studio Modules</h2>
+          <p className="mb-6 max-w-2xl text-sm text-[var(--text-secondary)]">
+            Specialised tools for interior design, site analysis, presentation boards, and skill-building — all available inside any project.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { icon: Sofa, label: 'Interior Design', desc: 'Place fixtures, choose materials, generate finish schedules.', to: projects.length > 0 ? `/project/${projects[0].id}/studio/interior` : '/new' },
+              { icon: Globe, label: 'Site Analysis', desc: 'Heliodon, shadow casting, wind rose, and environmental analysis.', to: projects.length > 0 ? `/project/${projects[0].id}/studio/site-analysis` : '/site-analysis' },
+              { icon: Monitor, label: 'Presentation Boards', desc: 'Create board layouts, annotate, export as SVG/PNG/PDF.', to: projects.length > 0 ? `/project/${projects[0].id}/studio/presentation` : '/new' },
+              { icon: BookOpen, label: 'Academy', desc: 'Guided lessons on design, engineering, and construction.', to: '/academy' },
+            ].map((studio) => {
+              const StudioIcon = studio.icon;
+              return (
+                <Link key={studio.label} to={studio.to}>
+                  <Card className="group h-full transition-all hover:shadow-lg">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-accent)]/10">
+                          <StudioIcon size={20} className="text-[var(--brand-accent)]" />
+                        </div>
+                        <CardTitle className="text-base group-hover:text-[var(--brand-accent)]">{studio.label}</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-[var(--text-secondary)]">{studio.desc}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
 
         {/* Feedback link */}
         <div className="mt-10 text-center">

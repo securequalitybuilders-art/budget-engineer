@@ -9,6 +9,7 @@ import { CommandBar } from '@/components/layout/CommandBar';
 import { CommandPalette } from '@/components/layout/CommandPalette';
 import { ShortcutsHelp } from '@/components/layout/ShortcutsHelp';
 import { PageLoader } from '@/components/layout/PageLoader';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 const Home = lazy(() => import('@/pages/Home').then((m) => ({ default: m.Home })));
@@ -17,9 +18,15 @@ const Dashboard = lazy(() => import('@/pages/Dashboard').then((m) => ({ default:
 const PortfolioPage = lazy(() => import('@/pages/PortfolioPage').then((m) => ({ default: m.PortfolioPage })));
 const FeedbackPage = lazy(() => import('@/pages/FeedbackPage').then((m) => ({ default: m.FeedbackPage })));
 const PresentationStudio = lazy(() => import('@/pages/studio/PresentationStudio'));
+const InteriorStudio = lazy(() => import('@/pages/studio/InteriorStudio').then((m) => ({ default: m.InteriorStudio })));
 const AcademyHome = lazy(() => import('@/pages/Academy').then((m) => ({ default: m.AcademyHome })));
 const AcademyLesson = lazy(() => import('@/pages/Academy').then((m) => ({ default: m.AcademyLesson })));
 const SiteAnalysis = lazy(() => import('@/pages/SiteAnalysis'));
+const SiteAnalysisStudio = lazy(() => import('@/pages/studio/SiteAnalysisStudio').then((m) => ({ default: m.SiteAnalysisStudio })));
+
+function SafeRoute({ children }: { children: React.ReactNode }) {
+  return <ErrorBoundary><Suspense fallback={<PageLoader />}>{children}</Suspense></ErrorBoundary>;
+}
 
 function GlobalLayout() {
   useKeyboardShortcuts();
@@ -50,75 +57,47 @@ const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <Home />
-          </Suspense>
-        ),
+        element: <SafeRoute><Home /></SafeRoute>,
       },
       {
         path: '/new',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <ProjectWizard />
-          </Suspense>
-        ),
+        element: <SafeRoute><ProjectWizard /></SafeRoute>,
       },
       {
         path: '/project/:id',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <Dashboard />
-          </Suspense>
-        ),
+        element: <SafeRoute><Dashboard /></SafeRoute>,
       },
       {
         path: '/portfolio',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <PortfolioPage />
-          </Suspense>
-        ),
+        element: <SafeRoute><PortfolioPage /></SafeRoute>,
       },
       {
         path: '/feedback',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <FeedbackPage />
-          </Suspense>
-        ),
+        element: <SafeRoute><FeedbackPage /></SafeRoute>,
+      },
+      {
+        path: '/project/:id/studio/interior',
+        element: <SafeRoute><InteriorStudio /></SafeRoute>,
       },
       {
         path: '/project/:id/studio/presentation',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <PresentationStudio />
-          </Suspense>
-        ),
+        element: <SafeRoute><PresentationStudio /></SafeRoute>,
+      },
+      {
+        path: '/project/:id/studio/site-analysis',
+        element: <SafeRoute><SiteAnalysisStudio /></SafeRoute>,
       },
       {
         path: '/site-analysis',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <SiteAnalysis />
-          </Suspense>
-        ),
+        element: <SafeRoute><SiteAnalysis /></SafeRoute>,
       },
       {
         path: '/academy',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <AcademyHome />
-          </Suspense>
-        ),
+        element: <SafeRoute><AcademyHome /></SafeRoute>,
       },
       {
         path: '/academy/:skillPath/:lessonId',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <AcademyLesson />
-          </Suspense>
-        ),
+        element: <SafeRoute><AcademyLesson /></SafeRoute>,
       },
       {
         path: '*',

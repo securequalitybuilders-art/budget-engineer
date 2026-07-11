@@ -1,4 +1,10 @@
-import { MessageSquare, FileText, PenTool, Activity, FileImage, DollarSign, type LucideIcon } from 'lucide-react'
+/**
+ * @deprecated Use stageRegistry directly instead.
+ * This file is kept as a thin adapter for components not yet fully migrated.
+ */
+import type { LucideIcon } from 'lucide-react'
+import { getStagesForDiscipline, type StageId } from '@/lib/studio/stageRegistry'
+import type { DisciplineId } from '@/lib/studio/discipline'
 
 export interface WorkflowStage {
   id: number
@@ -8,11 +14,30 @@ export interface WorkflowStage {
   icon: LucideIcon
 }
 
-export const STAGES: WorkflowStage[] = [
-  { id: 1, label: 'Brief', shortLabel: 'Brief', description: 'Describe your project in plain English. No CAD skills needed.', icon: MessageSquare },
-  { id: 2, label: 'Concept', shortLabel: 'Concept', description: 'Review and compare AI-generated design options.', icon: FileText },
-  { id: 3, label: 'Design', shortLabel: 'Design', description: 'View and edit 2D floor plans and 3D model.', icon: PenTool },
-  { id: 4, label: 'Engineering', shortLabel: 'Engineering', description: 'Run compliance checks, structural analysis, and more.', icon: Activity },
-  { id: 5, label: 'Docs & BIM', shortLabel: 'Docs & BIM', description: 'Generate drawings, elevations, and BIM exports.', icon: FileImage },
-  { id: 6, label: 'Cost & Deliver', shortLabel: 'Cost & Deliver', description: 'View BOQ and export reports.', icon: DollarSign },
-]
+/** Map old numeric stages to StageId for backward compat */
+const NUM_TO_STAGE_ID: StageId[] = ['brief', 'concept', 'design', 'engineering', 'docs-bim', 'cost-deliver'];
+
+/** Get stages for a discipline as the old WorkflowStage format */
+export function getStagesForDisciplineLegacy(discipline: DisciplineId): WorkflowStage[] {
+  return getStagesForDiscipline(discipline).map((s, i) => ({
+    id: i + 1,
+    label: s.label,
+    shortLabel: s.shortLabel,
+    description: s.description,
+    icon: s.icon,
+  }));
+}
+
+/** Legacy STAGES array — defaults to Architecture discipline */
+export const STAGES: WorkflowStage[] = getStagesForDisciplineLegacy('ARCH');
+
+/** Convert StageId to numeric index (legacy compat) */
+export function stageIdToNumeric(id: StageId): number {
+  const idx = NUM_TO_STAGE_ID.indexOf(id);
+  return idx >= 0 ? idx + 1 : 1;
+}
+
+/** Convert numeric to StageId */
+export function numericToStageId(n: number): StageId {
+  return NUM_TO_STAGE_ID[n - 1] ?? 'brief';
+}

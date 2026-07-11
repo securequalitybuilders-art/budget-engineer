@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
+import { useDisciplineStore } from '@/stores/disciplineStore';
 import { BentoShell } from '@/components/layout/BentoShell';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { PropertiesPanel } from '@/components/layout/PropertiesPanel';
@@ -10,7 +11,7 @@ import { TransactionPanel } from '@/components/layout/TransactionPanel';
 import { AIChatPanel } from '@/components/layout/AIChatPanel';
 import { BuilderJourneyGuide } from '@/components/dashboard/BuilderJourneyGuide';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
-import { STAGES } from '@/components/dashboard/stages';
+import { getStageDef, getStagesForDiscipline, type StageId } from '@/lib/studio/stageRegistry';
 import { StageRail } from '@/components/dashboard/StageRail';
 import { MobileNavDrawer } from '@/components/dashboard/MobileNavDrawer';
 import { BriefStage } from '@/components/dashboard/stages/BriefStage';
@@ -22,7 +23,8 @@ import { CostDeliverStage } from '@/components/dashboard/stages/CostDeliverStage
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
 import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
-import { Box, FileSpreadsheet, Bug } from 'lucide-react';
+import { Box, FileSpreadsheet, Bug, Globe } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { generatePlanModel } from '@/engine/plan-generator';
 import { floorPlanToPlanModel } from '@/adapters/floorPlanToPlanModel';
 import type { FloorPlan } from '@/engine/tier3/layoutEngine';
@@ -37,13 +39,16 @@ import type { GeometrySource } from '@/adapters/cadToDesignSyncAdapter';
 import { routeImportFile } from '@/lib/import/importRouter';
 import type { BackdropState } from '@/lib/import/backdropUtils';
 import { createInitialBackdropState, computeScaleCalibration } from '@/lib/import/backdropUtils';
+import { ImportWorkflow } from '@/components/import/ImportWorkflow';
 
 export function Dashboard() {
   const { id } = useParams<{ id: string }>();
   const { loadProject, currentProject, currentBrief, currentDesigns, isLoading, generateDesigns, seed } = useProjectStore();
-  const { activeStage, setActiveStage, activeView, setActiveView, journeyGuideOpen, toggleJourneyGuide, selectedDesignId, setSelectedDesignId, hasSeenTour, setHasSeenTour } = useUIStore();
+  const { activeStageId, setActiveStage, activeView, setActiveView, journeyGuideOpen, toggleJourneyGuide, selectedDesignId, setSelectedDesignId, hasSeenTour, setHasSeenTour } = useUIStore();
+  const currentDiscipline = useDisciplineStore((s) => s.currentDiscipline);
   const [isGenerating, setIsGenerating] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
+  const [importWorkflowOpen, setImportWorkflowOpen] = useState(false);
 
   useEffect(() => {
     if (!hasSeenTour) {
@@ -54,7 +59,7 @@ export function Dashboard() {
   const handleTourComplete = useCallback(() => {
     setHasSeenTour(true)
     setTourOpen(false)
-    setActiveStage(1)
+    setActiveStage('brief')
   }, [setHasSeenTour, setActiveStage])
 
   const handleTourClose = useCallback(() => {
@@ -164,15 +169,15 @@ export function Dashboard() {
 
   useEffect(() => {
     if (currentProject) {
-      const stageMap: Record<string, number> = {
-        draft: 1,
-        concept: 2,
-        design: 3,
-        engineering: 4,
-        costing: 5,
-        tender: 6,
+      const stageMap: Record<string, StageId> = {
+        draft: 'brief',
+        concept: 'concept',
+        design: 'design',
+        engineering: 'engineering',
+        costing: 'docs-bim',
+        tender: 'cost-deliver',
       };
-      setActiveStage(stageMap[currentProject.status] || 1);
+      setActiveStage(stageMap[currentProject.status] || 'brief');
     }
   }, [currentProject, setActiveStage]);
 
@@ -494,19 +499,24 @@ export function Dashboard() {
   }
 
   // ── Stage status for Rail ──
-  const stageStatus: Record<number, 'done' | 'active' | 'upcoming' | 'blocked'> = useMemo(() => {
+  const disciplineStageIds = useMemo(() => getStagesForDiscipline(currentDiscipline).map((s) => s.id), [currentDiscipline]);
+  const stageStatus: Partial<Record<StageId, 'done' | 'active' | 'upcoming' | 'blocked'>> = useMemo(() => {
     const hasDesigns = visibleDesignOptions.length > 0
     const hasSelection = !!selectedDesignId && hasDesigns
-    const hasBoq = !!selectedDesign
-    return {
-      1: activeStage === 1 ? 'active' : 'done',
-      2: !hasDesigns ? (activeStage === 2 ? 'active' : 'blocked') : (activeStage === 2 ? 'active' : 'done'),
-      3: !hasSelection ? (activeStage === 3 ? 'active' : 'blocked') : (activeStage === 3 ? 'active' : 'done'),
-      4: !hasSelection ? (activeStage === 4 ? 'active' : 'blocked') : (activeStage === 4 ? 'active' : 'done'),
-      5: !hasSelection ? (activeStage === 5 ? 'active' : 'blocked') : (activeStage === 5 ? 'active' : 'done'),
-      6: !hasBoq ? (activeStage === 6 ? 'active' : 'blocked') : (activeStage === 6 ? 'active' : 'done'),
+    const status: Partial<Record<StageId, 'done' | 'active' | 'upcoming' | 'blocked'>> = {}
+    for (const id of disciplineStageIds) {
+      if (id === activeStageId) {
+        status[id] = 'active'
+      } else if (id === 'brief') {
+        status[id] = 'done'
+      } else if ((id === 'design' || id === 'engineering' || id === 'docs-bim' || id === 'cost-deliver') && !hasSelection) {
+        status[id] = 'blocked'
+      } else {
+        status[id] = 'upcoming'
+      }
     }
-  }, [activeStage, visibleDesignOptions.length, selectedDesignId, selectedDesign])
+    return status
+  }, [activeStageId, disciplineStageIds, visibleDesignOptions.length, selectedDesignId, selectedDesign])
 
   if (isLoading) {
     return (
@@ -542,7 +552,9 @@ export function Dashboard() {
     );
   }
 
-  const stageLabel = STAGES.find((s) => s.id === activeStage)?.label ?? 'Dashboard'
+  const stageLabel = (() => {
+    try { return getStageDef(activeStageId).label } catch { return 'Dashboard' }
+  })()
 
   return (
     <>
@@ -555,8 +567,8 @@ export function Dashboard() {
           <MobileNavDrawer
             open={mobileNavOpen}
             onOpenChange={setMobileNavOpen}
-            activeStage={activeStage}
-            onStageChange={(stage) => { setMobileNavOpen(false); setActiveStage(stage); setActiveView(stage); }}
+            activeStageId={activeStageId}
+            onStageChange={(stageId) => { setMobileNavOpen(false); setActiveStage(stageId); setActiveView(stageId); }}
             stageStatus={stageStatus}
             activeTool={typeof activeView === 'string' ? activeView : null}
             onToolChange={(tool) => { setMobileNavOpen(false); setActiveView(tool); }}
@@ -586,8 +598,8 @@ export function Dashboard() {
           {/* Stage Rail — hidden on mobile */}
           <div className="hidden md:flex">
             <StageRail
-              activeStage={activeStage}
-              onStageChange={(stage) => { setActiveStage(stage); setActiveView(stage); }}
+              activeStageId={activeStageId}
+              onStageChange={(stageId) => { setActiveStage(stageId); setActiveView(stageId); }}
               stageStatus={stageStatus}
               activeTool={typeof activeView === 'string' ? activeView : null}
               onToolChange={setActiveView}
@@ -596,9 +608,9 @@ export function Dashboard() {
 
           {/* Main content area */}
           <div className="relative flex flex-1 flex-col overflow-hidden bg-[var(--bg-primary)]">
-            {typeof activeView === 'number' ? (
+            {(['brief', 'concept', 'site-analysis', 'design', 'engineering', 'docs-bim', 'cost-deliver'] as StageId[]).includes(activeView as StageId) ? (
               <>
-                {activeView === 1 && (
+                {activeStageId === 'brief' && (
                   <BriefStage
                     onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
                     onDesignOptionsGenerated={handleAiDesignOptions}
@@ -611,7 +623,7 @@ export function Dashboard() {
                     onImportFile={handleImportFile}
                   />
                 )}
-                {activeView === 2 && (
+                {activeStageId === 'concept' && (
                   <ConceptStage
                     visibleDesignOptions={visibleDesignOptions}
                     selectedDesignId={selectedDesignId}
@@ -623,7 +635,25 @@ export function Dashboard() {
                     onImportFile={handleImportFile}
                   />
                 )}
-                {activeView === 3 && (
+                {activeStageId === 'site-analysis' && (
+                  <Link
+                    to={`/project/${id}/studio/site-analysis`}
+                    className="flex flex-1 items-center justify-center"
+                  >
+                    <div className="flex flex-col items-center gap-3 text-center">
+                      <Globe size={40} className="text-[var(--brand-accent)]" />
+                      <h2 className="text-lg font-semibold text-[var(--text-primary)]">Site Analysis</h2>
+                      <p className="max-w-sm text-sm text-[var(--text-secondary)]">
+                        Open the Site Analysis Studio for heliodon, shadow casting, and environmental assessment.
+                      </p>
+                      <Button className="gap-2 mt-2">
+                        <Globe size={16} />
+                        Open Site Analysis Studio
+                      </Button>
+                    </div>
+                  </Link>
+                )}
+                {activeStageId === 'design' && (
                   <DesignStage
                     projectId={id ?? null}
                     selectedDesign={selectedDesign}
@@ -645,9 +675,10 @@ export function Dashboard() {
                     onBackdropClear={handleBackdropClear}
                     onImportFile={handleImportFile}
                     onDesignCreated={handleDesignCreated}
+                    onOpenImportWorkflow={() => setImportWorkflowOpen(true)}
                   />
                 )}
-                {activeView === 4 && (
+                {activeStageId === 'engineering' && (
                   <EngineeringStage
                     selectedDesign={selectedDesign}
                     activePlan={activePlan}
@@ -658,13 +689,13 @@ export function Dashboard() {
                     onBuildingTypeChange={setSelectedBuildingType}
                   />
                 )}
-                {activeView === 5 && (
+                {activeStageId === 'docs-bim' && (
                   <LazyDocsBimStage
                     activePlan={activePlan}
                     selectedDesign={selectedDesign}
                   />
                 )}
-                {activeView === 6 && (
+                {activeStageId === 'cost-deliver' && (
                   <CostDeliverStage
                     selectedDesign={selectedDesign}
                     boq={currentBoq}
@@ -778,6 +809,31 @@ export function Dashboard() {
 
       <AIChatPanel />
       <OnboardingTour open={tourOpen} onClose={handleTourClose} onComplete={handleTourComplete} />
+
+      {importWorkflowOpen && id && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setImportWorkflowOpen(false)}>
+          <div className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">Guided Import</h2>
+              <button
+                onClick={() => setImportWorkflowOpen(false)}
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--bg-tertiary)] text-[10px] text-[var(--text-tertiary)] hover:bg-[var(--bg-hover)]"
+                aria-label="Close import workflow"
+              >
+                ✕
+              </button>
+            </div>
+            <ImportWorkflow
+              projectId={id}
+              onComplete={() => {
+                setImportWorkflowOpen(false);
+                showStatus('Import completed — review the resulting plan', 'success');
+              }}
+              onCancel={() => setImportWorkflowOpen(false)}
+            />
+          </div>
+        </div>
+      )}
     </BentoShell>
     </>
   );

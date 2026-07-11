@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { BoardEditor } from '@/components/presentation/BoardEditor'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 export default function PresentationStudio() {
   const { id: projectId } = useParams<{ id: string }>()
@@ -17,7 +18,9 @@ export default function PresentationStudio() {
         </p>
       </div>
       <div style={{ flex: 1, overflow: 'hidden' }}>
-        <BoardEditor projectId={projectId} />
+        <ErrorBoundary>
+          <BoardEditor projectId={projectId} />
+        </ErrorBoundary>
       </div>
     </div>
   )

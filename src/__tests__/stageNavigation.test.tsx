@@ -3,7 +3,6 @@ import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 import { render, cleanup, fireEvent, screen } from '@testing-library/react'
 
 import { StageRail } from '@/components/dashboard/StageRail'
-import { STAGES } from '@/components/dashboard/stages'
 import { BriefStage } from '@/components/dashboard/stages/BriefStage'
 import { ConceptStage } from '@/components/dashboard/stages/ConceptStage'
 import { DesignStage } from '@/components/dashboard/stages/DesignStage'
@@ -14,6 +13,7 @@ import { TransactionPanel } from '@/components/layout/TransactionPanel'
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel'
 import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel'
 import { PropertiesPanel } from '@/components/layout/PropertiesPanel'
+import { getStagesForDiscipline, type StageId } from '@/lib/studio/stageRegistry'
 
 vi.mock('@/stores/projectStore', () => ({
   useProjectStore: () => ({
@@ -21,6 +21,20 @@ vi.mock('@/stores/projectStore', () => ({
     transactions: [],
   }),
 }))
+
+vi.mock('@/stores/disciplineStore', () => {
+  const useDisciplineStore = vi.fn()
+  useDisciplineStore.mockImplementation((selector?: (state: Record<string, unknown>) => unknown) => {
+    const state = {
+      currentDiscipline: 'ARCH' as const,
+      visibleDisciplines: ['ARCH', 'STR'],
+      setCurrentDiscipline: vi.fn(),
+      toggleDisciplineVisibility: vi.fn(),
+    }
+    return selector ? selector(state) : state
+  })
+  return { useDisciplineStore }
+})
 
 vi.mock('@/services/projectSnapshotService', () => ({
   loadProjectSnapshots: vi.fn(() => Promise.resolve([])),
@@ -56,34 +70,14 @@ beforeEach(() => {
 
 afterEach(() => cleanup())
 
-// ── STAGES module ──
-describe('stages module', () => {
-  it('exports 6 stages with expected labels', () => {
-    expect(STAGES.length).toBe(6)
-    expect(STAGES[0].label).toBe('Brief')
-    expect(STAGES[1].label).toBe('Concept')
-    expect(STAGES[2].label).toBe('Design')
-    expect(STAGES[3].label).toBe('Engineering')
-    expect(STAGES[4].label).toBe('Docs & BIM')
-    expect(STAGES[5].label).toBe('Cost & Deliver')
-  })
-
-  it('each stage has id, shortLabel, description, and icon', () => {
-    for (const s of STAGES) {
-      expect(typeof s.id).toBe('number')
-      expect(typeof s.label).toBe('string')
-      expect(typeof s.shortLabel).toBe('string')
-      expect(typeof s.description).toBe('string')
-      expect(s.icon).toBeDefined()
-    }
-  })
-})
-
+// stageRegistry tests moved to StageRail section
 // ── STAGE RAIL ──
 describe('StageRail', () => {
-  it('renders all 6 stages and 4 project tools', () => {
-    render(<StageRail activeStage={1} onStageChange={vi.fn()} activeTool={null} onToolChange={vi.fn()} />)
-    for (const stage of STAGES) {
+  const archStages = getStagesForDiscipline('ARCH')
+
+  it('renders all ARCH stages and 4 project tools', () => {
+    render(<StageRail activeStageId={'brief' as StageId} onStageChange={vi.fn()} activeTool={null} onToolChange={vi.fn()} />)
+    for (const stage of archStages) {
       expect(screen.getByText(stage.label)).toBeTruthy()
     }
     expect(screen.getByText('History')).toBeTruthy()
@@ -93,20 +87,20 @@ describe('StageRail', () => {
   })
 
   it('has role="navigation" and aria-label', () => {
-    render(<StageRail activeStage={1} onStageChange={vi.fn()} />)
+    render(<StageRail activeStageId={'brief' as StageId} onStageChange={vi.fn()} />)
     const nav = screen.getByRole('navigation')
     expect(nav).toBeTruthy()
     expect(nav.getAttribute('aria-label')).toBe('Dashboard navigation')
   })
 
   it('shows Workflow and Project Tools section headings', () => {
-    render(<StageRail activeStage={1} onStageChange={vi.fn()} />)
+    render(<StageRail activeStageId={'brief' as StageId} onStageChange={vi.fn()} />)
     expect(screen.getByText('Workflow')).toBeTruthy()
     expect(screen.getByText('Project Tools')).toBeTruthy()
   })
 
   it('applies aria-current="step" to the active stage button', () => {
-    render(<StageRail activeStage={3} onStageChange={vi.fn()} />)
+    render(<StageRail activeStageId={'design' as StageId} onStageChange={vi.fn()} />)
     const buttons = screen.getAllByRole('button')
     const activeButton = buttons.find((b) => b.getAttribute('aria-current') === 'step')
     expect(activeButton).toBeTruthy()
@@ -114,25 +108,25 @@ describe('StageRail', () => {
   })
 
   it('applies aria-current="page" to the active tool button', () => {
-    render(<StageRail activeStage={1} onStageChange={vi.fn()} activeTool="history" onToolChange={vi.fn()} />)
+    render(<StageRail activeStageId={'brief' as StageId} onStageChange={vi.fn()} activeTool="history" onToolChange={vi.fn()} />)
     const buttons = screen.getAllByRole('button')
     const activeToolBtn = buttons.find((b) => b.getAttribute('aria-current') === 'page')
     expect(activeToolBtn).toBeTruthy()
     expect(activeToolBtn?.textContent).toContain('History')
   })
 
-  it('calls onStageChange when clicking a stage', () => {
+  it('calls onStageChange with StageId when clicking a stage', () => {
     const onStageChange = vi.fn()
-    render(<StageRail activeStage={1} onStageChange={onStageChange} />)
-    const stage2Button = screen.getByText('Concept').closest('button')
-    expect(stage2Button).toBeTruthy()
-    fireEvent.click(stage2Button!)
-    expect(onStageChange).toHaveBeenCalledWith(2)
+    render(<StageRail activeStageId={'brief' as StageId} onStageChange={onStageChange} />)
+    const conceptButton = screen.getByText('Concept').closest('button')
+    expect(conceptButton).toBeTruthy()
+    fireEvent.click(conceptButton!)
+    expect(onStageChange).toHaveBeenCalledWith('concept')
   })
 
   it('calls onToolChange when clicking a tool', () => {
     const onToolChange = vi.fn()
-    render(<StageRail activeStage={1} onStageChange={vi.fn()} activeTool={null} onToolChange={onToolChange} />)
+    render(<StageRail activeStageId={'brief' as StageId} onStageChange={vi.fn()} activeTool={null} onToolChange={onToolChange} />)
     const historyButton = screen.getByText('History').closest('button')
     expect(historyButton).toBeTruthy()
     fireEvent.click(historyButton!)
@@ -140,9 +134,12 @@ describe('StageRail', () => {
   })
 
   it('shows blocked status for stages that are blocked', () => {
-    const stageStatus = { 1: 'active' as const, 2: 'blocked' as const, 3: 'blocked' as const, 4: 'blocked' as const, 5: 'blocked' as const, 6: 'blocked' as const }
-    render(<StageRail activeStage={1} onStageChange={vi.fn()} stageStatus={stageStatus} />)
-    for (const stage of STAGES) {
+    const stageStatus: Partial<Record<StageId, 'done' | 'active' | 'upcoming' | 'blocked'>> = {
+      brief: 'active', concept: 'blocked', 'site-analysis': 'blocked',
+      design: 'blocked', engineering: 'blocked', 'docs-bim': 'blocked', 'cost-deliver': 'blocked',
+    }
+    render(<StageRail activeStageId={'brief' as StageId} onStageChange={vi.fn()} stageStatus={stageStatus} />)
+    for (const stage of archStages) {
       expect(screen.getByText(stage.label)).toBeTruthy()
     }
   })

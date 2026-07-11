@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
 import { Button } from '@/components/ui/Button';
-import { Plus, Home, Settings, Folder } from 'lucide-react';
+import { Plus, Home, Settings, Folder, Sofa, Monitor, Globe, BookOpen } from 'lucide-react';
+import { DisciplineSwitcher } from '@/components/studio/DisciplineSwitcher';
 
 export function Sidebar() {
   const { sidebarOpen } = useUIStore();
@@ -57,6 +58,48 @@ export function Sidebar() {
           })
         )}
       </nav>
+
+      {currentProjectId && (
+        <>
+          <div className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">
+            Studio
+          </div>
+          <div className="space-y-0.5">
+            <Link
+              to={`/project/${currentProjectId}/studio/interior`}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+            >
+              <Sofa size={16} />
+              Interior Design
+            </Link>
+            <Link
+              to={`/project/${currentProjectId}/studio/presentation`}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+            >
+              <Monitor size={16} />
+              Presentation Boards
+            </Link>
+            <Link
+              to={`/project/${currentProjectId}/studio/site-analysis`}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+            >
+              <Globe size={16} />
+              Site Analysis
+            </Link>
+          </div>
+          <hr className="my-3 border-t border-[var(--border-default)]" />
+          <DisciplineSwitcher className="mb-3" />
+          <hr className="my-3 border-t border-[var(--border-default)]" />
+        </>
+      )}
+
+      <Link
+        to="/academy"
+        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+      >
+        <BookOpen size={16} />
+        Academy
+      </Link>
 
       <div className="border-t border-[var(--border-default)] p-3">
         <Link

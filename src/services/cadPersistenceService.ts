@@ -23,6 +23,7 @@ export async function loadPlanModel(projectId: string, designId: string): Promis
   try {
     const stored = await db.planModels.get(`plan-${projectId}-${designId}`)
     if (!stored) return null
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { projectId: _p, designId: _d, savedAt: _s, ...plan } = stored
     return plan as PlanModel
   } catch {

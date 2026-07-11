@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import taxonomy from '@/data/skills/taxonomy.json'
 import { useAcademyStore } from '@/stores/academyStore'
@@ -27,6 +27,15 @@ export function AcademyHome() {
 
   const handleCompleteLesson = (lessonId: string) => {
     if (lessonId) completeLesson(lessonId)
+  }
+
+  if (tax.paths.length === 0) {
+    return (
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: '24px 16px' }}>
+        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Architecture Academy</h1>
+        <p style={{ marginTop: 16, fontSize: 13, color: '#888' }}>No learning paths available yet.</p>
+      </div>
+    )
   }
 
   return (
@@ -73,13 +82,22 @@ export function AcademyLesson() {
   const completeLesson = useAcademyStore((s) => s.completeLesson)
   const setCurrentLesson = useAcademyStore((s) => s.setCurrentLesson)
   const isCompleted = useAcademyStore((s) => s.isCompleted)
+  const [renderError, setRenderError] = useState<string | null>(null)
 
   const result = useMemo(() => {
     if (!pathId || !lessonId) return null
     return findLesson(tax as Taxonomy, pathId, lessonId)
   }, [pathId, lessonId])
 
-  const html = useMemo(() => result ? renderLessonToHtml(result.lesson) : '', [result])
+  const html = useMemo(() => {
+    if (!result) return ''
+    try {
+      return renderLessonToHtml(result.lesson)
+    } catch (err) {
+      setRenderError(err instanceof Error ? err.message : 'Failed to render lesson')
+      return ''
+    }
+  }, [result])
 
   if (!result) {
     return (
@@ -102,6 +120,18 @@ export function AcademyLesson() {
 
   const handleBack = () => {
     navigate('/academy')
+  }
+
+  if (renderError) {
+    return (
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: 40, textAlign: 'center', color: '#888' }}>
+        <h2>Failed to load lesson</h2>
+        <p style={{ fontSize: 13, marginTop: 8 }}>{renderError}</p>
+        <button onClick={handleBack} style={{ padding: '8px 20px', fontSize: 13, border: '1px solid #ccc', borderRadius: 4, background: '#f5f5f5', cursor: 'pointer', marginTop: 16 }}>
+          Back to Academy
+        </button>
+      </div>
+    )
   }
 
   return (

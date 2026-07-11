@@ -2,8 +2,16 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type { AppTheme } from '@/types';
+import type { StageId } from '@/lib/studio/stageRegistry';
 
-export type ActiveView = number | 'history' | 'governance' | 'snapshots' | 'properties';
+export type ActiveView = number | StageId | 'history' | 'governance' | 'snapshots' | 'properties';
+
+/** Converts numeric stage (1-6) to semantic StageId for the ARCH discipline order */
+const NUM_TO_STAGE_ID: StageId[] = ['brief', 'concept', 'design', 'engineering', 'docs-bim', 'cost-deliver'];
+
+function numericToStageId(n: number): StageId {
+  return NUM_TO_STAGE_ID[n - 1] ?? 'brief';
+}
 
 interface UIState {
   theme: AppTheme;
@@ -13,7 +21,9 @@ interface UIState {
   boqPanelOpen: boolean;
   aiChatOpen: boolean;
   shortcutsOpen: boolean;
+  /** @deprecated Use activeStageId instead */
   activeStage: number;
+  activeStageId: StageId;
   activeView: ActiveView;
   journeyGuideOpen: boolean;
   selectedDesignId: string | null;
@@ -24,7 +34,8 @@ interface UIState {
   toggleBoqPanel: () => void;
   toggleAiChat: () => void;
   toggleShortcutsHelp: () => void;
-  setActiveStage: (stage: number) => void;
+  /** Accepts number (legacy) or StageId (preferred) */
+  setActiveStage: (stage: number | StageId) => void;
   setActiveView: (view: ActiveView) => void;
   toggleJourneyGuide: () => void;
   setSelectedDesignId: (id: string | null) => void;
@@ -56,6 +67,7 @@ export const useUIStore = create<UIState>()(
         aiChatOpen: false,
         shortcutsOpen: false,
         activeStage: 1,
+        activeStageId: 'brief' as StageId,
         activeView: 1,
         journeyGuideOpen: false,
         selectedDesignId: null,
@@ -92,12 +104,21 @@ export const useUIStore = create<UIState>()(
           }),
         setActiveStage: (stage) =>
           set((s) => {
-            s.activeStage = stage;
+            if (typeof stage === 'number') {
+              s.activeStage = stage;
+              s.activeStageId = numericToStageId(stage);
+            } else {
+              s.activeStageId = stage;
+              s.activeStage = NUM_TO_STAGE_ID.indexOf(stage) + 1 || 1;
+            }
           }),
         setActiveView: (view) =>
           set((s) => {
             s.activeView = view;
-            if (typeof view === 'number') s.activeStage = view;
+            if (typeof view === 'number') {
+              s.activeStage = view;
+              s.activeStageId = numericToStageId(view);
+            }
           }),
         toggleJourneyGuide: () =>
           set((s) => {
@@ -115,12 +136,16 @@ export const useUIStore = create<UIState>()(
       {
         name: 'budget-engineer-ui-state',
         storage: createJSONStorage(() => localStorage),
-        partialize: (state) => ({ theme: state.theme, hasSeenTour: state.hasSeenTour }),
+        partialize: (state) => ({ theme: state.theme, hasSeenTour: state.hasSeenTour, activeStageId: state.activeStageId }),
         onRehydrateStorage: () => (state) => {
           if (!state) return;
           const resolved = resolveTheme(state.theme);
           applyThemeClass(resolved);
           state.resolvedTheme = resolved;
+          if (state.activeStageId) {
+            const idx = NUM_TO_STAGE_ID.indexOf(state.activeStageId);
+            state.activeStage = idx >= 0 ? idx + 1 : 1;
+          }
         },
       }
     )

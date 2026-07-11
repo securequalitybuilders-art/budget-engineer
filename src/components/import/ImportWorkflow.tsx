@@ -66,19 +66,26 @@ export function ImportWorkflow({ projectId, onComplete, onCancel, className = ''
     setSegments((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
+  const [applyError, setApplyError] = useState<string | null>(null);
+
   const handleApply = useCallback(async () => {
     if (!calibration || !projectId) return;
+    setApplyError(null);
 
-    const pxPerMetre = calibration.pxPerMetre;
-    const snapped = snapAndMerge(segments);
+    try {
+      const pxPerMetre = calibration.pxPerMetre;
+      const snapped = snapAndMerge(segments);
 
-    const model = segmentsToPlan(snapped, pxPerMetre);
+      const model = segmentsToPlan(snapped, pxPerMetre);
 
-    if (!model) return;
-    const id = model.id;
-    await savePlanModel(projectId, id, model);
-    setPlanModelId(id);
-    setStep('complete');
+      if (!model) return;
+      const id = model.id;
+      await savePlanModel(projectId, id, model);
+      setPlanModelId(id);
+      setStep('complete');
+    } catch (err) {
+      setApplyError(err instanceof Error ? err.message : 'Failed to save plan');
+    }
   }, [segments, calibration, projectId]);
 
   return (
@@ -150,6 +157,9 @@ export function ImportWorkflow({ projectId, onComplete, onCancel, className = ''
             onRemoveSegment={handleRemoveSegment}
             onUpdateSegment={function (_i, _s) {}}
           />
+          {applyError && (
+            <div className="text-sm text-red-400">Save failed: {applyError}</div>
+          )}
           <div className="flex justify-end gap-2">
             <button
               type="button"

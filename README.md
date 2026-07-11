@@ -1,8 +1,8 @@
 # Budget Engineer — Premium Architectural Studio
 
 [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)]()
-[![Tests](https://img.shields.io/badge/tests-1059-green)]()
+[![Version](https://img.shields.io/badge/version-1.0.1-blue)]()
+[![Tests](https://img.shields.io/badge/tests-1130-green)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
 [![PWA](https://img.shields.io/badge/PWA-offline--first-purple)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)]()
@@ -44,9 +44,9 @@ And expands it into a broader premium architecture platform with:
 
 | Metric | Value |
 |---|---|
-| Version | v1.0.0 |
-| Tests | 1,059 |
-| Test files | 61 |
+| Version | v1.0.1 |
+| Tests | 1,130 |
+| Test files | 68 |
 | TypeScript | Strict mode, green |
 | Build | Green |
 | Lint | Within warning budget |
@@ -284,11 +284,14 @@ src/
 ## Routes
 
 | Route | Page |
-|---|---|
+|---|---|---|
 | `/` | Home — product landing page |
 | `/new` | Project wizard — 3-step project creation |
-| `/project/:id` | Dashboard — 6-stage project workspace |
+| `/project/:id` | Dashboard — 7-stage discipline-aware project workspace |
+| `/project/:id/studio/interior` | Interior Design Studio |
 | `/project/:id/studio/presentation` | Presentation board studio |
+| `/project/:id/studio/site-analysis` | Site Analysis Studio (heliodon, wind, shadow) |
+| `/site-analysis` | Standalone Site Analysis (no project context) |
 | `/portfolio` | Portfolio — multi-project management |
 | `/academy` | Academy — skill path browser |
 | `/academy/:skillPath/:lessonId` | Individual lesson |
@@ -327,7 +330,7 @@ See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for full details.
 | `npm run preview` | Preview production build locally |
 | `npm run typecheck` | TypeScript strict check (`tsc --noEmit`) |
 | `npm run lint` | ESLint with max 10 warnings |
-| `npm test` | Run all 1,059 tests (Vitest) |
+| `npm test` | Run all 1,130 tests (Vitest) |
 | `npm run test:watch` | Tests in watch mode |
 | `npm run lighthouse` | Build + Lighthouse CI audit |
 
@@ -336,8 +339,8 @@ See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for full details.
 ## Quality
 
 | Metric | Value |
-|---|---|
-| Tests | 1,059 across 61 test files |
+|---|---|---|
+| Tests | 1,130 across 68 test files |
 | TypeScript | 0 errors (strict mode) |
 | Lighthouse A11y | 100 |
 | Lighthouse Best Practices | 100 |
@@ -373,7 +376,7 @@ See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for full details.
 | **Fully offline** | PWA with service worker. Works without network after first load. |
 | **Privacy by architecture** | No telemetry, no analytics, no data collection, no data leaves the device. |
 | **Modular** | Domain models → stores → adapters → components. Clean separation. |
-| **Test-first** | 1,059 tests. Every feature phase includes dedicated test coverage. |
+| **Test-first** | 1,130 tests. Every feature phase includes dedicated test coverage. |
 | **Honest UX** | All limitations documented in-app. No false claims about capabilities. |
 
 ---
@@ -400,7 +403,7 @@ Each push to `main` runs via GitHub Actions:
 1. `npm ci`
 2. `npm run typecheck`
 3. `npm run lint`
-4. `npm test` (1,059 tests across 61 test files)
+4. `npm test` (1,130 tests across 68 test files)
 5. `npm run build` (PWA service worker generated)
 
 ---
@@ -413,7 +416,7 @@ Each push to `main` runs via GitHub Actions:
 | Codename | Premium Architectural Studio |
 | Live demo | [budget-engineer.vercel.app](https://budget-engineer.vercel.app/) |
 | GitHub | [github.com/securequalitybuilders-art/budget-engineer](https://github.com/securequalitybuilders-art/budget-engineer) |
-| Tests | 1,059 across 61 test files |
+| Tests | 1,130 across 68 test files |
 | Architecture | Local-first, no paid APIs, no backend, no cloud LLM |
 
 See [CHANGELOG.md](CHANGELOG.md) for full release history. Release notes for each version are in `docs/RELEASE_NOTES_v*.md`.

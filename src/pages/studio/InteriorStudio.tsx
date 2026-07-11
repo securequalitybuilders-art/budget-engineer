@@ -11,6 +11,7 @@ export function InteriorStudio() {
   const { id: projectId } = useParams<{ id: string }>();
   const project = useInteriorStore((s) => s.project);
   const materials = useInteriorStore((s) => s.materials);
+  const isLoading = useInteriorStore((s) => s.isLoading);
   const loadProject = useInteriorStore((s) => s.loadProject);
 
   useEffect(() => {
@@ -29,12 +30,36 @@ export function InteriorStudio() {
     [finishSchedule]
   );
 
-  if (!project) {
+  if (!projectId) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center text-[var(--text-secondary)]">
+          <div className="mb-2 text-lg">No project selected.</div>
+          <a href="/" className="text-sm text-[var(--brand-primary)] underline">Back to home</a>
+        </div>
+      </div>
+    );
+  }
+
+  if (!project || isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center text-[var(--text-secondary)]">
           <div className="mb-2 text-lg">Loading interior workspace...</div>
           <div className="text-sm">Initializing project data</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (project.rooms.length === 0) {
+    return (
+      <div className="flex h-full flex-col">
+        <div className="flex items-center justify-between border-b border-[var(--border-primary)] px-4 py-2">
+          <h1 className="text-sm font-semibold text-[var(--text-primary)]">Interior Studio</h1>
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 text-[var(--text-secondary)]">
+          <p className="text-sm">No rooms yet. Add a room from the Room Templates sidebar to get started.</p>
         </div>
       </div>
     );

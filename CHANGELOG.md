@@ -1,5 +1,57 @@
 # Changelog
 
+## [1.0.1] - 2026-07-11 — Premium Studio UI Integration & QA Update
+
+### Summary
+
+This patch release completes the Premium Studio integration pass by surfacing previously hidden studio features in the live UI, wiring the discipline-aware stage system into the shell, improving route safety and empty/error states, and expanding integration coverage.
+
+The underlying Premium Studio capabilities introduced in v1.0.0 are now fully discoverable and reachable through the product interface.
+
+See [docs/RELEASE_NOTES_v1.0.1.md](docs/RELEASE_NOTES_v1.0.1.md) for full release notes.
+
+### Added
+- **Site Analysis Studio UI surfacing**
+  - New project-scoped page: `/project/:id/studio/site-analysis`
+  - Heliodon and site analysis tools now reachable from the app UI
+- **Interior Studio UI surfacing**
+  - Interior Studio route now fully wired and reachable from the app UI
+- **Premium Studio discoverability**
+  - Sidebar Studio section with Interior, Site Analysis, and Presentation links
+  - Home page "Premium Studio Modules" cards
+  - Dashboard launch points for Interior Studio, Site Analysis Studio, and Presentation Studio
+- **Guided Import workflow mounting**
+  - Guided import flow now reachable from Design stage
+- **User-facing DXF export**
+  - DXF export buttons surfaced in Design stage and Drawings panel
+- **Integration test coverage**
+  - New tests for studios, discipline shell, sidebar discoverability, guided import, home discoverability, and DXF export UI
+
+### Changed
+- **Discipline-aware shell**
+  - CommandBar, StageRail, MobileNavDrawer, and Dashboard now use the stage registry and active discipline
+- **Semantic stage navigation**
+  - `StageId`-based routing now drives visible workflow navigation
+- **Error isolation**
+  - Safe route wrappers and route-level error boundaries added
+- **Studio page robustness**
+  - Missing project guards, empty states, and error handling improved across studio pages
+
+### Fixed
+- Interior Studio infinite loading when `projectId` missing
+- Presentation Studio crash propagation via unwrapped board editor
+- Import workflow apply-path save failure handling
+- Academy empty and lesson-render fallback handling
+- Hidden Premium Studio features that existed in code but were not reachable in UI
+
+### Quality
+- 1,130 tests across 68 files
+- TypeScript: 0 errors
+- Build: green
+- Lint: 0 errors, 8 non-blocking warnings
+
+---
+
 ## [1.0.0] - 2026-07-11 — Premium Architectural Studio
 
 ### Summary

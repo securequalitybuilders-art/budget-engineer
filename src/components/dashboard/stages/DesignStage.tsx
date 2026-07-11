@@ -1,12 +1,15 @@
 import { useState, useRef, useCallback } from 'react'
+import { useParams, Link } from 'react-router-dom'
 import { PlanCanvas } from '@/components/cad/PlanCanvas'
 import { LazyBimModel3D } from '@/components/bim/LazyBimModel3D'
 import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
 import { CadSyncControls } from '@/components/dashboard/CadSyncControls'
 import { Button } from '@/components/ui/Button'
-import { Box, Layers, Ruler, Wand2, Upload, LayoutGrid, Boxes } from 'lucide-react'
+import { Box, Layers, Ruler, Wand2, Upload, LayoutGrid, Boxes, Sofa, Download } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { segmentsToPlan, detectWallsFromImage } from '@/lib/import/wallDetection'
+import { convertPlanModelToCadDocument } from '@/adapters/planModelToCadAdapter'
+import { generateDxf, downloadDxf } from '@/lib/export/dxfWriter'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
 import type { BackdropState } from '@/lib/import/backdropUtils'
@@ -32,6 +35,7 @@ interface DesignStageProps {
   onBackdropClear: () => void
   onImportFile: (file: File) => void
   onDesignCreated: (projectId: string, plan: PlanModel) => void
+  onOpenImportWorkflow?: () => void
 }
 
 export function DesignStage({
@@ -55,12 +59,23 @@ export function DesignStage({
   onBackdropClear,
   onImportFile,
   onDesignCreated,
+  onOpenImportWorkflow,
 }: DesignStageProps) {
   const [canvasView, setCanvasView] = useState<'plan' | 'bim' | 'drawings'>('plan')
   const [detecting, setDetecting] = useState(false)
   const [detectMessage, setDetectMessage] = useState<string | null>(null)
   const [detectError, setDetectError] = useState(false)
+  const { id: projectIdParam } = useParams<{ id: string }>()
   const importInputRef = useRef<HTMLInputElement>(null)
+
+  const handleExportDxf = useCallback(() => {
+    if (!activePlan) return
+    const result = convertPlanModelToCadDocument({ plan: activePlan, designId: selectedDesign?.id })
+    if (!result.cad) return
+    const dxf = generateDxf(result.cad, { title: selectedDesign?.name ?? 'floor-plan' })
+    const name = (selectedDesign?.name ?? 'floor-plan').toLowerCase().replace(/\s+/g, '-')
+    downloadDxf(dxf, `${name}.dxf`)
+  }, [activePlan, selectedDesign])
 
   const handleImportChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -120,8 +135,14 @@ export function DesignStage({
             </Button>
             <Button variant="secondary" className="gap-2" onClick={() => importInputRef.current?.click()}>
               <Upload size={16} />
-              Import (DXF / image / PDF)
+              Quick Import (DXF / image / PDF)
             </Button>
+            {onOpenImportWorkflow && (
+              <Button variant="secondary" className="gap-2" onClick={onOpenImportWorkflow}>
+                <Wand2 size={16} />
+                Guided Import (AI detection)
+              </Button>
+            )}
             <p className="mt-1 text-[10px] text-stone-400">{'Supported: DXF, images. For AutoCAD/ArchiCAD, export to DXF first.'}</p>
           </div>
           <input
@@ -186,6 +207,19 @@ export function DesignStage({
           <Upload size={16} />
         </Button>
 
+        {onOpenImportWorkflow && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full"
+            aria-label="Guided import with AI wall detection"
+            title="Guided import with AI wall detection"
+            onClick={onOpenImportWorkflow}
+          >
+            <Wand2 size={16} />
+          </Button>
+        )}
+
         {backdrop?.imageDataUrl && backdrop.pxPerMetre !== null && (
           <>
             <span className="mx-1 h-5 w-px bg-white/10" />
@@ -243,6 +277,34 @@ export function DesignStage({
           <Boxes size={14} />
           <span className="hidden sm:inline">3D</span>
         </Button>
+
+        <span className="mx-1 h-5 w-px bg-white/10" />
+
+        {projectIdParam && (
+          <Link
+            to={`/project/${projectIdParam}/studio/interior`}
+            className="inline-flex h-8 items-center gap-1 rounded-full px-2 text-[11px] font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+            aria-label="Open Interior Studio"
+            title="Open Interior Studio"
+          >
+            <Sofa size={14} />
+            <span className="hidden sm:inline">Interior</span>
+          </Link>
+        )}
+
+        {activePlan && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
+            aria-label="Export DXF"
+            title="Export plan as DXF"
+            onClick={handleExportDxf}
+          >
+            <Download size={14} />
+            <span className="hidden sm:inline">DXF</span>
+          </Button>
+        )}
         </div>
       </div>
 

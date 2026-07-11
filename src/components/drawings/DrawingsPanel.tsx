@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback } from 'react'
+import { useParams, Link } from 'react-router-dom'
 import type { DesignOption } from '@/domain/boq'
 import type { PlanModel } from '@/domain/plan'
 import type { CanopyParams } from '@/engine/canopy/canopyGeometry'
@@ -22,6 +23,10 @@ import {
   DEFAULT_STOREY_HEIGHT,
   ROOF_PITCH_HEIGHT,
 } from '@/adapters/planTo3d'
+import { Button } from '@/components/ui/Button'
+import { Monitor, Download } from 'lucide-react'
+import { convertPlanModelToCadDocument } from '@/adapters/planModelToCadAdapter'
+import { generateDxf, downloadDxf } from '@/lib/export/dxfWriter'
 
 type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'side' | 'section' | 'presentation'
 
@@ -49,7 +54,17 @@ interface DrawingsPanelProps {
 }
 
 export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAULT_STOREY_HEIGHT, pitchHeight = ROOF_PITCH_HEIGHT }: DrawingsPanelProps) {
+  const { id: projectId } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<DrawingTab>('front')
+
+  const handleExportDxf = useCallback(() => {
+    if (!activePlan) return
+    const result = convertPlanModelToCadDocument({ plan: activePlan, designId: design?.id })
+    if (!result.cad) return
+    const dxf = generateDxf(result.cad, { title: design?.name ?? 'floor-plan' })
+    const name = (design?.name ?? 'floor-plan').toLowerCase().replace(/\s+/g, '-')
+    downloadDxf(dxf, `${name}.dxf`)
+  }, [activePlan, design])
 
   // ── Roof type state for Section drawing ──
   const [sectionRoofType, setSectionRoofType] = useState<'gable' | 'canopy'>('gable')
@@ -221,6 +236,32 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
           pitchHeight={pitchHeight}
         />
       )}
+
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-stone-700/60 bg-stone-900/50 px-3 py-2">
+        {projectId && (
+          <Link
+            to={`/project/${projectId}/studio/presentation`}
+            className="inline-flex items-center gap-2 rounded-md bg-violet-600/20 px-3 py-1.5 text-[11px] font-medium text-violet-300 transition-colors hover:bg-violet-600/30"
+          >
+            <Monitor size={14} />
+            Open Presentation Studio
+          </Link>
+        )}
+        <div className="ml-auto flex gap-2">
+          {activePlan && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 rounded-md px-2 text-[11px] font-medium"
+              onClick={handleExportDxf}
+              aria-label="Export DXF"
+            >
+              <Download size={12} />
+              DXF
+            </Button>
+          )}
+        </div>
+      </div>
 
       <p className="text-[10px] text-stone-400 leading-relaxed">
         Elevations and section derived from the same PlanModel geometry as 2D/3D.

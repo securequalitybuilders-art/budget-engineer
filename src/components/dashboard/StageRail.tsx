@@ -1,11 +1,13 @@
+import { useMemo } from 'react'
 import { cn } from '@/lib/utils'
-import { STAGES, type WorkflowStage } from './stages'
+import { useDisciplineStore } from '@/stores/disciplineStore'
+import { getStagesForDiscipline, type StageId } from '@/lib/studio/stageRegistry'
 import { Check, History, Shield, Camera, FileText } from 'lucide-react'
 
 interface StageRailProps {
-  activeStage: number
-  onStageChange: (stage: number) => void
-  stageStatus?: Record<number, 'done' | 'active' | 'upcoming' | 'blocked'>
+  activeStageId: StageId
+  onStageChange: (stageId: StageId) => void
+  stageStatus?: Partial<Record<StageId, 'done' | 'active' | 'upcoming' | 'blocked'>>
   activeTool?: string | null
   onToolChange?: (tool: 'history' | 'governance' | 'snapshots' | 'properties') => void
 }
@@ -24,7 +26,10 @@ const PROJECT_TOOLS = [
   { key: 'properties' as const, label: 'Properties', icon: FileText },
 ]
 
-export function StageRail({ activeStage, onStageChange, stageStatus, activeTool, onToolChange }: StageRailProps) {
+export function StageRail({ activeStageId, onStageChange, stageStatus, activeTool, onToolChange }: StageRailProps) {
+  const currentDiscipline = useDisciplineStore((s) => s.currentDiscipline)
+  const stages = useMemo(() => getStagesForDiscipline(currentDiscipline), [currentDiscipline])
+
   return (
     <nav
       className="flex w-56 flex-shrink-0 flex-col border-r border-stone-700/60 bg-stone-950/90"
@@ -35,9 +40,9 @@ export function StageRail({ activeStage, onStageChange, stageStatus, activeTool,
         <p className="text-[10px] font-semibold uppercase tracking-wider text-cyan-400">Workflow</p>
       </div>
       <ol className="space-y-0.5 overflow-y-auto px-2 py-3">
-        {STAGES.map((stage: WorkflowStage) => {
-          const isActive = stage.id === activeStage
-          const status = stageStatus?.[stage.id] ?? (isActive ? 'active' : stage.id < activeStage ? 'done' : 'upcoming')
+        {stages.map((stage) => {
+          const isActive = stage.id === activeStageId
+          const status = stageStatus?.[stage.id] ?? (isActive ? 'active' : 'upcoming')
 
           return (
             <li key={stage.id}>

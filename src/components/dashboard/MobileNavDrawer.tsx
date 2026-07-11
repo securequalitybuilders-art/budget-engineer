@@ -1,14 +1,15 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useMemo } from 'react'
 import { cn } from '@/lib/utils'
-import { STAGES, type WorkflowStage } from './stages'
+import { useDisciplineStore } from '@/stores/disciplineStore'
+import { getStagesForDiscipline, type StageId } from '@/lib/studio/stageRegistry'
 import { Check, History, Shield, Camera, FileText, Menu, X } from 'lucide-react'
 
 interface MobileNavDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  activeStage: number
-  onStageChange: (stage: number) => void
-  stageStatus?: Record<number, 'done' | 'active' | 'upcoming' | 'blocked'>
+  activeStageId: StageId
+  onStageChange: (stageId: StageId) => void
+  stageStatus?: Partial<Record<StageId, 'done' | 'active' | 'upcoming' | 'blocked'>>
   activeTool?: string | null
   onToolChange?: (tool: 'history' | 'governance' | 'snapshots' | 'properties') => void
   currentStageLabel: string
@@ -31,7 +32,7 @@ const PROJECT_TOOLS = [
 export function MobileNavDrawer({
   open,
   onOpenChange,
-  activeStage,
+  activeStageId,
   onStageChange,
   stageStatus,
   activeTool,
@@ -41,6 +42,8 @@ export function MobileNavDrawer({
   const drawerRef = useRef<HTMLDivElement>(null)
   const toggleRef = useRef<HTMLButtonElement>(null)
   const previousActiveRef = useRef<Element | null>(null)
+  const currentDiscipline = useDisciplineStore((s) => s.currentDiscipline)
+  const stages = useMemo(() => getStagesForDiscipline(currentDiscipline), [currentDiscipline])
 
   const handleClose = useCallback(() => {
     onOpenChange(false)
@@ -86,7 +89,7 @@ export function MobileNavDrawer({
     }
   }, [open, handleClose])
 
-  function handleStageClick(stageId: number) {
+  function handleStageClick(stageId: StageId) {
     onStageChange(stageId)
     handleClose()
   }
@@ -143,9 +146,9 @@ export function MobileNavDrawer({
           <p className="text-[10px] font-semibold uppercase tracking-wider text-cyan-400">Workflow</p>
         </div>
         <ol className="space-y-0.5 overflow-y-auto px-2 py-3">
-          {STAGES.map((stage: WorkflowStage) => {
-            const isActive = stage.id === activeStage
-            const status = stageStatus?.[stage.id] ?? (isActive ? 'active' : stage.id < activeStage ? 'done' : 'upcoming')
+          {stages.map((stage) => {
+            const isActive = stage.id === activeStageId
+            const status = stageStatus?.[stage.id] ?? (isActive ? 'active' : 'upcoming')
             return (
               <li key={stage.id}>
                 <button

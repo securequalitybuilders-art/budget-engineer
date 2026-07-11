@@ -1,6 +1,7 @@
+import { useParams, Link } from 'react-router-dom'
 import { EngineeringStudioPanel } from '@/components/dashboard/EngineeringStudioPanel'
 import { EngineeringAnalysisPanel } from '@/components/dashboard/EngineeringAnalysisPanel'
-import { Box } from 'lucide-react'
+import { Box, Globe } from 'lucide-react'
 import { motion } from 'framer-motion'
 import type { DesignOption } from '@/domain/boq'
 import type { BOQ } from '@/lib/boq/boq-types'
@@ -27,6 +28,7 @@ export function EngineeringStage({
   onTier3Plans,
   onBuildingTypeChange,
 }: EngineeringStageProps) {
+  const { id: projectId } = useParams<{ id: string }>();
   if (!selectedDesign) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center p-4">
@@ -61,7 +63,18 @@ export function EngineeringStage({
         />
       </div>
       <div className="w-80 shrink-0">
-        <EngineeringAnalysisPanel selectedDesign={selectedDesign} />
+        <div className="mb-3">
+          <EngineeringAnalysisPanel selectedDesign={selectedDesign} />
+        </div>
+        {projectId && (
+          <Link
+            to={`/project/${projectId}/studio/site-analysis`}
+            className="flex items-center gap-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] px-4 py-3 text-sm text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+          >
+            <Globe size={16} />
+            Open Site Analysis Studio
+          </Link>
+        )}
       </div>
     </div>
   )

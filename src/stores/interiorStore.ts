@@ -61,6 +61,7 @@ export const useInteriorStore = create<InteriorState>()(
 
         loadProject: (projectId) =>
           set((s) => {
+            s.isLoading = true;
             s.project = createEmptyProject(projectId);
             s.isLoading = false;
           }),
