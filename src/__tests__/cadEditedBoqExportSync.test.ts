@@ -21,7 +21,7 @@ describe('CAD-edited BOQ export sync', () => {
     expect(boq!.sourceMetadata!.quantitySourceLabel).toBe('Edited CAD / persisted plan')
   })
 
-  it('uses CAD-derived quantities for extra items when PlanModel exists', () => {
+  it('uses CAD-derived quantities when PlanModel exists', () => {
     const plan = createSamplePlanModel()
     const boqWithPlan = deriveBoqFromCadOrDesign({
       plan,
@@ -38,19 +38,14 @@ describe('CAD-edited BOQ export sync', () => {
     expect(boqWithPlan).not.toBeNull()
     expect(boqWithoutPlan).not.toBeNull()
 
-    const findItem = (boq: typeof boqWithPlan, key: string) =>
-      boq!.items.find((i) => i.description.includes(key))
-
-    const cadDoorItem = findItem(boqWithPlan, 'doors')
-    const genDoorItem = findItem(boqWithoutPlan, 'doors')
-    expect(cadDoorItem).toBeDefined()
-    expect(genDoorItem).toBeDefined()
-
-    expect(cadDoorItem!.description).toContain('from edited CAD')
-    expect(genDoorItem!.description).toContain('from generated geometry')
+    // Provenance is tracked at sourceMetadata level (not item descriptions)
+    expect(boqWithPlan!.sourceMetadata!.quantitySourceLabel).toBe('Edited CAD / persisted plan')
+    expect(boqWithoutPlan!.sourceMetadata!.quantitySourceLabel).toBe('Generated design geometry')
+    expect(boqWithPlan!.sourceMetadata!.geometrySource).toBe('persisted-cad')
+    expect(boqWithoutPlan!.sourceMetadata!.geometrySource).toBe('generated-design')
   })
 
-  it('CAD-edited labels appear with PlanModel; generated labels without', () => {
+  it('CAD-edited source metadata appears with PlanModel; generated without', () => {
     const plan = createAlternatePlanModel()
     const boqWithPlan = deriveBoqFromCadOrDesign({
       plan,
@@ -67,18 +62,12 @@ describe('CAD-edited BOQ export sync', () => {
     expect(boqWithPlan).not.toBeNull()
     expect(boqWithoutPlan).not.toBeNull()
 
-    const cadExtraItems = boqWithPlan!.items.filter((i) => i.description.includes('from edited CAD'))
-    const genExtraItems = boqWithoutPlan!.items.filter((i) => i.description.includes('from generated geometry'))
-    expect(cadExtraItems.length).toBeGreaterThan(0)
-    expect(genExtraItems.length).toBeGreaterThan(0)
-
-    const wrongLabelInCad = boqWithPlan!.items.filter((i) => i.description.includes('from generated geometry'))
-    const wrongLabelInGen = boqWithoutPlan!.items.filter((i) => i.description.includes('from edited CAD'))
-    expect(wrongLabelInCad.length).toBe(0)
-    expect(wrongLabelInGen.length).toBe(0)
-
+    // Provenance tracked at metadata level
     expect(boqWithPlan!.sourceMetadata!.geometrySource).toBe('persisted-cad')
     expect(boqWithoutPlan!.sourceMetadata!.geometrySource).toBe('generated-design')
+
+    // Totals differ because CAD overrides change quantities
+    expect(boqWithPlan!.summary.grandTotal).not.toBe(boqWithoutPlan!.summary.grandTotal)
   })
 
   it('fallback with no PlanModel uses generated-design source and labels', () => {
@@ -92,13 +81,7 @@ describe('CAD-edited BOQ export sync', () => {
     expect(boq!.sourceMetadata).toBeDefined()
     expect(boq!.sourceMetadata!.geometrySource).toBe('generated-design')
     expect(boq!.sourceMetadata!.quantitySourceLabel).toBe('Generated design geometry')
-
-    const hasGeneratedText = boq!.items.some(
-      (i) => i.description.includes('from generated geometry') || i.description.includes('from generated rooms'),
-    )
-    expect(hasGeneratedText).toBe(true)
-    const hasCadText = boq!.items.some((i) => i.description.includes('from edited CAD'))
-    expect(hasCadText).toBe(false)
+    expect(boq!.sourceMetadata!.cadDocumentId).toBeUndefined()
   })
 
   it('CSV export includes CAD source metadata when derived from PlanModel', () => {
@@ -145,17 +128,17 @@ describe('CAD-edited BOQ export sync', () => {
     const boq = buildBoqFromDesignOption(design, 'zimbabwe', undefined, cadQty)
     expect(boq).not.toBeNull()
 
-    const doorItem = boq!.items.find((i) => i.description.includes('doors'))
+    // Quantities reflect CAD overrides
+    const doorItem = boq!.items.find((i) => i.description.includes('Doors'))
     expect(doorItem).toBeDefined()
     expect(doorItem!.quantity).toBe(3)
-    expect(doorItem!.description).toContain('from edited CAD')
 
-    const extWallExtra = boq!.items.find((i) => i.description.includes('External wall area'))
-    expect(extWallExtra).toBeDefined()
-    expect(extWallExtra!.quantity).toBeCloseTo(132, 0)
+    const extWallItem = boq!.items.find((i) => i.description.includes('External walls'))
+    expect(extWallItem).toBeDefined()
+    expect(extWallItem!.quantity).toBeCloseTo(132, 0)
 
-    const genDoorItem = boq!.items.find((i) => i.description.includes('from generated geometry'))
-    expect(genDoorItem).toBeUndefined()
+    // sourceMetadata is absent when not passed; provenance tracked at metadata level
+    expect(boq!.sourceMetadata).toBeUndefined()
   })
 
   it('fallback with no DesignOption returns null', () => {

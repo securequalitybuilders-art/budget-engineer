@@ -267,6 +267,8 @@ export function generateDetailedBoq(design: DesignOption, config: DetailedBoqCon
     add('elec-cons', 'Electrical', 'Electrical consumables (cable ties, tape, connectors, screws)', 'lump', 1, 'electrical', 50, 'electrical')
     add('elec-2fix-labour', 'Electrical', 'Second-fix electrician labour (fit-off, testing, COC inspection)', 'hours', 32, 'labourPerPoint', 15, 'electrical')
     add('elec-test', 'Electrical', 'Testing & commissioning', 'lump', 1, 'testingCommission', e.testingCommission, 'electrical')
+  } else {
+    add('elec-allowance', 'Electrical', `Electrical allowance (${gfa.toFixed(0)} m²)`, 'm²', gfa, 'services', 45, 'services')
   }
 
   // ── 9. MECHANICAL / HVAC ──

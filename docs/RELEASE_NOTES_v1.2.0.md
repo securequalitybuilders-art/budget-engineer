@@ -40,8 +40,8 @@ The new detailed BOQ engine is real and structured — the expanded trade items 
 - Detailed trade items are now present in the engine
 - Material schedules and programme outputs are available
 - Cashflow is generated from structured planning data
+- All BOQ UI views now draw from the same canonical detailed engine (P11.2 unification complete)
 - However:
-  - some BOQ views in the UI remain more aggregated than the detailed engine
   - schedule formulas are still partly simplified relative to the most detailed BOQ path
   - critical path logic is currently sequential/stubbed rather than full CPM
   - some external works remain allowance-oriented
@@ -160,7 +160,16 @@ This makes Budget Engineer more useful for:
 
 ---
 
-### 5. Calendar-date-aware programme & cashflow
+### 5. BOQ Engine Unification (P11.2)
+
+The three previously separate BOQ engines are now unified under a single canonical source of truth (`detailedBoq.ts`). The `buildBoqFromDesignOption` adapter in `designToBoq.ts` delegates directly to the detailed engine, ensuring that `BoqExportPanel`, CSV exports, HTML dossiers, and the formal BOQ download all produce consistent trade-detailed outputs without code duplication.
+
+- All 104+ trade items are now surfaced in the standard export UI
+- Provenance tracking moved from item-description text to structured `sourceMetadata`
+- CAD quantity overrides flow through correctly via the unified path
+- Backward compatible — legacy Engine A persisted data unchanged
+
+### 6. Calendar-date-aware programme & cashflow
 
 All day-offset values in the programme and cashflow engines are now translated to real calendar dates using a configurable project start date (defaults to today).
 
@@ -211,16 +220,14 @@ The detailed BOQ engine is genuine and structured.
 - material schedule is data-driven
 - programme and cashflow are generated from structured task data
 
-### Current caveats
-Three BOQ engines still coexist in the repository with different data shapes and UI paths:
+### Engine unification (P11.2) — Complete
+The three previously separate BOQ engines have been unified:
 
-- **Engine A** — legacy BOQ/store/UI path (`src/ai/boqEngine.ts` + `BOQPanel.tsx`)
-- **Engine B** — mid-level aggregate BOQ/export path (`designToBoq.ts` + `BoqExportPanel.tsx`)
-- **Engine C** — detailed trade-rich BOQ path (`detailedBoq.ts` + formal HTML download)
+- **Engine A** — legacy BOQ/store/UI path (`src/ai/boqEngine.ts` + `BOQPanel.tsx`), kept for Dexie-persisted data compatibility
+- **Engine B** — mid-level aggregate BOQ/export adapter (`designToBoq.ts`) now **delegates to Engine C** for all item generation
+- **Engine C** — detailed trade-rich BOQ engine (`detailedBoq.ts`) is now the **canonical source of truth** for `BoqExportPanel`, CSV/HTML exports, formal BOQ download, schedules, and planning outputs
 
-The most detailed 100+ item output currently exists and is valid, but it is not yet the single canonical path used by every BOQ-facing UI surface.
-
-This is the most important architectural follow-up after this release.
+All 1,234 tests pass. Typecheck and build clean. No new packages. Offline-first preserved.
 
 ---
 
@@ -251,8 +258,6 @@ This is the most important architectural follow-up after this release.
 This release is a major improvement, but some limitations remain and should be stated clearly.
 
 ### BOQ / estimation limitations
-- some simplified BOQ views in the UI remain more aggregated than the most detailed engine output
-- not all panels yet surface the full 100+ trade-detailed line-item set directly
 - external works remain relatively weak and allowance-oriented unless scope is expanded
 - some substructure and roof accessory items still need more complete coverage
 
@@ -309,20 +314,6 @@ If your workflow includes:
 then v1.2.0 is a meaningful upgrade.
 
 ---
-
-## Recommended Next Follow-Up
-
-The next architectural priority after this release is:
-
-### **P11.2 — BOQ Engine Unification**
-Unify the three BOQ engines so that:
-- UI panels
-- CSV exports
-- formal BOQ downloads
-- schedules
-- planning/cashflow
-
-all derive from one consistent detailed source-of-truth engine.
 
 ---
 

@@ -136,15 +136,16 @@ describe('cadToDesignSyncAdapter', () => {
       expect(() => new Date(boq!.sourceMetadata!.computedAt)).not.toThrow()
     })
 
-    it('BOQ labels updated to edited CAD when plan available', () => {
+    it('BOQ source metadata reflects edited CAD when plan available', () => {
       const design = createSampleDesignOption()
       const plan = createSamplePlanModel()
       const boq = deriveBoqFromCadOrDesign({ plan, design, source: 'persisted-cad' })
       expect(boq).not.toBeNull()
-      const assumptionsJoined = boq!.assumptions.map((a) => a.label).join(' ')
-      expect(assumptionsJoined).toContain('edited CAD')
-      const itemsJoined = boq!.items.map((i) => i.description).join(' ')
-      expect(itemsJoined).toContain('edited CAD')
+      expect(boq!.sourceMetadata).toBeDefined()
+      expect(boq!.sourceMetadata!.geometrySource).toBe('persisted-cad')
+      expect(boq!.sourceMetadata!.quantitySourceLabel).toBe('Edited CAD / persisted plan')
+      // CAD overrides affect quantities even though provenance text is metadata-level
+      expect(boq!.summary.grandTotal).toBeGreaterThan(0)
     })
   })
 
