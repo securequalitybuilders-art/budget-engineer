@@ -184,8 +184,11 @@ Plus **A1 presentation sheet** with title block. Export to PDF or PNG.
 
 > ⚠️ Compliance checks are **approximate** — always verify with a local authority or registered professional.
 
-### 💰 BOQ & Cost Estimation
+### 💰 BOQ, Planning & Cost Estimation
 
+- **Schedules** — automated door and window schedules
+- **Construction Programme** — interactive Gantt chart with critical path generation
+- **Cashflow Analysis** — weekly/monthly cost curves and peak funding calculations
 - BOQ with geometry-derived quantities from 2D CAD and 3D BIM
 - **Regional rate cards** — Zimbabwe, South Africa, Kenya, Global
 - Rate source metadata and assumption tracking

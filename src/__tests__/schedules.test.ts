@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildScheduleCsv, type ScheduleSet, type DoorScheduleRow, type WindowScheduleRow } from '@/lib/boq/schedules'
+import { buildScheduleCsv, type ScheduleSet } from '@/lib/boq/schedules'
 
 function makeSampleSchedule(overrides: Partial<ScheduleSet> = {}): ScheduleSet {
   return {

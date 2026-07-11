@@ -52,16 +52,7 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, act
   }
 
   const groups = useMemo((): CategoryGroup[] => {
-    const CATEGORY_DISPLAY: Record<string, string> = {
-      Walls: 'Walling',
-      Slabs: 'Substructure',
-      Roof: 'Roofing',
-      Openings: 'Openings',
-      Finishes: 'Finishes',
-      MEP: 'Services',
-      Objects: 'Fittings',
-    }
-    const CATEGORY_ORDER = ['Slabs', 'Walls', 'Roof', 'Openings', 'Finishes', 'MEP', 'Objects']
+    const TRADE_ORDER = ['Preliminaries', 'Substructure', 'Superstructure', 'Roofing', 'Openings', 'Finishes', 'Plumbing', 'Electrical', 'Mechanical', 'External Works']
 
     if (!boq) return []
     const grouped = new Map<string, CategoryGroup['items']>()
@@ -79,18 +70,18 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, act
       })
     }
     const result: CategoryGroup[] = []
-    for (const cat of CATEGORY_ORDER) {
+    for (const cat of TRADE_ORDER) {
       const items = grouped.get(cat)
       if (!items || items.length === 0) continue
       result.push({
-        name: CATEGORY_DISPLAY[cat] ?? cat,
+        name: cat,
         items,
         subtotal: Math.round(items.reduce((s, i) => s + i.total, 0) * 100) / 100,
       })
     }
     for (const [cat, items] of grouped) {
-      if (!CATEGORY_ORDER.includes(cat)) {
-        result.push({ name: CATEGORY_DISPLAY[cat] ?? cat, items, subtotal: Math.round(items.reduce((s, i) => s + i.total, 0) * 100) / 100 })
+      if (!TRADE_ORDER.includes(cat)) {
+        result.push({ name: cat, items, subtotal: Math.round(items.reduce((s, i) => s + i.total, 0) * 100) / 100 })
       }
     }
     return result
@@ -207,7 +198,7 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, act
   return (
     <div className="flex flex-col border-l border-stone-700/60 bg-stone-950/80">
       <div className="flex items-center gap-1 border-b border-stone-700/60 px-2 py-1.5">
-        <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400">BOQ & Export</span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400">Bill of Quantities</span>
       </div>
 
       <div className="overflow-y-auto p-3">

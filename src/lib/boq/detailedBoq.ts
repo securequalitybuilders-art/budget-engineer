@@ -29,8 +29,8 @@ export interface DetailedBoqResult {
   depth: EstimateDepth
 }
 
-export function generateDetailedBoq(design: DesignOption, config: DetailedBoqConfig): DetailedBoqResult {
-  const qty = extractGeometryQuantities(design)
+export function generateDetailedBoq(design: DesignOption, config: DetailedBoqConfig, overriddenQty?: GeometryQuantities): DetailedBoqResult {
+  const qty = overriddenQty ?? extractGeometryQuantities(design)
   const region = config.region
   const card = getRegionRateCard(region)
 

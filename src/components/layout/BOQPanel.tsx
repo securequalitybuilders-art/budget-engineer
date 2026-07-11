@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { Fragment } from 'react';
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { fmtCents } from '@/lib/utils';
 import { CostBreakdownChart } from '@/components/charts/CostBreakdownChart';
-import { Table, ChevronDown, FileDown, Loader2, Calculator, Layers } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Table, ChevronDown, Calculator, Loader2, Layers } from 'lucide-react';
+import { useState } from 'react';
 
 export function BOQPanel() {
   const { currentBOQ, currentDesigns, generateBOQ, boqStale, currentProject } = useProjectStore();
@@ -67,13 +67,9 @@ export function BOQPanel() {
               disabled={isGenerating}
             >
               {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Calculator size={14} />}
-              {isGenerating ? 'Costing...' : currentBOQ ? 'Recalculate BOQ' : 'Generate BOQ'}
+              {isGenerating ? 'Costing...' : currentBOQ ? 'Recalculate' : 'Generate'}
             </Button>
           )}
-          <Button variant="ghost" size="sm" className="h-8 gap-2" disabled={!currentBOQ}>
-            <FileDown size={14} />
-            Export CSV
-          </Button>
           <Button variant="ghost" size="icon" onClick={toggleBoqPanel} aria-label="Close BOQ panel">
             <ChevronDown size={18} />
           </Button>
@@ -82,14 +78,14 @@ export function BOQPanel() {
 
       {boqStale && currentBOQ && currentProject && (
         <div className="flex items-center gap-2 bg-amber-500/10 px-4 py-1.5 text-xs text-amber-400 border-b border-amber-500/20">
-          <span className="font-medium">⚠ Rates changed</span>
+          <span className="font-medium">Rates changed</span>
           <span>
             — BOQ was generated for <strong>{currentBOQ.pricingRegion ?? currentProject.region}</strong> but
             project is now set to <strong>{currentProject.region}</strong>.
-            Recalculate BOQ to reflect current pricing.
           </span>
         </div>
       )}
+
       <div className="h-[calc(100%-3rem)] overflow-auto">
         {currentBOQ ? (
           <div className="grid h-full grid-cols-1 lg:grid-cols-3">
@@ -103,37 +99,45 @@ export function BOQPanel() {
                     <th className="px-4 py-2">Unit</th>
                     <th className="px-4 py-2">Rate</th>
                     <th className="px-4 py-2 text-right">Total</th>
-                    <th className="px-4 py-2">Source</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border-default)]">
-                  {currentBOQ.sections.flatMap((section) =>
-                    section.items.map((item) => (
-                      <tr key={item.id} className="hover:bg-[var(--bg-tertiary)]/50">
-                        <td className="px-4 py-2 font-mono text-[var(--text-muted)]">{section.code}</td>
-                        <td className="px-4 py-2">{item.description}</td>
-                        <td className="px-4 py-2 font-mono tabular-nums">{item.quantity}</td>
-                        <td className="px-4 py-2 text-[var(--text-secondary)]">{item.unit}</td>
-                        <td className="px-4 py-2 font-mono tabular-nums">{fmtCents(item.rateCents, currentBOQ.currency)}</td>
-                        <td className="px-4 py-2 text-right font-mono tabular-nums text-[var(--brand-accent)]">
-                          {fmtCents(item.totalCents, currentBOQ.currency)}
-                        </td>
-                        <td className="px-4 py-2">
-                          <span className={cn('rounded-full px-2 py-0.5 text-xs', item.source === 'auto' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400')}>
-                            {item.source}
-                          </span>
+                  {currentBOQ.sections.map((section) => (
+                    <Fragment key={section.id}>
+                      <tr className="bg-[var(--bg-tertiary)]/50">
+                        <td colSpan={6} className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-[var(--brand-accent)]">
+                          {section.code} — {section.title}
                         </td>
                       </tr>
-                    ))
-                  )}
+                      {section.items.map((item) => (
+                        <tr key={item.id} className="hover:bg-[var(--bg-tertiary)]/30">
+                          <td className="px-4 py-2 font-mono text-[var(--text-muted)]">{section.code}</td>
+                          <td className="px-4 py-2">{item.description}</td>
+                          <td className="px-4 py-2 font-mono tabular-nums">{item.quantity}</td>
+                          <td className="px-4 py-2 text-[var(--text-secondary)]">{item.unit}</td>
+                          <td className="px-4 py-2 font-mono tabular-nums">{fmtCents(item.rateCents, currentBOQ.currency)}</td>
+                          <td className="px-4 py-2 text-right font-mono tabular-nums text-[var(--brand-accent)]">
+                            {fmtCents(item.totalCents, currentBOQ.currency)}
+                          </td>
+                        </tr>
+                      ))}
+                      <tr className="bg-[var(--bg-tertiary)]/20">
+                        <td colSpan={5} className="px-4 py-1.5 text-right text-xs font-medium text-[var(--text-secondary)]">
+                          {section.title} subtotal
+                        </td>
+                        <td className="px-4 py-1.5 text-right font-mono text-sm font-medium text-[var(--text-primary)]">
+                          {fmtCents(section.subtotalCents, currentBOQ.currency)}
+                        </td>
+                      </tr>
+                    </Fragment>
+                  ))}
                 </tbody>
               </table>
             </div>
 
             <div className="hidden border-l border-[var(--border-default)] bg-[var(--bg-tertiary)]/30 p-4 lg:block">
-              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Cost Breakdown</h4>
-              <CostBreakdownChart sections={currentBOQ.sections} currency={currentBOQ.currency} />
-              <div className="mt-3 space-y-1 text-xs text-[var(--text-secondary)]">
+              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Summary</h4>
+              <div className="mb-3 space-y-1 text-xs text-[var(--text-secondary)]">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span className="font-mono text-[var(--text-primary)]">
@@ -141,7 +145,7 @@ export function BOQPanel() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Contingency (10%)</span>
+                  <span>Contingency</span>
                   <span className="font-mono text-[var(--text-primary)]">
                     {fmtCents(currentBOQ.contingencyCents, currentBOQ.currency)}
                   </span>
@@ -153,6 +157,7 @@ export function BOQPanel() {
                   </span>
                 </div>
               </div>
+              <CostBreakdownChart sections={currentBOQ.sections} currency={currentBOQ.currency} />
             </div>
           </div>
         ) : (

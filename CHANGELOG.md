@@ -56,7 +56,7 @@ See [docs/RELEASE_NOTES_v1.0.1.md](docs/RELEASE_NOTES_v1.0.1.md) for full releas
 
 ### Summary
 
-The first major release of Budget Engineer. Eight implementation phases (P0–P8) transform Budget Engineer from a budgeting tool into a professional-grade, multi-discipline architectural design operating system. 53 new files, ~265 new tests, 1,059 total tests across 62 files. Typecheck, build, and lint all green.
+The first major release of Budget Engineer. Nine implementation phases (P0–P8, P11) transform Budget Engineer from a budgeting tool into a professional-grade, multi-discipline architectural design operating system. 53 new files, ~265 new tests, 1,059 total tests across 62 files. Typecheck, build, and lint all green.
 
 See [docs/RELEASE_NOTES_v1.0.0.md](docs/RELEASE_NOTES_v1.0.0.md) for the full release notes.
 
@@ -69,6 +69,7 @@ See [docs/RELEASE_NOTES_v1.0.0.md](docs/RELEASE_NOTES_v1.0.0.md) for the full re
 - **P6 — Professional DXF Pipeline:** DXF writer with AIA layers, paper-space layout, dimension entities, block INSERT export, importer improvements, roundtrip testing
 - **P7 — Presentation Board Engine:** Board domain model, grid layout engine (1–9 cells, A1/A0), annotations (text/arrow/freehand), board editor, templates, snapshot capture, SVG/PNG/PDF export, `presentationStore`
 - **P8 — Architecture Academy:** Skill taxonomy (5+ paths, 3+ lessons each), lesson engine, progress tracking via `academyStore`, skill path browser, context tips, academy routes
+- **P11 — Project Planning & Cashflow:** Schedules (Doors/Windows), automated Construction Programme (Gantt chart) with critical path, Cashflow analysis curves, integrated into Cost & Deliver tabs.
 
 ### Fixed (P0 Stabilization)
 - `npm ci` / lock file sync
