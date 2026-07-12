@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
 import { LazyBimModel3D } from '@/components/bim/LazyBimModel3D'
 import { Button } from '@/components/ui/Button'
-import { Box, LayoutGrid, Boxes } from 'lucide-react'
+import { Box, LayoutGrid, Boxes, FileText } from 'lucide-react'
 import { motion } from 'framer-motion'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
+import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
 
 interface DocsBimStageProps {
   activePlan: PlanModel | null
@@ -14,6 +15,17 @@ interface DocsBimStageProps {
 
 export function DocsBimStage({ activePlan, selectedDesign }: DocsBimStageProps) {
   const [view, setView] = useState<'drawings' | 'bim'>('drawings')
+  const registerSheets = useDrawingRegisterStore((s) => s.sheets)
+  const initializeRegister = useDrawingRegisterStore((s) => s.initialize)
+
+  useEffect(() => {
+    if (selectedDesign && selectedDesign.floors > 0 && registerSheets.length === 0) {
+      initializeRegister({ floorCount: selectedDesign.floors })
+    }
+  }, [selectedDesign, registerSheets.length, initializeRegister])
+
+  const generatedCount = registerSheets.filter((s) => s.status === 'generated').length
+  const totalCount = registerSheets.length
 
   if (!selectedDesign || !activePlan) {
     return (
@@ -46,6 +58,11 @@ export function DocsBimStage({ activePlan, selectedDesign }: DocsBimStageProps) 
         >
           <LayoutGrid size={14} />
           Drawings
+          {totalCount > 0 && (
+            <span className="ml-1 rounded-full bg-stone-700/60 px-1.5 py-0.5 text-[9px] font-mono">
+              {generatedCount}/{totalCount}
+            </span>
+          )}
         </Button>
         <Button
           variant={view === 'bim' ? 'default' : 'ghost'}

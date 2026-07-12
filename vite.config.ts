@@ -50,6 +50,7 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 512,
     rollupOptions: {
       external: ['@mlc-ai/web-llm'],
       output: {
@@ -57,6 +58,7 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'ui-vendor': ['framer-motion', 'lucide-react', 'tailwind-merge', 'clsx', 'class-variance-authority'],
           'state-vendor': ['zustand', 'immer', 'dexie'],
+          'cad-vendor': ['makerjs', '@react-three/fiber', '@react-three/drei', 'three'],
         },
       },
     },

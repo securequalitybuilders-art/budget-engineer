@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState, useCallback, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import type { DesignOption } from '@/domain/boq'
 import type { PlanModel } from '@/domain/plan'
@@ -14,6 +14,7 @@ import { ElectricalPlanView } from '@/components/drawings/ElectricalPlanView'
 import { PlumbingPlanView } from '@/components/drawings/PlumbingPlanView'
 import { HvacPlanView } from '@/components/drawings/HvacPlanView'
 import { PresentationSheetView } from '@/components/drawings/PresentationSheetView'
+import { DrawingRegisterPanel } from '@/components/drawings/DrawingRegisterPanel'
 import {
   computeFrontElevation,
   computeSideElevation,
@@ -24,11 +25,12 @@ import {
   ROOF_PITCH_HEIGHT,
 } from '@/adapters/planTo3d'
 import { Button } from '@/components/ui/Button'
-import { Monitor, Download } from 'lucide-react'
+import { Monitor, Download, ListOrdered } from 'lucide-react'
 import { convertPlanModelToCadDocument } from '@/adapters/planModelToCadAdapter'
 import { generateDxf, downloadDxf } from '@/lib/export/dxfWriter'
+import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
 
-type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'side' | 'section' | 'presentation'
+type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'side' | 'section' | 'presentation' | 'register'
 
 const TABS: { id: DrawingTab; label: string }[] = [
   { id: 'plan', label: 'Plan' },
@@ -43,7 +45,8 @@ const TABS: { id: DrawingTab; label: string }[] = [
   { id: 'side', label: 'Side Elevation' },
   { id: 'section', label: 'Section A-A' },
   { id: 'presentation', label: 'Presentation Sheet' },
-]
+  { id: 'register', label: 'Register' },
+] as { id: DrawingTab; label: string }[]
 
 interface DrawingsPanelProps {
   activePlan: PlanModel | null
@@ -56,6 +59,30 @@ interface DrawingsPanelProps {
 export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAULT_STOREY_HEIGHT, pitchHeight = ROOF_PITCH_HEIGHT }: DrawingsPanelProps) {
   const { id: projectId } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<DrawingTab>('front')
+  const registerSheets = useDrawingRegisterStore((s) => s.sheets)
+  const activeSheetId = useDrawingRegisterStore((s) => s.activeSheetId)
+  const initializeRegister = useDrawingRegisterStore((s) => s.initialize)
+  const setActiveSheet = useDrawingRegisterStore((s) => s.setActiveSheet)
+  const markGenerated = useDrawingRegisterStore((s) => s.markGenerated)
+
+  useEffect(() => {
+    if (design && floors > 0) {
+      initializeRegister({ floorCount: floors })
+    }
+  }, [design, floors, initializeRegister])
+
+  const handleSelectSheet = useCallback((sheetId: string, viewId: DrawingTab | null, _floorIndex?: number) => {
+    setActiveSheet(sheetId)
+    if (viewId && viewId !== 'register') {
+      setActiveTab(viewId)
+    }
+  }, [setActiveSheet, setActiveTab])
+
+  useEffect(() => {
+    if (activeTab !== 'register') {
+      markGenerated(activeTab)
+    }
+  }, [activeTab, markGenerated])
 
   const handleExportDxf = useCallback(() => {
     if (!activePlan) return
@@ -234,6 +261,13 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
           floors={floors}
           storeyHeight={storeyHeight}
           pitchHeight={pitchHeight}
+        />
+      )}
+      {activeTab === 'register' && (
+        <DrawingRegisterPanel
+          sheets={registerSheets}
+          activeSheetId={activeSheetId}
+          onSelectSheet={handleSelectSheet}
         />
       )}
 

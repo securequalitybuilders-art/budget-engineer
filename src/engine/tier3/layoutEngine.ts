@@ -10,6 +10,8 @@ export interface LayoutParameters {
   wallThickness: number
   corridorWidth: number
   minRoomDimensions: Record<string, { minWidth: number; minDepth: number }>
+  floorCount: number
+  floorHeight: number
 }
 
 export interface PlacedRoom {
@@ -27,6 +29,8 @@ export interface FloorPlan {
   width: number
   height: number
   rooms: PlacedRoom[]
+  floorIndex?: number
+  totalFloors?: number
 }
 
 const uid = () => Math.random().toString(36).slice(2, 10)
@@ -464,6 +468,128 @@ function generateCourtyard(program: ProgramItem[], siteW: number, siteD: number,
   return { id: uid(), name: 'Courtyard — Rooms Around Central Space', topology: 'courtyard', width: planW, height: planD, rooms }
 }
 
+function floorPlanWithMeta(
+  plan: Omit<FloorPlan, 'floorIndex' | 'totalFloors'>,
+  floorIndex: number,
+  totalFloors: number,
+): FloorPlan {
+  return { ...plan, floorIndex, totalFloors }
+}
+
+const PUBLIC_PREFIXES = ['Reception / Waiting', 'Reception / Lobby', 'Reception', 'Living Room', 'Lounge / Dining', 'Dining Area', 'Sales Floor', 'Retail Floor', 'Dining Area 1', 'Main Hall', 'Open Plan Office', 'Kitchen', 'Restaurant', 'Commercial Kitchen', 'Consultation Room', 'Treatment Room', 'Staff Room', 'Meeting Room', 'Ground Floor Shop']
+
+function isPublicItem(name: string): boolean {
+  return PUBLIC_PREFIXES.some((p) => name.startsWith(p))
+}
+
+function isPrivateItem(name: string): boolean {
+  return !isPublicItem(name) && name !== 'Circulation' && !name.startsWith('Circulation')
+}
+
+function partitionProgram(
+  program: ProgramItem[],
+  floorCount: number,
+): { groundFloor: ProgramItem[]; upperFloors: ProgramItem[][] } {
+  if (floorCount <= 1) {
+    return { groundFloor: [...program], upperFloors: [] }
+  }
+
+  const groundItems: ProgramItem[] = []
+  const remainingItems: ProgramItem[] = []
+
+  for (const item of program) {
+    if (isPublicItem(item.name) || item.name === 'Circulation' || item.name.startsWith('Circulation')) {
+      groundItems.push(item)
+    } else {
+      remainingItems.push(item)
+    }
+  }
+
+  if (groundItems.length === 0 && remainingItems.length > 0) {
+    groundItems.push(remainingItems.shift()!)
+  }
+
+  const upperCount = floorCount - 1
+  const perFloor = Math.max(1, Math.ceil(remainingItems.length / upperCount))
+  const upperFloors: ProgramItem[][] = []
+
+  for (let i = 0; i < upperCount; i++) {
+    const start = i * perFloor
+    const end = Math.min(start + perFloor, remainingItems.length)
+    if (start < remainingItems.length) {
+      upperFloors.push(remainingItems.slice(start, end))
+    } else {
+      upperFloors.push([])
+    }
+  }
+
+  return { groundFloor: groundItems, upperFloors }
+}
+
+/**
+ * Generate floor plans for a multi-storey building.
+ * Ground floor gets public/shared rooms, upper floors get private/repeatable rooms.
+ * Returns one FloorPlan[] per floor, with shared stair positions for alignment.
+ */
+export function generateMultiFloorPlans(
+  params: LayoutParameters,
+  brief: Tier1ParsedBrief,
+): FloorPlan[][] {
+  const { topologies, siteWidth, siteDepth, minRoomDimensions, floorCount } = params
+  let program = brief.program.length > 0 ? brief.program : (brief.typology?.defaultProgram ?? [])
+
+  if (program.length === 0) {
+    program = [{ name: 'Default Room', count: Math.max(1, floorCount), areaM2: 20 }]
+  }
+
+  const { groundFloor, upperFloors } = partitionProgram(program, floorCount)
+
+  const perFloorPrograms = [groundFloor, ...upperFloors]
+
+  const result: FloorPlan[][] = []
+
+  for (let fi = 0; fi < perFloorPrograms.length; fi++) {
+    let floorProgram = perFloorPrograms[fi]
+    if (floorProgram.length === 0) {
+      floorProgram = [{ name: 'Default Room', count: 1, areaM2: 20 }]
+    }
+
+    const floorPlans: FloorPlan[] = []
+
+    for (const topology of topologies) {
+      let plan: FloorPlan
+      try {
+        switch (topology) {
+          case 'rectangle':
+            plan = generateRectangle(floorProgram, siteWidth, siteDepth, minRoomDimensions)
+            break
+          case 'l-shape':
+            plan = generateLShape(floorProgram, siteWidth, siteDepth, minRoomDimensions)
+            break
+          case 'split-wing':
+            plan = generateSplitWing(floorProgram, siteWidth, minRoomDimensions)
+            break
+          case 'courtyard':
+            plan = generateCourtyard(floorProgram, siteWidth, siteDepth, minRoomDimensions)
+            break
+        }
+        if (hasOverlaps(plan!.rooms)) {
+          plan = generateRectangle(floorProgram, Math.max(siteWidth, 30), Math.max(siteDepth, 30), minRoomDimensions)
+          plan = { ...plan, topology, name: `Fallback Rectangle (${topology} degrade)` }
+        }
+      } catch {
+        plan = generateRectangle(floorProgram, Math.max(siteWidth, 30), Math.max(siteDepth, 30), minRoomDimensions)
+        plan = { ...plan, topology, name: `Fallback Rectangle (${topology} degrade)` }
+      }
+      floorPlans.push(floorPlanWithMeta(plan, fi, floorCount))
+    }
+
+    result.push(floorPlans)
+  }
+
+  return result
+}
+
 // ── Public API ──
 
 export function generateLayoutParameters(
@@ -481,6 +607,8 @@ export function generateLayoutParameters(
     ? ['courtyard', 'l-shape', 'split-wing']
     : ['rectangle', 'l-shape', 'split-wing']
 
+  const floorCount = Math.max(1, brief.typology?.defaultStoreys ?? 1)
+
   return {
     topologies,
     siteWidth: w,
@@ -488,6 +616,8 @@ export function generateLayoutParameters(
     wallThickness: 0.2,
     corridorWidth: 1.5,
     minRoomDimensions: minDims,
+    floorCount,
+    floorHeight: 3.0,
   }
 }
 

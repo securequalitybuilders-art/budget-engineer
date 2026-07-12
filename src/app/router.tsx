@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import {
   createBrowserRouter,
   RouterProvider,
@@ -10,6 +10,7 @@ import { CommandPalette } from '@/components/layout/CommandPalette';
 import { ShortcutsHelp } from '@/components/layout/ShortcutsHelp';
 import { PageLoader } from '@/components/layout/PageLoader';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { DiagnosticsPanel } from '@/components/common/DiagnosticsPanel';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 const Home = lazy(() => import('@/pages/Home').then((m) => ({ default: m.Home })));
@@ -30,10 +31,27 @@ function SafeRoute({ children }: { children: React.ReactNode }) {
 
 function GlobalLayout() {
   useKeyboardShortcuts();
+  const [diagOpen, setDiagOpen] = useState(false);
 
   useEffect(() => {
     const link = document.querySelector('link[rel="canonical"]')
     if (link) link.setAttribute('href', window.location.href)
+  }, [])
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+        e.preventDefault()
+        setDiagOpen((o) => !o)
+      }
+    }
+    function handleToggle() { setDiagOpen((o) => !o) }
+    window.addEventListener('keydown', handleKey)
+    window.addEventListener('toggle-diagnostics', handleToggle)
+    return () => {
+      window.removeEventListener('keydown', handleKey)
+      window.removeEventListener('toggle-diagnostics', handleToggle)
+    }
   }, [])
 
   return (
@@ -46,6 +64,7 @@ function GlobalLayout() {
         <Outlet />
         <CommandPalette />
         <ShortcutsHelp />
+        {diagOpen && <DiagnosticsPanel onClose={() => setDiagOpen(false)} />}
       </main>
     </>
   );

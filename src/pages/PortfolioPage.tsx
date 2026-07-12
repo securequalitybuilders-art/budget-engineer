@@ -165,6 +165,8 @@ export function PortfolioPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [sortBy, setSortBy] = useState<SortBy>('newest');
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [pageSize] = useState(12);
+  const [page, setPage] = useState(1);
 
   const refreshMetrics = useCallback(async () => {
     if (projects.length === 0) {
@@ -187,6 +189,9 @@ export function PortfolioPage() {
   useEffect(() => {
     refreshMetrics();
   }, [refreshMetrics]);
+
+  // Reset pagination when filters change
+  useEffect(() => { setPage(1) }, [search, statusFilter, sortBy])
 
   const handleArchive = useCallback(async (projectId: string) => {
     try {
@@ -224,6 +229,8 @@ export function PortfolioPage() {
 
   const schemes = summary?.schemes ?? [];
   const filteredSchemes = filterAndSortPortfolioProjects({ projects: schemes, search, statusFilter, sortBy });
+  const pagedSchemes = filteredSchemes.slice(0, page * pageSize);
+  const hasMore = pagedSchemes.length < filteredSchemes.length;
 
   const activeSchemesCount = schemes.filter((s) => !s.isArchived).length;
 
@@ -402,13 +409,20 @@ export function PortfolioPage() {
         )}
 
         {/* Filtered projects */}
-        {filteredSchemes.length > 0 && (
+        {pagedSchemes.length > 0 && (
           <section className="mb-8">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredSchemes.map((scheme) => (
+              {pagedSchemes.map((scheme) => (
                 <SchemeCard key={scheme.id} scheme={scheme} onArchive={handleArchive} onRestore={handleRestore} />
               ))}
             </div>
+            {hasMore && (
+              <div className="mt-6 flex justify-center">
+                <Button variant="secondary" onClick={() => setPage((p) => p + 1)}>
+                  Load More ({filteredSchemes.length - pagedSchemes.length} remaining)
+                </Button>
+              </div>
+            )}
           </section>
         )}
 

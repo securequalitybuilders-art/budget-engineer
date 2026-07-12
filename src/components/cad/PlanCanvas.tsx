@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useCallback } from 'react'
 import type { DesignOption } from '../../domain/boq'
 import type { Opening, PlanModel, RoomRect, WallSegment } from '../../domain/plan'
+import type { PlacedBlock } from '../../domain/furniture'
 import { generatePlanModel } from '../../engine/plan-generator'
 import { DimensionLayer } from './DimensionLayer'
 import { RoomLabels } from './RoomLabels'
@@ -11,6 +12,8 @@ import { exportPlanToDxf, exportPlanToMakerJson } from '../../lib/export/maker-e
 import { exportPlanToSvg } from '../../lib/export/svg-export'
 import { TraceBackdrop, BackdropControls } from './TraceBackdrop'
 import type { BackdropState } from '@/lib/import/backdropUtils'
+import { FurnitureLayer } from '../furniture/FurnitureLayer'
+import { getFurnitureDef } from '@/lib/furniture/furniture-library'
 
 interface PlanCanvasProps {
   projectId: string | null
@@ -22,6 +25,11 @@ interface PlanCanvasProps {
   onBackdropSetScale?: (knownWidth: number, knownHeight: number) => void
   onBackdropClear?: () => void
   onDesignCreated?: (projectId: string, plan: PlanModel) => void
+  furnitureBlocks?: PlacedBlock[]
+  activeBlockDefId?: string | null
+  onPlaceBlock?: (defId: string, x: number, y: number) => void
+  onRemoveBlock?: (instanceId: string) => void
+  onRotateBlock?: (instanceId: string) => void
 }
 
 function createEmptyPlan(): PlanModel {
@@ -67,6 +75,11 @@ export function PlanCanvas({
   onBackdropSetScale,
   onBackdropClear,
   onDesignCreated,
+  furnitureBlocks,
+  activeBlockDefId,
+  onPlaceBlock,
+  onRemoveBlock,
+  onRotateBlock,
 }: PlanCanvasProps) {
   const createdRef = useRef(false)
   const baseModel = useMemo<PlanModel | null>(() => {
@@ -167,6 +180,7 @@ export function PlanCanvas({
   const tapCandidate = useRef<TapCandidate | null>(null)
   const committed = useRef(false)
   const pointerAccum = useRef({ dx: 0, dy: 0 })
+  const svgRef = useRef<SVGSVGElement | null>(null)
 
   if (!model) {
     return (
@@ -226,6 +240,20 @@ export function PlanCanvas({
       return
     }
     if (candidate.elementType === 'empty') {
+      if (activeBlockDefId && onPlaceBlock) {
+        const rect = svgRef.current?.getBoundingClientRect()
+        if (rect) {
+          const svgX = (cx - rect.left) * (canvasWidth / rect.width)
+          const svgY = (cy - rect.top) * (canvasHeight / rect.height)
+          const worldX = (svgX - tx) / scale
+          const worldY = (svgY - ty) / scale
+          const def = getFurnitureDef(activeBlockDefId)
+          if (def) {
+            onPlaceBlock(activeBlockDefId, worldX - def.width / 2, worldY - def.depth / 2)
+          }
+        }
+        return
+      }
       clearSelection()
       onPointerDown(cx, cy)
     }
@@ -441,6 +469,7 @@ export function PlanCanvas({
 
       <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950/80">
         <svg
+          ref={svgRef}
           viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
           className="block h-auto w-full cursor-grab active:cursor-grabbing touch-none"
           role="img"
@@ -449,6 +478,7 @@ export function PlanCanvas({
           onPointerMove={handleSvgPointerMove}
           onPointerUp={handleSvgPointerUp}
           onPointerCancel={handleSvgPointerCancel}
+          style={activeBlockDefId ? { cursor: 'crosshair' } : undefined}
         >
           <defs>
             <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
@@ -485,6 +515,14 @@ export function PlanCanvas({
             })}
             <RoomLabels model={model} />
             <DimensionLayer model={model} />
+            {furnitureBlocks && (
+              <FurnitureLayer
+                blocks={furnitureBlocks}
+                scale={1}
+                offsetX={0}
+                offsetY={0}
+              />
+            )}
 
             {dimensionLabel && (
               <text

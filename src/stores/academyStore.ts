@@ -1,11 +1,20 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import type { QuizResult } from '@/lib/learning/lessonEngine'
+
+export interface Certification {
+  pathId: string
+  earnedAt: string
+  title: string
+}
 
 interface AcademyState {
   completedLessons: string[]
   currentPathId: string | null
   currentLessonId: string | null
+  quizResults: QuizResult[]
+  certifications: Certification[]
 }
 
 interface AcademyActions {
@@ -15,6 +24,11 @@ interface AcademyActions {
   setCurrentLesson: (pathId: string, lessonId: string) => void
   clearCurrent: () => void
   resetProgress: () => void
+  recordQuizResult: (result: QuizResult) => void
+  getQuizResult: (lessonId: string) => QuizResult | undefined
+  addCertification: (cert: Certification) => void
+  hasCertification: (pathId: string) => boolean
+  getPathCompletionPct: (pathLessons: string[]) => number
 }
 
 export const useAcademyStore = create<AcademyState & AcademyActions>()(
@@ -24,6 +38,8 @@ export const useAcademyStore = create<AcademyState & AcademyActions>()(
         completedLessons: [],
         currentPathId: null,
         currentLessonId: null,
+        quizResults: [],
+        certifications: [],
 
         completeLesson: (lessonId) => {
           set((s) => {
@@ -60,7 +76,41 @@ export const useAcademyStore = create<AcademyState & AcademyActions>()(
         resetProgress: () => {
           set((s) => {
             s.completedLessons = []
+            s.quizResults = []
+            s.certifications = []
           })
+        },
+
+        recordQuizResult: (result) => {
+          set((s) => {
+            const idx = s.quizResults.findIndex((r) => r.lessonId === result.lessonId)
+            if (idx >= 0) {
+              s.quizResults[idx] = result
+            } else {
+              s.quizResults.push(result)
+            }
+          })
+        },
+
+        getQuizResult: (lessonId) => {
+          return get().quizResults.find((r) => r.lessonId === lessonId)
+        },
+
+        addCertification: (cert) => {
+          set((s) => {
+            if (!s.certifications.find((c) => c.pathId === cert.pathId)) {
+              s.certifications.push(cert)
+            }
+          })
+        },
+
+        hasCertification: (pathId) => {
+          return get().certifications.some((c) => c.pathId === pathId)
+        },
+
+        getPathCompletionPct: (pathLessons) => {
+          const done = pathLessons.filter((id) => get().completedLessons.includes(id)).length
+          return pathLessons.length > 0 ? Math.round((done / pathLessons.length) * 100) : 0
         },
       }),
       {
@@ -68,6 +118,8 @@ export const useAcademyStore = create<AcademyState & AcademyActions>()(
         storage: createJSONStorage(() => localStorage),
         partialize: (state) => ({
           completedLessons: state.completedLessons,
+          quizResults: state.quizResults,
+          certifications: state.certifications,
         }),
       },
     ),

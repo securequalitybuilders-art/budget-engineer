@@ -1,11 +1,16 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 import { render, cleanup, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import type { DesignOption } from '@/domain/boq'
 import type { PlanModel } from '@/domain/plan'
+import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
 
 afterEach(cleanup)
+
+beforeEach(() => {
+  useDrawingRegisterStore.setState({ sheets: [], activeSheetId: null })
+})
 
 vi.mock('@/lib/export/dxfWriter', () => ({
   generateDxf: vi.fn(() => 'mock-dxf'),

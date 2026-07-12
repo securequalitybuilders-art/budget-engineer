@@ -1,9 +1,18 @@
+export interface QuizQuestion {
+  id: string
+  question: string
+  options: string[]
+  correctIndex: number
+  explanation: string
+}
+
 export interface Lesson {
   id: string
   title: string
   summary: string
   duration: string
   content: string
+  quiz?: QuizQuestion[]
 }
 
 export interface SkillPath {
@@ -17,6 +26,32 @@ export interface SkillPath {
 
 export interface Taxonomy {
   paths: SkillPath[]
+}
+
+export interface QuizResult {
+  lessonId: string
+  score: number
+  total: number
+  passed: boolean
+  completedAt: string
+}
+
+export function gradeQuiz(questions: QuizQuestion[], answers: number[]): QuizResult {
+  let correct = 0
+  for (let i = 0; i < questions.length; i++) {
+    if (i < answers.length && answers[i] === questions[i].correctIndex) {
+      correct++
+    }
+  }
+  const total = questions.length
+  const score = total > 0 ? Math.round((correct / total) * 100) : 0
+  return {
+    lessonId: questions[0]?.id ?? '',
+    score,
+    total,
+    passed: score >= 70,
+    completedAt: new Date().toISOString(),
+  }
 }
 
 export function parseLessonContent(markdown: string): string {

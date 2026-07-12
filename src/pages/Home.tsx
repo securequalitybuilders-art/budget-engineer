@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import { useProjectStore } from '@/stores/projectStore';
 import { Button } from '@/components/ui/Button';
@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import {
   Plus, Folder, ArrowRight, Cpu, HardHat, FileBarChart,
   MessageSquare, LayoutGrid, Boxes, Activity, Calculator, BarChart3, Bug,
-  Sofa, Globe, Monitor, BookOpen,
+  Sofa, Globe, Monitor, BookOpen, Rocket, Settings,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -34,9 +34,72 @@ const JOURNEY_STEPS = [
 ]
 
 export function Home() {
-  const { projects, isHydrated, createProject } = useProjectStore();
+  const { projects, isHydrated, createProject, loadProjects, loadProject } = useProjectStore();
   const navigate = useNavigate();
   const dxfInputRef = useRef<HTMLInputElement>(null);
+  const backupInputRef = useRef<HTMLInputElement>(null);
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [backupMsg, setBackupMsg] = useState<string | null>(null);
+
+  const handleExportAll = async () => {
+    try {
+      const { exportProjectPackage, downloadBlob } = await import('@/services/projectExportImportService')
+      if (projects.length === 0) {
+        setBackupMsg('No projects to export.')
+        return
+      }
+      for (const p of projects.slice(0, 10)) {
+        const blob = await exportProjectPackage(p.id)
+        if (blob) downloadBlob(blob, `${p.name.replace(/\s+/g, '_')}.beproj`)
+      }
+      setBackupMsg(`Exported ${Math.min(projects.length, 10)} project(s) as .beproj`)
+      setTimeout(() => setBackupMsg(null), 3000)
+    } catch { setBackupMsg('Export failed.'); setTimeout(() => setBackupMsg(null), 3000) }
+  }
+
+  const handleImportBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const { importProjectAsCopy } = await import('@/services/projectExportImportService')
+      const id = await importProjectAsCopy(file)
+      if (id) {
+        await loadProjects()
+        navigate(`/project/${id}`)
+      } else {
+        setBackupMsg('Invalid .beproj file.')
+        setTimeout(() => setBackupMsg(null), 3000)
+      }
+    } catch {
+      setBackupMsg('Import failed.')
+      setTimeout(() => setBackupMsg(null), 3000)
+    }
+    if (e.target) e.target.value = ''
+  }
+
+  const handleLoadDemo = async () => {
+    setDemoLoading(true)
+    try {
+      const { loadDemoProject, demoProjectExists } = await import('@/lib/demo/demo-project-pack')
+      const exists = await demoProjectExists()
+      if (exists) {
+        await loadProjects()
+        const existing = projects.find((p) => p.name === 'Demo Residence')
+        if (existing) {
+          navigate(`/project/${existing.id}`)
+          return
+        }
+      }
+      const projectId = await loadDemoProject()
+      await loadProjects()
+      await loadProject(projectId)
+      navigate(`/project/${projectId}`)
+    } catch (e) {
+      console.error('Failed to load demo project', e)
+    } finally {
+      setDemoLoading(false)
+    }
+  }
 
   const handleDxfFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -99,6 +162,24 @@ export function Home() {
               <FileBarChart size={18} />
               Import (DXF / image / PDF)
             </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              className="gap-2"
+              onClick={handleLoadDemo}
+              disabled={demoLoading}
+            >
+              <Rocket size={18} className={demoLoading ? 'animate-pulse' : ''} />
+              {demoLoading ? 'Loading Demo...' : 'Load Demo Project'}
+            </Button>
+            <Button variant="ghost" size="lg" className="gap-2" onClick={handleExportAll}>
+              <Folder size={18} />
+              Export All
+            </Button>
+            <Button variant="ghost" size="lg" className="gap-2" onClick={() => backupInputRef.current?.click()}>
+              <Settings size={18} />
+              Import Backup
+            </Button>
             <input
               ref={dxfInputRef}
               type="file"
@@ -107,6 +188,17 @@ export function Home() {
               className="hidden"
               aria-label="Select a DXF, image, or PDF file to import"
             />
+            <input
+              ref={backupInputRef}
+              type="file"
+              accept=".beproj"
+              onChange={handleImportBackup}
+              className="hidden"
+              aria-label="Select a .beproj file to import"
+            />
+            {backupMsg && (
+              <div className="w-full text-center text-sm text-[var(--brand-accent)]">{backupMsg}</div>
+            )}
           </div>
         </div>
 

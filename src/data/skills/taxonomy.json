@@ -163,6 +163,73 @@
           "content": "# Urban Design Theory\n\n## Introduction\nBuildings exist within urban fabric. Understanding urban design is essential for contextual architecture.\n\n## Key Thinkers\n\n### Jane Jacobs (The Death and Life of Great American Cities)\n- Mixed-use, short blocks, aged buildings\n- \"Eyes on the street\" — natural surveillance\n- Bottom-up, organic urbanism\n\n### Kevin Lynch (The Image of the City)\n- Five elements: paths, edges, districts, nodes, landmarks\n- Legibility: how well people navigate a city\n- Mental maps: every user constructs their own\n\n### Jan Gehl (Life Between Buildings)\n- Human scale at street level\n- Soft edges: active frontages, seating, detail\n- 5 km/h design vs. 50 km/h design\n\n## Transit-Oriented Development (TOD)\n- Mix of uses within 400–800 m of transit station\n- Pedestrian-first, reduced parking\n- Higher density near transit\n\n## 15-Minute City\n- All daily needs within a 15-minute walk or cycle\n- Distributed amenities, reduced car dependence\n- Post-pandemic urban ideal\n\n## Exercise\nMap a 400 m radius around your project site using Google Maps or OpenStreetMap. Identify: paths, edges, districts, nodes, and landmarks. Is the area legible?\n"
         }
       ]
+    },
+    {
+      "id": "computational-design",
+      "title": "Computational Design & AI in Architecture",
+      "description": "Parametric modelling, generative design, and AI-assisted architectural workflows",
+      "icon": "cpu",
+      "color": "#16a085",
+      "lessons": [
+        {
+          "id": "parametric-thinking",
+          "title": "Parametric Thinking & Associative Geometry",
+          "summary": "Understanding parameters, constraints, and relationships in computational design",
+          "duration": "14 min",
+          "content": "# Parametric Thinking & Associative Geometry\n\n## Introduction\nParametric design treats geometry as a system of relationships rather than fixed shapes.\n\n## Core Concepts\n\n### Parameters vs. Constants\n- **Parameters**: adjustable inputs (height, width, count)\n- **Constants**: fixed values (material thickness, code minimums)\n- Changing a parameter propagates through the entire model\n\n### Associative Geometry\n- Elements are linked by explicit relationships\n- Example: window width = wall length × 0.4\n- Change the wall → window updates automatically\n\n### History-Based Modelling\n- Every operation recorded in a tree\n- Edit early operations to update later geometry\n- Non-linear: you can branch and merge\n\n## Tools & Workflows\n- **Grasshopper** (visual programming for Rhino)\n- **Dynamo** (for Revit, BIM integration)\n- **Node-based** vs. **script-based** approaches\n\n## Exercise\nDefine 5 parameters for a window: width, height, sill height, frame thickness, mullion count. Write relationships between them. What happens if you double the width?\n"
+        },
+        {
+          "id": "generative-design",
+          "title": "Generative Design & Optimisation",
+          "summary": "Using algorithms to explore design space and find optimal solutions",
+          "duration": "16 min",
+          "content": "# Generative Design & Optimisation\n\n## Introduction\nGenerative design uses algorithms to produce many design alternatives, then evaluates them against goals.\n\n## Design Space Exploration\n\n### Brute Force\n- Enumerate all combinations within ranges\n- Feasible for small parameter counts (≤5)\n- Guarantees finding the global optimum\n\n### Evolutionary Solvers\n- Mutation + crossover + selection\n- Inspired by natural selection\n- Good for non-linear, multi-objective problems\n\n### Gradient-Based\n- Requires differentiable objective functions\n- Fast convergence for smooth landscapes\n- Common in topology optimisation\n\n## Objective Functions\n- Minimise: cost, weight, embodied carbon\n- Maximise: daylight, usable area, energy yield\n- Multi-objective: Pareto front analysis\n\n## Applications\n- **Facade optimisation**: minimise solar gain vs. maximise daylight\n- **Layout generation**: pack rooms for minimal circulation\n- **Structure**: minimise material while meeting stress limits\n\n## Exercise\nDefine two conflicting objectives for a facade design (e.g., daylight vs. solar heat gain). Sketch what a Pareto front might look like.\n"
+        },
+        {
+          "id": "ai-architecture",
+          "title": "AI-Assisted Architectural Design",
+          "summary": "Machine learning applications in planning, rendering, and design analysis",
+          "duration": "15 min",
+          "content": "# AI-Assisted Architectural Design\n\n## Introduction\nArtificial intelligence is transforming architectural workflows from conceptual design to construction administration.\n\n## Machine Learning Types\n\n### Supervised Learning\n- Trained on labelled datasets\n- Applications: room classification, style recognition\n- Example: classify a floor plan by building type\n\n### Unsupervised Learning\n- Finds patterns in unlabeled data\n- Applications: spatial clustering, typology discovery\n- Example: group similar floor plans by topology\n\n### Reinforcement Learning\n- Agent learns by trial and error\n- Applications: layout optimisation, evacuation routing\n- Example: train an agent to arrange furniture\n\n## Architectural AI Applications\n\n### Generative AI (Image/Text)\n- Text-to-image: DALL-E, Midjourney for concept visualisation\n- Text-to-3D: generating massing from descriptions\n- Limitations: copyright, hallucination, lack of precision\n\n### Geometry Processing\n- Point cloud to BIM (Scan-to-BIM)\n- Photogrammetry for site surveys\n- Semantic segmentation of architectural drawings\n\n### Performance Prediction\n- ML models for early-stage energy estimation\n- Daylight prediction without full simulation\n- Construction cost estimation from plan features\n\n## Critical Perspective\n- AI is a tool, not a replacement for design thinking\n- Training data bias can reinforce inequitable design\n- Verification and validation remain essential\n\n## Exercise\nIdentify one task in your current workflow that could benefit from AI. Describe what data would be needed to train a model for that task.\n"
+        },
+        {
+          "id": "digital-fabrication",
+          "title": "Digital Fabrication & Construction Automation",
+          "summary": "CNC, 3D printing, robotics, and off-site manufacturing in architecture",
+          "duration": "12 min",
+          "content": "# Digital Fabrication & Construction Automation\n\n## Introduction\nDigital fabrication connects computational design directly to manufacturing, reducing waste and enabling complex geometry.\n\n## Fabrication Methods\n\n### CNC Milling\n- 3-axis to 5-axis machines\n- Materials: timber, foam, aluminium, composites\n- Applications: formwork, furniture, facades\n\n### 3D Printing (Additive)\n- Concrete printing: walls and structural elements\n- Polymer printing: prototypes and formwork\n- Large-scale: WASP, COBOD, Apis Cor\n\n### Robotic Assembly\n- Industrial robots (KUKA, ABB) for brick laying\n- Wire-cut foam for concrete formwork\n- Automated rebar tying and welding\n\n### Off-Site Manufacturing\n- Cross-laminated timber (CLT) panels\n- Modular pods (bathrooms, kitchens)\n- Panelised wall systems with integrated services\n\n## Benefits\n- **Waste reduction**: 30–50% less material waste\n- **Quality control**: factory conditions, consistent tolerances\n- **Speed**: up to 50% faster on-site assembly\n- **Complexity**: no cost penalty for geometric complexity\n\n## Exercise\nChoose one building element (e.g., a stair, facade panel, or column). Describe how you would fabricate it digitally. What machine and material would you use?\n"
+        }
+      ]
+    },
+    {
+      "id": "professional-practice",
+      "title": "Professional Practice & Ethics",
+      "description": "Contracts, regulations, ethics, and business acumen for architects",
+      "icon": "briefcase",
+      "color": "#34495e",
+      "lessons": [
+        {
+          "id": "contracts-delivery",
+          "title": "Contracts & Project Delivery Methods",
+          "summary": "Understanding contract types, roles, and risk allocation in construction projects",
+          "duration": "14 min",
+          "content": "# Contracts & Project Delivery Methods\n\n## Introduction\nThe contract defines the legal relationship between client, architect, and contractor. Choosing the right delivery method is one of the most consequential decisions in a project.\n\n## Project Delivery Methods\n\n### Design-Bid-Build (DBB)\n- Traditional sequential method\n- Architects designs fully → contractors bid → construction\n- Clear separation of design and construction\n- Owner holds separate contracts with architect and contractor\n- **Risk**: lowest cost transparency, but no contractor input during design\n\n### Design-Build (DB)\n- Single entity contracts with owner for both design and construction\n- Faster delivery (overlapping phases)\n- Single point of responsibility\n- **Risk**: owner has less control over design quality\n\n### Construction Management (CM at Risk)\n- Construction manager joins during design\n- CM provides cost estimates and constructability input\n- CM guarantees maximum price (GMP)\n- **Risk**: less price competition than DBB\n\n### Integrated Project Delivery (IPD)\n- Multi-party contract between owner, architect, CM\n- Shared risk and reward\n- Relational rather than adversarial\n- **Risk**: requires high trust and collaboration\n\n## Contract Types\n- **Lump sum / fixed price**: predictable cost, owner bears less risk\n- **Cost plus**: actual costs + fee, more flexible for unknowns\n- **GMP**: guaranteed maximum price, overruns borne by contractor\n\n## Exercise\nFor a residential extension project, which delivery method would you recommend and why? Consider budget certainty, timeline, and design complexity.\n"
+        },
+        {
+          "id": "regulations-liability",
+          "title": "Regulations, Liability & Duty of Care",
+          "summary": "Building codes, professional liability, and the architect's duty of care",
+          "duration": "13 min",
+          "content": "# Regulations, Liability & Duty of Care\n\n## Introduction\nArchitects operate within a legal framework of regulations, standards, and professional duties.\n\n## Building Regulations & Codes\n\n### Purpose\n- Protect health, safety, and welfare of occupants\n- Ensure structural stability, fire safety, accessibility\n- Vary by jurisdiction (IBC, Eurocodes, SANS 10400)\n\n### Key Code Areas\n- **Structural**: minimum loads, wind/seismic resistance\n- **Fire**: egress distances, fire ratings, sprinkler requirements\n- **Accessibility**: ramps, door widths, accessible toilets\n- **Energy**: insulation standards, glazing performance\n\n### Compliance Process\n- Building permit application with drawings\n- Plan check by building department\n- Inspections at key stages (foundation, framing, final)\n- Certificate of occupancy upon completion\n\n## Professional Liability\n\n### Duty of Care\n- Architects must exercise the skill and care reasonably expected of a competent professional\n- Standard: what a peer would do, not perfection\n- Breach: failure to meet the standard that causes loss\n\n### Limitation of Liability\n- Contractual cap (typically 2–5× fee)\n- Professional indemnity insurance (mandatory in many jurisdictions)\n- Exclusions: consequential loss, delay damages\n\n## Risk Management\n- Written communications for all instructions\n- Timely responses to RFIs\n- Document all design decisions and changes\n- Regular site inspections with written reports\n\n## Exercise\nList three risk management practices you would implement on your current project. For each, explain what risk it mitigates.\n"
+        },
+        {
+          "id": "ethics-business",
+          "title": "Ethics & Business Acumen",
+          "summary": "Professional ethics, fee structures, client relations, and running a practice",
+          "duration": "12 min",
+          "content": "# Ethics & Business Acumen\n\n## Introduction\nArchitecture is a profession with ethical obligations to clients, society, and the environment.\n\n## Professional Ethics\n\n### Core Principles (AIA / RIBA Codes)\n- **Competence**: only undertake work within your capability\n- **Integrity**: honest representations, no conflicts of interest\n- **Fairness**: equitable treatment of all parties\n- **Public interest**: prioritise health, safety, and welfare\n\n### Ethical Dilemmas\n- **Fee undercutting**: devalues the profession\n- **Specification bias**: favouring certain suppliers\n- **Greenwashing**: exaggerating environmental performance\n- **Cultural appropriation**: using indigenous forms without context\n\n## Business Acumen\n\n### Fee Structures\n- **Percentage of construction cost**: typical 6–15% depending on complexity\n- **Hourly**: for feasibility studies, expert witness\n- **Lump sum**: fixed fee for defined scope (common for residential)\n- **Phased**: separate fees for schematic, design development, CDs\n\n### Client Relations\n- Clear scope of services in the owner-architect agreement\n- Regular progress communications\n- Change order process for additional services\n- Managing expectations: schedule, budget, quality triangle\n\n### Financial Management\n- Overhead: salaries, rent, software, insurance (typically 60–70% of revenue)\n- Target profit margin: 10–20% of net revenue\n- Utilisation rate: billable hours / total hours (target: ≥70%)\n\n## Exercise\nWrite a fee proposal for a 200 m² house extension. Include: scope, exclusions, fee basis (percentage or lump sum), payment milestones, and additional services rate.\n"
+        }
+      ]
     }
   ]
 }

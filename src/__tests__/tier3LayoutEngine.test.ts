@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { generateLayoutParameters, generateFloorPlans } from '@/engine/tier3/layoutEngine'
-import type { PlacedRoom } from '@/engine/tier3/layoutEngine'
+import { generateLayoutParameters, generateFloorPlans, generateMultiFloorPlans } from '@/engine/tier3/layoutEngine'
+import type { PlacedRoom, LayoutParameters } from '@/engine/tier3/layoutEngine'
+import type { Tier1ParsedBrief } from '@/engine/tier1-types'
 import { parseBrief } from '@/engine/parseBrief'
 import { generateDesignConcept } from '@/engine/tier2/conceptEngine'
 
@@ -60,13 +61,23 @@ describe('Tier 3 — generateLayoutParameters', () => {
     expect(params.siteDepth).toBeGreaterThan(0)
     expect(params.wallThickness).toBe(0.2)
     expect(params.corridorWidth).toBe(1.5)
+    expect(params.floorCount).toBeGreaterThanOrEqual(1)
+    expect(params.floorHeight).toBe(3.0)
   })
 
-  it('includes courtyard topology for hotel typology', () => {
+  it('hotel uses defaultStoreys from typology', () => {
     const brief = parseBrief('Build a hotel in Victoria Falls', { buildingType: 'hotel' })
     const concept = generateDesignConcept(brief)
     const params = generateLayoutParameters(concept, brief)
     expect(params.topologies).toContain('courtyard')
+    expect(params.floorCount).toBe(3)
+  })
+
+  it('school uses defaultStoreys from typology', () => {
+    const brief = parseBrief('Build a school', { buildingType: 'school' })
+    const concept = generateDesignConcept(brief)
+    const params = generateLayoutParameters(concept, brief)
+    expect(params.floorCount).toBe(2)
   })
 })
 
@@ -397,6 +408,209 @@ describe('Tier 3 — regenerate idempotency (no duplicates)', () => {
     expect(second.length).toBe(3)
     // Distinct call, same params: same topology set
     expect(first.map(p => p.topology).sort()).toEqual(second.map(p => p.topology).sort())
+  })
+})
+
+describe('Tier 3 — generateMultiFloorPlans', () => {
+  function makeBrief(storeys: number, program: { name: string; count: number; areaM2: number }[]): Tier1ParsedBrief {
+    return {
+      raw: '',
+      buildingType: 'hotel' as any,
+      typology: {
+        id: 'test',
+        displayName: 'Test',
+        aliases: [],
+        sans10400Class: '',
+        zbcClass: '',
+        defaultStoreys: storeys,
+        defaultProgram: [],
+        minRoomDimensions: {},
+        notes: '',
+      },
+      program,
+      siteWidth: 40,
+      siteDepth: 60,
+      climaticZone: 'temperate',
+      heritagePattern: undefined,
+      userRequirements: [],
+      briefSummary: '',
+    }
+  }
+
+  function buildParams(storeys: number, brief: Tier1ParsedBrief): LayoutParameters {
+    return {
+      topologies: ['rectangle', 'l-shape', 'split-wing'] as any[],
+      siteWidth: 40,
+      siteDepth: 60,
+      wallThickness: 0.2,
+      corridorWidth: 1.5,
+      minRoomDimensions: {},
+      floorCount: storeys,
+      floorHeight: 3.0,
+    }
+  }
+
+  it('returns one floor array for a single-storey brief', () => {
+    const program = [
+      { name: 'Reception', count: 1, areaM2: 20 },
+      { name: 'Office', count: 2, areaM2: 15 },
+    ]
+    const brief = makeBrief(1, program)
+    const params = buildParams(1, brief)
+    const floors = generateMultiFloorPlans(params, brief)
+    expect(floors.length).toBe(1)
+  })
+
+  it('returns multiple floor arrays for a multi-storey brief', () => {
+    const program = [
+      { name: 'Reception', count: 1, areaM2: 20 },
+      { name: 'Office', count: 4, areaM2: 15 },
+    ]
+    const brief = makeBrief(2, program)
+    const params = buildParams(2, brief)
+    const floors = generateMultiFloorPlans(params, brief)
+    expect(floors.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('ground floor contains public rooms', () => {
+    const program = [
+      { name: 'Reception', count: 1, areaM2: 20 },
+      { name: 'Guest Room', count: 6, areaM2: 28 },
+    ]
+    const brief = makeBrief(2, program)
+    const params = buildParams(2, brief)
+    const floors = generateMultiFloorPlans(params, brief)
+    const ground = floors[0]
+    expect(ground.length).toBeGreaterThan(0)
+    const groundProgram = new Set(ground.flatMap(p => p.rooms.map(r => r.name)))
+    expect([...groundProgram].some(n => n.includes('Reception'))).toBe(true)
+  })
+
+  it('each plan stamps floorIndex and totalFloors', () => {
+    const program = [
+      { name: 'Reception', count: 1, areaM2: 20 },
+      { name: 'Guest Room', count: 4, areaM2: 28 },
+    ]
+    const brief = makeBrief(2, program)
+    const params = buildParams(2, brief)
+    const floors = generateMultiFloorPlans(params, brief)
+    for (let fi = 0; fi < floors.length; fi++) {
+      for (const plan of floors[fi]) {
+        expect(plan.floorIndex).toBe(fi)
+        expect(plan.totalFloors).toBe(2)
+      }
+    }
+  })
+
+  it('each topology variant is generated per floor', () => {
+    const program = [
+      { name: 'Reception', count: 1, areaM2: 20 },
+      { name: 'Office', count: 3, areaM2: 15 },
+    ]
+    const brief = makeBrief(2, program)
+    const params = buildParams(2, brief)
+    const floors = generateMultiFloorPlans(params, brief)
+    for (let fi = 0; fi < floors.length; fi++) {
+      expect(floors[fi].length).toBe(params.topologies.length)
+    }
+  })
+
+  it('no overlapping rooms on any floor', () => {
+    const program = [
+      { name: 'Reception', count: 1, areaM2: 20 },
+      { name: 'Office', count: 4, areaM2: 15 },
+    ]
+    const brief = makeBrief(2, program)
+    const params = buildParams(2, brief)
+    const floors = generateMultiFloorPlans(params, brief)
+    for (let fi = 0; fi < floors.length; fi++) {
+      for (const plan of floors[fi]) {
+        assertNoOverlaps(plan.rooms, `Floor ${fi} ${plan.topology}`)
+      }
+    }
+  })
+
+  it('all rooms have finite positive dimensions on every floor', () => {
+    const program = [
+      { name: 'Reception', count: 1, areaM2: 20 },
+      { name: 'Office', count: 4, areaM2: 15 },
+    ]
+    const brief = makeBrief(2, program)
+    const params = buildParams(2, brief)
+    const floors = generateMultiFloorPlans(params, brief)
+    for (let fi = 0; fi < floors.length; fi++) {
+      for (const plan of floors[fi]) {
+        checkFiniteDimensions(plan.rooms, `Floor ${fi} ${plan.topology}`)
+      }
+    }
+  })
+
+  it('all rooms meet ZBC minimum dimensions on every floor', () => {
+    const program = [
+      { name: 'Reception', count: 1, areaM2: 20 },
+      { name: 'Office', count: 4, areaM2: 15 },
+    ]
+    const brief = makeBrief(2, program)
+    const params = buildParams(2, brief)
+    const floors = generateMultiFloorPlans(params, brief)
+    for (let fi = 0; fi < floors.length; fi++) {
+      for (const plan of floors[fi]) {
+        checkZbcMinimums(plan.rooms, `Floor ${fi} ${plan.topology}`)
+      }
+    }
+  })
+
+  it('does not crash with empty program', () => {
+    const brief = makeBrief(2, [])
+    const params = buildParams(2, brief)
+    const floors = generateMultiFloorPlans(params, brief)
+    expect(floors.length).toBeGreaterThanOrEqual(1)
+    for (const floor of floors) {
+      for (const plan of floor) {
+        expect(plan.rooms.length).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  it('all-public program keeps everything on ground, upper floors get default rooms', () => {
+    const program = [
+      { name: 'Reception', count: 1, areaM2: 20 },
+      { name: 'Restaurant', count: 1, areaM2: 60 },
+    ]
+    const brief = makeBrief(3, program)
+    const params = buildParams(3, brief)
+    const floors = generateMultiFloorPlans(params, brief)
+    expect(floors.length).toBe(3)
+    const groundNames = floors[0].flatMap(p => p.rooms.map(r => r.name))
+    expect(groundNames.some(n => n.includes('Reception'))).toBe(true)
+    expect(groundNames.some(n => n.includes('Restaurant'))).toBe(true)
+  })
+
+  it('all-private program places one item on ground, rest on upper', () => {
+    const program = [
+      { name: 'Guest Room', count: 4, areaM2: 28 },
+    ]
+    const brief = makeBrief(2, program)
+    const params = buildParams(2, brief)
+    const floors = generateMultiFloorPlans(params, brief)
+    expect(floors.length).toBe(2)
+    const groundNames = new Set(floors[0].flatMap(p => p.rooms.map(r => r.name)))
+    expect([...groundNames].some(n => n.includes('Guest Room'))).toBe(true)
+  })
+
+  it('works with full hotel brief from parseBrief', () => {
+    const brief = parseBrief('Build a hotel in Victoria Falls', { buildingType: 'hotel' })
+    const concept = generateDesignConcept(brief)
+    const params = generateLayoutParameters(concept, brief)
+    expect(params.floorCount).toBeGreaterThanOrEqual(2)
+    const floors = generateMultiFloorPlans(params, brief)
+    expect(floors.length).toBeGreaterThanOrEqual(2)
+    for (const floor of floors) {
+      for (const plan of floor) {
+        assertNoOverlaps(plan.rooms, plan.name)
+        checkFiniteDimensions(plan.rooms, plan.name)
+      }
+    }
   })
 })
 

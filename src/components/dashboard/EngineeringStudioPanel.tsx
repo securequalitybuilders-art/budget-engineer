@@ -5,12 +5,16 @@ import { RebarSpecPanel } from '@/components/structural/RebarSpecPanel';
 import { FootingSizingPanel } from '@/components/structural/FootingSizingPanel';
 import { LoadAnalysisPanel } from '@/components/structural/LoadAnalysisPanel';
 import { AnalysisPanel } from '@/components/dashboard/AnalysisPanel';
+import { StructuralGeneratorPanel } from '@/components/structural/StructuralGeneratorPanel';
+import { MaterialSwitchPanel } from '@/components/structural/MaterialSwitchPanel';
+import { ClashHealerPanel } from '@/components/structural/ClashHealerPanel';
 import { RATE_CARDS } from '@/lib/rates/rate-card';
 import type { DesignOption } from '@/domain/boq';
 import type { BOQ } from '@/lib/boq/boq-types';
 import type { PlanModel } from '@/domain/plan';
 import type { BimModel, CadFloor } from '@/domain/ws6-types';
 import type { ParseResult } from '@/lib/ai/ai-provider';
+import type { BuildingGraph } from '@/domain/building';
 
 function EmptyState({ message }: { message: string }) {
   return (
@@ -20,7 +24,7 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
-type TabId = 'ai' | 'rates' | 'rebar' | 'footings' | 'loads' | 'section' | 'analysis';
+type TabId = 'ai' | 'rates' | 'rebar' | 'footings' | 'loads' | 'section' | 'analysis' | 'columns' | 'materials' | 'clashes';
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'ai', label: 'AI Brief' },
@@ -28,12 +32,40 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'rebar', label: 'Rebar' },
   { id: 'footings', label: 'Footings' },
   { id: 'loads', label: 'Loads' },
+  { id: 'columns', label: 'Columns' },
+  { id: 'materials', label: 'Materials' },
+  { id: 'clashes', label: 'Clashes' },
   { id: 'section', label: 'Section' },
   { id: 'analysis', label: 'Analysis' },
 ];
 
 function safeSqrt(n: number): number {
   return n > 0 ? Math.sqrt(n) : 0;
+}
+
+function sampleGraph(design: DesignOption | null): BuildingGraph | null {
+  if (!design || design.grossFloorArea <= 0) return null;
+  const dim = Math.sqrt(design.grossFloorArea);
+  return {
+    meta: { projectId: '', projectName: design.name, projectType: design.buildingType ?? 'house', clientName: '', createdAt: '', updatedAt: '', version: '1.0', units: 'metric', coordinates: { lat: 0, lng: 0 }, description: '' },
+    dimensions: { length: dim * 2, width: dim, height: 6, area: design.grossFloorArea, levels: 2, maxHeight: 6 },
+    walls: [
+      { id: 'w-ext-1', start: { x: 0, y: 0, z: 0 }, end: { x: dim * 2, y: 0, z: 0 }, length: dim * 2, thickness: 0.2, height: 3, role: 'exterior', material: 'brick', type: 'wall', levelId: 'l1' },
+      { id: 'w-ext-2', start: { x: dim * 2, y: 0, z: 0 }, end: { x: dim * 2, y: dim, z: 0 }, length: dim, thickness: 0.2, height: 3, role: 'exterior', material: 'brick', type: 'wall', levelId: 'l1' },
+      { id: 'w-ext-3', start: { x: dim * 2, y: dim, z: 0 }, end: { x: 0, y: dim, z: 0 }, length: dim * 2, thickness: 0.2, height: 3, role: 'exterior', material: 'brick', type: 'wall', levelId: 'l1' },
+      { id: 'w-ext-4', start: { x: 0, y: dim, z: 0 }, end: { x: 0, y: 0, z: 0 }, length: dim, thickness: 0.2, height: 3, role: 'exterior', material: 'brick', type: 'wall', levelId: 'l1' },
+    ],
+    slabs: [],
+    openings: [
+      { id: 'o-w1', wallId: 'w-ext-1', kind: 'window', width: 1.2, height: 1.5, sillHeight: 0.9, xPosition: 2 },
+      { id: 'o-d1', wallId: 'w-ext-1', kind: 'door', width: 0.9, height: 2.1, sillHeight: 0, xPosition: 0.5 },
+    ],
+    spaces: [{ id: 'sp1', name: 'Main Area', programme: 'living', levelId: 'l1', areaM2: design.grossFloorArea, bbox: { minX: 0, minY: 0, maxX: dim * 2, maxY: dim } }],
+    levels: [{ id: 'l1', name: 'Ground', elevation: 0, height: 3, order: 0 }, { id: 'l2', name: 'First', elevation: 3, height: 3, order: 1 }],
+    columns: [], beams: [], stairs: [], roof: null, materials: [],
+    structural: { foundation: 'strip', framing: 'timber', roofType: 'pitched' },
+    mechanical: { coolingLoad: 10, heatingLoad: 12, ventilationRate: 1.5 },
+  };
 }
 
 function buildSampleBim(design: DesignOption | null): BimModel | null {
@@ -73,6 +105,8 @@ export function EngineeringStudioPanel({ selectedDesign, activePlan, boq, onDesi
   const [activeTab, setActiveTab] = useState<TabId>('ai');
 
   const sampleBim = useMemo(() => buildSampleBim(selectedDesign), [selectedDesign]);
+
+  const sampleBuildingGraph = useMemo(() => sampleGraph(selectedDesign), [selectedDesign]);
 
   const slabArea = selectedDesign?.grossFloorArea ?? 0;
   const buildingType = selectedDesign?.buildingType ?? 'house';
@@ -116,6 +150,18 @@ export function EngineeringStudioPanel({ selectedDesign, activePlan, boq, onDesi
 
         <div id="loads-panel" role="tabpanel" aria-labelledby="loads-tab" hidden={activeTab !== 'loads'}>{activeTab === 'loads' && (
           sampleBim ? <LoadAnalysisPanel bim={sampleBim} /> : <EmptyState message="Start with the AI Brief tab to describe your project. Load analysis runs once a design is ready." />
+        )}</div>
+
+        <div id="columns-panel" role="tabpanel" aria-labelledby="columns-tab" hidden={activeTab !== 'columns'}>{activeTab === 'columns' && (
+          sampleBuildingGraph ? <StructuralGeneratorPanel graph={sampleBuildingGraph} /> : <EmptyState message="Start with the AI Brief tab to generate a design." />
+        )}</div>
+
+        <div id="materials-panel" role="tabpanel" aria-labelledby="materials-tab" hidden={activeTab !== 'materials'}>{activeTab === 'materials' && (
+          <MaterialSwitchPanel slabArea={slabArea} />
+        )}</div>
+
+        <div id="clashes-panel" role="tabpanel" aria-labelledby="clashes-tab" hidden={activeTab !== 'clashes'}>{activeTab === 'clashes' && (
+          sampleBuildingGraph ? <ClashHealerPanel graph={sampleBuildingGraph} /> : <EmptyState message="Start with the AI Brief tab to generate a design." />
         )}</div>
 
         <div id="section-panel" role="tabpanel" aria-labelledby="section-tab" hidden={activeTab !== 'section'}>{activeTab === 'section' && (

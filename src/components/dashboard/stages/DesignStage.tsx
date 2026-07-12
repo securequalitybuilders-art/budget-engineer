@@ -1,11 +1,14 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { PlanCanvas } from '@/components/cad/PlanCanvas'
 import { LazyBimModel3D } from '@/components/bim/LazyBimModel3D'
 import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
+import { BlockLibraryPanel } from '@/components/furniture/BlockLibraryPanel'
 import { CadSyncControls } from '@/components/dashboard/CadSyncControls'
 import { Button } from '@/components/ui/Button'
-import { Box, Layers, Ruler, Wand2, Upload, LayoutGrid, Boxes, Sofa, Download } from 'lucide-react'
+import { Box, Layers, Ruler, Wand2, Upload, LayoutGrid, Boxes, Sofa, Download, Table2 } from 'lucide-react'
+import { useFurnitureStore } from '@/stores/furnitureStore'
+import { getFurnitureDef } from '@/lib/furniture/furniture-library'
 import { motion } from 'framer-motion'
 import { segmentsToPlan, detectWallsFromImage } from '@/lib/import/wallDetection'
 import { convertPlanModelToCadDocument } from '@/adapters/planModelToCadAdapter'
@@ -65,8 +68,26 @@ export function DesignStage({
   const [detecting, setDetecting] = useState(false)
   const [detectMessage, setDetectMessage] = useState<string | null>(null)
   const [detectError, setDetectError] = useState(false)
+  const [showFurniturePanel, setShowFurniturePanel] = useState(false)
   const { id: projectIdParam } = useParams<{ id: string }>()
   const importInputRef = useRef<HTMLInputElement>(null)
+  const furnitureBlocks = useFurnitureStore((s) => s.blocks)
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        const st = useFurnitureStore.getState()
+        if (st.activeDefId) st.setActiveDef(null)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+  const activeBlockDefId = useFurnitureStore((s) => s.activeDefId)
+  const placeBlock = useFurnitureStore((s) => s.placeBlock)
+  const setActiveDef = useFurnitureStore((s) => s.setActiveDef)
+  const removeBlock = useFurnitureStore((s) => s.removeBlock)
+  const rotateBlock = useFurnitureStore((s) => s.rotateBlock)
 
   const handleExportDxf = useCallback(() => {
     if (!activePlan) return
@@ -292,6 +313,20 @@ export function DesignStage({
           </Link>
         )}
 
+        <span className="mx-1 h-5 w-px bg-white/10" />
+
+        <Button
+          variant={showFurniturePanel ? 'default' : 'ghost'}
+          size="sm"
+          className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
+          aria-label="Open Furniture & Block Library"
+          title="Open Furniture & Block Library"
+          onClick={() => setShowFurniturePanel((v) => !v)}
+        >
+          <Table2 size={14} />
+          <span className="hidden sm:inline">Furniture</span>
+        </Button>
+
         {activePlan && (
           <Button
             variant="ghost"
@@ -320,7 +355,8 @@ export function DesignStage({
       )}
 
       {/* Canvas area */}
-      <div className="flex flex-1 flex-col overflow-auto p-4 pt-20">
+      <div className="flex flex-1 flex-row overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-auto p-4 pt-20">
         {canvasView === 'plan' ? (
           <PlanCanvas
             projectId={projectId}
@@ -332,6 +368,11 @@ export function DesignStage({
             onBackdropSetScale={onBackdropSetScale}
             onBackdropClear={onBackdropClear}
             onDesignCreated={onDesignCreated}
+            furnitureBlocks={furnitureBlocks}
+            activeBlockDefId={activeBlockDefId}
+            onPlaceBlock={placeBlock}
+            onRemoveBlock={removeBlock}
+            onRotateBlock={rotateBlock}
           />
         ) : canvasView === 'bim' ? (
           <>
@@ -358,6 +399,10 @@ export function DesignStage({
         </p>
       </div>
 
+      {showFurniturePanel && (
+        <BlockLibraryPanel onClose={() => setShowFurniturePanel(false)} />
+      )}
+
       <input
         ref={importInputRef}
         type="file"
@@ -366,6 +411,7 @@ export function DesignStage({
         className="hidden"
         aria-label="Select a DXF, image, or PDF file to import"
       />
+      </div>
     </div>
   )
 }

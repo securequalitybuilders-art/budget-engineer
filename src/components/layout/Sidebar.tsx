@@ -2,8 +2,10 @@ import { Link } from 'react-router-dom';
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
 import { Button } from '@/components/ui/Button';
-import { Plus, Home, Settings, Folder, Sofa, Monitor, Globe, BookOpen } from 'lucide-react';
+import { Plus, Home, Settings, Folder, Sofa, Monitor, Globe, BookOpen, Bug } from 'lucide-react';
 import { DisciplineSwitcher } from '@/components/studio/DisciplineSwitcher';
+import { RoleSwitcher } from '@/components/auth/RoleSwitcher';
+import { LocaleSwitcher } from '@/components/common/LocaleSwitcher';
 
 export function Sidebar() {
   const { sidebarOpen } = useUIStore();
@@ -93,6 +95,9 @@ export function Sidebar() {
         </>
       )}
 
+      <RoleSwitcher />
+      <LocaleSwitcher />
+
       <Link
         to="/academy"
         className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
@@ -123,11 +128,11 @@ export function Sidebar() {
             </button>
             <button
               onClick={async () => {
-                const { openProjectFilePicker, importProjectPackage } = await import('@/services/projectExportImportService')
+                const { openProjectFilePicker, importProjectAsCopy } = await import('@/services/projectExportImportService')
                 const { useProjectStore } = await import('@/stores/projectStore')
                 const file = await openProjectFilePicker()
                 if (!file) return
-                const projectId = await importProjectPackage(file)
+                const projectId = await importProjectAsCopy(file)
                 if (projectId) {
                   await useProjectStore.getState().loadProjects()
                   window.location.href = `/project/${projectId}`
@@ -136,14 +141,14 @@ export function Sidebar() {
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
             >
               <Settings size={16} />
-              Import Project
+              Import (copy)
             </button>
           </div>
           <hr className="my-3 border-t border-[var(--border-default)]" />
         </>
       )}
 
-      <div className="p-3">
+      <div className="space-y-0.5 p-3">
         <Link
           to="/"
           className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
@@ -151,6 +156,13 @@ export function Sidebar() {
           <Settings size={16} />
           Settings
         </Link>
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('toggle-diagnostics'))}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+        >
+          <Bug size={16} />
+          Diagnostics <span className="text-[10px] text-[var(--text-tertiary)]">Ctrl+Shift+D</span>
+        </button>
       </div>
     </aside>
   );
