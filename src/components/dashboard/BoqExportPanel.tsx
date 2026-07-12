@@ -52,7 +52,7 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, act
   }
 
   const groups = useMemo((): CategoryGroup[] => {
-    const TRADE_ORDER = ['Preliminaries', 'Substructure', 'Superstructure', 'Roofing', 'Openings', 'Finishes', 'Plumbing', 'Electrical', 'Mechanical', 'External Works']
+    const TRADE_ORDER = ['Preliminaries', 'Substructure', 'Slabs', 'Superstructure', 'Walls', 'Roofing', 'Roof', 'Openings', 'Finishes', 'Plumbing', 'Electrical', 'MEP', 'Mechanical', 'External Works', 'Provisional Sums', 'Objects']
 
     if (!boq) return []
     const grouped = new Map<string, CategoryGroup['items']>()

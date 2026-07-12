@@ -49,6 +49,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    exclude: ['@mlc-ai/web-llm'],
+  },
   build: {
     chunkSizeWarningLimit: 512,
     rollupOptions: {

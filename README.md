@@ -1,7 +1,7 @@
 # Budget Engineer — Premium Architectural Studio
 
 [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions)
-[![Version](https://img.shields.io/badge/version-1.3.0--rc.1-blue)]()
+[![Version](https://img.shields.io/badge/version-1.3.0-blue)]()
 [![Tests](https://img.shields.io/badge/tests-1503-green)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
 [![PWA](https://img.shields.io/badge/PWA-offline--first-purple)]()
@@ -18,7 +18,7 @@ Brief → 2D CAD → 3D BIM → engineering analysis → construction drawings �
 
 ## Release Snapshot
 
-**Budget Engineer v1.3.0-rc.1** is the **Enterprise Platform MVP** release with full release-gate integrity.
+**Budget Engineer v1.3.0** is the **Enterprise Platform MVP** release with full release-gate integrity.
 
 It preserves the original core workflow:
 
@@ -44,7 +44,7 @@ And adds enterprise deployment infrastructure:
 
 | Metric | Value |
 |---|---|---|
-| Version | v1.3.0-rc.1 |
+| Version | v1.3.0 |
 | Tests | 1,503 |
 | Test files | 87 |
 | TypeScript | 0 errors (strict mode) |
@@ -415,7 +415,7 @@ Each push to `main` runs via GitHub Actions:
 
 | Detail | Value |
 |---|---|
-| Current version | v1.3.0-rc.1 |
+| Current version | v1.3.0 |
 | Codename | Enterprise Platform MVP |
 | Live demo | [budget-engineer.vercel.app](https://budget-engineer.vercel.app/) |
 | GitHub | [github.com/securequalitybuilders-art/budget-engineer](https://github.com/securequalitybuilders-art/budget-engineer) |

@@ -56,6 +56,17 @@ export function CostDeliverStage({
     })
   }, [selectedDesign, region])
 
+  // Bridge DetailedBoqResult → BoqResult so the BOQ tab shows all 11 trade sections
+  const detailedBoqAsResult: BoqResult | null = useMemo(() => {
+    if (!detailedBoq) return null
+    return {
+      ...detailedBoq.boq,
+      assumptions: detailedBoq.assumptions,
+      quantities: detailedBoq.quantities,
+      estimateDepth: detailedBoq.depth === 'detailed' ? 'detailed' as const : 'shell' as const,
+    }
+  }, [detailedBoq])
+
   const schedules = useMemo(() => {
     if (!selectedDesign) return null
     return generateSchedules(selectedDesign, 'concrete-slab')
@@ -134,7 +145,7 @@ export function CostDeliverStage({
           <div className="p-4 space-y-3">
             <BoqExportPanel
               selectedDesign={selectedDesign}
-              boq={boq}
+              boq={detailedBoqAsResult ?? boq}
               onExport={onExport}
               activePlan={activePlan}
               buildingType={buildingType}

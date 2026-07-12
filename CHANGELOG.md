@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.3.0] - 2026-07-12 — Enterprise Platform MVP
+
+### Summary
+Promoted from v1.3.0-rc.2. Enterprise Platform MVP with full release-gate integrity.
+
+All four gates verified green:
+- **Typecheck:** 0 errors (strict mode)
+- **Lint:** 20 warnings (≤25 max policy)
+- **Tests:** 1,503 passed across 88 test files
+- **Build:** clean in 35.38s
+
+### Highlights
+- Full 12-section trade-level BOQ in Cost & Deliver tab
+- Project export/import (.beproj), Diagnostics panel, Local RBAC, i18n scaffold, Plugin SDK, Docker/nginx baseline, Security baseline
+- 167 TypeScript errors resolved across 43 files
+- Version synchronization across all docs
+
+See [docs/RELEASE_NOTES_v1.3.0-rc.2.md](docs/RELEASE_NOTES_v1.3.0-rc.2.md) for full details.
+
+## [1.3.0-rc.2] - 2026-07-12 — BOQ Full Trade Breakdown + Version Fix
+
+### Fixed
+- **package.json** version corrected from `1.2.0` → `1.3.0-rc.2` (was out of sync with README/CHANGELOG)
+- **Cost & Deliver BOQ tab** now shows full 11-section trade-level BOQ (Preliminaries, Substructure, Superstructure, Roofing, Openings, Finishes, Plumbing, Electrical, Mechanical, External Works) instead of the 7-category shell summary
+- README version references updated to rc.2
+
+### Changed
+- `CostDeliverStage` bridges `DetailedBoqResult` → `BoqResult` and passes it to `BoqExportPanel`
+- Falls back to shell BOQ if detailed computation is unavailable
+
 ## [1.3.0-rc.1] - 2026-07-12 — Release Integrity Sweep
 
 ### Summary
