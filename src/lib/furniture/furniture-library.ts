@@ -1,4 +1,4 @@
-import type { FurnitureDef } from '@/domain/furniture'
+import type { FurnitureDef, BlockCategory } from '@/domain/furniture'
 
 export const FURNITURE_LIBRARY: FurnitureDef[] = [
   // ── Furniture ──────────────────────────────────────────

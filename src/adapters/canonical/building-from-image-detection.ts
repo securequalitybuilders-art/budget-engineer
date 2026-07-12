@@ -1,4 +1,4 @@
-import type { BuildingGraph, Space, Wall, Opening, FinishSpec, FixtureInstance, DerivationResult, DerivationMeta, BBox2D, Polygon2D } from '../../domain/building'
+import type { BuildingGraph, Space, Wall, FinishSpec, FixtureInstance, DerivationResult, DerivationMeta, BBox2D, Polygon2D } from '../../domain/building'
 import type { DetectedSegment } from '../../lib/import/wallDetection'
 import { uuid } from '../../lib/utils'
 

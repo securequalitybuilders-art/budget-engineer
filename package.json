@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 100",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 25",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -1,6 +1,5 @@
 import type { BuildingGraph } from '../../domain/building'
 import { getLevelsSorted, getSpacesOnLevel, getWallsOnLevel, getOpeningsOnLevel } from '../../domain/building'
-import { uuid } from '../../lib/utils'
 
 function nowStamp(): string {
   return new Date().toISOString().replace(/\.\d+Z$/, '')
@@ -69,7 +68,7 @@ export function buildingGraphToIfcStep(graph: BuildingGraph): string | null {
 
     for (const wall of getWallsOnLevel(graph, level.id)) {
       const wallPlace = push(`IFCLOCALPLACEMENT(${ref(projPlacement)},IFCAXIS2PLACEMENT3D(IFCCARTESIANPOINT((${wall.start.x},${wall.start.y},${wall.start.z})),IFCDIRECTION((0,0,1)),IFCDIRECTION((1,0,0))))`)
-      const e = push(`IFCWALLSTANDARDCASE('${guid()}',${ref(ownerHistory)},'${escapeStep(wall.name || 'Wall')}',$,$,${ref(wallPlace)},$,IFCPOSITIVELENGTHMEASURE(${wall.thickness}),$)`)
+      const e = push(`IFCWALLSTANDARDCASE('${guid()}',${ref(ownerHistory)},'${escapeStep(wall.id)}',$,$,${ref(wallPlace)},$,IFCPOSITIVELENGTHMEASURE(${wall.thickness}),$)`)
       push(pset('WallProperties', { wallId: wall.id, role: wall.role, material: wall.material, ifcClass: wall.ifcClass, height: wall.height, length: distance(wall.start, wall.end) }))
       contained.push(e)
     }
@@ -135,7 +134,7 @@ export function buildingGraphToIfcStep(graph: BuildingGraph): string | null {
   if (graph.roof) {
     const topLevel = sortedLevels[sortedLevels.length - 1]
     const roofPlace = push(`IFCLOCALPLACEMENT(${ref(projPlacement)},IFCAXIS2PLACEMENT3D(IFCCARTESIANPOINT((0,${topLevel.elevation + (topLevel.floorHeight || 3)},0)),IFCDIRECTION((0,0,1)),IFCDIRECTION((1,0,0))))`)
-    const e = push(`IFCROOF('${guid()}',${ref(ownerHistory)},'Roof',$,$,${ref(roofPlace)},$,.FLAT_ROOF.)`)
+    push(`IFCROOF('${guid()}',${ref(ownerHistory)},'Roof',$,$,${ref(roofPlace)},$,.FLAT_ROOF.)`)
     push(pset('RoofProperties', { roofId: graph.roof.id, roofType: graph.roof.roofType, pitch: graph.roof.pitch, material: graph.roof.material, thickness: graph.roof.thickness }))
   }
 

@@ -1,14 +1,12 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { FileText, CheckCircle, Clock, AlertTriangle, Filter, X, ListOrdered } from 'lucide-react'
-import type { DrawingRegisterSheet, DrawingTabId, DisciplineCode, SheetStatus } from '@/lib/drawings/drawing-register'
-import { getDisciplinePrefix } from '@/lib/drawings/layerStandard'
+import { FileText, CheckCircle, Clock, AlertTriangle, Filter, ListOrdered } from 'lucide-react'
+import type { DrawingRegisterSheet, DisciplineCode, SheetStatus } from '@/lib/drawings/drawing-register'
 
 interface DrawingRegisterPanelProps {
   sheets: DrawingRegisterSheet[]
   activeSheetId: string | null
-  onSelectSheet: (sheetId: string, viewId: DrawingTabId | null, floorIndex?: number) => void
-  disciplineFilter?: boolean
+  onSelectSheet: (id: string) => void
 }
 
 const DISCIPLINES: { value: DisciplineCode | 'ALL'; label: string }[] = [
@@ -74,7 +72,7 @@ function DisciplineBadge({ code }: { code: DisciplineCode }) {
   )
 }
 
-export function DrawingRegisterPanel({ sheets, activeSheetId, onSelectSheet, disciplineFilter = true }: DrawingRegisterPanelProps) {
+export function DrawingRegisterPanel({ sheets, activeSheetId, onSelectSheet }: DrawingRegisterPanelProps) {
   const [discipline, setDiscipline] = useState<DisciplineCode | 'ALL'>('ALL')
   const [status, setStatus] = useState<SheetStatus | 'ALL'>('ALL')
 
@@ -171,7 +169,7 @@ export function DrawingRegisterPanel({ sheets, activeSheetId, onSelectSheet, dis
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.15 }}
-                  onClick={() => onSelectSheet(sheet.id, sheet.viewId, sheet.floorIndex)}
+                  onClick={() => onSelectSheet(sheet.id)}
                   className={`cursor-pointer border-b border-stone-800/60 transition-colors hover:bg-stone-800/40 ${
                     activeSheetId === sheet.id ? 'bg-cyan-600/10' : ''
                   }`}

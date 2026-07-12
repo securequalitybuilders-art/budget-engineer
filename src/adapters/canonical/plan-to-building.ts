@@ -1,7 +1,7 @@
 import type {
   BuildingGraph, BuildingMeta, Level, Space, Wall, Opening,
-  DerivationResult, DerivationMeta, FixtureInstance, FinishSpec,
-  Polygon2D, Point3D, BBox2D,
+  DerivationResult, DerivationMeta, FinishSpec,
+  Polygon2D, BBox2D,
 } from '../../domain/building'
 import type { PlanModel, RoomRect, WallSegment, Opening as PlanOpening } from '../../domain/plan'
 

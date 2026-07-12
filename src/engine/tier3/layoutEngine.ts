@@ -482,10 +482,6 @@ function isPublicItem(name: string): boolean {
   return PUBLIC_PREFIXES.some((p) => name.startsWith(p))
 }
 
-function isPrivateItem(name: string): boolean {
-  return !isPublicItem(name) && name !== 'Circulation' && !name.startsWith('Circulation')
-}
-
 function partitionProgram(
   program: ProgramItem[],
   floorCount: number,

@@ -1,12 +1,14 @@
 export type PlotType = 'color' | 'monochrome' | 'grayscale'
 
+export type PlotStyle = 'solid' | 'screened-50' | 'screened-30' | 'dashed'
+
 export type LineWeight = 0.13 | 0.18 | 0.25 | 0.35 | 0.50 | 0.70 | 1.00
 
 export interface PenAssignment {
   layerCode: string
   lineWeight: LineWeight
   color: string
-  plotStyle: 'solid' | 'screened-50' | 'screened-30'
+  plotStyle: PlotStyle
 }
 
 const PEN_TABLE: PenAssignment[] = [

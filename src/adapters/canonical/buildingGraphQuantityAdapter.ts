@@ -38,7 +38,6 @@ export function extractGraphQuantities(graph: BuildingGraph): GeometryQuantities
 
   const floorCount = graph.levels.length
 
-  const wetRoomTypesSet = new Set(['bathroom', 'ensuite', 'kitchen', 'laundry', 'pantry'])
   let wetRoomCount = 0
   let kitchenCount = 0
   let bedroomCount = 0

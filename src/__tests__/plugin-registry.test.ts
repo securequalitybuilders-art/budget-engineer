@@ -1,15 +1,16 @@
 import { describe, it, expect, vi } from 'vitest'
 import { createPluginRegistry } from '../lib/plugin/plugin-registry'
 import type { BuildingGraph } from '../domain/building'
-import type { PluginRegistration, PluginHookHandler } from '../lib/plugin/plugin-types'
+import type { PluginRegistration, PluginHookHandler, PluginContext } from '../lib/plugin/plugin-types'
 
 const sampleGraph: BuildingGraph = {
-  meta: { projectId: 'proj-p', projectName: 'Plugin Test', projectType: 'residential', clientName: '', createdAt: '', updatedAt: '', version: '1.0', units: 'metric', coordinates: { lat: 0, lng: 0 }, description: '' },
-  dimensions: { length: 10, width: 8, height: 6, area: 80, levels: 1, maxHeight: 6 },
-  walls: [], slabs: [], openings: [], spaces: [], levels: [{ id: 'l1', name: 'Ground', elevation: 0, height: 3, order: 0 }],
-  columns: [], beams: [], stairs: [], roof: null, materials: [],
-  structural: { foundation: 'strip', framing: 'timber', roofType: 'pitched' },
-  mechanical: { coolingLoad: 10, heatingLoad: 12, ventilationRate: 1.5 },
+  meta: { id: 'proj-p', projectId: 'proj-p', name: 'Plugin Test', category: 'residential' as const, description: '', createdAt: '', updatedAt: '' },
+  site: null,
+  levels: [{ id: 'l1', name: 'Ground', number: 0, elevation: 0, floorHeight: 3 }],
+  walls: [], slabs: [], openings: [], spaces: [],
+  columns: [], beams: [], stairs: [], roof: null,
+  structural: null,
+  serviceZones: [],
 }
 
 describe('plugin-registry', () => {
@@ -105,7 +106,7 @@ describe('plugin-registry', () => {
     registry.register({
       manifest: { id: 'p1', name: 'P1', version: '1.0', description: '', author: '', hooks: ['onProjectOpen'], permissions: [], entrypoint: '' },
       handlers: {
-        onProjectOpen: ((ctx) => {
+        onProjectOpen: ((ctx: PluginContext) => {
           const projectId = ctx.api.getProjectId()
           const graph = ctx.api.readBuildingGraph()
           handler(projectId, graph)
@@ -123,10 +124,10 @@ describe('plugin-registry', () => {
     registry.register({
       manifest: { id: 'p1', name: 'P1', version: '1.0', description: '', author: '', hooks: ['onBuildingGraphChange'], permissions: ['read:buildingGraph', 'write:buildingGraph'], entrypoint: '' },
       handlers: {
-        onBuildingGraphChange: ((ctx) => {
+        onBuildingGraphChange: ((ctx: PluginContext) => {
           const g = ctx.api.readBuildingGraph() as BuildingGraph
           expect(g).toBeTruthy()
-          g.meta.projectName = 'Updated'
+          g.meta.name = 'Updated'
           ctx.api.writeBuildingGraph(g)
           written = true
         }) as unknown as PluginHookHandler,
@@ -167,7 +168,7 @@ describe('plugin-registry', () => {
     const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
     registry.register({
       manifest: { id: 'p1', name: 'Logger', version: '1.0', description: '', author: '', hooks: ['onAppStart'], permissions: [], entrypoint: '' },
-      handlers: { onAppStart: ((ctx) => { ctx.api.log('started') }) as unknown as PluginHookHandler },
+      handlers: { onAppStart: ((ctx: PluginContext) => { ctx.api.log('started') }) as unknown as PluginHookHandler },
     })
     registry.loadPlugin('p1')
     registry.triggerHook('onAppStart')

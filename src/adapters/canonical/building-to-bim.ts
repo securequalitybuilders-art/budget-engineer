@@ -1,4 +1,4 @@
-import type { BuildingGraph, Roof, Slab, Stair } from '../../domain/building'
+import type { BuildingGraph, Roof, Slab } from '../../domain/building'
 import type { BimModel, BimElement, BimWall, BimSlab, BimOpening, BimRoomZone, BimRoof, BimBlock } from '../../domain/bim'
 import { getLevelsSorted, getSpacesOnLevel, getWallsOnLevel, getOpeningsOnLevel } from '../../domain/building'
 import { uuid } from '../../lib/utils'

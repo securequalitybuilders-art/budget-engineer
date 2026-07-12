@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import type { StructuralMaterial } from '../../lib/structural/structural-types'
-import { materialRateTable, getMaterialRates, getIfcClass } from '../../lib/structural/material-rates'
+import { getMaterialRates, getIfcClass } from '../../lib/structural/material-rates'
 import { computeRebarTonnes, estimateRebarCost } from '../../lib/structural/rebar-calculator'
 
 interface MaterialSwitchPanelProps {
@@ -71,7 +71,7 @@ export function MaterialSwitchPanel({ slabAreaM2 }: MaterialSwitchPanelProps) {
           {Object.entries(RATE_LABELS).map(([key, label]) => (
             <div key={key} className="flex justify-between text-stone-300">
               <span className="text-stone-400">{label}</span>
-              <span>${(rates as Record<string, number>)[key]?.toFixed(2) ?? '—'}</span>
+              <span>${(rates as unknown as Record<string, number>)[key]?.toFixed(2) ?? '—'}</span>
             </div>
           ))}
         </div>

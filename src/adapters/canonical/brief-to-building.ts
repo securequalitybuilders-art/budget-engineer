@@ -1,4 +1,4 @@
-import type { BuildingGraph, BuildingMeta, Level, Space, Wall, Opening, FinishSpec, Polygon2D, BBox2D } from '../../domain/building'
+import type { BuildingGraph, BuildingMeta, Level, Space, Wall, Opening } from '../../domain/building'
 import type { DerivationResult, DerivationMeta } from '../../domain/building'
 
 interface ParsedBriefLike {
@@ -111,7 +111,6 @@ export function briefToBuildingGraph(
     }
   }
 
-  const COLORS = ['#ffd', '#e8f5e9', '#e3f2fd', '#fce4ec', '#f3e5f5', '#fff3e0', '#e0f7fa', '#fbe9e7']
   let cursorX = 0
   let cursorY = 0
   let rowHeight = 0
@@ -164,10 +163,6 @@ export function briefToBuildingGraph(
 
   for (const space of spaces) {
     const b = space.bbox
-    const cx = (b.minX + b.maxX) / 2
-    const cy = (b.minY + b.maxY) / 2
-    const hw = (b.maxX - b.minX) / 2
-    const hh = (b.maxY - b.minY) / 2
 
     const segs: Array<{ start: { x: number; y: number }; end: { x: number; y: number }; role: 'external' | 'internal' }> = [
       { start: { x: b.minX, y: b.minY }, end: { x: b.maxX, y: b.minY }, role: 'internal' },

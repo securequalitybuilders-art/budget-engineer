@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useCallback } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import type { DesignOption } from '../../domain/boq'
 import type { Opening, PlanModel, RoomRect, WallSegment } from '../../domain/plan'
 import type { PlacedBlock } from '../../domain/furniture'
@@ -78,8 +78,6 @@ export function PlanCanvas({
   furnitureBlocks,
   activeBlockDefId,
   onPlaceBlock,
-  onRemoveBlock,
-  onRotateBlock,
 }: PlanCanvasProps) {
   const createdRef = useRef(false)
   const baseModel = useMemo<PlanModel | null>(() => {

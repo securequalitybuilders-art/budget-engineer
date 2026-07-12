@@ -47,7 +47,7 @@ export interface PluginInstance {
   manifest: PluginManifest
   api: PluginAPI
   loaded: boolean
-  hooks: Record<PluginHook, Array<(...args: unknown[]) => unknown>>
+  hooks: Record<PluginHook, PluginHookHandler[]>
 }
 
 export type PluginHookHandler = (context: PluginContext, ...args: unknown[]) => unknown

@@ -12,7 +12,6 @@ interface FurnitureLayerProps {
 
 export function FurnitureLayer({ blocks, scale, offsetX, offsetY, readOnly }: FurnitureLayerProps) {
   const removeBlock = useFurnitureStore((s) => s.removeBlock)
-  const rotateBlock = useFurnitureStore((s) => s.rotateBlock)
 
   if (blocks.length === 0) return null
 

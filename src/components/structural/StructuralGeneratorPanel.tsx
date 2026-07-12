@@ -1,17 +1,12 @@
 import { useMemo } from 'react'
 import { buildingToStructuralGeneration } from '../../adapters/canonical/building-to-structural'
 import type { BuildingGraph } from '../../domain/building'
-import type { StructuralMaterial } from '../../lib/structural/structural-types'
 
 interface StructuralGeneratorPanelProps {
   graph: BuildingGraph | null
 }
 
-const MATERIAL_OPTIONS: { value: StructuralMaterial; label: string }[] = [
-  { value: 'concrete', label: 'Concrete' },
-  { value: 'steel', label: 'Steel' },
-  { value: 'timber', label: 'Timber' },
-]
+
 
 export function StructuralGeneratorPanel({ graph }: StructuralGeneratorPanelProps) {
   const result = useMemo(() => {

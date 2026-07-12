@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
-import type { BlockCategory } from '@/domain/furniture'
-import { FURNITURE_LIBRARY, BLOCK_CATEGORIES, getFurnitureByCategory } from '@/lib/furniture/furniture-library'
+import { BLOCK_CATEGORIES, getFurnitureByCategory } from '@/lib/furniture/furniture-library'
 import { useFurnitureStore } from '@/stores/furnitureStore'
 
 interface BlockLibraryPanelProps {

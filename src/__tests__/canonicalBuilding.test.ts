@@ -1,9 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
-  getLevelsSorted, getSpacesOnLevel, getWallsOnLevel,
-  getOpeningsOnLevel, computeGraphQuantities,
+  getLevelsSorted, getSpacesOnLevel, computeGraphQuantities,
 } from '@/domain/building'
-import type { BuildingGraph, Wall, Opening } from '@/domain/building'
+import type { BuildingGraph } from '@/domain/building'
 import {
   planModelToBuildingGraph,
   bimModelToBuildingGraph,
@@ -15,9 +14,9 @@ import {
   generateSchedulesFromGraph,
 } from '@/adapters/canonical'
 import type { PlanModel } from '@/domain/plan'
-import type { BimModel, BimWall, BimSlab, BimOpening as BimOpeningT, BimRoomZone, BimRoof, BimBlock } from '@/domain/bim'
+import type { BimModel, BimWall, BimSlab, BimOpening as BimOpeningT, BimRoomZone, BimRoof } from '@/domain/bim'
 import type { DesignOption } from '@/domain/boq'
-import type { CadDocument, CadWall, CadOpening, CadFloor } from '@/domain/cad'
+import type { CadDocument } from '@/domain/cad'
 
 // ── Helpers ───────────────────────────────────────────────────
 

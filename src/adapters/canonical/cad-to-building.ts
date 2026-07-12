@@ -1,15 +1,14 @@
 import type {
   BuildingGraph, BuildingMeta, Level, Wall, Opening,
-  Space, FixtureInstance, FinishSpec, Polygon2D, Point3D,
+  Space, FinishSpec,
   DerivationResult, DerivationMeta,
 } from '../../domain/building'
-import type { CadDocument, CadWall, CadOpening, CadFloor, CadBlockInstance } from '../../domain/cad'
+import type { CadDocument, CadWall, CadOpening } from '../../domain/cad'
 
 export function cadDocumentToBuildingGraph(
   cad: CadDocument,
   meta?: Partial<BuildingMeta>,
 ): DerivationResult<BuildingGraph> {
-  const levelLut = new Map(cad.floors.map((f) => [f.id, f.name]))
   const levelIds = cad.floors.map((f) => f.id)
 
   const levels: Level[] = cad.floors.map((f, i) => ({
@@ -58,7 +57,7 @@ export function cadDocumentToBuildingGraph(
 
   const spaces: Space[] = cad.annotations
     .filter((a) => a.kind === 'label' && levelIds.includes(a.floorId))
-    .map((a, i) => ({
+    .map((a) => ({
       id: `space-${a.id}`,
       levelId: a.floorId,
       name: a.text,

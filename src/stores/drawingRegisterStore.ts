@@ -11,9 +11,7 @@ import {
   type DisciplineCode,
   type DrawingTypeDef,
   type SheetSize,
-  DEFAULT_DRAWING_TYPES,
 } from '@/lib/drawings/drawing-register'
-import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
 
 interface FilterState {

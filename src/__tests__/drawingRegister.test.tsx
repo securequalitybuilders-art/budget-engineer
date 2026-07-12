@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent, cleanup, within } from '@testing-library/react'
-import React from 'react'
+import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import {
   generateDefaultRegister,
   sheetByView,
@@ -255,7 +254,7 @@ describe('DrawingRegisterPanel', () => {
     expect(rows.length).toBe(3)
     fireEvent.click(rows[0])
     expect(onSelect).toHaveBeenCalledTimes(1)
-    expect(onSelect).toHaveBeenCalledWith('s1', 'plan', 0)
+    expect(onSelect).toHaveBeenCalledWith('s1')
   })
 
   it('filters by discipline', () => {

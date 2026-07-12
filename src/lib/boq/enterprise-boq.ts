@@ -1,8 +1,7 @@
-import type { BOQ, BOQLineItem, BOQSummary } from './boq-types'
+import type { BOQLineItem, BOQSummary } from './boq-types'
 import type { BuildingGraph } from '../../domain/building'
 import { buildBoqFromBuildingGraph, type GraphBoqResult } from '../../adapters/canonical/building-to-boq'
 import { getRegionRateCard } from '../../adapters/rateCardAdapter'
-import { uuid } from '../utils'
 
 export interface EscalationConfig {
   rate: number

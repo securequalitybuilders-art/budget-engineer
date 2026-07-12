@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.3.0-rc.1] - 2026-07-12 — Release Integrity Sweep
+
+### Summary
+Enterprise Platform MVP + canonical model refactoring with full release gate restoration.
+
+### Enterprise Platform MVP
+- CI/CD: Dockerfile, docker-compose.yml, nginx.conf, npm audit in CI
+- Security: CSP meta tag, `sanitize.ts`, SECURITY_NOTES.md
+- .beproj export/import: `exportProjectPackage`, `importProjectAsCopy`, Home Export All + Import Backup, Sidebar Import
+- Local RBAC: `authStore.ts`, `RoleGuard.tsx`, `RoleSwitcher.tsx`
+- Plugin SDK: `sample-plugin.ts`, `PLUGIN_SDK.md`
+- i18n: `i18n.ts`, `en.ts` (40+ keys), `LocaleSwitcher.tsx`
+- Performance: Portfolio pagination (12/page + Load More), PERFORMANCE_NOTES.md, chunk budgets
+- Diagnostics: `diagnosticsStore.ts`, `DiagnosticsPanel.tsx` (Ctrl+Shift+D)
+
+### Release Integrity Sweep
+- Typecheck: 0 errors (fixed 167 TS errors across 43 files)
+- Build gate restored: `tsc --noEmit` re-added to `npm run build`
+- Lint max-warnings lowered from 100 → 25
+- All 1503 tests pass, 87 test files green
+
+### Fixed
+- WallRole: `'exterior'`/`'interior'` → `'external'`/`'internal'` to match canonical types
+- BuildingMeta: `projectName` → `name`
+- Level: `height` → `floorHeight`
+- Opening: `xPosition` → `offsetRatio`
+- StructuralSystem: removed deprecated `foundation` property
+- Space: added required `boundary`, `finishSpec`, `fixtures`, `notes`
+- Removed ~55 unused imports/variables across adapter, component, lib, and test files
+- Fixed `PluginHookHandler` type assignability in plugin-registry
+- Added `'dashed'` to `PlotStyle` union in pen-table.ts
+- Re-exported `DisciplineCode` and `SheetSize` from drawing-register module
+- Fixed `CadDocument` type mismatches between ws6-types and cad.ts
+
 ## [1.0.1] - 2026-07-11 — Premium Studio UI Integration & QA Update
 
 ### Summary

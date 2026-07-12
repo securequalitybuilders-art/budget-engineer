@@ -2,7 +2,7 @@ import { BOQ, CadDocument, ProjectRecord } from '@/domain/ws6-types';
 import { currencySymbol } from '@/lib/utils/currency';
 import { buildPlanSvg } from '@/lib/drawings/plan-svg';
 import { buildSectionSvg, SectionConfig } from '@/lib/drawings/section-svg';
-import { buildDrawingRegister, planSheet, sectionSheet } from '@/lib/drawings/drawing-register';
+import { buildDrawingRegister, planSheet, sectionSheet, type DrawingRegisterSheet } from '@/lib/drawings/drawing-register';
 
 function csvCell(v: string | number): string {
   const s = String(v);
@@ -29,21 +29,21 @@ export function buildBoqDossierHtml(boq: BOQ, cad: CadDocument, project: Project
   const money = (n: number) => sym + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const now = new Date().toLocaleString();
   const pct = (part: number) => boq.summary.subtotal > 0 ? Math.round((part / boq.summary.subtotal) * 100) : 0;
-  const projName = project?.name ?? cad.name;
+  const projName = project?.name ?? cad.id;
   const dateStr = new Date().toISOString().slice(0, 10);
-  const register = buildDrawingRegister(cad, revision, dateStr);
+  const register = buildDrawingRegister(cad as unknown as import('@/domain/cad').CadDocument, revision, dateStr);
   const registerRows = register.map((s) => `
     <tr>
-      <td><b>${s.sheet}</b></td>
+      <td><b>${s.sheetNumber}</b></td>
       <td>${s.title}</td>
-      <td>${s.discipline}</td>
+      <td>${s.disciplineLabel ?? s.discipline}</td>
       <td>${s.scale}</td>
       <td class="num">${s.revision}</td>
     </tr>`).join('');
-  const revisionRows = register.flatMap((s: { revisions: { rev: string; date: string; note: string; by?: string }[]; sheet: string }) =>
+  const revisionRows = register.flatMap((s: DrawingRegisterSheet) =>
     s.revisions.map((r) => `
     <tr>
-      <td><b>${s.sheet}</b></td>
+      <td><b>${s.sheetNumber}</b></td>
       <td class="num">${r.rev}</td>
       <td>${r.date}</td>
       <td>${r.note}</td>
@@ -69,7 +69,7 @@ export function buildBoqDossierHtml(boq: BOQ, cad: CadDocument, project: Project
 
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"/>
-<title>BOQ — ${project?.name ?? cad.name}</title>
+<title>BOQ — ${project?.name ?? cad.id}</title>
 <style>
   @page { size: A4 portrait; margin: 18mm; }
   * { box-sizing: border-box; }
@@ -103,11 +103,11 @@ export function buildBoqDossierHtml(boq: BOQ, cad: CadDocument, project: Project
   <div style="padding: 18mm;">
     <div class="cover">
       <h1>Bill of Quantities</h1>
-      <p>${project?.name ?? cad.name}</p>
+      <p>${project?.name ?? cad.id}</p>
       <p>Budget Engineer Studio — DZENHARE OS · Construction Affordable for Everyone</p>
     </div>
     <div class="meta">
-      <div><b>${cad.name}</b>Scheme</div>
+      <div><b>${cad.id}</b>Scheme</div>
       <div><b>${boq.currency}</b>Currency</div>
       <div><b>${boq.items.length}</b>Line items</div>
       <div><b>${now}</b>Generated</div>

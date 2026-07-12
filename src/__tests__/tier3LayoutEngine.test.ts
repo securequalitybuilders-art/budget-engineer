@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { generateLayoutParameters, generateFloorPlans, generateMultiFloorPlans } from '@/engine/tier3/layoutEngine'
 import type { PlacedRoom, LayoutParameters } from '@/engine/tier3/layoutEngine'
-import type { Tier1ParsedBrief } from '@/engine/tier1-types'
+import type { Tier1ParsedBrief, ProgramItem } from '@/engine/tier1-types'
 import { parseBrief } from '@/engine/parseBrief'
 import { generateDesignConcept } from '@/engine/tier2/conceptEngine'
 
@@ -412,10 +412,9 @@ describe('Tier 3 — regenerate idempotency (no duplicates)', () => {
 })
 
 describe('Tier 3 — generateMultiFloorPlans', () => {
-  function makeBrief(storeys: number, program: { name: string; count: number; areaM2: number }[]): Tier1ParsedBrief {
+  function makeBrief(storeys: number, program: ProgramItem[]): Tier1ParsedBrief {
     return {
-      raw: '',
-      buildingType: 'hotel' as any,
+      rawText: '',
       typology: {
         id: 'test',
         displayName: 'Test',
@@ -427,17 +426,17 @@ describe('Tier 3 — generateMultiFloorPlans', () => {
         minRoomDimensions: {},
         notes: '',
       },
+      typologyConfidence: 0.8,
+      climateZone: null,
+      heritagePattern: null,
+      siteInfo: { widthM: 40, depthM: 60, areaM2: 2400, aspect: null },
       program,
-      siteWidth: 40,
-      siteDepth: 60,
-      climaticZone: 'temperate',
-      heritagePattern: undefined,
-      userRequirements: [],
-      briefSummary: '',
+      constraints: { budgetCents: null, budgetUsd: null, timeline: null, materials: [] },
+      qualityGate: { passed: true, score: 1, issues: [], recommendations: [] },
     }
   }
 
-  function buildParams(storeys: number, brief: Tier1ParsedBrief): LayoutParameters {
+  function buildParams(storeys: number, _brief: Tier1ParsedBrief): LayoutParameters {
     return {
       topologies: ['rectangle', 'l-shape', 'split-wing'] as any[],
       siteWidth: 40,

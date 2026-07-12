@@ -20,7 +20,7 @@ export function buildingToStructuralInput(graph: BuildingGraph): StructuralDesig
     id: w.id,
     start: { x: w.start.x, y: w.start.y },
     end: { x: w.end.x, y: w.end.y },
-    structural: w.role === 'structural' || w.role === 'exterior',
+    structural: w.role === 'external' || w.role === 'retaining',
   }))
 
   const slabAreaM2 = graph.spaces.reduce((sum, s) => sum + s.areaM2, 0)

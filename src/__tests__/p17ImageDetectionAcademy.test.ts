@@ -143,7 +143,7 @@ describe('QUIZ_DATA coverage', () => {
   })
 
   it('each question has valid correctIndex within options range', () => {
-    for (const [lessonId, questions] of Object.entries(QUIZ_DATA)) {
+    for (const [, questions] of Object.entries(QUIZ_DATA)) {
       for (const q of questions) {
         expect(q.correctIndex).toBeGreaterThanOrEqual(0)
         expect(q.correctIndex).toBeLessThan(q.options.length)

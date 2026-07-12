@@ -14,23 +14,20 @@ function graphToCadWalls(graph: BuildingGraph): CadWall[] {
     start: { x: w.start.x, y: w.start.y },
     end: { x: w.end.x, y: w.end.y },
     thickness: w.thickness,
-    structuralRole: w.role === 'exterior' ? 'external' : 'internal',
+    structuralRole: w.role === 'external' ? 'external' : 'internal',
     layerId: 'walls' as const,
     bim: { classification: 'wall', material: w.material },
   }))
 }
 
 function graphToCadOpenings(graph: BuildingGraph): CadOpening[] {
-  const walls = graph.walls
   return graph.openings.map((o) => {
-    const wall = walls.find((w) => w.id === o.wallId)
-    const wallLength = wall ? Math.hypot(wall.end.x - wall.start.x, wall.end.y - wall.start.y) || 1 : 1
     return {
       id: o.id,
-      floorId: o.wallId ?? 'l1',
+      floorId: o.levelId ?? 'l1',
       wallId: o.wallId,
       kind: o.kind as 'door' | 'window',
-      offsetRatio: wall ? o.xPosition / wallLength : 0.3,
+      offsetRatio: o.offsetRatio,
       width: o.width,
       sillHeight: o.sillHeight,
       headHeight: o.height,

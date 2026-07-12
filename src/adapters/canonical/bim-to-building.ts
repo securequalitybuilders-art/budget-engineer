@@ -1,10 +1,10 @@
 import type {
   BuildingGraph, BuildingMeta, Level, Wall, Slab, Opening,
-  Space, Column, Beam, Stair, Roof, FixtureInstance,
-  Polygon2D, Point2D, FinishSpec,
+  Space, Column, Beam, Stair, Roof,
+  Polygon2D,
   DerivationResult, DerivationMeta,
 } from '../../domain/building'
-import type { BimModel, BimElement, BimWall, BimSlab, BimOpening, BimBlock, BimRoomZone, BimRoof } from '../../domain/bim'
+import type { BimModel, BimWall, BimSlab, BimOpening, BimBlock, BimRoomZone, BimRoof } from '../../domain/bim'
 
 function floorToLevels(bim: BimModel): Level[] {
   return bim.floors.map((f, i) => ({
@@ -38,8 +38,6 @@ export function bimModelToBuildingGraph(
   bim: BimModel,
   meta?: Partial<BuildingMeta>,
 ): DerivationResult<BuildingGraph> {
-  const levelLut = new Map(bim.floors.map((f) => [f.id, f]))
-
   const levels = floorToLevels(bim)
 
   const walls: Wall[] = []
@@ -55,7 +53,6 @@ export function bimModelToBuildingGraph(
     switch (el.type) {
       case 'wall': {
         const w = el as BimWall
-        const level = levelLut.get(w.floorId)
         walls.push({
           id: w.id,
           levelId: w.floorId,

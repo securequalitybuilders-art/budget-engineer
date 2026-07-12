@@ -46,25 +46,34 @@ function safeSqrt(n: number): number {
 function sampleGraph(design: DesignOption | null): BuildingGraph | null {
   if (!design || design.grossFloorArea <= 0) return null;
   const dim = Math.sqrt(design.grossFloorArea);
+  const defaultFinish = { wallMaterialId: null, floorMaterialId: null, ceilingMaterialId: null, wallFinish: '', floorFinish: '', ceilingFinish: '' };
   return {
-    meta: { projectId: '', projectName: design.name, projectType: design.buildingType ?? 'house', clientName: '', createdAt: '', updatedAt: '', version: '1.0', units: 'metric', coordinates: { lat: 0, lng: 0 }, description: '' },
-    dimensions: { length: dim * 2, width: dim, height: 6, area: design.grossFloorArea, levels: 2, maxHeight: 6 },
+    meta: { id: '', projectId: '', name: design.name, category: (design.buildingType as any) ?? 'residential', description: '', createdAt: '', updatedAt: '' },
+    site: null,
+    levels: [
+      { id: 'l1', name: 'Ground', number: 0, elevation: 0, floorHeight: 3 },
+      { id: 'l2', name: 'First', number: 1, elevation: 3, floorHeight: 3 },
+    ],
+    spaces: [{
+      id: 'sp1', name: 'Main Area', programme: 'living', levelId: 'l1', areaM2: design.grossFloorArea,
+      bbox: { minX: 0, minY: 0, maxX: dim * 2, maxY: dim },
+      boundary: { vertices: [{ x: 0, y: 0 }, { x: dim * 2, y: 0 }, { x: dim * 2, y: dim }, { x: 0, y: dim }] },
+      finishSpec: defaultFinish, fixtures: [], notes: '',
+    }],
     walls: [
-      { id: 'w-ext-1', start: { x: 0, y: 0, z: 0 }, end: { x: dim * 2, y: 0, z: 0 }, length: dim * 2, thickness: 0.2, height: 3, role: 'exterior', material: 'brick', type: 'wall', levelId: 'l1' },
-      { id: 'w-ext-2', start: { x: dim * 2, y: 0, z: 0 }, end: { x: dim * 2, y: dim, z: 0 }, length: dim, thickness: 0.2, height: 3, role: 'exterior', material: 'brick', type: 'wall', levelId: 'l1' },
-      { id: 'w-ext-3', start: { x: dim * 2, y: dim, z: 0 }, end: { x: 0, y: dim, z: 0 }, length: dim * 2, thickness: 0.2, height: 3, role: 'exterior', material: 'brick', type: 'wall', levelId: 'l1' },
-      { id: 'w-ext-4', start: { x: 0, y: dim, z: 0 }, end: { x: 0, y: 0, z: 0 }, length: dim, thickness: 0.2, height: 3, role: 'exterior', material: 'brick', type: 'wall', levelId: 'l1' },
+      { id: 'w-ext-1', levelId: 'l1', role: 'external', start: { x: 0, y: 0, z: 0 }, end: { x: dim * 2, y: 0, z: 0 }, thickness: 0.2, height: 3, material: 'brick', ifcClass: 'IfcWall', properties: {} },
+      { id: 'w-ext-2', levelId: 'l1', role: 'external', start: { x: dim * 2, y: 0, z: 0 }, end: { x: dim * 2, y: dim, z: 0 }, thickness: 0.2, height: 3, material: 'brick', ifcClass: 'IfcWall', properties: {} },
+      { id: 'w-ext-3', levelId: 'l1', role: 'external', start: { x: dim * 2, y: dim, z: 0 }, end: { x: 0, y: dim, z: 0 }, thickness: 0.2, height: 3, material: 'brick', ifcClass: 'IfcWall', properties: {} },
+      { id: 'w-ext-4', levelId: 'l1', role: 'external', start: { x: 0, y: dim, z: 0 }, end: { x: 0, y: 0, z: 0 }, thickness: 0.2, height: 3, material: 'brick', ifcClass: 'IfcWall', properties: {} },
     ],
     slabs: [],
     openings: [
-      { id: 'o-w1', wallId: 'w-ext-1', kind: 'window', width: 1.2, height: 1.5, sillHeight: 0.9, xPosition: 2 },
-      { id: 'o-d1', wallId: 'w-ext-1', kind: 'door', width: 0.9, height: 2.1, sillHeight: 0, xPosition: 0.5 },
+      { id: 'o-w1', levelId: 'l1', wallId: 'w-ext-1', kind: 'window', offsetRatio: 0.5, width: 1.2, height: 1.5, sillHeight: 0.9, material: 'aluminium', ifcClass: 'IfcWindow', properties: {} },
+      { id: 'o-d1', levelId: 'l1', wallId: 'w-ext-1', kind: 'door', offsetRatio: 0.1, width: 0.9, height: 2.1, sillHeight: 0, material: 'timber', ifcClass: 'IfcDoor', properties: {} },
     ],
-    spaces: [{ id: 'sp1', name: 'Main Area', programme: 'living', levelId: 'l1', areaM2: design.grossFloorArea, bbox: { minX: 0, minY: 0, maxX: dim * 2, maxY: dim } }],
-    levels: [{ id: 'l1', name: 'Ground', elevation: 0, height: 3, order: 0 }, { id: 'l2', name: 'First', elevation: 3, height: 3, order: 1 }],
-    columns: [], beams: [], stairs: [], roof: null, materials: [],
-    structural: { foundation: 'strip', framing: 'timber', roofType: 'pitched' },
-    mechanical: { coolingLoad: 10, heatingLoad: 12, ventilationRate: 1.5 },
+    columns: [], beams: [], stairs: [], roof: null,
+    structural: { grid: { id: 'g1', horizontal: [], vertical: [] }, spans: [], lateralSystem: 'shear-wall', floorSystem: 'two-way-slab' },
+    serviceZones: [],
   };
 }
 
@@ -157,7 +166,7 @@ export function EngineeringStudioPanel({ selectedDesign, activePlan, boq, onDesi
         )}</div>
 
         <div id="materials-panel" role="tabpanel" aria-labelledby="materials-tab" hidden={activeTab !== 'materials'}>{activeTab === 'materials' && (
-          <MaterialSwitchPanel slabArea={slabArea} />
+          <MaterialSwitchPanel slabAreaM2={slabArea} />
         )}</div>
 
         <div id="clashes-panel" role="tabpanel" aria-labelledby="clashes-tab" hidden={activeTab !== 'clashes'}>{activeTab === 'clashes' && (

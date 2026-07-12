@@ -1,5 +1,8 @@
 import type { DisciplineCode } from '@/lib/drawings/layerStandard';
 import type { SheetSize } from '@/lib/drawings/sheetSet';
+import type { CadDocument } from '@/domain/cad';
+
+export type { DisciplineCode, SheetSize };
 
 export interface RevisionEntry {
   rev: string;

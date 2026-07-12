@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { PlanCanvas } from '@/components/cad/PlanCanvas'
 import { LazyBimModel3D } from '@/components/bim/LazyBimModel3D'
@@ -8,7 +8,6 @@ import { CadSyncControls } from '@/components/dashboard/CadSyncControls'
 import { Button } from '@/components/ui/Button'
 import { Box, Layers, Ruler, Wand2, Upload, LayoutGrid, Boxes, Sofa, Download, Table2 } from 'lucide-react'
 import { useFurnitureStore } from '@/stores/furnitureStore'
-import { getFurnitureDef } from '@/lib/furniture/furniture-library'
 import { motion } from 'framer-motion'
 import { segmentsToPlan, detectWallsFromImage } from '@/lib/import/wallDetection'
 import { convertPlanModelToCadDocument } from '@/adapters/planModelToCadAdapter'
@@ -85,7 +84,6 @@ export function DesignStage({
   }, [])
   const activeBlockDefId = useFurnitureStore((s) => s.activeDefId)
   const placeBlock = useFurnitureStore((s) => s.placeBlock)
-  const setActiveDef = useFurnitureStore((s) => s.setActiveDef)
   const removeBlock = useFurnitureStore((s) => s.removeBlock)
   const rotateBlock = useFurnitureStore((s) => s.rotateBlock)
 

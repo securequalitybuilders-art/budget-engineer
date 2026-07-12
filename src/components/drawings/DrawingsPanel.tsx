@@ -25,7 +25,7 @@ import {
   ROOF_PITCH_HEIGHT,
 } from '@/adapters/planTo3d'
 import { Button } from '@/components/ui/Button'
-import { Monitor, Download, ListOrdered } from 'lucide-react'
+import { Monitor, Download } from 'lucide-react'
 import { convertPlanModelToCadDocument } from '@/adapters/planModelToCadAdapter'
 import { generateDxf, downloadDxf } from '@/lib/export/dxfWriter'
 import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
@@ -267,7 +267,7 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
         <DrawingRegisterPanel
           sheets={registerSheets}
           activeSheetId={activeSheetId}
-          onSelectSheet={handleSelectSheet}
+          onSelectSheet={(id) => handleSelectSheet(id, null)}
         />
       )}
 

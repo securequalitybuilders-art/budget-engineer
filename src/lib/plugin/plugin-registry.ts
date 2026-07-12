@@ -96,7 +96,7 @@ export function createPluginRegistry(
       const manifest = registration.manifest
       const api = createApi(manifest)
 
-      const hooks = {} as Record<PluginHook, Array<(...args: unknown[]) => unknown>>
+      const hooks = {} as Record<PluginHook, PluginHookHandler[]>
       for (const hookName of manifest.hooks) {
         hooks[hookName] = []
       }

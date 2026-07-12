@@ -75,9 +75,6 @@ export function hatchPatternForMaterial(material: string): HatchPatternDef {
 }
 
 export function svgHatchPattern(pattern: HatchPatternDef): string {
-  const angleRad = (pattern.angle * Math.PI) / 180
-  const cos = Math.cos(angleRad)
-  const sin = Math.sin(angleRad)
   const s = pattern.spacing * pattern.scale
 
   if (pattern.lineType === 'dot') {

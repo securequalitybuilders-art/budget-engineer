@@ -1,4 +1,4 @@
-import type { BuildingGraph, Wall, Slab, Opening, Space, Level, Column, Beam, Stair } from '../../domain/building'
+import type { BuildingGraph, Wall, Space } from '../../domain/building'
 
 export interface DiffChange {
   type: 'added' | 'removed' | 'modified'
@@ -24,10 +24,6 @@ function wallKey(w: Wall): string {
 
 function wallFields(w: Wall): Record<string, unknown> {
   return { role: w.role, thickness: w.thickness, height: w.height, material: w.material }
-}
-
-function spaceKey(s: Space): string {
-  return `${s.bbox.minX},${s.bbox.minY},${s.bbox.maxX},${s.bbox.maxY}`
 }
 
 function spaceFields(s: Space): Record<string, unknown> {

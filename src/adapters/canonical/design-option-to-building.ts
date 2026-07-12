@@ -34,7 +34,7 @@ export function designOptionToBuildingGraph(
 
   const spaces: Space[] = option.elements
     .filter((e) => e.category === 'room' || e.category === 'space')
-    .map((e, i) => ({
+    .map((e) => ({
       id: `space-${e.id}`,
       levelId,
       name: e.name,

@@ -1,5 +1,5 @@
 import { db, seedRates } from '@/db/db'
-import { uuid, clone } from '@/lib/utils'
+import { uuid } from '@/lib/utils'
 import type { Project, Brief, Design, BOQ, ProjectTransaction } from '@/types'
 import type { PlanModel } from '@/domain/plan'
 import type { CadDocument } from '@/domain/cad'
@@ -13,7 +13,6 @@ export const DEMO_BRIEF_TEXT = [
 ].join(' ')
 
 const now = () => new Date().toISOString()
-const today = () => now().slice(0, 10)
 
 function makeProject(): Project {
   return {
@@ -63,9 +62,9 @@ function makeDesigns(projectId: string): Design[] {
       parameters: { width: 12, depth: 10, areaM2: 120, bedrooms: 3, floors: 1, roofPitch: 25 },
       elements: [
         { id: uuid(), category: 'wall', material: 'brick', dimensions: { length: 44, height: 3 }, quantity: { value: 132, unit: 'm2', formula: '44m × 3m' } },
-        { id: uuid(), category: 'slab', material: 'concrete', dimensions: { width: 12, length: 10, thickness: 0.15 }, quantity: { value: 120, unit: 'm2', formula: '12m × 10m' } },
+        { id: uuid(), category: 'slab', material: 'concrete', dimensions: { width: 12, length: 10 } as any, quantity: { value: 120, unit: 'm2', formula: '12m × 10m' } },
         { id: uuid(), category: 'roof', material: 'corrugated iron', dimensions: { width: 14, length: 11, count: 1 }, quantity: { value: 154, unit: 'm2', formula: '14m × 11m' } },
-        { id: uuid(), category: 'foundation', material: 'concrete', dimensions: { length: 44, width: 0.5, depth: 0.6 }, quantity: { value: 13.2, unit: 'm3', formula: '44m × 0.5m × 0.6m' } },
+        { id: uuid(), category: 'foundation', material: 'concrete', dimensions: { length: 44, width: 0.5 } as any, quantity: { value: 13.2, unit: 'm3', formula: '44m × 0.5m × 0.6m' } },
         { id: uuid(), category: 'opening', material: 'aluminium', dimensions: { count: 8, width: 1.2, height: 1.2 }, quantity: { value: 8, unit: 'each', formula: '8 windows' } },
         { id: uuid(), category: 'opening', material: 'timber', dimensions: { count: 5, width: 0.9, height: 2.1 }, quantity: { value: 5, unit: 'each', formula: '5 doors' } },
       ],
@@ -78,9 +77,9 @@ function makeDesigns(projectId: string): Design[] {
       parameters: { width: 10, depth: 10, areaM2: 100, bedrooms: 3, floors: 1, roofPitch: 25 },
       elements: [
         { id: uuid(), category: 'wall', material: 'brick', dimensions: { length: 40, height: 3 }, quantity: { value: 120, unit: 'm2', formula: '40m × 3m' } },
-        { id: uuid(), category: 'slab', material: 'concrete', dimensions: { width: 10, length: 10, thickness: 0.15 }, quantity: { value: 100, unit: 'm2', formula: '10m × 10m' } },
+        { id: uuid(), category: 'slab', material: 'concrete', dimensions: { width: 10, length: 10 } as any, quantity: { value: 100, unit: 'm2', formula: '10m × 10m' } },
         { id: uuid(), category: 'roof', material: 'corrugated iron', dimensions: { width: 12, length: 11, count: 1 }, quantity: { value: 132, unit: 'm2', formula: '12m × 11m' } },
-        { id: uuid(), category: 'foundation', material: 'concrete', dimensions: { length: 40, width: 0.5, depth: 0.6 }, quantity: { value: 12, unit: 'm3', formula: '40m × 0.5m × 0.6m' } },
+        { id: uuid(), category: 'foundation', material: 'concrete', dimensions: { length: 40, width: 0.5 } as any, quantity: { value: 12, unit: 'm3', formula: '40m × 0.5m × 0.6m' } },
         { id: uuid(), category: 'opening', material: 'aluminium', dimensions: { count: 6, width: 1.2, height: 1.2 }, quantity: { value: 6, unit: 'each', formula: '6 windows' } },
         { id: uuid(), category: 'opening', material: 'timber', dimensions: { count: 4, width: 0.9, height: 2.1 }, quantity: { value: 4, unit: 'each', formula: '4 doors' } },
       ],
@@ -93,9 +92,9 @@ function makeDesigns(projectId: string): Design[] {
       parameters: { width: 14, depth: 10, areaM2: 140, bedrooms: 3, floors: 1, roofPitch: 30 },
       elements: [
         { id: uuid(), category: 'wall', material: 'brick', dimensions: { length: 48, height: 3 }, quantity: { value: 144, unit: 'm2', formula: '48m × 3m' } },
-        { id: uuid(), category: 'slab', material: 'concrete', dimensions: { width: 14, length: 10, thickness: 0.15 }, quantity: { value: 140, unit: 'm2', formula: '14m × 10m' } },
+        { id: uuid(), category: 'slab', material: 'concrete', dimensions: { width: 14, length: 10 } as any, quantity: { value: 140, unit: 'm2', formula: '14m × 10m' } },
         { id: uuid(), category: 'roof', material: 'corrugated iron', dimensions: { width: 16, length: 11, count: 1 }, quantity: { value: 176, unit: 'm2', formula: '16m × 11m' } },
-        { id: uuid(), category: 'foundation', material: 'concrete', dimensions: { length: 48, width: 0.5, depth: 0.6 }, quantity: { value: 14.4, unit: 'm3', formula: '48m × 0.5m × 0.6m' } },
+        { id: uuid(), category: 'foundation', material: 'concrete', dimensions: { length: 48, width: 0.5 } as any, quantity: { value: 14.4, unit: 'm3', formula: '48m × 0.5m × 0.6m' } },
         { id: uuid(), category: 'opening', material: 'aluminium', dimensions: { count: 10, width: 1.2, height: 1.2 }, quantity: { value: 10, unit: 'each', formula: '10 windows' } },
         { id: uuid(), category: 'opening', material: 'timber', dimensions: { count: 6, width: 0.9, height: 2.1 }, quantity: { value: 6, unit: 'each', formula: '6 doors' } },
       ],
@@ -188,11 +187,12 @@ function makeBOQ(projectId: string, designId: string): BOQ {
 }
 
 function makeTransactions(projectId: string, designs: Design[], boq: BOQ): ProjectTransaction[] {
+  const ts = now()
   return [
-    { id: uuid(), projectId, actor: 'USER', action: 'CREATE', entityType: 'project', entityId: projectId, after: { name: DEMO_PROJECT_NAME }, reason: 'Demo project created' },
-    { id: uuid(), projectId, actor: 'USER', action: 'UPDATE', entityType: 'brief', entityId: projectId, after: { buildingType: 'house', floors: 1 }, reason: 'Demo brief loaded' },
-    { id: uuid(), projectId, actor: 'AI_AGENT', action: 'AI_GENERATE', entityType: 'design', entityId: projectId, after: { count: designs.length }, reason: 'Demo designs generated' },
-    { id: uuid(), projectId, actor: 'AI_AGENT', action: 'CREATE', entityType: 'boq', entityId: boq.id, after: { totalCents: boq.totalCents }, reason: 'Demo BOQ generated' },
+    { id: uuid(), projectId, actor: 'USER', action: 'CREATE', entityType: 'project', entityId: projectId, after: { name: DEMO_PROJECT_NAME }, reason: 'Demo project created', createdAt: ts },
+    { id: uuid(), projectId, actor: 'USER', action: 'UPDATE', entityType: 'brief', entityId: projectId, after: { buildingType: 'house', floors: 1 }, reason: 'Demo brief loaded', createdAt: ts },
+    { id: uuid(), projectId, actor: 'AI_AGENT', action: 'AI_GENERATE', entityType: 'design', entityId: projectId, after: { count: designs.length }, reason: 'Demo designs generated', createdAt: ts },
+    { id: uuid(), projectId, actor: 'AI_AGENT', action: 'CREATE', entityType: 'boq', entityId: boq.id, after: { totalCents: boq.totalCents }, reason: 'Demo BOQ generated', createdAt: ts },
   ]
 }
 
@@ -200,35 +200,35 @@ function makeCadDocument(projectId: string, plan: PlanModel): CadDocument {
   return {
     id: uuid(),
     projectId,
-    name: DEMO_PROJECT_NAME,
-    materialSystem: 'concrete',
-    floors: [{ id: 'ground', name: 'Ground Floor', elevation: 0, height: 3 }],
+    designId: '',
+    activeFloorId: 'ground',
+    activeTool: 'select',
+    floors: [{ id: 'ground', name: 'Ground Floor', elevation: 0, bim: { classification: 'floor' } }],
+    layers: [],
     walls: plan.walls.map((w) => ({
       id: uuid(),
       floorId: 'ground',
-      start: w.start,
-      end: w.end,
+      start: { x: w.start.x, y: w.start.y },
+      end: { x: w.end.x, y: w.end.y },
       thickness: w.thickness,
-      height: 3,
-      name: w.type === 'external' ? 'External Wall' : 'Internal Wall',
-      structural: w.type === 'external',
-      metadata: { ifcClass: w.type === 'external' ? 'IfcWall' : 'IfcWallStandardCase', category: w.type === 'external' ? 'wall' : 'wall', properties: {} },
+      structuralRole: w.type,
+      layerId: 'walls' as const,
+      bim: { classification: 'wall', material: 'brick' },
     })),
     openings: plan.openings.map((o) => ({
       id: uuid(),
       wallId: 'w-ground',
       floorId: 'ground',
       kind: o.kind,
-      offset: o.offset,
+      offsetRatio: o.offset,
       width: o.width,
       sillHeight: o.kind === 'window' ? 0.9 : 0,
       headHeight: 2.1,
-      name: o.kind === 'door' ? 'Door' : 'Window',
-      metadata: { ifcClass: o.kind === 'door' ? 'IfcDoor' : 'IfcWindow', category: 'opening', properties: {} },
+      layerId: 'openings' as const,
+      bim: { classification: 'opening', typeName: o.kind },
     })),
-    blocks: [
-      { id: uuid(), floorId: 'ground', kind: 'column', position: { x: 0, y: 0 }, width: 0.3, depth: 0.3, name: 'Column', metadata: { ifcClass: 'IfcColumn', category: 'structural', properties: {} } },
-    ],
+    annotations: [],
+    blocks: [],
   }
 }
 

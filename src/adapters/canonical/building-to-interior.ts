@@ -1,6 +1,5 @@
-import type { BuildingGraph, MaterialSpec } from '../../domain/building'
+import type { BuildingGraph } from '../../domain/building'
 import type { InteriorProject, InteriorRoom, InteriorRoomType, FinishSpec, FixtureInstance, MaterialAssignment } from '../../domain/interior'
-import { getLevelsSorted, getSpacesOnLevel } from '../../domain/building'
 import { uuid } from '../../lib/utils'
 
 const PROGRAMME_TO_INTERIOR_TYPE: Record<string, InteriorRoomType> = {
@@ -50,11 +49,6 @@ export function buildingGraphToInteriorProject(graph: BuildingGraph): InteriorPr
   const fixtureInstances: FixtureInstance[] = []
   const materialAssignments: MaterialAssignment[] = []
 
-  const materialMap = new Map<string, MaterialSpec>()
-  for (const mat of graph.materials ?? []) {
-    materialMap.set(mat.id, mat)
-  }
-
   for (const space of graph.spaces) {
     const center = spaceCenter(space)
     const dims = spaceDimensions(space)
@@ -92,7 +86,6 @@ export function buildingGraphToInteriorProject(graph: BuildingGraph): InteriorPr
     }
 
     if (space.finishSpec.wallMaterialId) {
-      const wallMat = materialMap.get(space.finishSpec.wallMaterialId)
       materialAssignments.push({
         assignmentId: uuid(),
         roomId: space.id,
