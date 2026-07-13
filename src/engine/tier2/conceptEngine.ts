@@ -346,6 +346,7 @@ export function generateDesignConcept(parsedBrief: Tier1ParsedBrief): DesignConc
   const t = typology ?? {
     id: 'house-residential', displayName: 'House / Residential', sans10400Class: 'Class 1',
     defaultStoreys: 1, defaultProgram: [], aliases: [], zbcClass: '', minRoomDimensions: {}, notes: '',
+    maxStructuralSpan: 5.0,
   } as Typology
   const c = climateZone
 

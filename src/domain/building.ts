@@ -292,6 +292,17 @@ export interface DerivationResult<T> {
   derivation: DerivationMeta
 }
 
+// ── Constraint report ───────────────────────────────────────────
+
+export interface ConstraintReport {
+  timestamp: string
+  structuralAlignmentPass: boolean
+  shaftContinuityPass: boolean
+  circulationEgressPass: boolean
+  partyWallContinuous: boolean
+  warnings: string[]
+}
+
 // ── Quantity extraction from graph ───────────────────────────
 
 export interface GraphQuantities {

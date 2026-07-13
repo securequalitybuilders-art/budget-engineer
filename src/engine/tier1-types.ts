@@ -8,12 +8,15 @@ export interface Typology {
   defaultProgram: ProgramItem[]
   minRoomDimensions: Record<string, { minWidth: number; minDepth: number }>
   notes: string
+  maxStructuralSpan: number
 }
 
 export interface ProgramItem {
   name: string
   count: number
   areaM2: number
+  zone?: 'public' | 'private' | 'service' | 'circulation'
+  isWetCore?: boolean
 }
 
 export interface ClimateZone {

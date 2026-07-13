@@ -425,6 +425,7 @@ describe('Tier 3 — generateMultiFloorPlans', () => {
         defaultProgram: [],
         minRoomDimensions: {},
         notes: '',
+        maxStructuralSpan: 6.0,
       },
       typologyConfidence: 0.8,
       climateZone: null,
@@ -456,7 +457,7 @@ describe('Tier 3 — generateMultiFloorPlans', () => {
     ]
     const brief = makeBrief(1, program)
     const params = buildParams(1, brief)
-    const floors = generateMultiFloorPlans(params, brief)
+    const { plans: floors } = generateMultiFloorPlans(params, brief)
     expect(floors.length).toBe(1)
   })
 
@@ -467,7 +468,7 @@ describe('Tier 3 — generateMultiFloorPlans', () => {
     ]
     const brief = makeBrief(2, program)
     const params = buildParams(2, brief)
-    const floors = generateMultiFloorPlans(params, brief)
+    const { plans: floors } = generateMultiFloorPlans(params, brief)
     expect(floors.length).toBeGreaterThanOrEqual(2)
   })
 
@@ -478,7 +479,7 @@ describe('Tier 3 — generateMultiFloorPlans', () => {
     ]
     const brief = makeBrief(2, program)
     const params = buildParams(2, brief)
-    const floors = generateMultiFloorPlans(params, brief)
+    const { plans: floors } = generateMultiFloorPlans(params, brief)
     const ground = floors[0]
     expect(ground.length).toBeGreaterThan(0)
     const groundProgram = new Set(ground.flatMap(p => p.rooms.map(r => r.name)))
@@ -492,7 +493,7 @@ describe('Tier 3 — generateMultiFloorPlans', () => {
     ]
     const brief = makeBrief(2, program)
     const params = buildParams(2, brief)
-    const floors = generateMultiFloorPlans(params, brief)
+    const { plans: floors } = generateMultiFloorPlans(params, brief)
     for (let fi = 0; fi < floors.length; fi++) {
       for (const plan of floors[fi]) {
         expect(plan.floorIndex).toBe(fi)
@@ -508,7 +509,7 @@ describe('Tier 3 — generateMultiFloorPlans', () => {
     ]
     const brief = makeBrief(2, program)
     const params = buildParams(2, brief)
-    const floors = generateMultiFloorPlans(params, brief)
+    const { plans: floors } = generateMultiFloorPlans(params, brief)
     for (let fi = 0; fi < floors.length; fi++) {
       expect(floors[fi].length).toBe(params.topologies.length)
     }
@@ -521,7 +522,7 @@ describe('Tier 3 — generateMultiFloorPlans', () => {
     ]
     const brief = makeBrief(2, program)
     const params = buildParams(2, brief)
-    const floors = generateMultiFloorPlans(params, brief)
+    const { plans: floors } = generateMultiFloorPlans(params, brief)
     for (let fi = 0; fi < floors.length; fi++) {
       for (const plan of floors[fi]) {
         assertNoOverlaps(plan.rooms, `Floor ${fi} ${plan.topology}`)
@@ -536,7 +537,7 @@ describe('Tier 3 — generateMultiFloorPlans', () => {
     ]
     const brief = makeBrief(2, program)
     const params = buildParams(2, brief)
-    const floors = generateMultiFloorPlans(params, brief)
+    const { plans: floors } = generateMultiFloorPlans(params, brief)
     for (let fi = 0; fi < floors.length; fi++) {
       for (const plan of floors[fi]) {
         checkFiniteDimensions(plan.rooms, `Floor ${fi} ${plan.topology}`)
@@ -551,7 +552,7 @@ describe('Tier 3 — generateMultiFloorPlans', () => {
     ]
     const brief = makeBrief(2, program)
     const params = buildParams(2, brief)
-    const floors = generateMultiFloorPlans(params, brief)
+    const { plans: floors } = generateMultiFloorPlans(params, brief)
     for (let fi = 0; fi < floors.length; fi++) {
       for (const plan of floors[fi]) {
         checkZbcMinimums(plan.rooms, `Floor ${fi} ${plan.topology}`)
@@ -562,7 +563,7 @@ describe('Tier 3 — generateMultiFloorPlans', () => {
   it('does not crash with empty program', () => {
     const brief = makeBrief(2, [])
     const params = buildParams(2, brief)
-    const floors = generateMultiFloorPlans(params, brief)
+    const { plans: floors } = generateMultiFloorPlans(params, brief)
     expect(floors.length).toBeGreaterThanOrEqual(1)
     for (const floor of floors) {
       for (const plan of floor) {
@@ -578,7 +579,7 @@ describe('Tier 3 — generateMultiFloorPlans', () => {
     ]
     const brief = makeBrief(3, program)
     const params = buildParams(3, brief)
-    const floors = generateMultiFloorPlans(params, brief)
+    const { plans: floors } = generateMultiFloorPlans(params, brief)
     expect(floors.length).toBe(3)
     const groundNames = floors[0].flatMap(p => p.rooms.map(r => r.name))
     expect(groundNames.some(n => n.includes('Reception'))).toBe(true)
@@ -591,7 +592,7 @@ describe('Tier 3 — generateMultiFloorPlans', () => {
     ]
     const brief = makeBrief(2, program)
     const params = buildParams(2, brief)
-    const floors = generateMultiFloorPlans(params, brief)
+    const { plans: floors } = generateMultiFloorPlans(params, brief)
     expect(floors.length).toBe(2)
     const groundNames = new Set(floors[0].flatMap(p => p.rooms.map(r => r.name)))
     expect([...groundNames].some(n => n.includes('Guest Room'))).toBe(true)
@@ -602,7 +603,7 @@ describe('Tier 3 — generateMultiFloorPlans', () => {
     const concept = generateDesignConcept(brief)
     const params = generateLayoutParameters(concept, brief)
     expect(params.floorCount).toBeGreaterThanOrEqual(2)
-    const floors = generateMultiFloorPlans(params, brief)
+    const { plans: floors } = generateMultiFloorPlans(params, brief)
     expect(floors.length).toBeGreaterThanOrEqual(2)
     for (const floor of floors) {
       for (const plan of floor) {

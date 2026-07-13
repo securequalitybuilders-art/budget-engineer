@@ -5,9 +5,9 @@ import { detectHeritage } from '@/engine/heritage-kb'
 import { parseBrief } from '@/engine/parseBrief'
 
 describe('Tier 1 — Typology KB', () => {
-  it('all 14 typologies are defined with required fields', () => {
+  it('all 15 typologies are defined with required fields', () => {
     const all = getAllTypologies()
-    expect(all.length).toBe(14)
+    expect(all.length).toBe(15)
     for (const t of all) {
       expect(t.id).toBeTruthy()
       expect(t.displayName).toBeTruthy()

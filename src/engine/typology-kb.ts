@@ -23,6 +23,7 @@ const TYPOLOGIES: Typology[] = [
       'Kitchen': { minWidth: 2.5, minDepth: 3.0 },
       'Living Room': { minWidth: 3.5, minDepth: 4.0 },
     },
+    maxStructuralSpan: 5.0,
     notes: 'Most common typology. ZBC 1996 Part 1 covers single-family dwellings with minimum room sizes.',
   },
   {
@@ -44,6 +45,7 @@ const TYPOLOGIES: Typology[] = [
       'One-Bedroom Unit': { minWidth: 5.0, minDepth: 8.0 },
       'Two-Bedroom Unit': { minWidth: 6.0, minDepth: 10.0 },
     },
+    maxStructuralSpan: 6.0,
     notes: 'Multi-storey residential blocks common in Harare and Bulawayo. Requires lift if >3 storeys (ZBC).',
   },
   {
@@ -67,6 +69,7 @@ const TYPOLOGIES: Typology[] = [
       'Treatment Room': { minWidth: 3.5, minDepth: 4.0 },
       'Reception / Waiting': { minWidth: 4.0, minDepth: 4.5 },
     },
+    maxStructuralSpan: 6.0,
     notes: 'Rural clinics require water tank + solar backup. ZBC Part 4 applies for public assembly.',
   },
   {
@@ -87,6 +90,7 @@ const TYPOLOGIES: Typology[] = [
       'Classroom': { minWidth: 6.0, minDepth: 7.5 },
       'Staff Room': { minWidth: 4.0, minDepth: 4.5 },
     },
+    maxStructuralSpan: 7.5,
     notes: 'ZBC requires min 1.1 m2 per learner, natural light, cross-ventilation. Standard classroom ~48 m2 for 40 pupils.',
   },
   {
@@ -108,6 +112,7 @@ const TYPOLOGIES: Typology[] = [
       'Guest Room': { minWidth: 3.5, minDepth: 5.5 },
       'Restaurant': { minWidth: 6.0, minDepth: 8.0 },
     },
+    maxStructuralSpan: 6.0,
     notes: 'Zimbabwe tourism sector. Guest houses common in Victoria Falls and Nyanga. Requires parking, pool, landscaping.',
   },
   {
@@ -130,6 +135,7 @@ const TYPOLOGIES: Typology[] = [
       'Private Office': { minWidth: 3.0, minDepth: 3.5 },
       'Meeting Room': { minWidth: 4.0, minDepth: 4.5 },
     },
+    maxStructuralSpan: 6.0,
     notes: 'Common in Harare CBD and Borrowdale. Open-plan layout with cellular offices. SANS 10400 Part N: ventilation.',
   },
   {
@@ -149,6 +155,7 @@ const TYPOLOGIES: Typology[] = [
     minRoomDimensions: {
       'Sales Floor': { minWidth: 5.0, minDepth: 8.0 },
     },
+    maxStructuralSpan: 6.0,
     notes: 'Street-front retail. ZBC requires accessible entrance, fire escape if >200 m2. Common in high-density suburbs.',
   },
   {
@@ -169,6 +176,7 @@ const TYPOLOGIES: Typology[] = [
       'Dining Area': { minWidth: 5.0, minDepth: 7.0 },
       'Commercial Kitchen': { minWidth: 4.0, minDepth: 5.0 },
     },
+    maxStructuralSpan: 6.0,
     notes: 'ZBC requires grease trap, ventilation hood, fire extinguisher, separate ablutions. Growing sector in Zim.',
   },
   {
@@ -188,6 +196,7 @@ const TYPOLOGIES: Typology[] = [
     minRoomDimensions: {
       'Main Hall / Sanctuary': { minWidth: 10.0, minDepth: 12.0 },
     },
+    maxStructuralSpan: 10.0,
     notes: 'Assembly occupancy: ZBC requires wide exits, fire safety, disabled access. Common throughout Zimbabwe.',
   },
   {
@@ -207,6 +216,7 @@ const TYPOLOGIES: Typology[] = [
     minRoomDimensions: {
       'Warehouse Floor': { minWidth: 12.0, minDepth: 20.0 },
     },
+    maxStructuralSpan: 12.0,
     notes: 'Industrial sites require large clear-span roof, concrete floor, 6m+ eaves, loading dock. Fire rating critical.',
   },
   {
@@ -226,6 +236,7 @@ const TYPOLOGIES: Typology[] = [
     minRoomDimensions: {
       'Main Hall': { minWidth: 8.0, minDepth: 12.0 },
     },
+    maxStructuralSpan: 8.0,
     notes: 'Multi-use community space. Popular in rural growth points. Requires stage, sound-proofing, accessible toilets.',
   },
   {
@@ -245,6 +256,7 @@ const TYPOLOGIES: Typology[] = [
     minRoomDimensions: {
       'Vendor Stall': { minWidth: 2.0, minDepth: 3.0 },
     },
+    maxStructuralSpan: 6.0,
     notes: 'Vendor markets are a key Zim economic sector. ZBC requires covered walkways, water points, ablutions, waste bins.',
   },
   {
@@ -264,6 +276,7 @@ const TYPOLOGIES: Typology[] = [
     minRoomDimensions: {
       'Shop / Convenience': { minWidth: 4.0, minDepth: 5.0 },
     },
+    maxStructuralSpan: 6.0,
     notes: 'ZBC requires fuel storage compliance, fire suppression, set-back from road (min 10 m). Common along highways.',
   },
   {
@@ -283,7 +296,34 @@ const TYPOLOGIES: Typology[] = [
       'Ground Floor Shop': { minWidth: 5.0, minDepth: 8.0 },
       'Upper Apartment': { minWidth: 5.0, minDepth: 8.0 },
     },
+    maxStructuralSpan: 6.0,
     notes: 'Growing trend in Zim urban centres (Harare, Bulawayo). Ground-floor retail, upper residential. Fire separation required.',
+  },
+  {
+    id: 'duplex',
+    displayName: 'Duplex / Semi-Detached',
+    aliases: ['duplex', 'semi-detached', 'semi detached', 'twin villa', 'paired house'],
+    sans10400Class: 'Class 1 – Single-unit dwelling (paired)',
+    zbcClass: 'Part 1 – Small Buildings (paired residential)',
+    defaultStoreys: 2,
+    defaultProgram: [
+      { name: 'Living / Dining', count: 2, areaM2: 18 },
+      { name: 'Kitchen', count: 2, areaM2: 9 },
+      { name: 'Master Bedroom', count: 2, areaM2: 14 },
+      { name: 'Bedroom', count: 4, areaM2: 11 },
+      { name: 'Bathroom', count: 2, areaM2: 5 },
+      { name: 'Guest WC', count: 2, areaM2: 2.5 },
+      { name: 'Stair Hall', count: 2, areaM2: 4 },
+    ],
+    minRoomDimensions: {
+      'Living / Dining': { minWidth: 3.5, minDepth: 4.5 },
+      'Master Bedroom': { minWidth: 3.5, minDepth: 3.5 },
+      'Bedroom': { minWidth: 3.0, minDepth: 3.2 },
+      'Kitchen': { minWidth: 2.5, minDepth: 3.0 },
+      'Bathroom': { minWidth: 1.8, minDepth: 2.0 },
+    },
+    maxStructuralSpan: 5.0,
+    notes: 'Two mirror-image units sharing a party wall. Common in Zim high-density suburbs. Ground floor: living/kitchen/WC. Upper: bedrooms/bathroom.',
   },
 ]
 
