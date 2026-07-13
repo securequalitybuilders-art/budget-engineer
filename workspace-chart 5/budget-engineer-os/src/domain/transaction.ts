@@ -1,1 +1,0 @@
-export interface TransactionEvent { id: string; projectId: string; entityType: 'CAD' | 'BIM' | 'BOQ' | 'EXPORT' | 'PROJECT'; action: string; actor: string; summary: string; before?: string; after?: string; timestamp: number; }
