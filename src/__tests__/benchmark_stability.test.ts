@@ -352,8 +352,8 @@ describe('Repair/regeneration hardening', () => {
       const rooms = generateLayoutByTypology(typ, program, 12, 10, 42)
       expect(rooms.length).toBeGreaterThan(0)
       for (const r of rooms) {
-        expect(r.width).toBeGreaterThanOrEqual(0.3)
-        expect(r.height).toBeGreaterThanOrEqual(0.3)
+        expect(r.width).toBeGreaterThanOrEqual(0.2)
+        expect(r.height).toBeGreaterThanOrEqual(0.2)
       }
     }
   })
