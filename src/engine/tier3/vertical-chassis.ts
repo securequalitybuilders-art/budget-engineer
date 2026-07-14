@@ -1,5 +1,10 @@
 import type { Tier1ParsedBrief } from '../tier1-types'
 import type { LayoutParameters } from './layoutEngine'
+import {
+  type BuildingChassis,
+  type StructuralSystem,
+  generateBuildingChassis as canonicalGenerateChassis,
+} from '../../lib/layout/vertical-chassis'
 
 export type CoreType = 'stair' | 'lift' | 'service' | 'combined'
 
@@ -63,6 +68,8 @@ export interface VerticalChassis {
   storeyCount: number
   isDuplex: boolean
   isMixedUse: boolean
+  // Bridge to canonical chassis
+  canonicalChassis?: BuildingChassis
 }
 
 let uidCounter = 0
@@ -90,142 +97,166 @@ export function generateVerticalChassis(
   const partyWalls: PartyWallInfo[] = []
   const circZones: CirculationZone[] = []
 
-  // Structural axes — create a grid based on maxSpan
-  const axisSpacing = Math.max(3.0, Math.min(maxSpan, 8.0))
-  const numX = Math.max(2, Math.ceil(bldgWidth / axisSpacing))
-  const axisLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  for (let i = 0; i <= numX; i++) {
-    const pos = Math.round((bldgWidth * i / numX) * 1000) / 1000
-    axes.push({
-      id: uid('grid'),
-      position: pos,
-      direction: 'x',
-      label: axisLabels[i] ?? `G${i + 1}`,
+  // Try to build the canonical chassis first as the source of truth
+  let canonicalChassis: BuildingChassis | undefined
+  try {
+    canonicalChassis = canonicalGenerateChassis({
+      typology: typologyId || 'house',
+      storeyCount: floorCount,
+      buildingWidth: bldgWidth,
+      buildingDepth: bldgDepth,
+      floorToFloorHeight: params.floorHeight || 3.0,
+      wallThickness: params.wallThickness || 0.2,
+      structuralSystem: floorCount <= 2 ? 'masonry' : (floorCount <= 5 ? 'rc-frame' : 'steel-frame') as StructuralSystem,
+      maxStructuralSpan: maxSpan,
+      hasLift: floorCount >= 3,
+      hasDuplex: isDuplex,
+      hasMixedUse: isMixedUse,
+      programmes: Array(floorCount).fill(typologyId || 'residential'),
     })
-  }
-
-  // Party wall for duplex
-  if (isDuplex) {
-    const partyX = Math.round((bldgWidth / 2) * 20) / 20
-    partyWalls.push({
-      x: partyX,
-      fireRating: 1.0,
-      acousticRating: 50,
-      continuous: floorCount >= 2,
-    })
-  }
-
-  // Core placement depends on typology and storey count
-  if (floorCount >= 2) {
-    if (isDuplex) {
-      // Duplex: one stair core per unit
-      const unitW = bldgWidth / 2
-      for (let u = 0; u < 2; u++) {
-        const coreX = Math.round((unitW * u + unitW * 0.3) * 1000) / 1000
-        cores.push({
-          id: uid('core'),
-          type: 'stair',
-          x: coreX,
-          y: 0,
-          width: 2.5,
-          depth: 1.5,
-          hasStair: true,
-          hasLift: false,
-          hasServiceShaft: false,
-        })
-      }
-    } else if (isMixedUse) {
-      // Mixed-use: shared stair core near rear, separate circulation
-      cores.push({
-        id: uid('core'),
-        type: 'combined',
-        x: Math.round((bldgWidth * 0.75) * 1000) / 1000,
-        y: Math.round((bldgDepth * 0.5) * 1000) / 1000,
-        width: 3.0,
-        depth: 5.0,
-        hasStair: true,
-        hasLift: floorCount >= 3,
-        hasServiceShaft: true,
-      })
-      // Circulation zones for mixed-use
-      circZones.push({ type: 'public', label: 'Retail Entry' })
-      circZones.push({ type: 'private', label: 'Residential Lobby' })
-      circZones.push({ type: 'service', label: 'Service Access' })
-
-      // Service shaft near core
-      shafts.push({
-        id: uid('shaft'),
-        x: Math.round((bldgWidth * 0.75 + 3.5) * 1000) / 1000,
-        y: Math.round((bldgDepth * 0.5) * 1000) / 1000,
-        width: 1.2,
-        depth: 1.2,
-        serviceTypes: ['plumbing', 'electrical'],
-        floorFrom: 0,
-        floorTo: floorCount - 1,
-      })
-    } else if (floorCount >= 3) {
-      // 3+ storeys: combined stair+lift core
-      const coreX = Math.round((bldgWidth * 0.4) * 1000) / 1000
-      const coreY = Math.round((bldgDepth * 0.3) * 1000) / 1000
-      cores.push({
-        id: uid('core'),
-        type: 'combined',
-        x: coreX,
-        y: coreY,
-        width: 4.0,
-        depth: 6.0,
-        hasStair: true,
-        hasLift: true,
-        hasServiceShaft: true,
-      })
-      shafts.push({
-        id: uid('shaft'),
-        x: Math.round((coreX + 4.5) * 1000) / 1000,
-        y: Math.round((coreY + 1.0) * 1000) / 1000,
-        width: 1.0,
-        depth: 1.0,
-        serviceTypes: ['plumbing', 'electrical', 'hvac'],
-        floorFrom: 0,
-        floorTo: floorCount - 1,
-      })
-    } else {
-      // 2 storeys with no special typology: stair core only
-      cores.push({
-        id: uid('core'),
-        type: 'stair',
-        x: 0,
-        y: Math.round((bldgDepth * 0.3) * 1000) / 1000,
-        width: 2.5,
-        depth: 4.0,
-        hasStair: true,
-        hasLift: false,
-        hasServiceShaft: false,
+    // Sync axes from canonical to legacy format
+    for (const ca of canonicalChassis.supportAxes) {
+      axes.push({
+        id: ca.id,
+        position: ca.position,
+        direction: ca.orientation === 'horizontal' ? 'x' : 'y',
+        label: ca.label,
       })
     }
-  } else {
-    // Single storey: still mark circulation zones
-    circZones.push({ type: 'public', label: 'Public Entry' })
-    circZones.push({ type: 'private', label: 'Private Zone' })
-  }
 
-  // Wet walls — find all wet-core program items and create alignment walls
-  const wetItems = brief.program.filter(p => p.isWetCore)
-  if (wetItems.length > 0 && floorCount >= 2) {
-    const firstWet = wetItems[0]
-    const wetW = firstWet.areaM2 > 0 ? Math.min(Math.sqrt(firstWet.areaM2 * 0.6), 3.0) : 2.0
-    // Place wet wall near center-x of the building for alignment
-    const wetX = Math.round((bldgWidth * 0.35) * 1000) / 1000
-    wetWalls.push({
-      id: uid('wetwall'),
-      x: wetX,
-      width: Math.max(wetW, 1.8),
-      floorFrom: 0,
-      floorTo: floorCount - 1,
-    })
-  }
+    // Sync cores
+    for (const cc of canonicalChassis.cores) {
+      cores.push({
+        id: cc.id,
+        type: (cc.type === 'combined' ? 'combined' : cc.type === 'stair' ? 'stair' : 'service') as CoreType,
+        x: cc.x,
+        y: cc.y,
+        width: cc.width,
+        depth: cc.depth,
+        hasStair: cc.hasStair,
+        hasLift: cc.hasLift,
+        hasServiceShaft: cc.hasServiceShaft ?? false,
+      })
+    }
 
-  // Circulation zones for roof terrace / public circulation
-  if (floorCount >= 1) {
+    // Sync shafts
+    for (const cs of canonicalChassis.shafts) {
+      shafts.push({
+        id: cs.id,
+        x: cs.x,
+        y: cs.y,
+        width: cs.width,
+        depth: cs.depth,
+        serviceTypes: cs.serviceTypes,
+        floorFrom: cs.floorFrom,
+        floorTo: cs.floorTo,
+      })
+
+      // Also create a wet wall from wet shafts
+      if (cs.wetStack) {
+        wetWalls.push({
+          id: `ww-${cs.id}`,
+          x: cs.x,
+          width: cs.width,
+          floorFrom: cs.floorFrom,
+          floorTo: cs.floorTo,
+        })
+      }
+    }
+
+    // Sync party walls
+    for (const cp of canonicalChassis.partyWalls) {
+      partyWalls.push({
+        x: cp.startX,
+        fireRating: cp.fireRating,
+        acousticRating: cp.acousticRating,
+        continuous: cp.continuous,
+      })
+    }
+
+    // Circulation zones
+    if (canonicalChassis.circulationModel.separated) {
+      circZones.push({ type: 'public', label: 'Public Entry' })
+      circZones.push({ type: 'private', label: 'Residential Lobby' })
+      circZones.push({ type: 'service', label: 'Service Access' })
+    } else {
+      circZones.push({ type: 'public', label: 'Public Circulation' })
+      circZones.push({ type: 'private', label: 'Private Zone' })
+    }
+  } catch {
+    // Fallback: generate legacy axes directly
+    const axisSpacing = Math.max(3.0, Math.min(maxSpan, 8.0))
+    const numX = Math.max(2, Math.ceil(bldgWidth / axisSpacing))
+    const axisLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    for (let i = 0; i <= numX; i++) {
+      const pos = Math.round((bldgWidth * i / numX) * 1000) / 1000
+      axes.push({
+        id: uid('grid'),
+        position: pos,
+        direction: 'x',
+        label: axisLabels[i] ?? `G${i + 1}`,
+      })
+    }
+
+    if (isDuplex) {
+      const partyX = Math.round((bldgWidth / 2) * 20) / 20
+      partyWalls.push({ x: partyX, fireRating: 1.0, acousticRating: 50, continuous: floorCount >= 2 })
+    }
+
+    if (floorCount >= 2) {
+      if (isDuplex) {
+        const unitW = bldgWidth / 2
+        for (let u = 0; u < 2; u++) {
+          cores.push({
+            id: uid('core'), type: 'stair',
+            x: Math.round((unitW * u + unitW * 0.3) * 1000) / 1000, y: 0,
+            width: 2.5, depth: 1.5, hasStair: true, hasLift: false, hasServiceShaft: false,
+          })
+        }
+      } else if (isMixedUse) {
+        cores.push({
+          id: uid('core'), type: 'combined',
+          x: Math.round((bldgWidth * 0.75) * 1000) / 1000, y: Math.round((bldgDepth * 0.5) * 1000) / 1000,
+          width: 3.0, depth: 5.0, hasStair: true, hasLift: floorCount >= 3, hasServiceShaft: true,
+        })
+        circZones.push({ type: 'public', label: 'Retail Entry' })
+        circZones.push({ type: 'private', label: 'Residential Lobby' })
+        circZones.push({ type: 'service', label: 'Service Access' })
+        shafts.push({
+          id: uid('shaft'), x: Math.round((bldgWidth * 0.75 + 3.5) * 1000) / 1000,
+          y: Math.round((bldgDepth * 0.5) * 1000) / 1000, width: 1.2, depth: 1.2,
+          serviceTypes: ['plumbing', 'electrical'], floorFrom: 0, floorTo: floorCount - 1,
+        })
+      } else if (floorCount >= 3) {
+        const coreX = Math.round((bldgWidth * 0.4) * 1000) / 1000
+        const coreY = Math.round((bldgDepth * 0.3) * 1000) / 1000
+        cores.push({
+          id: uid('core'), type: 'combined', x: coreX, y: coreY,
+          width: 4.0, depth: 6.0, hasStair: true, hasLift: true, hasServiceShaft: true,
+        })
+        shafts.push({
+          id: uid('shaft'), x: Math.round((coreX + 4.5) * 1000) / 1000,
+          y: Math.round((coreY + 1.0) * 1000) / 1000, width: 1.0, depth: 1.0,
+          serviceTypes: ['plumbing', 'electrical', 'hvac'], floorFrom: 0, floorTo: floorCount - 1,
+        })
+      } else {
+        cores.push({
+          id: uid('core'), type: 'stair', x: 0,
+          y: Math.round((bldgDepth * 0.3) * 1000) / 1000, width: 2.5, depth: 4.0,
+          hasStair: true, hasLift: false, hasServiceShaft: false,
+        })
+      }
+    } else {
+      circZones.push({ type: 'public', label: 'Public Entry' })
+      circZones.push({ type: 'private', label: 'Private Zone' })
+    }
+
+    const wetItems = brief.program.filter(p => p.isWetCore)
+    if (wetItems.length > 0 && floorCount >= 2) {
+      const wetX = Math.round((bldgWidth * 0.35) * 1000) / 1000
+      wetWalls.push({ id: uid('wetwall'), x: wetX, width: 2.0, floorFrom: 0, floorTo: floorCount - 1 })
+    }
+
     circZones.push({ type: 'public', label: 'Public Circulation' })
     circZones.push({ type: 'service', label: 'Service Circulation' })
   }
@@ -240,6 +271,7 @@ export function generateVerticalChassis(
     storeyCount: floorCount,
     isDuplex,
     isMixedUse,
+    canonicalChassis,
   }
 }
 

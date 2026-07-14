@@ -2,6 +2,9 @@ import type { PlanModel, RoomRect } from '@/domain/plan'
 import type { FloorPlan } from '@/engine/tier3/layoutEngine'
 import type { DesignOption } from '@/domain/boq'
 import { outerWalls, buildWallGraphFromRooms, generateSmartOpenings, validatePlanConnectivity } from '@/lib/geometry/plan-intelligence'
+import { assignLevelSlabs } from '@/lib/structure/slab-system'
+import { computeStructuralBridge } from '@/lib/structure/structural-bridge'
+import { generateBuildingChassis } from '@/lib/layout/vertical-chassis'
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 const roomPalette = ['#1d4ed8', '#0f766e', '#7c3aed', '#9a3412', '#0369a1', '#4d7c0f', '#be185d', '#b45309', '#6d28d9', '#0e7490']
@@ -64,4 +67,44 @@ export function floorPlanToPlanModel(
     openings,
     scaleLabel: '1:100 @ A3',
   }
+}
+
+/**
+ * Enhanced version that also computes structural bridge data for BIM/section use.
+ * Merges bridge info into the returned plan's room metadata.
+ */
+export function floorPlanToPlanModelWithBridge(
+  floorPlan: FloorPlan,
+  designOption: DesignOption,
+): PlanModel & { structuralWarnings?: string[] } {
+  const plan = floorPlanToPlanModel(floorPlan, designOption)
+  const warnings: string[] = []
+
+  if ((floorPlan.totalFloors ?? 1) > 1 && floorPlan.verticalChassis) {
+    try {
+      const chassis = generateBuildingChassis({
+        typology: designOption.buildingType || 'house',
+        storeyCount: floorPlan.totalFloors ?? 1,
+        buildingWidth: floorPlan.width,
+        buildingDepth: floorPlan.height,
+        floorToFloorHeight: 3.0,
+        wallThickness: 0.2,
+        structuralSystem: (floorPlan.totalFloors ?? 1) <= 2 ? 'masonry' : 'rc-frame',
+        maxStructuralSpan: 6.0,
+        hasLift: (floorPlan.totalFloors ?? 1) >= 3,
+        hasDuplex: designOption.buildingType === 'duplex',
+        hasMixedUse: designOption.buildingType === 'mixed-use',
+        programmes: Array(floorPlan.totalFloors ?? 1).fill(designOption.buildingType || 'residential'),
+      })
+      const slabInfo = assignLevelSlabs(chassis)
+      const bridge = computeStructuralBridge(chassis)
+      for (const sw of bridge.warnings) warnings.push(`[Structural] ${sw}`)
+      ;(plan as any).slabAssignments = slabInfo
+      ;(plan as any).structuralLevels = bridge.levels
+    } catch {
+      // bridge data is best-effort
+    }
+  }
+
+  return { ...plan, structuralWarnings: warnings.length > 0 ? warnings : undefined }
 }

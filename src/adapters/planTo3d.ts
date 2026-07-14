@@ -249,14 +249,53 @@ function splitWall(
 
 // — Main function —
 
+/**
+ * Per-level slab thickness overrides: ground is slab-on-grade (thinner),
+ * upper floors are suspended (standard), roof gets lightweight slab.
+ */
+function getLevelSlabThickness(storeyIndex: number, numberOfStoreys: number): number {
+  if (storeyIndex === 0) return 0.15
+  if (storeyIndex === numberOfStoreys - 1) return 0.12
+  return SLAB_THICKNESS
+}
+
+function getLevelSlabType(storeyIndex: number, numberOfStoreys: number): string {
+  if (storeyIndex === 0) return 'slab-on-grade'
+  if (storeyIndex === numberOfStoreys - 1) return 'roof-slab-lightweight'
+  return 'suspended'
+}
+
+export interface PerLevelSlabInfo {
+  storeyIndex: number
+  slabType: string
+  thickness: number
+  label: string
+}
+
+export function getPerLevelSlabs(numberOfStoreys: number): PerLevelSlabInfo[] {
+  const slabs: PerLevelSlabInfo[] = []
+  for (let si = 0; si < numberOfStoreys; si++) {
+    slabs.push({
+      storeyIndex: si,
+      slabType: getLevelSlabType(si, numberOfStoreys),
+      thickness: getLevelSlabThickness(si, numberOfStoreys),
+      label: si === 0 ? 'Ground Slab' : si === numberOfStoreys - 1 ? 'Roof Slab' : `Floor ${si + 1} Slab`,
+    })
+  }
+  return slabs
+}
+
 export function planTo3d(
   plan: PlanModel | null | undefined,
   numberOfStoreys: number,
   storeyHeight: number = DEFAULT_STOREY_HEIGHT,
+  perLevelSlabs?: PerLevelSlabInfo[],
 ): PlanTo3dResult {
   if (!plan || plan.walls.length === 0 || numberOfStoreys < 1) {
     return { walls: [], slabs: [], openings: [], ceilings: [], roof: null, bounds: { width: 0, depth: 0, totalHeight: 0 } }
   }
+
+  const levelSlabs = perLevelSlabs ?? getPerLevelSlabs(numberOfStoreys)
 
   const walls: WallPier[] = []
   const slabs: FloorSlab[] = []
@@ -265,15 +304,16 @@ export function planTo3d(
 
   for (let si = 0; si < numberOfStoreys; si++) {
     const yOffset = si * storeyHeight
+    const slabInfo = levelSlabs[si] ?? levelSlabs[0]
 
-    // Floor slab for this storey
+    // Floor slab for this storey — use differentiated thickness
     slabs.push({
       storeyIndex: si,
       centerX: plan.width / 2,
       centerZ: plan.height / 2,
       width: plan.width,
       depth: plan.height,
-      thickness: SLAB_THICKNESS,
+      thickness: slabInfo.thickness,
       yOffset,
     })
 

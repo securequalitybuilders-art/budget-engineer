@@ -71,6 +71,7 @@ export function computeFrontElevation(
   floors: number,
   storeyHeight: number = DEFAULT_STOREY_HEIGHT,
   pitchHeight: number = ROOF_PITCH_HEIGHT,
+  levelLabels?: string[],
 ): ElevationDrawing | null {
   if (!plan || plan.width <= 0 || plan.height <= 0 || floors < 1) return null
 
@@ -141,6 +142,17 @@ export function computeFrontElevation(
     }
   }
 
+  // Level labels on the right side
+  for (let si = 0; si < floors; si++) {
+    const midY = groundY - si * storeyHeight - storeyHeight / 2
+    const label = levelLabels?.[si] ?? `Fl ${si + 1}`
+    texts.push({
+      x: PADDING + bw + 0.3, y: midY + 0.15,
+      text: label,
+      fontSize: 0.3, fill: DIM_COLOR, anchor: 'start',
+    })
+  }
+
   // Dimension: building width
   texts.push({
     x: PADDING + bw / 2, y: groundY + 0.6,
@@ -170,6 +182,7 @@ export function computeSideElevation(
   floors: number,
   storeyHeight: number = DEFAULT_STOREY_HEIGHT,
   pitchHeight: number = ROOF_PITCH_HEIGHT,
+  levelLabels?: string[],
 ): ElevationDrawing | null {
   if (!plan || plan.width <= 0 || plan.height <= 0 || floors < 1) return null
 
@@ -240,6 +253,17 @@ export function computeSideElevation(
     }
   }
 
+  // Level labels on the right side
+  for (let si = 0; si < floors; si++) {
+    const midY = groundY - si * storeyHeight - storeyHeight / 2
+    const label = levelLabels?.[si] ?? `Fl ${si + 1}`
+    texts.push({
+      x: PADDING + bd + 0.3, y: midY + 0.15,
+      text: label,
+      fontSize: 0.3, fill: DIM_COLOR, anchor: 'start',
+    })
+  }
+
   // Dimension notes
   texts.push({
     x: PADDING + bd / 2, y: groundY + 0.6,
@@ -265,6 +289,7 @@ export function computeSection(
   floors: number,
   storeyHeight: number = DEFAULT_STOREY_HEIGHT,
   pitchHeight: number = ROOF_PITCH_HEIGHT,
+  levelLabels?: string[],
 ): ElevationDrawing | null {
   if (!plan || plan.width <= 0 || plan.height <= 0 || floors < 1) return null
 
@@ -298,12 +323,17 @@ export function computeSection(
     })
   }
 
-  // Floor slabs (horizontal thick lines across full width)
+  // Floor slabs (horizontal thick lines across full width) — differentiated by level
   for (let si = 0; si <= floors; si++) {
     const slabY = groundY - si * storeyHeight
+    const isGroundSlab = si === 0
+    const isRoofSlab = si === floors
+    // Ground slab thicker, roof slab thinner, intermediate slabs standard
+    const slabH = isGroundSlab ? 0.15 : isRoofSlab ? 0.10 : 0.12
+    const slabColor = isGroundSlab ? 'rgba(74,222,128,0.35)' : isRoofSlab ? 'rgba(251,191,36,0.30)' : SLAB_FILL
     rects.push({
-      x: PADDING, y: slabY - 0.06, w: bw, h: 0.12,
-      fill: SLAB_FILL, stroke: '#38bdf8', strokeWidth: 0.04,
+      x: PADDING, y: slabY - slabH / 2, w: bw, h: slabH,
+      fill: slabColor, stroke: isGroundSlab ? '#22c55e' : isRoofSlab ? '#f59e0b' : '#38bdf8', strokeWidth: 0.04,
     })
   }
 
@@ -336,7 +366,6 @@ export function computeSection(
   }
 
   // Roof profile above top storey
-  // For section: roof shows the gable triangle (same as front elevation)
   polygons.push({
     points: [
       { x: PADDING - ROOF_OVERHANG, y: eaveY },
@@ -348,12 +377,13 @@ export function computeSection(
     strokeWidth: WALL_WIDTH,
   })
 
-  // Storey height annotations
+  // Storey height annotations — show level-specific labels when available
   for (let si = 0; si < floors; si++) {
     const midY = groundY - si * storeyHeight - storeyHeight / 2
+    const label = levelLabels?.[si] ?? `Fl ${si + 1}`
     texts.push({
       x: PADDING + bw + 0.4, y: midY + 0.15,
-      text: `Fl ${si + 1}`,
+      text: label,
       fontSize: 0.35, fill: DIM_COLOR, anchor: 'start',
     })
   }

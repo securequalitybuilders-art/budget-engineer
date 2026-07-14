@@ -1,7 +1,4 @@
 import type { RoomRect, WallSegment, Opening } from '../../domain/plan'
-import { toRoomPolygon, computeSharedEdges, buildInternalWallsFromAdjacency, buildAdjacencyMap } from './polygon-adjacency'
-import { buildEgressGraph, validateEgress } from '../layout/egress-graph'
-import { applyRepairs } from '../layout/repair-engine'
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 
@@ -220,42 +217,25 @@ function findSharedBoundary(a: RoomRect, b: RoomRect): AdjacencyEdge | null {
 }
 
 export function buildWallGraphFromRooms(rooms: RoomRect[]): { walls: WallSegment[]; adjacency: AdjacencyEdge[] } {
-  // Use polygon adjacency engine for shared edge detection
-  const roomPolys = rooms.map(r => toRoomPolygon(r.id, r.name, r.x, r.y, r.width, r.height))
-  const sharedEdges = computeSharedEdges(roomPolys)
+  const edges = buildAdjacencyGraph(rooms)
+  const walls: WallSegment[] = []
+  const seen = new Set<string>()
 
-  const { walls: polyWalls } = buildInternalWallsFromAdjacency(roomPolys, sharedEdges)
+  for (const edge of edges) {
+    const key = `${edge.wall.start.x.toFixed(2)},${edge.wall.start.y.toFixed(2)}:${edge.wall.end.x.toFixed(2)},${edge.wall.end.y.toFixed(2)}`
+    const revKey = `${edge.wall.end.x.toFixed(2)},${edge.wall.end.y.toFixed(2)}:${edge.wall.start.x.toFixed(2)},${edge.wall.start.y.toFixed(2)}`
+    if (!seen.has(key) && !seen.has(revKey)) {
+      seen.add(key)
+      walls.push(edge.wall)
+    }
+  }
 
-  // Convert polygon walls to WallSegment format
-  const walls: WallSegment[] = polyWalls.map(w => ({
-    id: w.id,
-    start: w.start,
-    end: w.end,
-    thickness: w.thickness,
-    type: w.type as 'internal',
-  }))
-
-  // Convert shared edges to AdjacencyEdge format
-  const adjacency: AdjacencyEdge[] = sharedEdges.map(e => ({
-    roomAId: e.roomAId,
-    roomBId: e.roomBId,
-    sharedLength: e.sharedLength,
-    wall: {
-      id: e.wallId,
-      start: e.edge.start,
-      end: e.edge.end,
-      thickness: 0.12,
-      type: 'internal' as const,
-    },
-  }))
-
-  // Also add right/bottom edges for rooms with no adjacency on those sides (fallback)
-  const seen = new Set(walls.map(w => `${w.start.x.toFixed(2)},${w.start.y.toFixed(2)}:${w.end.x.toFixed(2)},${w.end.y.toFixed(2)}`))
+  // Add remaining right/bottom edges for rooms that have no adjacency (outer edges of internal walls)
   for (const room of rooms) {
-    for (const edge of [
-      { start: { x: room.x + room.width, y: room.y }, end: { x: room.x + room.width, y: room.y + room.height } },
-      { start: { x: room.x, y: room.y + room.height }, end: { x: room.x + room.width, y: room.y + room.height } },
-    ]) {
+    const rightEdge = { start: { x: room.x + room.width, y: room.y }, end: { x: room.x + room.width, y: room.y + room.height } }
+    const bottomEdge = { start: { x: room.x, y: room.y + room.height }, end: { x: room.x + room.width, y: room.y + room.height } }
+
+    for (const edge of [rightEdge, bottomEdge]) {
       const key = `${edge.start.x.toFixed(2)},${edge.start.y.toFixed(2)}:${edge.end.x.toFixed(2)},${edge.end.y.toFixed(2)}`
       const revKey = `${edge.end.x.toFixed(2)},${edge.end.y.toFixed(2)}:${edge.start.x.toFixed(2)},${edge.start.y.toFixed(2)}`
       if (!seen.has(key) && !seen.has(revKey)) {
@@ -265,7 +245,7 @@ export function buildWallGraphFromRooms(rooms: RoomRect[]): { walls: WallSegment
     }
   }
 
-  return { walls, adjacency }
+  return { walls, adjacency: edges }
 }
 
 export function findCirculationSpine(rooms: RoomRect[]): RoomRect | null {
@@ -564,26 +544,8 @@ export interface ZonedLayoutParams {
 }
 
 export function generateZonedLayout(params: ZonedLayoutParams): RoomRect[] {
-  let { width, height } = params
-  const { program } = params
+  const { program, width, height } = params
   const corridorWidth = params.corridorWidth ?? 1.5
-
-  const isVerticalSplit = width > height * 1.2
-  if (isVerticalSplit) {
-    // Swap width/height for calculations
-    width = params.height
-    height = params.width
-  }
-
-  // Shuffle helper to avoid repetitive boring designs
-  const shuffle = <T>(array: T[]): T[] => {
-    const arr = [...array]
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]]
-    }
-    return arr
-  }
 
   // Classify rooms
   const classified = program.map(p => ({
@@ -592,11 +554,11 @@ export function generateZonedLayout(params: ZonedLayoutParams): RoomRect[] {
     minDims: getMinimumDimensions(p.name),
   }))
 
-  // Sort by zone for layout (and shuffle to break repetition)
-  const circulationRooms = shuffle(classified.filter(r => r.role === 'circulation'))
-  const publicRooms = shuffle(classified.filter(r => r.role === 'public'))
-  const privateRooms = shuffle(classified.filter(r => r.role === 'private' || r.role === 'wet'))
-  const serviceRooms = shuffle(classified.filter(r => r.role === 'service'))
+  // Sort by zone for layout
+  const circulationRooms = classified.filter(r => r.role === 'circulation')
+  const publicRooms = classified.filter(r => r.role === 'public')
+  const privateRooms = classified.filter(r => r.role === 'private' || r.role === 'wet')
+  const serviceRooms = classified.filter(r => r.role === 'service')
 
   // Reserve corridor space
   const circRatioSum = circulationRooms.reduce((s, r) => s + r.ratio, 0)
@@ -715,17 +677,6 @@ export function generateZonedLayout(params: ZonedLayoutParams): RoomRect[] {
     placeHorizontalBand(privateRooms, rearY, rearDepth, rearRatioSum)
   }
 
-  // If vertical split, swap x/y back to original orientation
-  if (isVerticalSplit) {
-    return rooms.map(r => ({
-      ...r,
-      x: r.y,
-      y: r.x,
-      width: r.height,
-      height: r.width,
-    }))
-  }
-
   return rooms
 }
 
@@ -762,43 +713,7 @@ export function assemblePlan(input: PlanAssemblyInput) {
     externalWalls: extWalls,
   })
 
-  // Apply repair engine
-  const repairResult = applyRepairs(rooms, allWalls, openings)
-  if (repairResult.needsRevalidation) {
-    // Re-generate walls after room size changes
-    const { walls: repairedIntWalls, adjacency: repairedAdjacency } = buildWallGraphFromRooms(repairResult.rooms)
-    const repairedAllWalls = [...extWalls, ...repairedIntWalls]
-    repairResult.walls.splice(0, repairResult.walls.length, ...repairedAllWalls)
-    // Re-generate openings with new wall IDs
-    const repairedOpenings = generateSmartOpenings({
-      rooms: repairResult.rooms,
-      walls: repairedAllWalls,
-      adjacency: repairedAdjacency,
-      externalWalls: extWalls,
-    })
-    repairResult.openings.splice(0, repairResult.openings.length, ...repairedOpenings)
-  }
-
-  // Validate egress using egress graph
-  const roomNames: Record<string, string> = {}
-  for (const r of repairResult.rooms) roomNames[r.id] = r.name
-  const roomPolys = repairResult.rooms.map(r => toRoomPolygon(r.id, r.name, r.x, r.y, r.width, r.height))
-  const sharedEdges = computeSharedEdges(roomPolys)
-  const adjMap = buildAdjacencyMap(sharedEdges)
-  const doorWallIds = new Set(repairResult.openings.filter(o => o.kind === 'door').map(o => o.wallId))
-  const egressGraph = buildEgressGraph(
-    repairResult.rooms.map(r => r.id),
-    roomNames,
-    adjMap,
-    doorWallIds,
-  )
-  const egressResult = validateEgress(egressGraph)
-
-  const warnings = [
-    ...validatePlanConnectivity(repairResult.rooms, repairResult.openings, repairResult.walls),
-    ...egressResult.warnings,
-    ...repairResult.repairsApplied,
-  ]
+  const warnings = validatePlanConnectivity(rooms, openings, allWalls)
 
   const plan = {
     id: uid(),
@@ -806,11 +721,67 @@ export function assemblePlan(input: PlanAssemblyInput) {
     width: Number(width.toFixed(2)),
     height: Number(height.toFixed(2)),
     wallThickness,
-    rooms: repairResult.rooms,
-    walls: repairResult.walls,
-    openings: repairResult.openings,
+    rooms,
+    walls: allWalls,
+    openings,
     scaleLabel: '1:100 @ A3' as const,
   }
 
   return { plan, warnings }
+}
+adjacency,
+  externalWalls: extWalls,
+  })
+
+// Apply repair engine
+const repairResult = applyRepairs(rooms, allWalls, openings)
+if (repairResult.needsRevalidation) {
+  // Re-generate walls after room size changes
+  const { walls: repairedIntWalls, adjacency: repairedAdjacency } = buildWallGraphFromRooms(repairResult.rooms)
+  const repairedAllWalls = [...extWalls, ...repairedIntWalls]
+  repairResult.walls.splice(0, repairResult.walls.length, ...repairedAllWalls)
+  // Re-generate openings with new wall IDs
+  const repairedOpenings = generateSmartOpenings({
+    rooms: repairResult.rooms,
+    walls: repairedAllWalls,
+    adjacency: repairedAdjacency,
+    externalWalls: extWalls,
+  })
+  repairResult.openings.splice(0, repairResult.openings.length, ...repairedOpenings)
+}
+
+// Validate egress using egress graph
+const roomNames: Record<string, string> = {}
+for (const r of repairResult.rooms) roomNames[r.id] = r.name
+const roomPolys = repairResult.rooms.map(r => toRoomPolygon(r.id, r.name, r.x, r.y, r.width, r.height))
+const sharedEdges = computeSharedEdges(roomPolys)
+const adjMap = buildAdjacencyMap(sharedEdges)
+const doorWallIds = new Set(repairResult.openings.filter(o => o.kind === 'door').map(o => o.wallId))
+const egressGraph = buildEgressGraph(
+  repairResult.rooms.map(r => r.id),
+  roomNames,
+  adjMap,
+  doorWallIds,
+)
+const egressResult = validateEgress(egressGraph)
+
+const warnings = [
+  ...validatePlanConnectivity(repairResult.rooms, repairResult.openings, repairResult.walls),
+  ...egressResult.warnings,
+  ...repairResult.repairsApplied,
+]
+
+const plan = {
+  id: uid(),
+  designOptionId,
+  width: Number(width.toFixed(2)),
+  height: Number(height.toFixed(2)),
+  wallThickness,
+  rooms: repairResult.rooms,
+  walls: repairResult.walls,
+  openings: repairResult.openings,
+  scaleLabel: '1:100 @ A3' as const,
+}
+
+return { plan, warnings }
 }

@@ -36,11 +36,15 @@ describe('designToBim', () => {
     expect(slabs.length).toBeGreaterThan(0)
   })
 
-  it('includes roof element', () => {
-    const design = makeDesign({ grossFloorArea: 150 })
+  it('includes slab elements for each floor', () => {
+    const design = makeDesign({ grossFloorArea: 150, floors: 2 })
     const bim = designOptionToBimModel(design)
-    const roofs = bim!.elements.filter((e) => e.type === 'roof')
-    expect(roofs.length).toBe(1)
+    const slabs = bim!.elements.filter((e) => e.type === 'slab')
+    // Each floor gets a slab, including the roof-level floor
+    expect(slabs.length).toBe(design.floors)
+    // At least one slab should reference the roof slab type (IfcRoof) for the top floor
+    const roofIfcSlabs = slabs.filter((s) => s.ifcClass === 'IfcRoof')
+    expect(roofIfcSlabs.length).toBe(1)
   })
 
   it('includes opening elements for doors/windows', () => {

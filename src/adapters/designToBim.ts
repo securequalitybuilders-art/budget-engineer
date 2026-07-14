@@ -1,9 +1,18 @@
 import type { DesignOption } from '@/domain/boq'
-import type { BimModel, BimElement, BimSlab, BimWall, BimRoof, BimOpening, BimRoomZone } from '@/domain/bim'
+import type { BimModel, BimElement, BimSlab, BimWall, BimOpening, BimRoomZone } from '@/domain/bim'
 import { buildDesignGeometry } from './designGeometryAdapter'
 import { uuid } from '@/lib/utils'
+import { assignLevelSlabs } from '@/lib/structure/slab-system'
+import { computeStructuralBridge } from '@/lib/structure/structural-bridge'
+import { generateBuildingChassis } from '@/lib/layout/vertical-chassis'
 
 const FLOOR_HEIGHT = 3
+
+function getLevelLabel(i: number, total: number): string {
+  if (i === 0) return 'Ground Floor'
+  if (i === total - 1) return 'Roof Level'
+  return `Floor ${i + 1}`
+}
 
 export function designOptionToBimModel(design: DesignOption | null): BimModel | null {
   if (!design || design.grossFloorArea <= 0) return null
@@ -14,11 +23,45 @@ export function designOptionToBimModel(design: DesignOption | null): BimModel | 
   const bimFloors: { id: string; name: string; elevation: number; height: number }[] = []
   const elements: BimElement[] = []
 
+  // Try to compute chassis for multi-storey differentiation
+  let slabAssignments = null
+  let structuralBridge = null
+  if (design.floors > 1) {
+    try {
+      const area = design.grossFloorArea
+      const width = Math.sqrt(area * 1.18)
+      const depth = area / width
+      const chassis = generateBuildingChassis({
+        typology: design.buildingType || 'house',
+        storeyCount: design.floors,
+        buildingWidth: Math.round(width * 10) / 10,
+        buildingDepth: Math.round(depth * 10) / 10,
+        floorToFloorHeight: FLOOR_HEIGHT,
+        wallThickness: 0.2,
+        structuralSystem: design.floors <= 2 ? 'masonry' : 'rc-frame',
+        maxStructuralSpan: 6.0,
+        hasLift: design.floors >= 3,
+        hasDuplex: design.buildingType === 'duplex',
+        hasMixedUse: design.buildingType === 'mixed-use',
+        programmes: Array(design.floors).fill(design.buildingType || 'residential'),
+      })
+      slabAssignments = assignLevelSlabs(chassis)
+      structuralBridge = computeStructuralBridge(chassis)
+    } catch {
+      // Fallback: uniform slabs
+    }
+  }
+
   for (let i = 0; i < design.floors; i++) {
     const floorId = `f${i + 1}`
+    const slabInfo = slabAssignments?.[i]
+    const structuralLevel = structuralBridge?.levels[i]
+    const slabThickness = slabInfo?.slabSpec.thickness ?? 0.15
+    const slabMaterial = slabInfo?.slabSpec.material ?? 'concrete'
+
     bimFloors.push({
       id: floorId,
-      name: i === 0 ? 'Ground Floor' : `Floor ${i + 1}`,
+      name: getLevelLabel(i, design.floors),
       elevation: i * FLOOR_HEIGHT,
       height: FLOOR_HEIGHT,
     })
@@ -29,15 +72,19 @@ export function designOptionToBimModel(design: DesignOption | null): BimModel | 
       id: `slab-${floorId}`,
       projectId: '',
       floorId,
-      name: `${bimFloors[bimFloors.length - 1].name} slab`,
-      ifcClass: 'IfcSlab',
-      material: 'concrete',
-      properties: { area: geo.width * geo.depth },
-      type: 'slab',
+      name: slabInfo?.label ?? `${getLevelLabel(i, design.floors)} slab`,
+      ifcClass: i === design.floors - 1 ? 'IfcRoof' : 'IfcSlab',
+      material: slabMaterial,
+      properties: {
+        area: geo.width * geo.depth,
+        slabType: slabInfo?.slabSpec.slabType ?? 'suspended',
+        loadingClass: slabInfo?.slabSpec.loadingClass ?? 'domestic',
+      },
+      type: 'slab' as const,
       origin: { x: 0, y: zOffset, z: 0 },
       width: geo.width,
       depth: geo.depth,
-      thickness: 0.15,
+      thickness: slabThickness,
     }
     elements.push(slab)
 
@@ -101,25 +148,52 @@ export function designOptionToBimModel(design: DesignOption | null): BimModel | 
       }
       elements.push(zone)
     }
-  }
 
-  const roofFloorIndex = design.floors
-  const roofZ = roofFloorIndex * FLOOR_HEIGHT
-  const roof: BimRoof = {
-    id: 'roof',
-    projectId: '',
-    floorId: bimFloors[roofFloorIndex - 1]?.id ?? 'f1',
-    name: 'Roof slab',
-    ifcClass: 'IfcRoof',
-    material: 'concrete',
-    properties: {},
-    type: 'roof',
-    origin: { x: 0, y: roofZ, z: 0 },
-    width: geo.width,
-    depth: geo.depth,
-    thickness: 0.15,
+    // Add structural columns from bridge
+    if (structuralLevel) {
+      for (const col of structuralLevel.columns) {
+        elements.push({
+          id: `col-${col.id}`,
+          projectId: '',
+          floorId,
+          name: `Column ${col.gridLabel}`,
+          ifcClass: 'IfcColumn',
+          material: col.material,
+          properties: {
+            axisA: col.axisA,
+            axisB: col.axisB,
+            levelIndex: col.levelIndex,
+          },
+          type: 'block',
+          kind: 'column',
+          position: { x: col.x, y: zOffset, z: col.z },
+          width: col.width,
+          depth: col.depth,
+          height: col.height,
+        } as BimElement)
+      }
+
+      for (const beam of structuralLevel.beams) {
+        elements.push({
+          id: `beam-${beam.id}`,
+          projectId: '',
+          floorId,
+          name: `Beam ${beam.id.slice(0, 6)}`,
+          ifcClass: 'IfcBeam',
+          material: beam.material,
+          properties: {
+            span: beam.span,
+            axisLabel: beam.supportAxisLabel,
+          },
+          type: 'wall',
+          start: { x: beam.startX, y: zOffset, z: beam.startZ },
+          end: { x: beam.endX, y: zOffset, z: beam.endZ },
+          thickness: beam.width,
+          height: beam.depth,
+        } as BimWall)
+      }
+    }
   }
-  elements.push(roof)
 
   return {
     id: uuid(),

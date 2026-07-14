@@ -31,6 +31,15 @@ export type BuildingTypology =
   | 'worship'
   | 'other'
 
+export interface FloorContext {
+  levelIndex: number
+  totalFloors: number
+  floorRole: string
+  isGround: boolean
+  isRoof: boolean
+  programmeTags: string[]
+}
+
 export interface TypologyStrategy {
   id: BuildingTypology
   name: string
@@ -39,6 +48,7 @@ export interface TypologyStrategy {
     width: number,
     height: number,
     seed?: number,
+    floorContext?: FloorContext,
   ) => { id: string; name: string; x: number; y: number; width: number; height: number }[]
 }
 
@@ -56,7 +66,15 @@ const STRATEGIES: Record<string, TypologyStrategy> = {
   'house': {
     id: 'house',
     name: 'Residential',
-    generate: (program, width, height, seed = 0) => {
+    generate: (program, width, height, seed = 0, floorContext?) => {
+      const isUpperFloor = floorContext && !floorContext.isGround
+      const isPodium = floorContext?.floorRole === 'podium'
+      const isRepeatedUnit = floorContext?.floorRole === 'repeated-unit'
+
+      if (isUpperFloor || isPodium || isRepeatedUnit) {
+        return generateZonedLayout({ program, width, height, corridorWidth: 1.5 })
+      }
+
       const area = width * height
       if (isCompactHouse(program, area)) {
         const profile = generateVariationProfile(seed)
@@ -77,7 +95,12 @@ const STRATEGIES: Record<string, TypologyStrategy> = {
   'apartment': {
     id: 'apartment',
     name: 'Apartment',
-    generate: (program, width, height) => generateApartmentLayout(program, width, height),
+    generate: (program, width, height, _seed?, floorContext?) => {
+      if (floorContext && floorContext.floorRole === 'podium') {
+        return generateZonedLayout({ program, width, height, corridorWidth: 2.0 })
+      }
+      return generateApartmentLayout(program, width, height)
+    },
   },
   'townhouse': {
     id: 'townhouse',
@@ -107,7 +130,12 @@ const STRATEGIES: Record<string, TypologyStrategy> = {
   'mixed-use': {
     id: 'mixed-use',
     name: 'Mixed-Use',
-    generate: (program, width, height) => generateMixedUseLayout(program, width, height),
+    generate: (program, width, height, _seed?, floorContext?) => {
+      if (floorContext && floorContext.floorRole === 'upper-residential') {
+        return generateApartmentLayout(program, width, height)
+      }
+      return generateMixedUseLayout(program, width, height)
+    },
   },
   'duplex': {
     id: 'duplex',
@@ -117,7 +145,12 @@ const STRATEGIES: Record<string, TypologyStrategy> = {
   'warehouse': {
     id: 'warehouse',
     name: 'Warehouse + Office',
-    generate: (program, width, height) => generateWarehouseLayout(program, width, height),
+    generate: (program, width, height, _seed?, floorContext?) => {
+      if (floorContext && floorContext.floorRole === 'mezzanine-office') {
+        return generateZonedLayout({ program, width, height, corridorWidth: 1.5 })
+      }
+      return generateWarehouseLayout(program, width, height)
+    },
   },
   'worship': {
     id: 'worship',
@@ -147,7 +180,8 @@ export function generateLayoutByTypology(
   width: number,
   height: number,
   seed = 0,
+  floorContext?: FloorContext,
 ): { id: string; name: string; x: number; y: number; width: number; height: number }[] {
   const strategy = getStrategy(buildingType)
-  return strategy.generate(program, width, height, seed)
+  return strategy.generate(program, width, height, seed, floorContext)
 }

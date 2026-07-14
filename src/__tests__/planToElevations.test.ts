@@ -152,13 +152,12 @@ describe('computeSection', () => {
 
   it('contains floor slab rects (floors + 1)', () => {
     const result = computeSection(makePlan(), 2)
-    // floor slabs: one per floor + roof slab
+    // All slab rects (ground is rgba(74,222,128,...), intermediate is rgba(56,189,248,...), roof is rgba(251,191,36,...))
     const slabRects = result!.rects.filter(r =>
-      r.fill && r.fill.includes('189,248') && r.stroke === '#38bdf8',
+      r.fill && (r.fill.includes('189,248') || r.fill.includes('222,128') || r.fill.includes('191,36')),
     )
     // Should have floors + 1 slab rects (ground through top)
-    expect(slabRects.length).toBe(3) // 3 for 2 storeys + ground = 2, actually 2 storeys = 2 floors + ground level slab... 
-    // Actually: for si = 0, 1, 2 (= floors) = 3 slabs total
+    expect(slabRects.length).toBe(3) // 3 for 2 storeys: si=0 (ground), si=1 (mid), si=2 (roof) = 3 slabs total
   })
 
   it('contains ground line', () => {
@@ -287,15 +286,13 @@ describe('multi-storey openings', () => {
     const result1 = computeSection(makePlan(), 1)
     const result3 = computeSection(makePlan(), 3)
     const slabLines1 = result1!.rects.filter(r =>
-      r.fill && r.fill.includes('189,248'),
+      r.fill && (r.fill.includes('189,248') || r.fill.includes('222,128') || r.fill.includes('191,36')),
     ).length
     const slabLines3 = result3!.rects.filter(r =>
-      r.fill && r.fill.includes('189,248'),
+      r.fill && (r.fill.includes('189,248') || r.fill.includes('222,128') || r.fill.includes('191,36')),
     ).length
-    // 1 floor = 2 slabs (ground + floor1 ceiling/roof slab)
-    // Actually with the current code, slabs are for si = 0..floors (inclusive)
-    expect(slabLines3).toBe(4) // si=0,1,2,3 for 3 floors — no wait: si <= floors means si=0..3 = 4 slabs
-    // For 3 floors: floors=3, so si=0,1,2,3 = 4 slabs
+    // Slabs are for si = 0..floors (inclusive)
+    expect(slabLines3).toBe(4) // si=0,1,2,3 for 3 floors = 4 slabs
     expect(slabLines1).toBe(2) // si=0,1 = 2 slabs for 1 floor
   })
 })
