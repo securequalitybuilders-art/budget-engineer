@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
-import { render, cleanup, screen } from '@testing-library/react'
+import { render, cleanup, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import type { DesignOption } from '@/domain/boq'
 import type { PlanModel } from '@/domain/plan'
 import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
-
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+})
 
 beforeEach(() => {
   useDrawingRegisterStore.setState({ sheets: [], activeSheetId: null })
@@ -25,6 +26,51 @@ vi.mock('@/components/bim/LazyBimModel3D', () => ({
   LazyBimModel3D: () => <div data-testid="bim-model">BimModel3D</div>,
 }))
 
+// Mock all heavy drawing view components to eliminate rendering latency
+vi.mock('@/components/drawings/ElevationView', () => ({
+  ElevationView: () => <div data-testid="elevation-view">ElevationView</div>,
+}))
+
+vi.mock('@/components/drawings/SectionView', () => ({
+  SectionView: () => <div data-testid="section-view">SectionView</div>,
+}))
+
+vi.mock('@/components/drawings/SitePlanView', () => ({
+  SitePlanView: () => <div data-testid="site-plan-view">SitePlanView</div>,
+}))
+
+vi.mock('@/components/drawings/FoundationPlanView', () => ({
+  FoundationPlanView: () => <div data-testid="foundation-view">FoundationPlanView</div>,
+}))
+
+vi.mock('@/components/drawings/RoofPlanView', () => ({
+  RoofPlanView: () => <div data-testid="roof-view">RoofPlanView</div>,
+}))
+
+vi.mock('@/components/drawings/CeilingPlanView', () => ({
+  CeilingPlanView: () => <div data-testid="ceiling-view">CeilingPlanView</div>,
+}))
+
+vi.mock('@/components/drawings/ElectricalPlanView', () => ({
+  ElectricalPlanView: () => <div data-testid="electrical-view">ElectricalPlanView</div>,
+}))
+
+vi.mock('@/components/drawings/PlumbingPlanView', () => ({
+  PlumbingPlanView: () => <div data-testid="plumbing-view">PlumbingPlanView</div>,
+}))
+
+vi.mock('@/components/drawings/HvacPlanView', () => ({
+  HvacPlanView: () => <div data-testid="hvac-view">HvacPlanView</div>,
+}))
+
+vi.mock('@/components/drawings/PresentationSheetView', () => ({
+  PresentationSheetView: () => <div data-testid="presentation-sheet">PresentationSheetView</div>,
+}))
+
+vi.mock('@/components/drawings/DrawingRegisterPanel', () => ({
+  DrawingRegisterPanel: () => <div data-testid="drawing-register">DrawingRegisterPanel</div>,
+}))
+
 describe('DXF export via DrawingsPanel', () => {
   const minimalPlan = { id: 'plan1', width: 10, height: 10 } as unknown as PlanModel
   const minimalDesign = { id: 'd1', name: 'Test' } as unknown as DesignOption
@@ -40,7 +86,7 @@ describe('DXF export via DrawingsPanel', () => {
         />
       </MemoryRouter>
     )
-    const exportBtn = screen.getByText('DXF')
+    const exportBtn = await waitFor(() => screen.getByLabelText('Export DXF'), { timeout: 2000 })
     expect(exportBtn).toBeTruthy()
   })
 
@@ -55,7 +101,24 @@ describe('DXF export via DrawingsPanel', () => {
         />
       </MemoryRouter>
     )
+    expect(screen.queryByLabelText('Export DXF')).toBeNull()
     expect(screen.queryByText('DXF')).toBeNull()
+  })
+
+  it('shows DXF button with correct aria-label and Download icon', async () => {
+    const { DrawingsPanel } = await import('@/components/drawings/DrawingsPanel')
+    render(
+      <MemoryRouter initialEntries={['/project/p1']}>
+        <DrawingsPanel
+          activePlan={minimalPlan}
+          design={minimalDesign}
+          floors={1}
+        />
+      </MemoryRouter>
+    )
+    const exportBtn = await waitFor(() => screen.getByLabelText('Export DXF'), { timeout: 2000 })
+    expect(exportBtn).toBeTruthy()
+    expect(exportBtn.tagName).toBe('BUTTON')
   })
 })
 
@@ -91,7 +154,7 @@ describe('DXF export via DesignStage', () => {
         />
       </MemoryRouter>
     )
-    const dxfBtn = screen.getByLabelText('Export DXF')
+    const dxfBtn = await waitFor(() => screen.getByLabelText('Export DXF'), { timeout: 5000 })
     expect(dxfBtn).toBeTruthy()
   })
 })

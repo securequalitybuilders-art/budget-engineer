@@ -181,6 +181,20 @@ export function generateRetailLayout(
   return rooms
 }
 
+// ── Entrance separation types ──────────────────────────────────
+
+export type EntranceClass = 'retail-public' | 'residential-private' | 'service-boh'
+
+export interface EntranceZone {
+  id: string
+  class: EntranceClass
+  label: string
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 export function generateMixedUseLayout(
   program: { name: string; ratio: number }[],
   width: number,
@@ -194,44 +208,228 @@ export function generateMixedUseLayout(
   const residentialItems = program.filter(r => r.name.includes('Apartment') || r.name.includes('Upper') || r.name.includes('Living') || r.name.includes('Kitchen') || r.name.includes('Bedroom'))
   const lobbyItems = program.filter(r => r.name.includes('Lobby') || r.name.includes('Stair') || r.name.includes('Core'))
   const storeItems = program.filter(r => r.name.includes('Store') || r.name.includes('Storage') || r.name.includes('Bin'))
-  const circItems = program.filter(r => classifyRoom(r.name) === 'circulation')
-
   const retailDepth = height * v.frontRatio
-  const corridorDepth = Math.max(2.0, height * v.corridorRatio)
+  const corridorDepth = Math.max(2.5, height * v.corridorRatio)
   const corridorY = retailDepth
   const residentialDepth = height - retailDepth - corridorDepth
 
-  // Retail at front (street-facing)
+  // ── Entrance zones (explicit planning objects) ──
+
+  const entranceZones: EntranceZone[] = [
+    {
+      id: uid(),
+      class: 'retail-public',
+      label: 'Retail / Public Entrance',
+      x: 0,
+      y: 0,
+      width: Math.min(retailDepth, 3.5),
+      height: Math.min(retailDepth, 3.5),
+    },
+    {
+      id: uid(),
+      class: 'residential-private',
+      label: 'Residential Lobby Entrance',
+      x: width - Math.min(retailDepth * 0.8, 3.0),
+      y: 0,
+      width: Math.min(retailDepth * 0.8, 3.0),
+      height: Math.min(retailDepth * 0.8, 3.0),
+    },
+    {
+      id: uid(),
+      class: 'service-boh',
+      label: 'Service / Back-of-House Entrance',
+      x: width - 2.5,
+      y: retailDepth + corridorDepth + residentialDepth - 2.5,
+      width: 2.5,
+      height: 2.5,
+    },
+  ]
+
+  // Place entrance markers
+  for (const ez of entranceZones) {
+    rooms.push({
+      id: ez.id,
+      name: ez.label,
+      x: Number(ez.x.toFixed(2)),
+      y: Number(ez.y.toFixed(2)),
+      width: Number(ez.width.toFixed(2)),
+      height: Number(ez.height.toFixed(2)),
+    })
+  }
+
+  // Retail at front (street-facing) — between public entrance and residential lobby
   if (retailItems.length > 0) {
-    rooms.push(...placeRoomsInBand(retailItems, 0, retailDepth, width))
+    const retailX = entranceZones[0].width + 0.5
+    const retailW = width - retailX - entranceZones[1].width - 0.5
+    retailItems.forEach((item, i) => {
+      const itemW = retailItems.length > 1 ? retailW / retailItems.length : retailW
+      rooms.push({
+        id: uid(),
+        name: item.name,
+        x: Number((retailX + i * itemW).toFixed(2)),
+        y: Number(0.5.toFixed(2)),
+        width: Number(Math.max(itemW - 0.3, 2.0).toFixed(2)),
+        height: Number((retailDepth - 1.0).toFixed(2)),
+      })
+    })
   }
 
-  // Separated circulation corridor (service corridor between retail and residential)
-  if (circItems.length > 0) {
-    rooms.push(...placeRoomsInBand(circItems, corridorY, corridorDepth, width))
-  } else {
-    rooms.push({ id: uid(), name: 'Service Corridor', x: 0, y: Number(corridorY.toFixed(2)), width: Number(width.toFixed(2)), height: Number(corridorDepth.toFixed(2)) })
+  // Separated service corridor between retail and residential (no retail access)
+  const serviceCorridor = {
+    id: uid(),
+    name: 'Service Corridor',
+    x: 0,
+    y: Number(corridorY.toFixed(2)),
+    width: Number((width - entranceZones[2].width).toFixed(2)),
+    height: Number(corridorDepth.toFixed(2)),
   }
+  rooms.push(serviceCorridor)
 
-  // Residential lobby (separate from retail)
+  // Residential lobby zone — separate from retail, accessed from side entrance
   if (lobbyItems.length > 0) {
-    rooms.push(...placeRoomsInBand(lobbyItems, corridorY, corridorDepth, width))
+    const lobbyX = width * 0.5
+    const lobbyW = width - lobbyX - entranceZones[2].width
+    const lobbyRooms = lobbyItems.map((item, i) => ({
+      id: uid(),
+      name: item.name,
+      x: Number((lobbyX + i * (lobbyW / lobbyItems.length)).toFixed(2)),
+      y: Number(corridorY.toFixed(2)),
+      width: Number(Math.max((lobbyW / lobbyItems.length) - 0.3, 2.0).toFixed(2)),
+      height: Number(corridorDepth.toFixed(2)),
+    }))
+    rooms.push(...lobbyRooms)
   } else {
-    rooms.push({ id: uid(), name: 'Residential Lobby', x: 0, y: Number(corridorY.toFixed(2)), width: Number(width.toFixed(2)), height: Number(corridorDepth.toFixed(2)) })
+    rooms.push({
+      id: uid(),
+      name: 'Residential Lobby',
+      x: Number((width * 0.5).toFixed(2)),
+      y: Number(corridorY.toFixed(2)),
+      width: Number((width * 0.5).toFixed(2)),
+      height: Number(corridorDepth.toFixed(2)),
+    })
   }
 
-  // Residential at rear
+  // Residential at rear — only accessible via residential lobby, not through retail
   if (residentialItems.length > 0) {
-    rooms.push(...placeRoomsInBand(residentialItems, corridorY + corridorDepth, residentialDepth, width))
+    const resX = width * 0.3
+    const resW = width - resX
+    const resRooms = residentialItems.map((item, i) => {
+      const itemW = residentialItems.length > 1 ? resW / residentialItems.length : resW
+      return {
+        id: uid(),
+        name: item.name,
+        x: Number((resX + i * itemW).toFixed(2)),
+        y: Number((corridorY + corridorDepth).toFixed(2)),
+        width: Number(Math.max(itemW - 0.3, 2.0).toFixed(2)),
+        height: Number((residentialDepth - entranceZones[2].height).toFixed(2)),
+      }
+    })
+    rooms.push(...resRooms)
   }
 
-  // Store/service items at rear corner
+  // Store/service at rear service corner (adjacent to service entrance)
   if (storeItems.length > 0) {
-    const storeDepth = Math.min(2.0, residentialDepth * 0.3)
-    rooms.push(...placeRoomsInBand(storeItems, corridorY + corridorDepth, storeDepth, width))
+    const storeX = width - entranceZones[2].width - 4.0
+    const storeRooms = storeItems.map((item, i) => ({
+      id: uid(),
+      name: item.name,
+      x: Number((storeX + i * 2.0).toFixed(2)),
+      y: Number((corridorY + corridorDepth).toFixed(2)),
+      width: Number(2.0.toFixed(2)),
+      height: Number(Math.min(2.0, residentialDepth * 0.3).toFixed(2)),
+    }))
+    rooms.push(...storeRooms)
   }
 
   return rooms
+}
+
+// ── Entrance separation validation ────────────────────────────
+
+export interface EntranceSeparationResult {
+  valid: boolean
+  retailPublicRoute: string[]
+  residentialPrivateRoute: string[]
+  serviceRoute: string[]
+  emergencyRoute: string[]
+  conflicts: string[]
+  repairs: string[]
+}
+
+export function validateEntranceSeparation(rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[]): EntranceSeparationResult {
+  const conflicts: string[] = []
+  const repairs: string[] = []
+
+  const retailEntrance = rooms.find(r => r.name.includes('Retail / Public Entrance'))
+  const residentialEntrance = rooms.find(r => r.name.includes('Residential Lobby Entrance'))
+  const serviceEntrance = rooms.find(r => r.name.includes('Service / Back-of-House Entrance'))
+  const residentialLobby = rooms.find(r => r.name === 'Residential Lobby')
+  const serviceCorridor = rooms.find(r => r.name === 'Service Corridor')
+  const retailSpaces = rooms.filter(r => r.name.includes('Retail Space'))
+
+  // Check entrances exist
+  if (!retailEntrance) {
+    repairs.push('Missing retail/public entrance — add retail entrance at front')
+  }
+  if (!residentialEntrance) {
+    repairs.push('Missing residential/private entrance — add residential entrance at side')
+  }
+  if (!serviceEntrance) {
+    repairs.push('Missing service entrance — add BOH entrance at rear')
+  }
+
+  // Check retail and residential lobbies are separate
+  if (retailEntrance && residentialEntrance) {
+    const overlapX = retailEntrance.x + retailEntrance.width > residentialEntrance.x &&
+      residentialEntrance.x + residentialEntrance.width > retailEntrance.x
+    if (overlapX) {
+      conflicts.push('Retail entrance overlaps with residential entrance — must maintain separate street frontage')
+    }
+  }
+
+  // Check residential lobby is not on retail path
+  if (residentialLobby && retailEntrance) {
+    const resToRetail = residentialLobby.x < retailEntrance.x + retailEntrance.width + 1.0
+    if (resToRetail) {
+      conflicts.push('Residential lobby is too close to retail entrance — residential access should use separate side entrance')
+      repairs.push('Shift residential lobby to the opposite side from retail entrance')
+    }
+  }
+
+  // Check service corridor is separated from residential lobby
+  if (serviceCorridor && residentialLobby) {
+    const sharedCorridor = serviceCorridor.x < residentialLobby.x + residentialLobby.width &&
+      residentialLobby.x < serviceCorridor.x + serviceCorridor.width
+    if (sharedCorridor) {
+      conflicts.push('Service corridor shares space with residential lobby — service and residential routes must be separate')
+    }
+  }
+
+  // Check retail does not wrap around residential entrance
+  if (retailSpaces.length > 0 && residentialEntrance) {
+    const retailWrapping = retailSpaces.some(r =>
+      r.x + r.width > residentialEntrance.x - 0.5 && r.y < residentialEntrance.y + residentialEntrance.height,
+    )
+    if (retailWrapping) {
+      conflicts.push('Retail spaces wrap around residential entrance — residential access must be independent of retail circulation')
+    }
+  }
+
+  // Build route arrays
+  const retailRoute = retailEntrance ? [retailEntrance.id] : []
+  const residentialRoute = residentialEntrance ? [residentialEntrance.id] : []
+  const serviceRoute = serviceEntrance ? [serviceEntrance.id] : []
+  const emergencyRoute = residentialLobby ? [residentialLobby.id] : []
+
+  return {
+    valid: conflicts.length === 0,
+    retailPublicRoute: retailRoute,
+    residentialPrivateRoute: residentialRoute,
+    serviceRoute,
+    emergencyRoute,
+    conflicts,
+    repairs,
+  }
 }
 
 export function generateWarehouseLayout(
@@ -309,6 +507,221 @@ export function generateWorshipLayout(
   return rooms
 }
 
+// ── Apartment strategy types ───────────────────────────────────
+
+export type ApartmentStrategy =
+  | 'double-loaded-corridor'
+  | 'single-loaded-corridor'
+  | 'core-served-cluster'
+  | 'corner-end-variation'
+
+export interface ApartmentStrategyResult {
+  strategy: ApartmentStrategy
+  unitCount: number
+  unitsPerSide: number
+  corridorWidth: number
+  unitDepth: number
+  unitWidth: number
+  coreX: number
+  coreY: number
+}
+
+interface PlacedUnitRoom {
+  name: string
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+export function selectApartmentStrategy(
+  width: number,
+  height: number,
+  unitCount: number,
+  hasCore: boolean,
+): ApartmentStrategyResult {
+  const corridorW = 2.0
+  const coreSize = 4.0
+  const coreX = hasCore ? 0 : -1
+  const coreY = 0
+
+  if (hasCore && width <= 12 && height <= 12 && unitCount <= 4) {
+    // Compact building with core — use core-served cluster for efficient layout
+    const clusterSize = Math.max(Math.min(width, height) * 0.45, 4.0)
+    return {
+      strategy: 'core-served-cluster',
+      unitCount,
+      unitsPerSide: unitCount,
+      corridorWidth: 1.5,
+      unitDepth: Math.max(clusterSize / 2, 3.0),
+      unitWidth: Math.max(clusterSize / 2, 2.5),
+      coreX: width / 2 - coreSize / 2,
+      coreY: height / 2 - coreSize / 2,
+    }
+  }
+
+  if (width >= 18 && unitCount >= 4) {
+    // Wide enough for double-loaded corridor
+    const usableDepth = height / 2 - corridorW / 2
+    const unitsPerSide = Math.ceil(unitCount / 2)
+    const unitW = (width - (hasCore ? coreSize : 0)) / Math.max(unitsPerSide, 1)
+    return {
+      strategy: 'double-loaded-corridor',
+      unitCount,
+      unitsPerSide,
+      corridorWidth: corridorW,
+      unitDepth: Math.max(usableDepth, 3.0),
+      unitWidth: Math.max(unitW, 2.5),
+      coreX,
+      coreY,
+    }
+  }
+
+  if (width >= 8 && unitCount >= 2) {
+    // Single-loaded corridor
+    const unitH = (height - corridorW) / Math.max(unitCount, 1)
+    return {
+      strategy: 'single-loaded-corridor',
+      unitCount,
+      unitsPerSide: unitCount,
+      corridorWidth: corridorW,
+      unitDepth: Math.max(unitH, 3.0),
+      unitWidth: Math.max(width - (hasCore ? coreSize : 0), 2.5),
+      coreX,
+      coreY,
+    }
+  }
+
+  if (unitCount <= 4 && hasCore) {
+    // Core-served compact cluster
+    const clusterSize = Math.max(Math.min(width, height) * 0.45, 4.0)
+    return {
+      strategy: 'core-served-cluster',
+      unitCount,
+      unitsPerSide: unitCount,
+      corridorWidth: 1.5,
+      unitDepth: Math.max(clusterSize / 2, 3.0),
+      unitWidth: Math.max(clusterSize / 2, 2.5),
+      coreX: width / 2 - coreSize / 2,
+      coreY: height / 2 - coreSize / 2,
+    }
+  }
+
+  // Fallback: single-loaded
+  const unitH = (height - corridorW) / Math.max(unitCount, 1)
+  return {
+    strategy: 'single-loaded-corridor',
+    unitCount,
+    unitsPerSide: unitCount,
+    corridorWidth: corridorW,
+    unitDepth: Math.max(unitH, 3.0),
+    unitWidth: Math.max(width - (hasCore ? coreSize : 0), 2.5),
+    coreX,
+    coreY,
+  }
+}
+
+function generateUnitRooms(
+  unitLabel: string,
+  ux: number,
+  uy: number,
+  uw: number,
+  uh: number,
+  isCorner: boolean,
+): PlacedUnitRoom[] {
+  const rooms: PlacedUnitRoom[] = []
+  const entryDepth = Math.min(1.2, uh * 0.15)
+  const livingRatio = 0.40
+  const kitchenRatio = 0.18
+  const bathW = Math.min(1.8, uw * 0.20)
+  const balconyD = Math.min(1.5, uh * 0.12)
+
+  // Entry zone at corridor side
+  rooms.push({
+    name: `${unitLabel} Entry`,
+    x: ux,
+    y: uy,
+    w: Math.min(2.0, uw * 0.25),
+    h: entryDepth,
+  })
+
+  let remainderY = uy + entryDepth
+  const remainingH = uh - entryDepth - balconyD
+  const livingH = remainingH * livingRatio
+  const kitchenH = kitchenRatio * remainingH
+
+  // Living/dining — front-facing
+  const livingW = uw - bathW
+  rooms.push({
+    name: `${unitLabel} Living / Dining`,
+    x: ux,
+    y: remainderY,
+    w: livingW,
+    h: Math.max(livingH, 2.5),
+  })
+
+  // Kitchen — adjacent to living (wet-core zone)
+  rooms.push({
+    name: `${unitLabel} Kitchen`,
+    x: ux,
+    y: remainderY + livingH,
+    w: Math.max(livingW * 0.7, 2.0),
+    h: Math.max(kitchenH, 1.5),
+  })
+
+  // Bedroom(s) — private zone at rear
+  const bedY = remainderY + livingH + kitchenH
+  const bedH = remainingH - livingH - kitchenH
+
+  if (isCorner && uw > 4.5) {
+    // Corner unit gets 2 bedrooms
+    const bed1W = uw * 0.52
+    const bed2W = uw - bed1W - bathW
+    rooms.push({
+      name: `${unitLabel} Bedroom 1`,
+      x: ux,
+      y: bedY,
+      w: Math.max(bed1W, 2.5),
+      h: Math.max(bedH, 2.0),
+    })
+    rooms.push({
+      name: `${unitLabel} Bedroom 2`,
+      x: ux + bed1W,
+      y: bedY,
+      w: Math.max(bed2W, 2.0),
+      h: Math.max(bedH, 2.0),
+    })
+  } else {
+    rooms.push({
+      name: `${unitLabel} Bedroom 1`,
+      x: ux,
+      y: bedY,
+      w: Math.max(uw - bathW, 2.5),
+      h: Math.max(bedH, 2.0),
+    })
+  }
+
+  // Bathroom — wet-core adjacent to kitchen (stackable)
+  rooms.push({
+    name: `${unitLabel} Bathroom`,
+    x: ux + uw - bathW,
+    y: remainderY + livingH,
+    w: bathW,
+    h: Math.max(remainingH - livingH, 1.5),
+  })
+
+  // Balcony — exterior facing (opposite corridor)
+  rooms.push({
+    name: `${unitLabel} Balcony`,
+    x: ux,
+    y: uy + uh - balconyD,
+    w: uw,
+    h: balconyD,
+  })
+
+  return rooms
+}
+
 export function generateApartmentLayout(
   program: { name: string; ratio: number }[],
   width: number,
@@ -316,40 +729,140 @@ export function generateApartmentLayout(
 ): { id: string; name: string; x: number; y: number; width: number; height: number }[] {
   const rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
 
-  const unitItems = program.filter(r => classifyRoom(r.name) !== 'circulation')
-
   const coreSize = 4.0
-  const corridorW = 2.0
-
-  // Core and corridor: place along one side to leave room for units
   const hasCore = program.some(r => r.name.includes('Core') || r.name.includes('Lift') || r.name.includes('Staircase'))
 
+  // Determine unit count from program: count Living/Dining items as unit proxies
+  const livingCount = program.filter(r => r.name.includes('Living') || r.name.includes('Dining')).length
+  const unitCount = Math.max(livingCount, Math.floor(width / 5.5))
+
+  const strategy = selectApartmentStrategy(width, height, unitCount, hasCore)
+
+  // Place core
   if (hasCore) {
-    rooms.push({ id: uid(), name: 'Staircase / Lift Core', x: 0, y: 0, width: coreSize, height: coreSize })
+    rooms.push({
+      id: uid(),
+      name: 'Staircase / Lift Core',
+      x: Number(strategy.coreX.toFixed(2)),
+      y: Number(strategy.coreY.toFixed(2)),
+      width: Number(coreSize.toFixed(2)),
+      height: Number(coreSize.toFixed(2)),
+    })
   }
 
-  // Corridor along the front
-  rooms.push({ id: uid(), name: 'Common Corridor', x: hasCore ? coreSize : 0, y: 0, width: Number((width - (hasCore ? coreSize : 0)).toFixed(2)), height: Number(corridorW.toFixed(2)) })
+  switch (strategy.strategy) {
+    case 'double-loaded-corridor': {
+      const corY = height / 2 - strategy.corridorWidth / 2
+      rooms.push({
+        id: uid(),
+        name: 'Common Corridor',
+        x: 0,
+        y: Number(corY.toFixed(2)),
+        width: Number(width.toFixed(2)),
+        height: Number(strategy.corridorWidth.toFixed(2)),
+      })
 
-  // Distribute units below the corridor
-  const unitDepth = height - corridorW
-  const midIdx = Math.ceil(unitItems.length / 2)
-  const leftUnits = unitItems.slice(0, midIdx)
-  const rightUnits = unitItems.slice(midIdx)
+      // Units on top side
+      for (let i = 0; i < strategy.unitsPerSide; i++) {
+        const ux = hasCore ? strategy.coreX + coreSize + i * strategy.unitWidth : i * strategy.unitWidth
+        const isCorner = i === 0 || i === strategy.unitsPerSide - 1
+        const unitRooms = generateUnitRooms(`Unit ${i + 1}`, ux, 0, strategy.unitWidth, corY, isCorner)
+        for (const r of unitRooms) {
+          rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+        }
+      }
 
-  // Group units: combine living/dining + kitchen into one "Apartment Unit" and bedrooms + bath into another
-  const unitGroups: { name: string; x: number; y: number; w: number; h: number }[] = []
-  const allUnits = [...leftUnits, ...rightUnits]
+      // Units on bottom side (mirrored)
+      for (let i = 0; i < strategy.unitsPerSide; i++) {
+        const ux = hasCore ? strategy.coreX + coreSize + i * strategy.unitWidth : i * strategy.unitWidth
+        const uy = corY + strategy.corridorWidth
+        const isCorner = i === 0 || i === strategy.unitsPerSide - 1
+        const unitRooms = generateUnitRooms(`Unit ${strategy.unitsPerSide + i + 1}`, ux, uy, strategy.unitWidth, corY, isCorner)
+        for (const r of unitRooms) {
+          rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+        }
+      }
+      break
+    }
 
-  const unitH = unitDepth / Math.max(allUnits.length, 1)
-  let uy = corridorW
-  for (const u of allUnits) {
-    unitGroups.push({ name: u.name, x: 0, y: uy, w: width, h: Math.max(unitH, 1.5) })
-    uy += unitH
-  }
+    case 'single-loaded-corridor': {
+      // Corridor along one side
+      rooms.push({
+        id: uid(),
+        name: 'Common Corridor',
+        x: hasCore ? coreSize : 0,
+        y: 0,
+        width: Number((width - (hasCore ? coreSize : 0)).toFixed(2)),
+        height: Number(strategy.corridorWidth.toFixed(2)),
+      })
 
-  for (const ug of unitGroups) {
-    rooms.push({ id: uid(), name: ug.name, x: Number(ug.x.toFixed(2)), y: Number(ug.y.toFixed(2)), width: Number(ug.w.toFixed(2)), height: Number(ug.h.toFixed(2)) })
+      for (let i = 0; i < strategy.unitCount; i++) {
+        const ux = hasCore ? strategy.coreX + coreSize : 0
+        const uy = strategy.corridorWidth + i * strategy.unitDepth
+        const isCorner = i === 0 || i === strategy.unitCount - 1
+        const unitRooms = generateUnitRooms(`Unit ${i + 1}`, ux, uy, strategy.unitWidth, strategy.unitDepth, isCorner)
+        for (const r of unitRooms) {
+          rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+        }
+      }
+      break
+    }
+
+    case 'core-served-cluster': {
+      // Core in center, units around it
+      const halfCore = coreSize / 2
+      const unitW = strategy.unitWidth
+      const unitH = strategy.unitDepth
+
+      // Unit above core
+      const unit1Rooms = generateUnitRooms('Unit 1', strategy.coreX - unitW / 2 + halfCore, strategy.coreY - unitH, unitW, unitH, true)
+      for (const r of unit1Rooms) {
+        rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+      }
+
+      // Unit below core
+      const unit2Rooms = generateUnitRooms('Unit 2', strategy.coreX - unitW / 2 + halfCore, strategy.coreY + coreSize, unitW, unitH, true)
+      for (const r of unit2Rooms) {
+        rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+      }
+
+      // Units beside core
+      if (strategy.unitCount >= 3) {
+        const unit3Rooms = generateUnitRooms('Unit 3', strategy.coreX - unitW, strategy.coreY, unitW / 2, coreSize, false)
+        for (const r of unit3Rooms) {
+          rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+        }
+      }
+      if (strategy.unitCount >= 4) {
+        const unit4Rooms = generateUnitRooms('Unit 4', strategy.coreX + coreSize, strategy.coreY, unitW / 2, coreSize, false)
+        for (const r of unit4Rooms) {
+          rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+        }
+      }
+      break
+    }
+
+    default: {
+      // Single-loaded fallback (same as case above)
+      rooms.push({
+        id: uid(),
+        name: 'Common Corridor',
+        x: hasCore ? coreSize : 0,
+        y: 0,
+        width: Number((width - (hasCore ? coreSize : 0)).toFixed(2)),
+        height: Number(strategy.corridorWidth.toFixed(2)),
+      })
+
+      for (let i = 0; i < strategy.unitCount; i++) {
+        const ux = hasCore ? strategy.coreX + coreSize : 0
+        const uy = strategy.corridorWidth + i * strategy.unitDepth
+        const unitRooms = generateUnitRooms(`Unit ${i + 1}`, ux, uy, strategy.unitWidth, strategy.unitDepth, i === 0 || i === strategy.unitCount - 1)
+        for (const r of unitRooms) {
+          rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+        }
+      }
+      break
+    }
   }
 
   return rooms

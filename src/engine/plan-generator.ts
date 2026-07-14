@@ -11,6 +11,7 @@ import { validateCirculationSeparation, buildMixedUseCirculation } from '../lib/
 import { generatePartyWall, clampToPartyWall } from '../lib/layout/party-wall'
 import { computeLevelProgrammes, getAllocationProgramme, getLevelFloorRole } from '../lib/layout/level-programme'
 import { computeStructuralBridge } from '../lib/structure/structural-bridge'
+import { validateEntranceSeparation } from '../lib/layout/typologies/non-residential'
 
 function normalizeFootprint(area: number) {
   const width = Math.sqrt(area * 1.18)
@@ -120,6 +121,7 @@ export function generatePlanModel(design: DesignOption): PlanModel {
     // Update circulation model for mixed-use
     if (buildingType === 'mixed-use') {
       chassis.circulationModel = buildMixedUseCirculation(chassis)
+      verticalWarnings.push('[Mixed-Use] Circulation model built with retail/public, residential/private, and service/BOH routes')
     }
 
     // Add party wall for duplex
@@ -241,6 +243,18 @@ export function generatePlanModel(design: DesignOption): PlanModel {
       )
       genSuccess = true
       verticalWarnings.push(`[Level ${fi}] fallback generation used after retries`)
+    }
+
+    // Validate entrance separation for mixed-use ground floor
+    if (buildingType === 'mixed-use' && fi === 0 && rawRooms.length > 0) {
+      const entranceResult = validateEntranceSeparation(rawRooms)
+      if (!entranceResult.valid) {
+        for (const conflict of entranceResult.conflicts) {
+          verticalWarnings.push(`[Mixed-Use Entrance] ${conflict}`)
+        }
+      } else {
+        verticalWarnings.push('[Mixed-Use Entrance] All entrances properly separated: retail/public, residential/private, service/BOH')
+      }
     }
 
     // Offset rooms per floor vertically for visualisation
