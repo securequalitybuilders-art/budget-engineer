@@ -1,6 +1,8 @@
 import type { Tier1ParsedBrief, Typology, ProgramItem } from '../tier1-types'
 import type { ConstraintReport } from '../../domain/building'
 import type { DesignConcept } from '../tier2/conceptEngine'
+import { generateVerticalChassis, validateConstraintReport } from './vertical-chassis'
+import type { VerticalChassis } from './vertical-chassis'
 
 export type Topology = 'rectangle' | 'l-shape' | 'split-wing' | 'courtyard'
 
@@ -14,6 +16,7 @@ export interface MasterChassis {
   lShape?: { vertW: number; vertH: number; horizD: number; corridorW: number }
   splitWing?: { pavW: number; leftH: number; rightH: number; galleryW: number }
   courtyard?: { wingDepth: number; outerW: number; outerD: number }
+  verticalChassis?: VerticalChassis
 }
 
 export interface LayoutParameters {
@@ -48,6 +51,7 @@ export interface FloorPlan {
   floorIndex?: number
   totalFloors?: number
   stairCalculations?: { risers: number; treads: number; run: number }
+  verticalChassis?: VerticalChassis
 }
 
 const uid = () => Math.random().toString(36).slice(2, 10)
@@ -175,6 +179,8 @@ function generateRectangle(program: ProgramItem[], siteW: number, siteD: number,
   const bldgW = chassis ? chassis.buildingW : Math.max(6, Math.min(siteW * 0.85, Math.sqrt(progArea * 1.5)))
   const bldgD = chassis ? chassis.buildingD : Math.max(6, Math.min(siteD * 0.85, progArea / bldgW))
 
+  const vc = chassis?.verticalChassis
+
   const corridors = items.filter(r => r.zone === 'circulation' || r.name === 'Circulation' || r.name.startsWith('Circulation'))
   const nonCorridors = items.filter(r => !corridors.includes(r))
 
@@ -220,9 +226,56 @@ function generateRectangle(program: ProgramItem[], siteW: number, siteD: number,
 
   const rooms: PlacedRoom[] = []
   
-  // Stairwell anchoring
+  // Place core zones from vertical chassis (if available)
   let stairW = 0
-  if (chassis?.stairwell) {
+  if (vc && vc.cores.length > 0) {
+    // Use the first core for stairwell placement
+    const firstCore = vc.cores[0]
+    const coreX = Math.min(firstCore.x, bldgW - firstCore.width)
+    const coreY = Math.min(firstCore.y, bldgD - firstCore.depth)
+    rooms.push({ name: 'Stairwell', x: coreX, y: coreY, width: firstCore.width, height: firstCore.depth, zone: 'circulation' })
+    stairW = firstCore.width
+
+    // Add lift if the core has one
+    if (firstCore.hasLift) {
+      const liftX = coreX + firstCore.width + 0.5
+      if (liftX + 1.5 <= bldgW) {
+        rooms.push({ name: 'Lift Core', x: liftX, y: coreY, width: 1.5, height: firstCore.depth, zone: 'circulation' })
+      }
+    }
+
+    // Place party walls from chassis
+    if (vc.partyWalls.length > 0) {
+      for (const pw of vc.partyWalls) {
+        if (pw.x > 0 && pw.x < bldgW) {
+          rooms.push({
+            name: 'Party Wall',
+            x: pw.x - 0.1,
+            y: 0,
+            width: 0.2,
+            height: bldgD,
+            zone: 'service',
+          })
+        }
+      }
+    }
+
+    // Add service shaft rooms
+    if (vc.serviceShafts.length > 0) {
+      for (const shaft of vc.serviceShafts) {
+        if (shaft.x < bldgW && shaft.y < bldgD) {
+          rooms.push({
+            name: `Service Shaft (${shaft.serviceTypes.join('/')})`,
+            x: shaft.x,
+            y: shaft.y,
+            width: shaft.width,
+            height: shaft.depth,
+            zone: 'service',
+          })
+        }
+      }
+    }
+  } else if (chassis?.stairwell) {
     rooms.push({ name: 'Stairwell', x: chassis.stairwell.x, y: chassis.stairwell.y, width: chassis.stairwell.w, height: chassis.stairwell.h, zone: 'circulation' })
     stairW = chassis.stairwell.w
   } else {
@@ -248,9 +301,15 @@ function generateRectangle(program: ProgramItem[], siteW: number, siteD: number,
   }
 
   let x = 0
-  // Wet-core stacking lock: if chassis has a wetZone, first wet-core room in this band snaps to it
-  if (chassis?.wetZone && publicItems.length > 0 && publicItems[0].isWetCore) {
-    x = chassis.wetZone.x
+  // Wet-core stacking lock: prefer vertical chassis wetWalls, then fall back to chassis wetZone
+  let wetCoreX: number | undefined = undefined
+  if (vc && vc.wetWalls.length > 0) {
+    wetCoreX = vc.wetWalls[0].x
+  } else if (chassis?.wetZone) {
+    wetCoreX = chassis.wetZone.x
+  }
+  if (wetCoreX !== undefined && publicItems.length > 0 && publicItems[0].isWetCore) {
+    x = wetCoreX
   }
   for (const item of publicItems) {
     if (item.name === 'Stairwell') continue // already placed via chassis
@@ -273,8 +332,8 @@ function generateRectangle(program: ProgramItem[], siteW: number, siteD: number,
 
   const backY = corridorY + corridorH
   x = 0
-  if (chassis?.wetZone && privateItems.length > 0 && privateItems[0].isWetCore) {
-    x = chassis.wetZone.x
+  if (wetCoreX !== undefined && privateItems.length > 0 && privateItems[0].isWetCore) {
+    x = wetCoreX
   }
   for (const item of privateItems) {
     if (item.name === 'Stairwell') continue
@@ -721,7 +780,8 @@ function computeMasterChassis(
   baseProgram: ProgramItem[],
   siteWidth: number,
   siteDepth: number,
-  minRoomDimensions: Record<string, { minWidth: number; minDepth: number }>
+  minRoomDimensions: Record<string, { minWidth: number; minDepth: number }>,
+  verticalChassis?: VerticalChassis,
 ): MasterChassis {
   let basePlan: FloorPlan
   switch (topology) {
@@ -780,6 +840,10 @@ function computeMasterChassis(
     }
   }
 
+  if (verticalChassis) {
+    chassis.verticalChassis = verticalChassis
+  }
+
   return chassis
 }
 
@@ -830,11 +894,17 @@ function generateDuplex(
     x: buildingWidth - (r.x + r.width)
   }))
 
-  // 4. Inject Party Wall at the snapped axis
-  const partyAxis = halfSiteW * 2
+  // 4. Inject Party Wall — prefer vertical chassis info, fallback to computed axis
+  const vc = chassis?.verticalChassis
+  let partyX: number
+  if (vc && vc.partyWalls.length > 0) {
+    partyX = vc.partyWalls[0].x
+  } else {
+    partyX = halfSiteW * 2 / 2
+  }
   const partyWall: PlacedRoom = {
     name: 'Party Wall',
-    x: partyAxis / 2 - 0.1,
+    x: partyX - 0.1,
     y: 0,
     width: 0.2,
     height: unitA.height,
@@ -884,6 +954,9 @@ export function generateMultiFloorPlans(
     }
   }
 
+  // Generate vertical chassis once for the entire building
+  const verticalChassis = generateVerticalChassis(params, brief)
+
   const result: FloorPlan[][] = []
 
   // Pre-compute master chassis for each topology based on the ground floor (or largest floor)
@@ -892,7 +965,7 @@ export function generateMultiFloorPlans(
     const baseProgram = perFloorPrograms[0].length > 0 ? perFloorPrograms[0] : [{ name: 'Default Room', count: 1, areaM2: 20 }]
     for (const topology of topologies) {
       try {
-        masterChassisMap[topology] = computeMasterChassis(topology, baseProgram, siteWidth, siteDepth, minRoomDimensions)
+        masterChassisMap[topology] = computeMasterChassis(topology, baseProgram, siteWidth, siteDepth, minRoomDimensions, verticalChassis)
       } catch {
         // ignore fallback to calculation inside
       }
@@ -937,9 +1010,12 @@ export function generateMultiFloorPlans(
           plan = generateRectangle(floorProgram, Math.max(siteWidth, 30), Math.max(siteDepth, 30), minRoomDimensions)
           plan = { ...plan, topology, name: `Fallback Rectangle (${topology} degrade)` }
         }
+        // Attach vertical chassis to the plan
+        plan.verticalChassis = verticalChassis
       } catch {
         plan = generateRectangle(floorProgram, Math.max(siteWidth, 30), Math.max(siteDepth, 30), minRoomDimensions)
         plan = { ...plan, topology, name: `Fallback Rectangle (${topology} degrade)` }
+        plan.verticalChassis = verticalChassis
       }
       floorPlans.push(floorPlanWithMeta(plan, fi, floorCount, stairCalculations))
     }
@@ -947,16 +1023,16 @@ export function generateMultiFloorPlans(
     result.push(floorPlans)
   }
 
-  const isMixedUse = brief.typology?.id === 'mixed-use'
-  const isDuplex = brief.typology?.id === 'duplex'
+  // Use real validation instead of hardcoded values
+  const validation = validateConstraintReport(verticalChassis, result)
 
   const constraintReport: ConstraintReport = {
     timestamp: new Date().toISOString(),
-    structuralAlignmentPass: floorCount > 1, // Ensured by MasterChassis lock
-    shaftContinuityPass: true, // Ensured by Wet-Core extraction
-    circulationEgressPass: isMixedUse ? true : true, // Handled by explicit mixed-use logic
-    partyWallContinuous: isDuplex ? true : false,
-    warnings: [],
+    structuralAlignmentPass: validation.structuralAlignmentPass,
+    shaftContinuityPass: validation.shaftContinuityPass,
+    circulationEgressPass: validation.circulationEgressPass,
+    partyWallContinuous: validation.partyWallContinuous,
+    warnings: validation.warnings,
   }
 
   return { plans: result, constraintReport }
