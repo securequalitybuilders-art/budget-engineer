@@ -99,7 +99,10 @@ const STRATEGIES: Record<string, TypologyStrategy> = {
       if (floorContext && floorContext.floorRole === 'podium') {
         return generateZonedLayout({ program, width, height, corridorWidth: 2.0 })
       }
-      return generateApartmentLayout(program, width, height)
+      return generateApartmentLayout(program, width, height, {
+        floorRole: floorContext?.floorRole,
+        storeyCount: floorContext?.totalFloors ?? 2,
+      })
     },
   },
   'townhouse': {
@@ -138,7 +141,10 @@ const STRATEGIES: Record<string, TypologyStrategy> = {
     name: 'Mixed-Use',
     generate: (program, width, height, seed?, floorContext?) => {
       if (floorContext && floorContext.floorRole === 'upper-residential') {
-        return generateApartmentLayout(program, width, height)
+        return generateApartmentLayout(program, width, height, {
+          floorRole: 'upper-residential',
+          storeyCount: floorContext?.totalFloors ?? 2,
+        })
       }
       const v = generateNonResVariationProfile(seed ?? 0, 'mixed-use')
       return generateMixedUseLayout(program, width, height, v)

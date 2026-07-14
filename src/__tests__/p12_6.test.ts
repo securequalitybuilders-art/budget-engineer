@@ -136,21 +136,41 @@ describe('P12.6 — Apartment layout generation', () => {
     expect(balconies.length).toBeGreaterThanOrEqual(4)
   })
 
-  it('kitchens and bathrooms share vertical alignment (wet-core stacking)', () => {
+  it('kitchens and bathrooms are within the same unit (wet-core stacking)', () => {
     const program = makeUnitProgram(2)
     const rooms = generateApartmentLayout(program, 10, 18)
-    const kitchens = rooms.filter(r => r.name.includes('Kitchen'))
-    const bathrooms = rooms.filter(r => r.name.includes('Bathroom'))
 
-    if (kitchens.length > 0 && bathrooms.length > 0) {
-      // Kitchens and bathrooms should be near each other within the same unit
-      for (let i = 0; i < Math.min(kitchens.length, bathrooms.length); i++) {
-        const k = kitchens[i]
-        const b = bathrooms[i]
-        const dist = Math.abs(k.x - b.x) + Math.abs(k.y - b.y)
-        expect(dist).toBeLessThan(10)
+    // Pair by unit label prefix (e.g. "Unit 1 Kitchen" → "Unit 1")
+    const kitchenMap = new Map<string, typeof rooms>()
+    const bathroomMap = new Map<string, typeof rooms>()
+    for (const r of rooms) {
+      const match = r.name.match(/^(Unit \d+)/)
+      if (match) {
+        const unitLabel = match[1]
+        if (r.name.includes('Kitchen')) {
+          if (!kitchenMap.has(unitLabel)) kitchenMap.set(unitLabel, [])
+          kitchenMap.get(unitLabel)!.push(r)
+        }
+        if (r.name.includes('Bathroom')) {
+          if (!bathroomMap.has(unitLabel)) bathroomMap.set(unitLabel, [])
+          bathroomMap.get(unitLabel)!.push(r)
+        }
       }
     }
+
+    // Every unit that has a kitchen should also have a bathroom
+    for (const [unitLabel, ks] of kitchenMap) {
+      const bs = bathroomMap.get(unitLabel)
+      expect(bs).toBeDefined()
+      expect(bs!.length).toBeGreaterThanOrEqual(1)
+      // Kitchen and bathroom should be in reasonable proximity (same unit = y overlap)
+      const k = ks[0]
+      const b = bs![0]
+      const yOverlap = k.y < b.y + b.height && b.y < k.y + k.height
+      expect(yOverlap).toBe(true)
+    }
+
+    expect(kitchenMap.size).toBeGreaterThanOrEqual(2)
   })
 
   it('corner/end units have more bedrooms where possible', () => {

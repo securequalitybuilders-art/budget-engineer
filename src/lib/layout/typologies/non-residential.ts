@@ -1,5 +1,7 @@
 import { getMinimumDimensions, classifyRoom } from '../../geometry/plan-intelligence'
 import type { NonResVariationProfile } from '../variation-engine'
+import type { ApartmentUnit, ApartmentFloorModel, CorePlacementType, CorePlacement, UnitTemplateType } from '../apartment-units'
+import { buildApartmentFloorModel, selectCorePlacement, suggestUnitTemplate, getUnitTemplate } from '../apartment-units'
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 
@@ -524,6 +526,18 @@ export interface ApartmentStrategyResult {
   unitWidth: number
   coreX: number
   coreY: number
+  corePlacementType: CorePlacementType
+  corridorType: string
+  isWide: boolean
+  isNarrow: boolean
+  isCompact: boolean
+  storeyCount: number
+}
+
+let _lastApartmentFloorModel: ApartmentFloorModel | null = null
+
+export function getLastApartmentFloorModel(): ApartmentFloorModel | null {
+  return _lastApartmentFloorModel
 }
 
 interface PlacedUnitRoom {
@@ -539,331 +553,352 @@ export function selectApartmentStrategy(
   height: number,
   unitCount: number,
   hasCore: boolean,
+  storeyCount = 2,
 ): ApartmentStrategyResult {
   const corridorW = 2.0
   const coreSize = 4.0
   const coreX = hasCore ? 0 : -1
   const coreY = 0
+  const isWide = width >= 18
+  const isNarrow = width < 12
+  const isCompact = width <= 12 && height <= 12 && unitCount <= 4
 
-  if (hasCore && width <= 12 && height <= 12 && unitCount <= 4) {
-    // Compact building with core — use core-served cluster for efficient layout
+  if (hasCore && isCompact) {
     const clusterSize = Math.max(Math.min(width, height) * 0.45, 4.0)
     return {
-      strategy: 'core-served-cluster',
-      unitCount,
-      unitsPerSide: unitCount,
-      corridorWidth: 1.5,
+      strategy: 'core-served-cluster', unitCount,
+      unitsPerSide: unitCount, corridorWidth: 1.5,
       unitDepth: Math.max(clusterSize / 2, 3.0),
       unitWidth: Math.max(clusterSize / 2, 2.5),
-      coreX: width / 2 - coreSize / 2,
-      coreY: height / 2 - coreSize / 2,
+      coreX: width / 2 - coreSize / 2, coreY: height / 2 - coreSize / 2,
+      corePlacementType: 'cluster', corridorType: 'core-served-cluster',
+      isWide, isNarrow, isCompact, storeyCount,
     }
   }
 
-  if (width >= 18 && unitCount >= 4) {
-    // Wide enough for double-loaded corridor
+  if (isWide && unitCount >= 4) {
     const usableDepth = height / 2 - corridorW / 2
     const unitsPerSide = Math.ceil(unitCount / 2)
     const unitW = (width - (hasCore ? coreSize : 0)) / Math.max(unitsPerSide, 1)
     return {
-      strategy: 'double-loaded-corridor',
-      unitCount,
-      unitsPerSide,
+      strategy: 'double-loaded-corridor', unitCount, unitsPerSide,
       corridorWidth: corridorW,
-      unitDepth: Math.max(usableDepth, 3.0),
-      unitWidth: Math.max(unitW, 2.5),
-      coreX,
-      coreY,
+      unitDepth: Math.max(usableDepth, 3.0), unitWidth: Math.max(unitW, 2.5),
+      coreX, coreY,
+      corePlacementType: 'central', corridorType: 'double-loaded',
+      isWide, isNarrow, isCompact, storeyCount,
     }
   }
 
   if (width >= 8 && unitCount >= 2) {
-    // Single-loaded corridor
     const unitH = (height - corridorW) / Math.max(unitCount, 1)
     return {
-      strategy: 'single-loaded-corridor',
-      unitCount,
-      unitsPerSide: unitCount,
+      strategy: 'single-loaded-corridor', unitCount, unitsPerSide: unitCount,
       corridorWidth: corridorW,
-      unitDepth: Math.max(unitH, 3.0),
-      unitWidth: Math.max(width - (hasCore ? coreSize : 0), 2.5),
-      coreX,
-      coreY,
+      unitDepth: Math.max(unitH, 3.0), unitWidth: Math.max(width - (hasCore ? coreSize : 0), 2.5),
+      coreX, coreY,
+      corePlacementType: 'side', corridorType: 'single-loaded',
+      isWide, isNarrow, isCompact, storeyCount,
     }
   }
 
   if (unitCount <= 4 && hasCore) {
-    // Core-served compact cluster
     const clusterSize = Math.max(Math.min(width, height) * 0.45, 4.0)
     return {
-      strategy: 'core-served-cluster',
-      unitCount,
-      unitsPerSide: unitCount,
+      strategy: 'core-served-cluster', unitCount, unitsPerSide: unitCount,
       corridorWidth: 1.5,
-      unitDepth: Math.max(clusterSize / 2, 3.0),
-      unitWidth: Math.max(clusterSize / 2, 2.5),
-      coreX: width / 2 - coreSize / 2,
-      coreY: height / 2 - coreSize / 2,
+      unitDepth: Math.max(clusterSize / 2, 3.0), unitWidth: Math.max(clusterSize / 2, 2.5),
+      coreX: width / 2 - coreSize / 2, coreY: height / 2 - coreSize / 2,
+      corePlacementType: 'cluster', corridorType: 'core-served-cluster',
+      isWide, isNarrow, isCompact, storeyCount,
     }
   }
 
-  // Fallback: single-loaded
   const unitH = (height - corridorW) / Math.max(unitCount, 1)
   return {
-    strategy: 'single-loaded-corridor',
-    unitCount,
-    unitsPerSide: unitCount,
+    strategy: 'single-loaded-corridor', unitCount, unitsPerSide: unitCount,
     corridorWidth: corridorW,
-    unitDepth: Math.max(unitH, 3.0),
-    unitWidth: Math.max(width - (hasCore ? coreSize : 0), 2.5),
-    coreX,
-    coreY,
+    unitDepth: Math.max(unitH, 3.0), unitWidth: Math.max(width - (hasCore ? coreSize : 0), 2.5),
+    coreX, coreY,
+    corePlacementType: sideCore(width, height, unitCount) as CorePlacementType,
+    corridorType: 'single-loaded',
+    isWide, isNarrow, isCompact, storeyCount,
   }
 }
 
-function generateUnitRooms(
+function sideCore(w: number, _h: number, _u: number): CorePlacementType {
+  return w >= 12 ? 'central' : 'side'
+}
+
+// ── Unit-aware template generator helper ──────────────────────/
+
+function generateUnitFromTemplate(
   unitLabel: string,
   ux: number,
   uy: number,
   uw: number,
   uh: number,
-  isCorner: boolean,
-): PlacedUnitRoom[] {
-  const rooms: PlacedUnitRoom[] = []
-  const entryDepth = Math.min(1.2, uh * 0.15)
-  const livingRatio = 0.40
-  const kitchenRatio = 0.18
-  const bathW = Math.min(1.8, uw * 0.20)
-  const balconyD = Math.min(1.5, uh * 0.12)
+  unitType: UnitTemplateType,
+  facadeOrientation: 'north' | 'south' | 'east' | 'west',
+  entrySide: 'top' | 'bottom' | 'left' | 'right',
+): { rooms: PlacedUnitRoom[]; wetCore: { x: number; y: number; width: number; height: number } | null; balcony: { x: number; y: number; width: number; height: number } | null } {
+  const generator = getUnitTemplate(unitType)
+  const templateRooms = generator({ ux, uy, uw, uh, facadeOrientation, entrySide })
 
-  // Entry zone at corridor side
-  rooms.push({
-    name: `${unitLabel} Entry`,
-    x: ux,
-    y: uy,
-    w: Math.min(2.0, uw * 0.25),
-    h: entryDepth,
-  })
+  const rooms: PlacedUnitRoom[] = templateRooms.map(r => ({
+    name: `${unitLabel} ${r.name}`,
+    x: r.x,
+    y: r.y,
+    w: r.width,
+    h: r.height,
+  }))
 
-  let remainderY = uy + entryDepth
-  const remainingH = uh - entryDepth - balconyD
-  const livingH = remainingH * livingRatio
-  const kitchenH = kitchenRatio * remainingH
+  const bathRoom = templateRooms.find(r => r.name.startsWith('Bathroom'))
+  const balconyRoom = templateRooms.find(r => r.name === 'Balcony')
 
-  // Living/dining — front-facing
-  const livingW = uw - bathW
-  rooms.push({
-    name: `${unitLabel} Living / Dining`,
-    x: ux,
-    y: remainderY,
-    w: livingW,
-    h: Math.max(livingH, 2.5),
-  })
+  const wetCore = bathRoom ? { x: bathRoom.x, y: bathRoom.y, width: bathRoom.width, height: bathRoom.height } : null
+  const balcony = balconyRoom ? { x: balconyRoom.x, y: balconyRoom.y, width: balconyRoom.width, height: balconyRoom.height } : null
 
-  // Kitchen — adjacent to living (wet-core zone)
-  rooms.push({
-    name: `${unitLabel} Kitchen`,
-    x: ux,
-    y: remainderY + livingH,
-    w: Math.max(livingW * 0.7, 2.0),
-    h: Math.max(kitchenH, 1.5),
-  })
-
-  // Bedroom(s) — private zone at rear
-  const bedY = remainderY + livingH + kitchenH
-  const bedH = remainingH - livingH - kitchenH
-
-  if (isCorner && uw > 4.5) {
-    // Corner unit gets 2 bedrooms
-    const bed1W = uw * 0.52
-    const bed2W = uw - bed1W - bathW
-    rooms.push({
-      name: `${unitLabel} Bedroom 1`,
-      x: ux,
-      y: bedY,
-      w: Math.max(bed1W, 2.5),
-      h: Math.max(bedH, 2.0),
-    })
-    rooms.push({
-      name: `${unitLabel} Bedroom 2`,
-      x: ux + bed1W,
-      y: bedY,
-      w: Math.max(bed2W, 2.0),
-      h: Math.max(bedH, 2.0),
-    })
-  } else {
-    rooms.push({
-      name: `${unitLabel} Bedroom 1`,
-      x: ux,
-      y: bedY,
-      w: Math.max(uw - bathW, 2.5),
-      h: Math.max(bedH, 2.0),
-    })
-  }
-
-  // Bathroom — wet-core adjacent to kitchen (stackable)
-  rooms.push({
-    name: `${unitLabel} Bathroom`,
-    x: ux + uw - bathW,
-    y: remainderY + livingH,
-    w: bathW,
-    h: Math.max(remainingH - livingH, 1.5),
-  })
-
-  // Balcony — exterior facing (opposite corridor)
-  rooms.push({
-    name: `${unitLabel} Balcony`,
-    x: ux,
-    y: uy + uh - balconyD,
-    w: uw,
-    h: balconyD,
-  })
-
-  return rooms
+  return { rooms, wetCore, balcony }
 }
+
+function entrySideForUnit(corridorSide: 'top' | 'bottom' | 'left' | 'right', onTopSide: boolean): 'top' | 'bottom' | 'left' | 'right' {
+  if (corridorSide === 'top') return onTopSide ? 'bottom' : 'top'
+  if (corridorSide === 'bottom') return onTopSide ? 'top' : 'bottom'
+  if (corridorSide === 'left') return onTopSide ? 'right' : 'left'
+  return onTopSide ? 'left' : 'right'
+}
+
+// ── Generate full apartment floor (unit-aware) ───────────────/
 
 export function generateApartmentLayout(
   program: { name: string; ratio: number }[],
   width: number,
   height: number,
+  floorContext?: { floorRole?: string; storeyCount?: number },
 ): { id: string; name: string; x: number; y: number; width: number; height: number }[] {
-  const rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
-
+  const flatRooms: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
   const coreSize = 4.0
   const hasCore = program.some(r => r.name.includes('Core') || r.name.includes('Lift') || r.name.includes('Staircase'))
 
-  // Determine unit count from program: count Living/Dining items as unit proxies
   const livingCount = program.filter(r => r.name.includes('Living') || r.name.includes('Dining')).length
   const unitCount = Math.max(livingCount, Math.floor(width / 5.5))
+  const storeyCount = floorContext?.storeyCount ?? 2
 
-  const strategy = selectApartmentStrategy(width, height, unitCount, hasCore)
+  const strategy = selectApartmentStrategy(width, height, unitCount, hasCore, storeyCount)
 
-  // Place core
-  if (hasCore) {
-    rooms.push({
-      id: uid(),
-      name: 'Staircase / Lift Core',
-      x: Number(strategy.coreX.toFixed(2)),
-      y: Number(strategy.coreY.toFixed(2)),
-      width: Number(coreSize.toFixed(2)),
-      height: Number(coreSize.toFixed(2)),
+  const corePlacement: CorePlacement | null = hasCore
+    ? selectCorePlacement(strategy.corePlacementType, width, height, coreSize)
+    : null
+
+  if (corePlacement) {
+    flatRooms.push({
+      id: uid(), name: 'Staircase / Lift Core',
+      x: Number(corePlacement.x.toFixed(2)),
+      y: Number(corePlacement.y.toFixed(2)),
+      width: Number(corePlacement.width.toFixed(2)),
+      height: Number(corePlacement.height.toFixed(2)),
     })
   }
+
+  const units: ApartmentUnit[] = []
 
   switch (strategy.strategy) {
     case 'double-loaded-corridor': {
       const corY = height / 2 - strategy.corridorWidth / 2
-      rooms.push({
-        id: uid(),
-        name: 'Common Corridor',
-        x: 0,
-        y: Number(corY.toFixed(2)),
-        width: Number(width.toFixed(2)),
-        height: Number(strategy.corridorWidth.toFixed(2)),
+      const corridor = { x: 0, y: corY, width, height: strategy.corridorWidth }
+      flatRooms.push({
+        id: uid(), name: 'Common Corridor',
+        x: Number(corridor.x.toFixed(2)), y: Number(corridor.y.toFixed(2)),
+        width: Number(corridor.width.toFixed(2)), height: Number(corridor.height.toFixed(2)),
       })
 
-      // Units on top side
+      // Top side units (corridor at bottom)
       for (let i = 0; i < strategy.unitsPerSide; i++) {
-        const ux = hasCore ? strategy.coreX + coreSize + i * strategy.unitWidth : i * strategy.unitWidth
+        const ux = corePlacement ? corePlacement.x + corePlacement.width + i * strategy.unitWidth : i * strategy.unitWidth
         const isCorner = i === 0 || i === strategy.unitsPerSide - 1
-        const unitRooms = generateUnitRooms(`Unit ${i + 1}`, ux, 0, strategy.unitWidth, corY, isCorner)
-        for (const r of unitRooms) {
-          rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+        const unitType = suggestUnitTemplate(strategy.unitWidth, corY, isCorner, isCorner)
+        const entrySide = entrySideForUnit('top', false)
+        const { rooms, wetCore, balcony } = generateUnitFromTemplate(
+          `Unit ${i + 1}`, ux, 0, strategy.unitWidth, corY, unitType, 'north', entrySide,
+        )
+
+        units.push({
+          id: uid(), label: `Unit ${i + 1}`, unitIndex: i, unitType,
+          x: ux, y: 0, width: strategy.unitWidth, height: corY,
+          isCornerUnit: isCorner, isEndUnit: isCorner,
+          entryX: ux + Math.min(2.0, strategy.unitWidth * 0.25), entryY: 0,
+          rooms: rooms.map(r => ({ name: r.name, x: r.x, y: r.y, width: r.w, height: r.h })),
+          wetCoreZone: wetCore, balconyZone: balcony, facadeOrientation: 'north',
+        })
+
+        for (const r of rooms) {
+          flatRooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
         }
       }
 
-      // Units on bottom side (mirrored)
+      // Bottom side units (corridor at top)
       for (let i = 0; i < strategy.unitsPerSide; i++) {
-        const ux = hasCore ? strategy.coreX + coreSize + i * strategy.unitWidth : i * strategy.unitWidth
+        const ux = corePlacement ? corePlacement.x + corePlacement.width + i * strategy.unitWidth : i * strategy.unitWidth
         const uy = corY + strategy.corridorWidth
         const isCorner = i === 0 || i === strategy.unitsPerSide - 1
-        const unitRooms = generateUnitRooms(`Unit ${strategy.unitsPerSide + i + 1}`, ux, uy, strategy.unitWidth, corY, isCorner)
-        for (const r of unitRooms) {
-          rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+        const unitType = suggestUnitTemplate(strategy.unitWidth, corY, isCorner, isCorner)
+        const entrySide = entrySideForUnit('bottom', false)
+        const { rooms, wetCore, balcony } = generateUnitFromTemplate(
+          `Unit ${strategy.unitsPerSide + i + 1}`, ux, uy, strategy.unitWidth, corY, unitType, 'south', entrySide,
+        )
+
+        units.push({
+          id: uid(), label: `Unit ${strategy.unitsPerSide + i + 1}`, unitIndex: strategy.unitsPerSide + i, unitType,
+          x: ux, y: uy, width: strategy.unitWidth, height: corY,
+          isCornerUnit: isCorner, isEndUnit: isCorner,
+          entryX: ux + Math.min(2.0, strategy.unitWidth * 0.25), entryY: uy,
+          rooms: rooms.map(r => ({ name: r.name, x: r.x, y: r.y, width: r.w, height: r.h })),
+          wetCoreZone: wetCore, balconyZone: balcony, facadeOrientation: 'south',
+        })
+
+        for (const r of rooms) {
+          flatRooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
         }
       }
+
+      _lastApartmentFloorModel = buildApartmentFloorModel(units, corridor, corePlacement, strategy.strategy)
       break
     }
 
     case 'single-loaded-corridor': {
-      // Corridor along one side
-      rooms.push({
-        id: uid(),
-        name: 'Common Corridor',
-        x: hasCore ? coreSize : 0,
+      const corW = width - (corePlacement ? corePlacement.width : 0)
+      const corridor = {
+        x: corePlacement ? corePlacement.width : 0,
         y: 0,
-        width: Number((width - (hasCore ? coreSize : 0)).toFixed(2)),
-        height: Number(strategy.corridorWidth.toFixed(2)),
+        width: corW,
+        height: strategy.corridorWidth,
+      }
+      flatRooms.push({
+        id: uid(), name: 'Common Corridor',
+        x: Number(corridor.x.toFixed(2)), y: Number(corridor.y.toFixed(2)),
+        width: Number(corridor.width.toFixed(2)), height: Number(corridor.height.toFixed(2)),
       })
 
       for (let i = 0; i < strategy.unitCount; i++) {
-        const ux = hasCore ? strategy.coreX + coreSize : 0
+        const ux = corridor.x
         const uy = strategy.corridorWidth + i * strategy.unitDepth
         const isCorner = i === 0 || i === strategy.unitCount - 1
-        const unitRooms = generateUnitRooms(`Unit ${i + 1}`, ux, uy, strategy.unitWidth, strategy.unitDepth, isCorner)
-        for (const r of unitRooms) {
-          rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+        const unitType = suggestUnitTemplate(strategy.unitWidth, strategy.unitDepth, isCorner, isCorner)
+        const entrySide = 'top'
+        const { rooms, wetCore, balcony } = generateUnitFromTemplate(
+          `Unit ${i + 1}`, ux, uy, strategy.unitWidth, strategy.unitDepth, unitType, 'south', entrySide,
+        )
+
+        units.push({
+          id: uid(), label: `Unit ${i + 1}`, unitIndex: i, unitType,
+          x: ux, y: uy, width: strategy.unitWidth, height: strategy.unitDepth,
+          isCornerUnit: isCorner, isEndUnit: isCorner,
+          entryX: ux + Math.min(2.0, strategy.unitWidth * 0.25), entryY: uy,
+          rooms: rooms.map(r => ({ name: r.name, x: r.x, y: r.y, width: r.w, height: r.h })),
+          wetCoreZone: wetCore, balconyZone: balcony, facadeOrientation: 'south',
+        })
+
+        for (const r of rooms) {
+          flatRooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
         }
       }
+
+      _lastApartmentFloorModel = buildApartmentFloorModel(units, corridor, corePlacement, strategy.strategy)
       break
     }
 
     case 'core-served-cluster': {
-      // Core in center, units around it
       const halfCore = coreSize / 2
       const unitW = strategy.unitWidth
       const unitH = strategy.unitDepth
+      const cx = corePlacement ? corePlacement.x : width / 2 - halfCore
+      const cy = corePlacement ? corePlacement.y : height / 2 - halfCore
 
       // Unit above core
-      const unit1Rooms = generateUnitRooms('Unit 1', strategy.coreX - unitW / 2 + halfCore, strategy.coreY - unitH, unitW, unitH, true)
-      for (const r of unit1Rooms) {
-        rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+      const u1 = generateUnitFromTemplate('Unit 1', cx - unitW / 2 + halfCore, cy - unitH, unitW, unitH, 'two-bed-standard', 'north', 'bottom')
+      for (const r of u1.rooms) {
+        flatRooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
       }
+      units.push({ id: uid(), label: 'Unit 1', unitIndex: 0, unitType: 'two-bed-standard' as const, x: cx - unitW / 2 + halfCore, y: cy - unitH, width: unitW, height: unitH, isCornerUnit: true, isEndUnit: true, entryX: cx - unitW / 2 + halfCore + Math.min(2.0, unitW * 0.25), entryY: cy - unitH, rooms: u1.rooms.map(r => ({ name: r.name, x: r.x, y: r.y, width: r.w, height: r.h })), wetCoreZone: u1.wetCore, balconyZone: u1.balcony, facadeOrientation: 'north' })
 
       // Unit below core
-      const unit2Rooms = generateUnitRooms('Unit 2', strategy.coreX - unitW / 2 + halfCore, strategy.coreY + coreSize, unitW, unitH, true)
-      for (const r of unit2Rooms) {
-        rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+      const u2 = generateUnitFromTemplate('Unit 2', cx - unitW / 2 + halfCore, cy + coreSize, unitW, unitH, 'two-bed-standard', 'south', 'top')
+      for (const r of u2.rooms) {
+        flatRooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
       }
+      units.push({ id: uid(), label: 'Unit 2', unitIndex: 1, unitType: 'two-bed-standard' as const, x: cx - unitW / 2 + halfCore, y: cy + coreSize, width: unitW, height: unitH, isCornerUnit: true, isEndUnit: true, entryX: cx - unitW / 2 + halfCore + Math.min(2.0, unitW * 0.25), entryY: cy + coreSize, rooms: u2.rooms.map(r => ({ name: r.name, x: r.x, y: r.y, width: r.w, height: r.h })), wetCoreZone: u2.wetCore, balconyZone: u2.balcony, facadeOrientation: 'south' })
 
       // Units beside core
       if (strategy.unitCount >= 3) {
-        const unit3Rooms = generateUnitRooms('Unit 3', strategy.coreX - unitW, strategy.coreY, unitW / 2, coreSize, false)
-        for (const r of unit3Rooms) {
-          rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+        const u3 = generateUnitFromTemplate('Unit 3', cx - unitW, cy, unitW / 2, coreSize, 'two-bed-standard', 'east', 'right')
+        for (const r of u3.rooms) {
+          flatRooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
         }
+        units.push({ id: uid(), label: 'Unit 3', unitIndex: 2, unitType: 'two-bed-standard' as const, x: cx - unitW, y: cy, width: unitW / 2, height: coreSize, isCornerUnit: false, isEndUnit: false, entryX: cx - unitW + Math.min(2.0, unitW * 0.25), entryY: cy, rooms: u3.rooms.map(r => ({ name: r.name, x: r.x, y: r.y, width: r.w, height: r.h })), wetCoreZone: u3.wetCore, balconyZone: u3.balcony, facadeOrientation: 'east' })
       }
       if (strategy.unitCount >= 4) {
-        const unit4Rooms = generateUnitRooms('Unit 4', strategy.coreX + coreSize, strategy.coreY, unitW / 2, coreSize, false)
-        for (const r of unit4Rooms) {
-          rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+        const u4 = generateUnitFromTemplate('Unit 4', cx + coreSize, cy, unitW / 2, coreSize, 'two-bed-standard', 'west', 'left')
+        for (const r of u4.rooms) {
+          flatRooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
         }
+        units.push({ id: uid(), label: 'Unit 4', unitIndex: 3, unitType: 'two-bed-standard' as const, x: cx + coreSize, y: cy, width: unitW / 2, height: coreSize, isCornerUnit: false, isEndUnit: false, entryX: cx + coreSize + Math.min(2.0, unitW * 0.25), entryY: cy, rooms: u4.rooms.map(r => ({ name: r.name, x: r.x, y: r.y, width: r.w, height: r.h })), wetCoreZone: u4.wetCore, balconyZone: u4.balcony, facadeOrientation: 'west' })
       }
+
+      _lastApartmentFloorModel = buildApartmentFloorModel(units, null, corePlacement, strategy.strategy)
       break
     }
 
     default: {
-      // Single-loaded fallback (same as case above)
-      rooms.push({
-        id: uid(),
-        name: 'Common Corridor',
-        x: hasCore ? coreSize : 0,
+      // Single-loaded fallback
+      const corW = width - (corePlacement ? corePlacement.width : 0)
+      const corridor = {
+        x: corePlacement ? corePlacement.width : 0,
         y: 0,
-        width: Number((width - (hasCore ? coreSize : 0)).toFixed(2)),
-        height: Number(strategy.corridorWidth.toFixed(2)),
+        width: corW,
+        height: strategy.corridorWidth,
+      }
+      flatRooms.push({
+        id: uid(), name: 'Common Corridor',
+        x: Number(corridor.x.toFixed(2)), y: Number(corridor.y.toFixed(2)),
+        width: Number(corridor.width.toFixed(2)), height: Number(corridor.height.toFixed(2)),
       })
 
       for (let i = 0; i < strategy.unitCount; i++) {
-        const ux = hasCore ? strategy.coreX + coreSize : 0
+        const ux = corridor.x
         const uy = strategy.corridorWidth + i * strategy.unitDepth
-        const unitRooms = generateUnitRooms(`Unit ${i + 1}`, ux, uy, strategy.unitWidth, strategy.unitDepth, i === 0 || i === strategy.unitCount - 1)
-        for (const r of unitRooms) {
-          rooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
+        const isCorner = i === 0 || i === strategy.unitCount - 1
+        const unitType = suggestUnitTemplate(strategy.unitWidth, strategy.unitDepth, isCorner, isCorner)
+        const { rooms, wetCore, balcony } = generateUnitFromTemplate(
+          `Unit ${i + 1}`, ux, uy, strategy.unitWidth, strategy.unitDepth, unitType, 'south', 'top',
+        )
+        units.push({
+          id: uid(), label: `Unit ${i + 1}`, unitIndex: i, unitType,
+          x: ux, y: uy, width: strategy.unitWidth, height: strategy.unitDepth,
+          isCornerUnit: isCorner, isEndUnit: isCorner,
+          entryX: ux + Math.min(2.0, strategy.unitWidth * 0.25), entryY: uy,
+          rooms: rooms.map(r => ({ name: r.name, x: r.x, y: r.y, width: r.w, height: r.h })),
+          wetCoreZone: wetCore, balconyZone: balcony, facadeOrientation: 'south',
+        })
+        for (const r of rooms) {
+          flatRooms.push({ id: uid(), name: r.name, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(r.w.toFixed(2)), height: Number(r.h.toFixed(2)) })
         }
       }
+
+      _lastApartmentFloorModel = buildApartmentFloorModel(units, corridor, corePlacement, strategy.strategy)
       break
     }
   }
 
-  return rooms
+  return flatRooms
+}
+
+export function generateApartmentLayoutDetailed(
+  program: { name: string; ratio: number }[],
+  width: number,
+  height: number,
+  floorContext?: { floorRole?: string; storeyCount?: number },
+): { rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[]; model: ApartmentFloorModel } {
+  const rooms = generateApartmentLayout(program, width, height, floorContext)
+  return { rooms, model: _lastApartmentFloorModel ?? buildApartmentFloorModel([], null, null, 'unknown') }
 }

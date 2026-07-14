@@ -44,7 +44,8 @@ describe('briefDrivenDesign — room programs per building type', () => {
       const plan = generatePlanModel(makeDesign({ buildingType, grossFloorArea: 120 }))
       const planNames = plan.rooms.map((r) => r.name)
       // At least one room from the program should appear in the plan
-      const match = program.some((roomDef) => planNames.includes(roomDef.name))
+      // (use substring match because apartment layout prepends "Unit N " to room names)
+      const match = program.some((roomDef) => planNames.some(pn => pn.includes(roomDef.name)))
       expect(match, `${buildingType}: none of ${program.map(r => r.name)} found in ${planNames}`).toBe(true)
     }
   })
