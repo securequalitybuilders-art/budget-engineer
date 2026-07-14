@@ -291,16 +291,74 @@ export function computeLevelProgrammes(typology: string, storeyCount: number): P
   return { typology, storeyCount, levels }
 }
 
+function getRoomWeight(name: string, typology: string): number {
+  // Typology-specific room weightings for more natural proportions
+  if (typology === 'clinic') {
+    if (name.includes('Consultation')) return 1.5
+    if (name.includes('Waiting') || name.includes('Reception')) return 1.3
+    if (name.includes('Treatment')) return 1.2
+    if (name.includes('Circulation') || name.includes('Corridor')) return 0.6
+    return 1.0
+  }
+  if (typology === 'school') {
+    if (name.includes('Classroom')) return 1.6
+    if (name.includes('Assembly') || name.includes('Hall')) return 1.8
+    if (name.includes('Corridor')) return 0.5
+    if (name.includes('WC') || name.includes('Toilet')) return 0.7
+    return 1.0
+  }
+  if (typology === 'worship') {
+    if (name.includes('Hall') || name.includes('Sanctuary')) return 2.5
+    if (name.includes('Fellowship')) return 1.3
+    if (name.includes('Kitchen')) return 1.0
+    if (name.includes('Office')) return 0.8
+    return 1.0
+  }
+  if (typology === 'warehouse') {
+    if (name.includes('Warehouse')) return 3.0
+    if (name.includes('Loading')) return 1.2
+    return 1.0
+  }
+  if (typology === 'mixed-use') {
+    if (name.includes('Retail')) return 1.8
+    if (name.includes('Lobby')) return 0.8
+    if (name.includes('Corridor')) return 0.6
+    return 1.0
+  }
+  if (typology === 'apartment') {
+    if (name.includes('Living') || name.includes('Dining')) return 1.3
+    if (name.includes('Bedroom')) return 1.1
+    if (name.includes('Balcony')) return 0.5
+    return 1.0
+  }
+  // Residential defaults
+  if (name.includes('Lounge') || name.includes('Living')) return 1.3
+  if (name.includes('Master')) return 1.3
+  if (name.includes('Bedroom')) return 1.1
+  if (name.includes('Circulation') || name.includes('Corridor')) return 0.5
+  if (name.includes('Store')) return 0.6
+  if (name.includes('Laundry')) return 0.5
+  if (name.includes('Veranda')) return 0.7
+  return 1.0
+}
+
 export function getAllocationProgramme(profile: ProgrammeProfile, levelIndex: number): { name: string; ratio: number }[] {
   const level = profile.levels[levelIndex]
   if (!level) return [{ name: 'Default Room', ratio: 1 }]
 
-  const totalCount = level.roomAllocations.length
-  if (totalCount === 0) return [{ name: 'Default Room', ratio: 1 }]
+  const allocations = level.roomAllocations
+  if (allocations.length === 0) return [{ name: 'Default Room', ratio: 1 }]
 
-  return level.roomAllocations.map(r => ({
+  const weights = allocations.map(r => getRoomWeight(r.name, profile.typology))
+  const weightSum = weights.reduce((s, w) => s + w, 0)
+
+  if (weightSum <= 0) {
+    return allocations.map(r => ({ name: r.name, ratio: 1 / allocations.length }))
+  }
+
+  return allocations.map((r, i) => ({
     name: r.name,
-    ratio: 1 / totalCount,
+    ratio: weights[i] / weightSum,
   }))
 }
 

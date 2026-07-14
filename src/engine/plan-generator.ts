@@ -196,17 +196,54 @@ export function generatePlanModel(design: DesignOption): PlanModel {
     // Get constraints from chassis for this level
     const constraints = chassis ? getConstraintsForLevel(chassis, fi) : []
 
-    // Generate level-specific rooms
-    const rawRooms = generateLayoutByTypology(
-      buildingType,
-      levelProgramme,
-      footprint.width,
-      footprint.height,
-      Date.now() + fi,
-      floorContext,
-    )
+    // Generate level-specific rooms with retry on failure
+    let rawRooms: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
+    let genSuccess = false
 
-    // Offset rooms per floor vertically for visualisation (y-offset by floor index * footprint height)
+    for (let retry = 0; retry < 3; retry++) {
+      try {
+        const seed = Date.now() + fi + retry * 9973
+        const candidateRooms = generateLayoutByTypology(
+          buildingType,
+          levelProgramme,
+          footprint.width,
+          footprint.height,
+          seed,
+          floorContext,
+        )
+
+        // Validate: no NaN, no zero-area rooms
+        const valid = candidateRooms.every(r =>
+          !Number.isNaN(r.x) && !Number.isNaN(r.y) &&
+          !Number.isNaN(r.width) && !Number.isNaN(r.height) &&
+          r.width >= 0.3 && r.height >= 0.3,
+        )
+
+        if (valid && candidateRooms.length > 0) {
+          rawRooms = candidateRooms
+          genSuccess = true
+          break
+        }
+      } catch {
+        // Retry with adjusted params
+      }
+    }
+
+    if (!genSuccess) {
+      // Fallback: generate zoned layout as last resort
+      rawRooms = generateLayoutByTypology(
+        buildingType,
+        levelProgramme,
+        footprint.width,
+        footprint.height,
+        Date.now() + fi,
+        { ...floorContext, floorRole: 'ground-public' },
+      )
+      genSuccess = true
+      verticalWarnings.push(`[Level ${fi}] fallback generation used after retries`)
+    }
+
+    // Offset rooms per floor vertically for visualisation
     const yOffset = fi * footprint.height * 1.1
 
     const levelRooms = rawRooms.map(r => ({

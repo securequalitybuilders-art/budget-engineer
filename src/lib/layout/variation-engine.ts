@@ -95,3 +95,81 @@ export function applyVariationToZones(profile: VariationProfile): {
 
   return { frontRatio, corridorRatio, rearRatio, corridorWidth }
 }
+
+// ── Non-Residential Variation ───────────────────────
+
+export type ClinicLayoutType = 'standard-flow' | 'radial-clinic' | 'split-clinic' | 'compact-clinic'
+export type SchoolLayoutType = 'linear-classrooms' | 'split-wing-school' | 'courtyard-school' | 'cluster-school'
+export type WorshipLayoutType = 'axial-hall' | 'cross-hall' | 'fellowship-hub' | 'multi-purpose'
+export type WarehouseLayoutType = 'standard-warehouse' | 'split-warehouse' | 'mezzanine-dominant' | 'linear-warehouse'
+export type MixedUseLayoutType = 'podium-tower' | 'street-front' | 'corner-block' | 'linear-commercial'
+
+export interface NonResVariationProfile {
+  frontRatio: number
+  corridorRatio: number
+  rearRatio: number
+  useMultiRow: boolean
+  clusterWet: boolean
+  circulationType: 'centre' | 'side' | 'front'
+}
+
+const CLINIC_TYPES: ClinicLayoutType[] = ['standard-flow', 'split-clinic', 'compact-clinic']
+const SCHOOL_TYPES: SchoolLayoutType[] = ['linear-classrooms', 'split-wing-school', 'cluster-school']
+const WORSHIP_TYPES: WorshipLayoutType[] = ['axial-hall', 'cross-hall', 'fellowship-hub']
+const WAREHOUSE_TYPES: WarehouseLayoutType[] = ['standard-warehouse', 'split-warehouse', 'linear-warehouse']
+const MIXED_USE_TYPES: MixedUseLayoutType[] = ['podium-tower', 'street-front', 'corner-block']
+
+export function generateNonResVariationProfile(seed: number, typology: string): NonResVariationProfile {
+  const rng = createRng(seed + 100)
+  const base = { useMultiRow: false, clusterWet: true, circulationType: 'centre' as const }
+
+  switch (typology) {
+    case 'clinic': {
+      const type = CLINIC_TYPES[rng() % CLINIC_TYPES.length]
+      switch (type) {
+        case 'standard-flow': return { ...base, frontRatio: 0.30, corridorRatio: 0.12, rearRatio: 0.58 }
+        case 'split-clinic': return { ...base, frontRatio: 0.25, corridorRatio: 0.10, rearRatio: 0.65, useMultiRow: true }
+        case 'compact-clinic': return { ...base, frontRatio: 0.35, corridorRatio: 0.08, rearRatio: 0.57 }
+        default: return { ...base, frontRatio: 0.30, corridorRatio: 0.12, rearRatio: 0.58 }
+      }
+    }
+    case 'school': {
+      const type = SCHOOL_TYPES[rng() % SCHOOL_TYPES.length]
+      switch (type) {
+        case 'linear-classrooms': return { ...base, frontRatio: 0.35, corridorRatio: 0.10, rearRatio: 0.55, circulationType: 'centre' }
+        case 'split-wing-school': return { ...base, frontRatio: 0.28, corridorRatio: 0.12, rearRatio: 0.60, circulationType: 'side' }
+        case 'cluster-school': return { ...base, frontRatio: 0.40, corridorRatio: 0.08, rearRatio: 0.52, useMultiRow: true }
+        default: return { ...base, frontRatio: 0.35, corridorRatio: 0.10, rearRatio: 0.55 }
+      }
+    }
+    case 'worship': {
+      const type = WORSHIP_TYPES[rng() % WORSHIP_TYPES.length]
+      switch (type) {
+        case 'axial-hall': return { ...base, frontRatio: 0.55, corridorRatio: 0.10, rearRatio: 0.35 }
+        case 'cross-hall': return { ...base, frontRatio: 0.50, corridorRatio: 0.08, rearRatio: 0.42 }
+        case 'fellowship-hub': return { ...base, frontRatio: 0.45, corridorRatio: 0.10, rearRatio: 0.45, clusterWet: false }
+        default: return { ...base, frontRatio: 0.50, corridorRatio: 0.10, rearRatio: 0.40 }
+      }
+    }
+    case 'warehouse': {
+      const type = WAREHOUSE_TYPES[rng() % WAREHOUSE_TYPES.length]
+      switch (type) {
+        case 'standard-warehouse': return { ...base, frontRatio: 0.65, corridorRatio: 0.05, rearRatio: 0.30 }
+        case 'split-warehouse': return { ...base, frontRatio: 0.50, corridorRatio: 0.10, rearRatio: 0.40, useMultiRow: true }
+        case 'linear-warehouse': return { ...base, frontRatio: 0.70, corridorRatio: 0.05, rearRatio: 0.25 }
+        default: return { ...base, frontRatio: 0.65, corridorRatio: 0.05, rearRatio: 0.30 }
+      }
+    }
+    case 'mixed-use': {
+      const type = MIXED_USE_TYPES[rng() % MIXED_USE_TYPES.length]
+      switch (type) {
+        case 'podium-tower': return { ...base, frontRatio: 0.40, corridorRatio: 0.10, rearRatio: 0.50, circulationType: 'centre' }
+        case 'street-front': return { ...base, frontRatio: 0.50, corridorRatio: 0.08, rearRatio: 0.42, circulationType: 'front' }
+        case 'corner-block': return { ...base, frontRatio: 0.45, corridorRatio: 0.10, rearRatio: 0.45, circulationType: 'side' }
+        default: return { ...base, frontRatio: 0.45, corridorRatio: 0.10, rearRatio: 0.45 }
+      }
+    }
+    default:
+      return { ...base, frontRatio: 0.40, corridorRatio: 0.10, rearRatio: 0.50 }
+  }
+}

@@ -1,4 +1,5 @@
 import { getMinimumDimensions, classifyRoom } from '../../geometry/plan-intelligence'
+import type { NonResVariationProfile } from '../variation-engine'
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 
@@ -20,13 +21,11 @@ function placeRoomsInBand(
     const remainingW = Math.max(0, width - x)
     const dims = getMinimumDimensions(r.name)
 
-    // Compute desired width
     const ratioW = width * (r.ratio / ratioSum)
     const areaW = bandDepth > 0.01 ? (dims.minWidth * dims.minDepth) / bandDepth : dims.minWidth
     const desiredW = Math.max(ratioW, areaW, dims.minWidth, 1.5)
     let w = Math.min(desiredW, remainingW)
 
-    // If room doesn't fit and we have rows left, wrap to next row
     if (w <= 0 && row + 1 < maxRows) {
       row++
       x = 0
@@ -34,7 +33,6 @@ function placeRoomsInBand(
       w = Math.min(desiredW, width)
     }
 
-    // If still doesn't fit, give remaining width
     if (w <= 0) w = Math.max(0.5, remainingW)
 
     rooms.push({
@@ -55,51 +53,48 @@ export function generateClinicLayout(
   program: { name: string; ratio: number }[],
   width: number,
   height: number,
+  variation?: NonResVariationProfile,
 ): { id: string; name: string; x: number; y: number; width: number; height: number }[] {
-  // Clinic: reception/waiting at front, consultation rooms off controlled corridor, treatment at rear
   const rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
+  const v = variation || { frontRatio: 0.30, corridorRatio: 0.12, rearRatio: 0.58, useMultiRow: false, clusterWet: true, circulationType: 'centre' as const }
 
   const receptionItems = program.filter(r => r.name.includes('Reception') || r.name.includes('Waiting'))
   const consultationItems = program.filter(r => r.name.includes('Consultation'))
   const treatmentItems = program.filter(r => r.name.includes('Treatment') || r.name.includes('Nurse') || r.name.includes('Pharmacy') || r.name.includes('Store'))
   const wcItems = program.filter(r => r.name.includes('WC') || r.name.includes('Toilet'))
-  const officeItems = program.filter(r => (r.name.includes('Office') || r.name.includes('Staff')) && !r.name.includes('WC') && !r.name.includes('Toilet'))
+  const officeItems = program.filter(r => (r.name.includes('Office') || r.name.includes('Staff') || r.name.includes('Admin')) && !r.name.includes('WC') && !r.name.includes('Toilet'))
   const circItems = program.filter(r => classifyRoom(r.name) === 'circulation')
 
-  // Three-band clinic layout
-  const frontDepth = height * 0.30
-  const corridorDepth = Math.max(1.5, height * 0.12)
+  const frontDepth = height * v.frontRatio
+  const corridorDepth = Math.max(1.5, height * v.corridorRatio)
   const corridorY = frontDepth
   const treatmentDepth = height - frontDepth - corridorDepth
 
-  // Front band: reception + waiting
+  // Front band: reception + waiting (public-facing)
   if (receptionItems.length > 0) {
-    for (const r of placeRoomsInBand(receptionItems, 0, frontDepth, width)) {
-      rooms.push(r)
-    }
+    rooms.push(...placeRoomsInBand(receptionItems, 0, frontDepth, width))
   }
 
-  // Circulation corridor
+  // Circulation corridor with privacy buffer
   if (circItems.length > 0) {
-    for (const r of placeRoomsInBand(circItems, corridorY, corridorDepth, width)) {
-      rooms.push(r)
-    }
+    rooms.push(...placeRoomsInBand(circItems, corridorY, corridorDepth, width))
   } else {
-    rooms.push({ id: uid(), name: 'Circulation', x: 0, y: Number(corridorY.toFixed(2)), width: Number(width.toFixed(2)), height: Number(corridorDepth.toFixed(2)) })
+    rooms.push({ id: uid(), name: 'Clinic Corridor', x: 0, y: Number(corridorY.toFixed(2)), width: Number(width.toFixed(2)), height: Number(corridorDepth.toFixed(2)) })
   }
 
-  // Rear band: consultations, treatment, offices, WC
-  const rearItems = [...consultationItems, ...treatmentItems, ...officeItems, ...wcItems]
-  if (rearItems.length > 0) {
-    // Group wet items (treatment/pharmacy) together
-    const wetRear = rearItems.filter(r => classifyRoom(r.name) === 'wet' || r.name.includes('Treatment') || r.name.includes('Pharmacy'))
-    const dryRear = rearItems.filter(r => !wetRear.includes(r))
-    const sortedRear = [...wetRear, ...dryRear]
+  // Rear band: consultations + treatment + admin, grouped by privacy
+  const consultRear = [...consultationItems]
+  const treatRear = [...treatmentItems]
+  const adminRear = [...officeItems]
+  const wcRear = [...wcItems]
 
-    const maxRearRows = sortedRear.length > 5 ? 2 : 1
-    for (const r of placeRoomsInBand(sortedRear, corridorY + corridorDepth, treatmentDepth / maxRearRows, width, maxRearRows)) {
-      rooms.push(r)
-    }
+  const maxRearRows = v.useMultiRow && (consultRear.length + treatRear.length) > 4 ? 2 : 1
+  const rearBandH = treatmentDepth / maxRearRows
+
+  // Sort rear items: consultation first (patient-facing), then treatment, then admin, then WC
+  const sortedRear = [...consultRear, ...treatRear, ...adminRear, ...wcRear]
+  if (sortedRear.length > 0) {
+    rooms.push(...placeRoomsInBand(sortedRear, corridorY + corridorDepth, rearBandH, width, maxRearRows))
   }
 
   return rooms
@@ -109,43 +104,50 @@ export function generateSchoolLayout(
   program: { name: string; ratio: number }[],
   width: number,
   height: number,
+  variation?: NonResVariationProfile,
 ): { id: string; name: string; x: number; y: number; width: number; height: number }[] {
-  // School: repeated classroom modules along corridor, admin near entry, ablution cluster
   const rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
+  const v = variation || { frontRatio: 0.35, corridorRatio: 0.10, rearRatio: 0.55, useMultiRow: false, clusterWet: true, circulationType: 'centre' as const }
 
-  const classroomItems = program.filter(r => r.name.includes('Classroom'))
-  const adminItems = program.filter(r => r.name.includes('Office') || r.name.includes('Staff') || r.name.includes('Head'))
-  const ablutionItems = program.filter(r => r.name.includes('Toilet') || r.name.includes('Ablution'))
+  const classroomItems = program.filter(r => r.name.includes('Classroom') || r.name.includes('Learning'))
+  const adminItems = program.filter(r => r.name.includes('Office') || r.name.includes('Staff') || r.name.includes('Head') || r.name.includes('Principal'))
+  const ablutionItems = program.filter(r => r.name.includes('Toilet') || r.name.includes('Ablution') || r.name.includes('WC'))
   const storeItems = program.filter(r => r.name.includes('Store'))
+  const hallItems = program.filter(r => r.name.includes('Hall') || r.name.includes('Assembly') || r.name.includes('Reception'))
   const circItems = program.filter(r => classifyRoom(r.name) === 'circulation')
 
-  const corridorY = height * 0.30
-  const corridorDepth = Math.max(1.5, height * 0.10)
-  const classroomDepth = corridorY
-  const rearDepth = height - corridorY - corridorDepth
+  // Classrooms in front band (large rooms with daylight access)
+  const classroomDepth = height * v.frontRatio
+  const corridorDepth = Math.max(1.5, height * v.corridorRatio)
+  const corridorY = classroomDepth
+  const rearDepth = height - classroomDepth - corridorDepth
 
-  // Classrooms in front band
   if (classroomItems.length > 0) {
-    for (const r of placeRoomsInBand(classroomItems, 0, classroomDepth, width)) {
-      rooms.push(r)
-    }
+    const classRows = v.useMultiRow && classroomItems.length > 3 ? 2 : 1
+    const classH = classroomDepth / classRows
+    rooms.push(...placeRoomsInBand(classroomItems, 0, classH, width, classRows))
   }
 
   // Circulation spine
   if (circItems.length > 0) {
-    for (const r of placeRoomsInBand(circItems, corridorY, corridorDepth, width)) {
-      rooms.push(r)
-    }
+    rooms.push(...placeRoomsInBand(circItems, corridorY, corridorDepth, width))
   } else {
-    rooms.push({ id: uid(), name: 'Circulation', x: 0, y: Number(corridorY.toFixed(2)), width: Number(width.toFixed(2)), height: Number(corridorDepth.toFixed(2)) })
+    rooms.push({ id: uid(), name: 'School Corridor', x: 0, y: Number(corridorY.toFixed(2)), width: Number(width.toFixed(2)), height: Number(corridorDepth.toFixed(2)) })
   }
 
-  // Rear band: admin + ablution + store
-  const rearItems = [...adminItems, ...ablutionItems, ...storeItems]
-  if (rearItems.length > 0) {
-    for (const r of placeRoomsInBand(rearItems, corridorY + corridorDepth, rearDepth, width)) {
-      rooms.push(r)
-    }
+  // Rear band: hall + admin + ablution + store in sequence
+  const hallDepth = hallItems.length > 0 ? rearDepth * 0.40 : 0
+  const adminDepth = rearDepth - hallDepth
+
+  if (hallItems.length > 0) {
+    rooms.push(...placeRoomsInBand(hallItems, corridorY + corridorDepth, hallDepth, width))
+  }
+
+  const rearSupport = [...adminItems, ...ablutionItems, ...storeItems]
+  if (rearSupport.length > 0) {
+    const yStart = corridorY + corridorDepth + hallDepth
+    const supportH = adminDepth > 0 ? adminDepth : rearDepth
+    rooms.push(...placeRoomsInBand(rearSupport, yStart, supportH, width))
   }
 
   return rooms
@@ -156,7 +158,6 @@ export function generateRetailLayout(
   width: number,
   height: number,
 ): { id: string; name: string; x: number; y: number; width: number; height: number }[] {
-  // Retail: active frontage (sales floor), customer circulation, service back
   const rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
 
   const salesItems = program.filter(r => r.name.includes('Sales') || r.name.includes('Retail') || r.name.includes('Shop'))
@@ -168,19 +169,13 @@ export function generateRetailLayout(
   const salesDepth = height * 0.50
   const serviceDepth = height - salesDepth
 
-  // Sales floor at front
   if (salesItems.length > 0) {
-    for (const r of placeRoomsInBand(salesItems, 0, salesDepth, width)) {
-      rooms.push(r)
-    }
+    rooms.push(...placeRoomsInBand(salesItems, 0, salesDepth, width))
   }
 
-  // Service/back-of-house at rear
   const serviceItems = [...stockItems, ...officeItems, ...wcItems, ...circItems]
   if (serviceItems.length > 0) {
-    for (const r of placeRoomsInBand(serviceItems, salesDepth, serviceDepth, width)) {
-      rooms.push(r)
-    }
+    rooms.push(...placeRoomsInBand(serviceItems, salesDepth, serviceDepth, width))
   }
 
   return rooms
@@ -190,58 +185,50 @@ export function generateMixedUseLayout(
   program: { name: string; ratio: number }[],
   width: number,
   height: number,
+  variation?: NonResVariationProfile,
 ): { id: string; name: string; x: number; y: number; width: number; height: number }[] {
-  // Mixed-use: retail front, residential lobby separate, service at rear
   const rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
+  const v = variation || { frontRatio: 0.45, corridorRatio: 0.10, rearRatio: 0.45, useMultiRow: false, clusterWet: true, circulationType: 'centre' as const }
 
-  const retailItems = program.filter(r => r.name.includes('Shop') || r.name.includes('Retail') || r.name.includes('Sales'))
-  const residentialItems = program.filter(r => r.name.includes('Apartment') || r.name.includes('Upper'))
-  const lobbyItems = program.filter(r => r.name.includes('Lobby') || r.name.includes('Stair'))
-  const storeItems = program.filter(r => r.name.includes('Store') || r.name.includes('Storage'))
+  const retailItems = program.filter(r => r.name.includes('Shop') || r.name.includes('Retail') || r.name.includes('Sales') || r.name.includes('Retail Space'))
+  const residentialItems = program.filter(r => r.name.includes('Apartment') || r.name.includes('Upper') || r.name.includes('Living') || r.name.includes('Kitchen') || r.name.includes('Bedroom'))
+  const lobbyItems = program.filter(r => r.name.includes('Lobby') || r.name.includes('Stair') || r.name.includes('Core'))
+  const storeItems = program.filter(r => r.name.includes('Store') || r.name.includes('Storage') || r.name.includes('Bin'))
   const circItems = program.filter(r => classifyRoom(r.name) === 'circulation')
 
-  const retailDepth = height * 0.45
-  const lobbyDepth = Math.max(2.0, height * 0.10)
-  const lobbyY = retailDepth
-  const residentialDepth = height - retailDepth - lobbyDepth
+  const retailDepth = height * v.frontRatio
+  const corridorDepth = Math.max(2.0, height * v.corridorRatio)
+  const corridorY = retailDepth
+  const residentialDepth = height - retailDepth - corridorDepth
 
-  // Retail at front
+  // Retail at front (street-facing)
   if (retailItems.length > 0) {
-    for (const r of placeRoomsInBand(retailItems, 0, retailDepth, width)) {
-      rooms.push(r)
-    }
+    rooms.push(...placeRoomsInBand(retailItems, 0, retailDepth, width))
   }
 
-  // Residential lobby (separate from retail circulation)
-  if (lobbyItems.length > 0) {
-    for (const r of placeRoomsInBand(lobbyItems, lobbyY, lobbyDepth, width)) {
-      rooms.push(r)
-    }
-  } else {
-    rooms.push({ id: uid(), name: 'Residential Lobby', x: 0, y: Number(lobbyY.toFixed(2)), width: Number(width.toFixed(2)), height: Number(lobbyDepth.toFixed(2)) })
-  }
-
-  // Residential apartments at rear
-  if (residentialItems.length > 0) {
-    for (const r of placeRoomsInBand(residentialItems, lobbyY + lobbyDepth, residentialDepth, width)) {
-      rooms.push(r)
-    }
-  }
-
-  // Store/service items
-  if (storeItems.length > 0) {
-    const storeY = lobbyY + lobbyDepth
-    const storeDepth = residentialDepth > 0 ? residentialDepth * 0.3 : 2.0
-    for (const r of placeRoomsInBand(storeItems, storeY, storeDepth, width)) {
-      rooms.push(r)
-    }
-  }
-
-  // Circulation
+  // Separated circulation corridor (service corridor between retail and residential)
   if (circItems.length > 0) {
-    for (const r of placeRoomsInBand(circItems, lobbyY, lobbyDepth, width)) {
-      rooms.push(r)
-    }
+    rooms.push(...placeRoomsInBand(circItems, corridorY, corridorDepth, width))
+  } else {
+    rooms.push({ id: uid(), name: 'Service Corridor', x: 0, y: Number(corridorY.toFixed(2)), width: Number(width.toFixed(2)), height: Number(corridorDepth.toFixed(2)) })
+  }
+
+  // Residential lobby (separate from retail)
+  if (lobbyItems.length > 0) {
+    rooms.push(...placeRoomsInBand(lobbyItems, corridorY, corridorDepth, width))
+  } else {
+    rooms.push({ id: uid(), name: 'Residential Lobby', x: 0, y: Number(corridorY.toFixed(2)), width: Number(width.toFixed(2)), height: Number(corridorDepth.toFixed(2)) })
+  }
+
+  // Residential at rear
+  if (residentialItems.length > 0) {
+    rooms.push(...placeRoomsInBand(residentialItems, corridorY + corridorDepth, residentialDepth, width))
+  }
+
+  // Store/service items at rear corner
+  if (storeItems.length > 0) {
+    const storeDepth = Math.min(2.0, residentialDepth * 0.3)
+    rooms.push(...placeRoomsInBand(storeItems, corridorY + corridorDepth, storeDepth, width))
   }
 
   return rooms
@@ -251,31 +238,29 @@ export function generateWarehouseLayout(
   program: { name: string; ratio: number }[],
   width: number,
   height: number,
+  variation?: NonResVariationProfile,
 ): { id: string; name: string; x: number; y: number; width: number; height: number }[] {
-  // Warehouse: large-span work zone, admin/office block separate, loading edge
   const rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
+  const v = variation || { frontRatio: 0.65, corridorRatio: 0.05, rearRatio: 0.30, useMultiRow: false, clusterWet: true, circulationType: 'centre' as const }
 
   const warehouseItems = program.filter(r => r.name.includes('Warehouse') || r.name.includes('Workshop') || r.name.includes('Manufacturing'))
   const adminItems = program.filter(r => r.name.includes('Office') || r.name.includes('Admin') || r.name.includes('Staff'))
-  const loadingItems = program.filter(r => r.name.includes('Loading') || r.name.includes('Bay'))
+  const loadingItems = program.filter(r => r.name.includes('Loading') || r.name.includes('Bay') || r.name.includes('Goods'))
   const wcItems = program.filter(r => r.name.includes('WC') || r.name.includes('Toilet'))
 
-  const warehouseDepth = height * 0.65
+  const warehouseDepth = height * v.frontRatio
   const adminDepth = height - warehouseDepth
 
-  // Large span warehouse zone
+  // Large span warehouse zone (dominant)
   if (warehouseItems.length > 0) {
-    for (const r of placeRoomsInBand(warehouseItems, 0, warehouseDepth, width)) {
-      rooms.push(r)
-    }
+    const warehouseH = v.useMultiRow ? warehouseDepth / 2 : warehouseDepth
+    rooms.push(...placeRoomsInBand(warehouseItems, 0, warehouseH, width, v.useMultiRow ? 2 : 1))
   }
 
-  // Admin + loading + WC at front
-  const frontItems = [...adminItems, ...loadingItems, ...wcItems]
+  // Admin + loading + WC at front/edge
+  const frontItems = [...loadingItems, ...adminItems, ...wcItems]
   if (frontItems.length > 0) {
-    for (const r of placeRoomsInBand(frontItems, warehouseDepth, adminDepth, width)) {
-      rooms.push(r)
-    }
+    rooms.push(...placeRoomsInBand(frontItems, warehouseDepth, adminDepth, width))
   }
 
   return rooms
@@ -285,32 +270,40 @@ export function generateWorshipLayout(
   program: { name: string; ratio: number }[],
   width: number,
   height: number,
+  variation?: NonResVariationProfile,
 ): { id: string; name: string; x: number; y: number; width: number; height: number }[] {
-  // Worship: large hall, ablution/service cluster, office
   const rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
+  const v = variation || { frontRatio: 0.50, corridorRatio: 0.10, rearRatio: 0.40, useMultiRow: false, clusterWet: true, circulationType: 'centre' as const }
 
-  const hallItems = program.filter(r => r.name.includes('Hall') || r.name.includes('Sanctuary'))
-  const classItems = program.filter(r => r.name.includes('School') || r.name.includes('Sunday'))
-  const officeItems = program.filter(r => r.name.includes('Office') || r.name.includes('Pastor'))
+  const hallItems = program.filter(r => r.name.includes('Hall') || r.name.includes('Sanctuary') || r.name.includes('Worship'))
+  const fellowshipItems = program.filter(r => r.name.includes('Fellowship') || r.name.includes('Meeting') || r.name.includes('Class') || r.name.includes('Sunday'))
+  const officeItems = program.filter(r => r.name.includes('Office') || r.name.includes('Pastor') || r.name.includes('Admin'))
   const kitchenItems = program.filter(r => r.name.includes('Kitchen'))
-  const wcItems = program.filter(r => r.name.includes('Toilet') || r.name.includes('WC'))
+  const wcItems = program.filter(r => r.name.includes('Toilet') || r.name.includes('WC') || r.name.includes('Ablution'))
   const circItems = program.filter(r => classifyRoom(r.name) === 'circulation')
 
-  const hallDepth = height * 0.50
+  const hallDepth = height * v.frontRatio
+  const corridorDepth = Math.max(1.5, height * v.corridorRatio)
+  const supportDepth = height - hallDepth - corridorDepth
 
-  // Main hall at front
+  // Main hall at front (dominant space)
   if (hallItems.length > 0) {
-    for (const r of placeRoomsInBand(hallItems, 0, hallDepth, width)) {
-      rooms.push(r)
-    }
+    rooms.push(...placeRoomsInBand(hallItems, 0, hallDepth, width))
   }
 
-  // Support spaces at rear
-  const supportItems = [...classItems, ...officeItems, ...kitchenItems, ...wcItems, ...circItems]
+  // Circulation / narthex
+  if (circItems.length > 0) {
+    rooms.push(...placeRoomsInBand(circItems, hallDepth, corridorDepth, width))
+  } else {
+    rooms.push({ id: uid(), name: 'Narthex / Foyer', x: 0, y: Number(hallDepth.toFixed(2)), width: Number(width.toFixed(2)), height: Number(corridorDepth.toFixed(2)) })
+  }
+
+  // Support spaces at rear: fellowship + office + kitchen + WC
+  const supportItems = [...fellowshipItems, ...officeItems, ...kitchenItems, ...wcItems]
   if (supportItems.length > 0) {
-    for (const r of placeRoomsInBand(supportItems, hallDepth, height - hallDepth, width)) {
-      rooms.push(r)
-    }
+    const supportRows = supportItems.length > 4 ? 2 : 1
+    const supportH = supportDepth / supportRows
+    rooms.push(...placeRoomsInBand(supportItems, hallDepth + corridorDepth, supportH, width, supportRows))
   }
 
   return rooms
@@ -321,47 +314,42 @@ export function generateApartmentLayout(
   width: number,
   height: number,
 ): { id: string; name: string; x: number; y: number; width: number; height: number }[] {
-  // Apartment floor: core in center, units radiating, corridor ring
   const rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
 
   const unitItems = program.filter(r => classifyRoom(r.name) !== 'circulation')
-  const circItems = program.filter(r => classifyRoom(r.name) === 'circulation')
 
   const coreSize = 4.0
-  const coreX = (width - coreSize) / 2
-  const coreY = (height - coreSize) / 2
+  const corridorW = 2.0
 
-  // Core
-  const coreItems = program.filter(r => r.name.includes('Core') || r.name.includes('Lift') || r.name.includes('Staircase'))
-  if (coreItems.length > 0) {
-    rooms.push({ id: uid(), name: 'Staircase / Lift Core', x: Number(coreX.toFixed(2)), y: Number(coreY.toFixed(2)), width: coreSize, height: coreSize })
+  // Core and corridor: place along one side to leave room for units
+  const hasCore = program.some(r => r.name.includes('Core') || r.name.includes('Lift') || r.name.includes('Staircase'))
+
+  if (hasCore) {
+    rooms.push({ id: uid(), name: 'Staircase / Lift Core', x: 0, y: 0, width: coreSize, height: coreSize })
   }
 
-  // Corridor ring
-  if (circItems.length > 0) {
-    const corridorW = 2.0
-    // Top corridor
-    rooms.push({ id: uid(), name: 'Common Corridor', x: 0, y: 0, width: Number(width.toFixed(2)), height: Number(corridorW.toFixed(2)) })
-  }
+  // Corridor along the front
+  rooms.push({ id: uid(), name: 'Common Corridor', x: hasCore ? coreSize : 0, y: 0, width: Number((width - (hasCore ? coreSize : 0)).toFixed(2)), height: Number(corridorW.toFixed(2)) })
 
-  // Units distributed around core
+  // Distribute units below the corridor
+  const unitDepth = height - corridorW
   const midIdx = Math.ceil(unitItems.length / 2)
   const leftUnits = unitItems.slice(0, midIdx)
   const rightUnits = unitItems.slice(midIdx)
 
-  const unitDepth = height - 2.0
-  let uy = 2.0
-  for (const u of leftUnits) {
-    const unitH = unitDepth / Math.max(leftUnits.length, 1)
-    rooms.push({ id: uid(), name: u.name, x: 0, y: Number(uy.toFixed(2)), width: Number(coreX.toFixed(2)), height: Number(unitH.toFixed(2)) })
+  // Group units: combine living/dining + kitchen into one "Apartment Unit" and bedrooms + bath into another
+  const unitGroups: { name: string; x: number; y: number; w: number; h: number }[] = []
+  const allUnits = [...leftUnits, ...rightUnits]
+
+  const unitH = unitDepth / Math.max(allUnits.length, 1)
+  let uy = corridorW
+  for (const u of allUnits) {
+    unitGroups.push({ name: u.name, x: 0, y: uy, w: width, h: Math.max(unitH, 1.5) })
     uy += unitH
   }
 
-  uy = 2.0
-  for (const u of rightUnits) {
-    const unitH = unitDepth / Math.max(rightUnits.length, 1)
-    rooms.push({ id: uid(), name: u.name, x: Number((coreX + coreSize).toFixed(2)), y: Number(uy.toFixed(2)), width: Number((width - coreX - coreSize).toFixed(2)), height: Number(unitH.toFixed(2)) })
-    uy += unitH
+  for (const ug of unitGroups) {
+    rooms.push({ id: uid(), name: ug.name, x: Number(ug.x.toFixed(2)), y: Number(ug.y.toFixed(2)), width: Number(ug.w.toFixed(2)), height: Number(ug.h.toFixed(2)) })
   }
 
   return rooms

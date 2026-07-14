@@ -15,7 +15,7 @@ import {
 import {
   generateZonedLayout,
 } from '../geometry/plan-intelligence'
-import { generateVariationProfile, applyVariationToZones } from './variation-engine'
+import { generateVariationProfile, applyVariationToZones, generateNonResVariationProfile } from './variation-engine'
 
 export type BuildingTypology =
   | 'house'
@@ -110,12 +110,18 @@ const STRATEGIES: Record<string, TypologyStrategy> = {
   'clinic': {
     id: 'clinic',
     name: 'Clinic',
-    generate: (program, width, height) => generateClinicLayout(program, width, height),
+    generate: (program, width, height, seed) => {
+      const v = generateNonResVariationProfile(seed ?? 0, 'clinic')
+      return generateClinicLayout(program, width, height, v)
+    },
   },
   'school': {
     id: 'school',
     name: 'School',
-    generate: (program, width, height) => generateSchoolLayout(program, width, height),
+    generate: (program, width, height, seed) => {
+      const v = generateNonResVariationProfile(seed ?? 0, 'school')
+      return generateSchoolLayout(program, width, height, v)
+    },
   },
   'commercial': {
     id: 'commercial',
@@ -130,11 +136,12 @@ const STRATEGIES: Record<string, TypologyStrategy> = {
   'mixed-use': {
     id: 'mixed-use',
     name: 'Mixed-Use',
-    generate: (program, width, height, _seed?, floorContext?) => {
+    generate: (program, width, height, seed?, floorContext?) => {
       if (floorContext && floorContext.floorRole === 'upper-residential') {
         return generateApartmentLayout(program, width, height)
       }
-      return generateMixedUseLayout(program, width, height)
+      const v = generateNonResVariationProfile(seed ?? 0, 'mixed-use')
+      return generateMixedUseLayout(program, width, height, v)
     },
   },
   'duplex': {
@@ -145,17 +152,21 @@ const STRATEGIES: Record<string, TypologyStrategy> = {
   'warehouse': {
     id: 'warehouse',
     name: 'Warehouse + Office',
-    generate: (program, width, height, _seed?, floorContext?) => {
+    generate: (program, width, height, seed?, floorContext?) => {
       if (floorContext && floorContext.floorRole === 'mezzanine-office') {
         return generateZonedLayout({ program, width, height, corridorWidth: 1.5 })
       }
-      return generateWarehouseLayout(program, width, height)
+      const v = generateNonResVariationProfile(seed ?? 0, 'warehouse')
+      return generateWarehouseLayout(program, width, height, v)
     },
   },
   'worship': {
     id: 'worship',
     name: 'Worship / Community Hall',
-    generate: (program, width, height) => generateWorshipLayout(program, width, height),
+    generate: (program, width, height, seed) => {
+      const v = generateNonResVariationProfile(seed ?? 0, 'worship')
+      return generateWorshipLayout(program, width, height, v)
+    },
   },
   'other': {
     id: 'other',

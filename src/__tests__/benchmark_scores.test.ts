@@ -23,7 +23,6 @@ import { generateBuildingChassis } from '../lib/layout/vertical-chassis'
 import { computeLevelProgrammes } from '../lib/layout/level-programme'
 import { computeStructuralBridge } from '../lib/structure/structural-bridge'
 import { assignLevelSlabs } from '../lib/structure/slab-system'
-import { getFloorRoleStrategy } from '../lib/layout/floor-role-strategies'
 import type { ChassisGenerationParams } from '../lib/layout/vertical-chassis'
 
 interface BenchmarkResult {
@@ -50,7 +49,7 @@ function makeChassisParams(overrides: Partial<ChassisGenerationParams> = {}): Ch
     buildingDepth: 10,
     floorToFloorHeight: 3.0,
     wallThickness: 0.2,
-    structuralSystem: 'concrete-frame',
+    structuralSystem: 'rc-frame',
     maxStructuralSpan: 6.0,
     hasLift: false,
     hasDuplex: false,
@@ -61,7 +60,7 @@ function makeChassisParams(overrides: Partial<ChassisGenerationParams> = {}): Ch
 }
 
 function evaluateBenchmark(
-  label: string,
+  _label: string,
   params: ChassisGenerationParams,
   checks: {
     expectedFloors: number
@@ -141,8 +140,8 @@ function evaluateBenchmark(
   if (cores.length > 0) { stairCore += 2; notes.push(`✓ ${cores.length} cores defined`) }
   else { notes.push('~ No cores in chassis') }
   if (chassis.shafts && chassis.shafts.length > 0) { stairCore += 1 }
-  if (params.hasLift && cores.some(c => c.type === 'lift')) { stairCore += 1 }
-  if (params.hasLift && chassis.lobby) { stairCore += 1 }
+  if (params.hasLift && cores.some(c => c.hasLift)) { stairCore += 1 }
+  if (params.hasLift && chassis.cores.some(c => c.lobbyZone)) { stairCore += 1 }
   // Check stair on all levels through bridge
   stairCore = Math.min(10, Math.round(stairCore * 10) / 10)
 
@@ -161,7 +160,7 @@ function evaluateBenchmark(
   }
   // Check plumbing risers exist in chassis
   const shafts = chassis.shafts ?? []
-  if (shafts.some(s => s.type === 'plumbing' || s.name?.toLowerCase().includes('plumber'))) { wetStack += 1 }
+  if (shafts.some(s => s.wetStack)) { wetStack += 1 }
   wetStack = Math.min(10, Math.round(wetStack * 10) / 10)
 
   // ── CIRCULATION ───────────────────────────────────
@@ -367,7 +366,7 @@ describe('Benchmark 5: 5-Storey Apartment Block', () => {
     storeyCount: 5,
     buildingWidth: 20,
     buildingDepth: 15,
-    structuralSystem: 'concrete-frame',
+    structuralSystem: 'rc-frame',
     hasLift: true,
     programmes: ['podium', 'repeated-unit', 'repeated-unit', 'repeated-unit', 'repeated-unit'],
   }), {
@@ -406,7 +405,7 @@ describe('Benchmark 8: Mixed-Use Corner Building', () => {
     storeyCount: 4,
     buildingWidth: 18,
     buildingDepth: 14,
-    structuralSystem: 'concrete-frame',
+    structuralSystem: 'rc-frame',
     hasLift: true,
     hasMixedUse: true,
     programmes: ['retail', 'residential', 'residential', 'residential'],

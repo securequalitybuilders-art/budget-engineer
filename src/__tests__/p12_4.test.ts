@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeLevelProgrammes, getAllocationProgramme, getLevelSlabType, getLevelSlabThickness, getLevelFloorRole } from '../lib/layout/level-programme'
+import { computeLevelProgrammes, getAllocationProgramme, getLevelSlabType, getLevelSlabThickness } from '../lib/layout/level-programme'
 import { getFloorRoleStrategy, getRoomPlacementRules } from '../lib/layout/floor-role-strategies'
 import { computeStructuralBridge } from '../lib/structure/structural-bridge'
 import { assignLevelSlabs, determineLevelSlab } from '../lib/structure/slab-system'
@@ -191,7 +191,7 @@ describe('Structural Bridge', () => {
   })
 
   it('per-level structural data exists for each storey', () => {
-    const chassis = generateBuildingChassis(makeChassisParams({ storeyCount: 3, structuralSystem: 'concrete-frame' }))
+    const chassis = generateBuildingChassis(makeChassisParams({ storeyCount: 3, structuralSystem: 'rc-frame' }))
     const bridge = computeStructuralBridge(chassis)
     expect(bridge.levels.length).toBe(3)
     for (const level of bridge.levels) {
@@ -210,7 +210,7 @@ describe('Slab System', () => {
   })
 
   it('determineLevelSlab returns roof-slab for top floor', () => {
-    const chassis = generateBuildingChassis(makeChassisParams({ storeyCount: 3, structuralSystem: 'concrete-frame' }))
+    const chassis = generateBuildingChassis(makeChassisParams({ storeyCount: 3, structuralSystem: 'rc-frame' }))
     const spec = determineLevelSlab(2, 3, chassis)
     expect(spec.slabType).toBe('roof-slab')
     expect(spec.thickness).toBe(0.18)
@@ -224,7 +224,7 @@ describe('Slab System', () => {
   })
 
   it('assignLevelSlabs creates per-level slab assignments', () => {
-    const chassis = generateBuildingChassis(makeChassisParams({ storeyCount: 3, structuralSystem: 'concrete-frame' }))
+    const chassis = generateBuildingChassis(makeChassisParams({ storeyCount: 3, structuralSystem: 'rc-frame' }))
     const slabs = assignLevelSlabs(chassis)
     expect(slabs.length).toBe(3)
     expect(slabs[0].isGround).toBe(true)
