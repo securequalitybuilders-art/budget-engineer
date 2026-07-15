@@ -25,18 +25,19 @@ export interface LayoutTemplate {
   zones: ZoneDefinition[]
 }
 
-const CENTRAL_HALL: LayoutTemplate = {
-  id: 'central-hall',
-  name: 'Central Hall House',
+const CENTRAL_LOBBY: LayoutTemplate = {
+  id: 'central-lobby',
+  name: 'Central Lobby House',
   typology: 'house',
   minArea: 0,
   maxArea: 9999,
   cols: 4,
   rows: 3,
   zones: [
-    { id: 'front-public', label: 'Front Public', role: 'public', colStart: 0, colEnd: 4, rowStart: 0, rowEnd: 1, acceptRoles: ['public', 'service'], priority: 2 },
-    { id: 'circulation', label: 'Central Hall', role: 'circulation', colStart: 0, colEnd: 4, rowStart: 1, rowEnd: 2, acceptRoles: ['circulation'], priority: 4 },
-    { id: 'rear-private', label: 'Rear Private', role: 'private', colStart: 0, colEnd: 4, rowStart: 2, rowEnd: 3, acceptRoles: ['private', 'wet'], priority: 1 },
+    { id: 'public-left', label: 'Public Wing', role: 'public', colStart: 0, colEnd: 2, rowStart: 0, rowEnd: 2, acceptRoles: ['public', 'service'], priority: 2 },
+    { id: 'corridor-spine', label: 'Central Spine', role: 'circulation', colStart: 2, colEnd: 3, rowStart: 0, rowEnd: 3, acceptRoles: ['circulation'], priority: 4 },
+    { id: 'private-right', label: 'Private Wing', role: 'private', colStart: 3, colEnd: 4, rowStart: 0, rowEnd: 3, acceptRoles: ['private'], priority: 1 },
+    { id: 'wet-service', label: 'Wet / Service', role: 'wet', colStart: 0, colEnd: 2, rowStart: 2, rowEnd: 3, acceptRoles: ['wet', 'service'], priority: 3 },
   ],
 }
 
@@ -88,44 +89,47 @@ const SPLIT_WING: LayoutTemplate = {
   ],
 }
 
-const VILLA_FORMAL: LayoutTemplate = {
-  id: 'villa-formal',
-  name: 'Formal Entry Villa',
+const VILLA_QUAD: LayoutTemplate = {
+  id: 'villa-quad',
+  name: 'Villa Quadrant',
   typology: 'house',
   minArea: 150,
   maxArea: 9999,
-  cols: 5,
+  cols: 4,
   rows: 4,
   zones: [
-    { id: 'entry-hall', label: 'Entry Hall', role: 'circulation', colStart: 0, colEnd: 5, rowStart: 1, rowEnd: 2, acceptRoles: ['circulation'], priority: 5 },
-    { id: 'public-formal', label: 'Formal Public', role: 'public', colStart: 0, colEnd: 5, rowStart: 0, rowEnd: 1, acceptRoles: ['public'], priority: 2 },
-    { id: 'veranda', label: 'Veranda', role: 'public', colStart: 0, colEnd: 5, rowStart: 3, rowEnd: 4, acceptRoles: ['service'], priority: 3 },
-    { id: 'private-formal', label: 'Private Suite', role: 'private', colStart: 0, colEnd: 5, rowStart: 2, rowEnd: 4, acceptRoles: ['private', 'wet'], priority: 1 },
+    { id: 'public-tl', label: 'Public Living', role: 'public', colStart: 0, colEnd: 2, rowStart: 0, rowEnd: 2, acceptRoles: ['public'], priority: 2 },
+    { id: 'service-tr', label: 'Service Wing', role: 'service', colStart: 2, colEnd: 4, rowStart: 0, rowEnd: 1, acceptRoles: ['service', 'public'], priority: 3 },
+    { id: 'wet-core', label: 'Wet Core', role: 'wet', colStart: 3, colEnd: 4, rowStart: 1, rowEnd: 2, acceptRoles: ['wet'], priority: 3 },
+    { id: 'circ-spine', label: 'Central Spine', role: 'circulation', colStart: 2, colEnd: 3, rowStart: 1, rowEnd: 4, acceptRoles: ['circulation'], priority: 5 },
+    { id: 'private-bl', label: 'Private Suite', role: 'private', colStart: 0, colEnd: 2, rowStart: 2, rowEnd: 4, acceptRoles: ['private', 'wet'], priority: 1 },
+    { id: 'private-br', label: 'Guest Suite', role: 'private', colStart: 3, colEnd: 4, rowStart: 2, rowEnd: 4, acceptRoles: ['private', 'wet'], priority: 1 },
   ],
 }
 
-const COMPACT_HOUSE: LayoutTemplate = {
-  id: 'compact-house',
-  name: 'Compact Starter House',
+const COMPACT_GRID: LayoutTemplate = {
+  id: 'compact-grid',
+  name: 'Compact Grid House',
   typology: 'house',
   minArea: 0,
   maxArea: 100,
   cols: 3,
   rows: 3,
   zones: [
-    { id: 'front-public', label: 'Front Public', role: 'public', colStart: 0, colEnd: 3, rowStart: 0, rowEnd: 1, acceptRoles: ['public', 'service'], priority: 2 },
-    { id: 'circulation', label: 'Hall', role: 'circulation', colStart: 0, colEnd: 3, rowStart: 1, rowEnd: 2, acceptRoles: ['circulation'], priority: 4 },
-    { id: 'rear-private', label: 'Rear Private', role: 'private', colStart: 0, colEnd: 3, rowStart: 2, rowEnd: 3, acceptRoles: ['private', 'wet'], priority: 1 },
+    { id: 'public-left', label: 'Public', role: 'public', colStart: 0, colEnd: 1, rowStart: 0, rowEnd: 2, acceptRoles: ['public', 'service'], priority: 2 },
+    { id: 'corridor-spine', label: 'Hall', role: 'circulation', colStart: 1, colEnd: 2, rowStart: 0, rowEnd: 3, acceptRoles: ['circulation'], priority: 4 },
+    { id: 'private-right', label: 'Private', role: 'private', colStart: 2, colEnd: 3, rowStart: 0, rowEnd: 3, acceptRoles: ['private'], priority: 1 },
+    { id: 'wet-bl', label: 'Wet', role: 'wet', colStart: 0, colEnd: 1, rowStart: 2, rowEnd: 3, acceptRoles: ['wet', 'service'], priority: 3 },
   ],
 }
 
 export const HOUSE_TEMPLATES: LayoutTemplate[] = [
-  COMPACT_HOUSE,
-  CENTRAL_HALL,
+  COMPACT_GRID,
+  CENTRAL_LOBBY,
   SIDE_CORRIDOR,
   L_PLAN,
   SPLIT_WING,
-  VILLA_FORMAL,
+  VILLA_QUAD,
 ]
 
 const DOUBLE_LOADED_CORRIDOR: LayoutTemplate = {
@@ -296,7 +300,7 @@ export function templateForTypology(
   switch (typology) {
     case 'house': {
       const candidates = HOUSE_TEMPLATES.filter(t => area >= t.minArea && area <= t.maxArea)
-      if (candidates.length === 0) return CENTRAL_HALL
+      if (candidates.length === 0) return CENTRAL_LOBBY
       if (seed === 0 || candidates.length === 1) return candidates[0]
       const idx = rng() % candidates.length
       return candidates[idx]
@@ -319,11 +323,11 @@ export function templateForTypology(
     case 'worship':
       return WORSHIP_HALL_SUPPORT
     case 'duplex':
-      return CENTRAL_HALL
+      return CENTRAL_LOBBY
     case 'townhouse':
-      return COMPACT_HOUSE
+      return COMPACT_GRID
     default:
-      return CENTRAL_HALL
+      return CENTRAL_LOBBY
   }
 }
 
@@ -346,7 +350,7 @@ export function isRequiredRoom(name: string): boolean {
 
 export function pickHouseTemplate(area: number, seed = 0): LayoutTemplate {
   const candidates = HOUSE_TEMPLATES.filter(t => area >= t.minArea && area <= t.maxArea)
-  if (candidates.length === 0) return CENTRAL_HALL
+  if (candidates.length === 0) return CENTRAL_LOBBY
   if (seed === 0 || candidates.length === 1) return candidates[0]
   let s = seed % 2147483647
   if (s <= 0) s += 2147483646
