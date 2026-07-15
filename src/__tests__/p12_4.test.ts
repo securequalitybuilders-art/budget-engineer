@@ -286,7 +286,7 @@ describe('Typology Router — floor context awareness', () => {
       isRoof: false,
       programmeTags: ['public'],
     }
-    const rooms = generateLayoutByTypology('house', program, 12, 10, 0, context)
+    const { rooms } = generateLayoutByTypology('house', program, 12, 10, 0, context)
     expect(rooms.length).toBeGreaterThan(0)
   })
 
@@ -300,7 +300,7 @@ describe('Typology Router — floor context awareness', () => {
       isRoof: false,
       programmeTags: ['private'],
     }
-    const rooms = generateLayoutByTypology('house', program, 12, 10, 0, context)
+    const { rooms } = generateLayoutByTypology('house', program, 12, 10, 0, context)
     expect(rooms.length).toBeGreaterThan(0)
   })
 })

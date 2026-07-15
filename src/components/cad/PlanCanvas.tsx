@@ -43,6 +43,7 @@ function createEmptyPlan(): PlanModel {
     walls: [],
     openings: [],
     scaleLabel: '1:100 @ A3',
+    planSource: 'legacy-fallback-plan',
   }
 }
 
@@ -80,11 +81,13 @@ export function PlanCanvas({
   onPlaceBlock,
 }: PlanCanvasProps) {
   const createdRef = useRef(false)
+  // Only generate legacy baseModel if no persistedPlan is provided
   const baseModel = useMemo<PlanModel | null>(() => {
+    if (persistedPlan) return null
     if (design) return generatePlanModel(design)
     if (backdrop?.imageDataUrl) return createEmptyPlan()
     return null
-  }, [design, backdrop?.imageDataUrl])
+  }, [design, backdrop?.imageDataUrl, persistedPlan])
   const { view, zoomIn, zoomOut, reset, onPointerDown, onPointerMove, onPointerUp, pinchZoom } = usePlanViewport()
   const {
     model,

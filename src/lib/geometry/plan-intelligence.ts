@@ -270,7 +270,8 @@ export interface SmartOpeningsParams {
 }
 
 export function generateSmartOpenings(params: SmartOpeningsParams): Opening[] {
-  const { rooms, adjacency, externalWalls } = params
+  const { rooms, walls, adjacency, externalWalls } = params
+  const validWallIds = new Set(walls.map(w => w.id))
   const openings: Opening[] = []
 
   const spine = findCirculationSpine(rooms)
@@ -294,6 +295,7 @@ export function generateSmartOpenings(params: SmartOpeningsParams): Opening[] {
   const placedOnWall = new Set<string>()
 
   function addDoor(wall: WallSegment) {
+    if (!validWallIds.has(wall.id)) return
     const wKey = wall.id
     if (placedOnWall.has(wKey)) return
     placedOnWall.add(wKey)
@@ -315,6 +317,7 @@ export function generateSmartOpenings(params: SmartOpeningsParams): Opening[] {
   }
 
   function addWindow(wall: WallSegment) {
+    if (!validWallIds.has(wall.id)) return
     const wKey = `win_${wall.id}`
     if (placedOnWall.has(wKey)) return
     placedOnWall.add(wKey)
@@ -725,6 +728,7 @@ export function assemblePlan(input: PlanAssemblyInput) {
     walls: allWalls,
     openings,
     scaleLabel: '1:100 @ A3' as const,
+    planSource: 'legacy-fallback-plan' as const,
   }
 
   return { plan, warnings }

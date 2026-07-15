@@ -163,7 +163,7 @@ export function generateTwoBedStandardTemplate(params: TemplateParams): Apartmen
 }
 
 export function generateTwoBedCornerTemplate(params: TemplateParams): ApartmentUnitRoom[] {
-  const { ux, uy, uw, uh, entrySide: _entrySide } = params
+  const { ux, uy, uw, uh } = params
   const entryD = Math.min(1.2, uh * 0.12)
   const bathW = Math.min(2.0, uw * 0.18)
   const balconyD = Math.min(2.0, uh * 0.15)

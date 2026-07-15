@@ -344,7 +344,7 @@ describe('P12.7 — Strategy + core integration', () => {
 describe('P12.7 — Mixed-use upper-floor continuity', () => {
   it('upper-residential floor context generates apartment layout via typology router', () => {
     const program = makeUnitProgram(3)
-    const rooms = generateLayoutByTypology('mixed-use', program, 18, 14, 0, {
+    const { rooms } = generateLayoutByTypology('mixed-use', program, 18, 14, 0, {
       levelIndex: 1,
       totalFloors: 4,
       floorRole: 'upper-residential',
@@ -366,7 +366,7 @@ describe('P12.7 — Mixed-use upper-floor continuity', () => {
       { name: 'Stairwell', ratio: 0.15 },
       { name: 'Service Corridor', ratio: 0.15 },
     ]
-    const rooms = generateLayoutByTypology('mixed-use', program, 18, 14, 0, {
+    const { rooms, entranceMarkers } = generateLayoutByTypology('mixed-use', program, 18, 14, 0, {
       levelIndex: 0,
       totalFloors: 4,
       floorRole: 'ground-public',
@@ -376,14 +376,14 @@ describe('P12.7 — Mixed-use upper-floor continuity', () => {
     })
     expect(rooms.length).toBeGreaterThan(3)
 
-    // Should have mixed-use entrance zones
-    const retailEntrance = rooms.find(r => r.name.includes('Retail / Public Entrance'))
+    // Should have mixed-use entrance zones as semantic markers (not rooms)
+    const retailEntrance = entranceMarkers?.find(m => m.label.includes('Retail / Public Entrance'))
     expect(retailEntrance).toBeDefined()
   })
 
   it('podium floor generates zoned layout for apartment typology', () => {
     const program = makeUnitProgram(2)
-    const rooms = generateLayoutByTypology('apartment', program, 18, 14, 0, {
+    const { rooms } = generateLayoutByTypology('apartment', program, 18, 14, 0, {
       levelIndex: 0,
       totalFloors: 3,
       floorRole: 'podium',

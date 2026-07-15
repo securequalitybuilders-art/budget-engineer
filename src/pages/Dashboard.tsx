@@ -25,7 +25,7 @@ import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPane
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
 import { Box, FileSpreadsheet, Bug, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { generatePlanModel } from '@/engine/plan-generator';
+import { generateVariedPlanModel } from '@/engine/plan-generator';
 import { floorPlanToPlanModel } from '@/adapters/floorPlanToPlanModel';
 import type { FloorPlan } from '@/engine/tier3/layoutEngine';
 import { designOptionToBimModel } from '@/adapters/designToBim';
@@ -34,7 +34,7 @@ import { deriveBoqFromCadOrDesign, buildCadSyncMetadata } from '@/adapters/cadTo
 import { persistDesigns, persistBimModel, persistBoq, logTransaction, loadPersistedProjectWork } from '@/services/projectPersistenceService';
 import { savePlanModel, loadPlanModel, loadPlanModelMeta, deletePlanModel } from '@/services/cadPersistenceService';
 import type { DesignOption } from '@/domain/boq';
-import type { PlanModel } from '@/domain/plan';
+import type { PlanModel, PlanSource } from '@/domain/plan';
 import type { GeometrySource } from '@/adapters/cadToDesignSyncAdapter';
 import { routeImportFile } from '@/lib/import/importRouter';
 import type { BackdropState } from '@/lib/import/backdropUtils';
@@ -131,13 +131,21 @@ export function Dashboard() {
     return idx >= 0 ? tier3Plans[idx] : tier3Plans[0]
   }, [tier3Plans, selectedDesign?.id])
 
-  // Active PlanModel: prefer CAD-edited persisted plan, else Tier 3 floorPlan, else generic
+  // Active PlanModel: prefer CAD-edited persisted plan, else Tier 3 floorPlan, else varied generation
   const activePlan = useMemo<PlanModel | null>(() => {
-    if (persistedPlan) return persistedPlan
+    if (persistedPlan) return { ...persistedPlan, planSource: 'persisted-plan' }
     if (selectedTier3Plan && selectedDesign) {
       return floorPlanToPlanModel(selectedTier3Plan, selectedDesign)
     }
-    return selectedDesign ? generatePlanModel(selectedDesign) : null
+    if (selectedDesign) {
+      const plan = generateVariedPlanModel(selectedDesign)
+      const source: PlanSource = plan.planSource ?? 'advanced-generated-plan'
+      if (process.env.NODE_ENV === 'development') {
+        console.debug(`[PlanSource] ${selectedDesign.id} → ${source}`)
+      }
+      return plan
+    }
+    return null
   }, [persistedPlan, selectedDesign, selectedTier3Plan]);
   const currentBoq = useMemo(() => {
     if (persistedPlan && selectedDesign) {

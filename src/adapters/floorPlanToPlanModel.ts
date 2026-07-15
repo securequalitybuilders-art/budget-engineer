@@ -66,6 +66,7 @@ export function floorPlanToPlanModel(
     walls: allWalls,
     openings,
     scaleLabel: '1:100 @ A3',
+    planSource: 'tier3-floorplan' as const,
   }
 }
 
@@ -99,7 +100,9 @@ export function floorPlanToPlanModelWithBridge(
       const slabInfo = assignLevelSlabs(chassis)
       const bridge = computeStructuralBridge(chassis)
       for (const sw of bridge.warnings) warnings.push(`[Structural] ${sw}`)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ;(plan as any).slabAssignments = slabInfo
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ;(plan as any).structuralLevels = bridge.levels
     } catch {
       // bridge data is best-effort

@@ -77,7 +77,7 @@ function evaluateBenchmark(
   let autoFail = false
 
   const chassis = generateBuildingChassis(params)
-  const profile = computeLevelProgrammes(params.typology as any, params.storeyCount)
+  const profile = computeLevelProgrammes(params.typology, params.storeyCount)
   const bridge = computeStructuralBridge(chassis)
   const slabs = assignLevelSlabs(chassis)
 

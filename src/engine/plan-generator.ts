@@ -1,5 +1,5 @@
 import type { DesignOption } from '../domain/boq'
-import type { PlanModel } from '../domain/plan'
+import type { PlanModel, PlanSource, PlanningZoneMarker } from '../domain/plan'
 import { getRoomProgram } from './roomPrograms'
 import { isResidential } from './buildingTypes'
 import { generateLayoutByTypology, type FloorContext } from '../lib/layout/typology-router'
@@ -145,13 +145,15 @@ export function generatePlanModel(design: DesignOption): PlanModel {
 
   if (floors <= 1) {
     // Single floor: original path
-    const rawRooms = generateLayoutByTypology(
+    const layoutResult = generateLayoutByTypology(
       buildingType,
       program,
       footprint.width,
       footprint.height,
       Date.now(),
     )
+
+    const rawRooms = layoutResult.rooms
 
     const rooms = rawRooms.map(r => ({
       id: r.id,
@@ -171,15 +173,23 @@ export function generatePlanModel(design: DesignOption): PlanModel {
       designOptionId: design.id,
     })
 
-    const allWarnings = [...warnings, ...verticalWarnings]
+    const planModel = plan as PlanModel
+    // Add entrance markers if present
+    if (layoutResult.entranceMarkers && layoutResult.entranceMarkers.length > 0) {
+      planModel.entranceMarkers = layoutResult.entranceMarkers
+    }
+
+    const planWarnings = layoutResult.warnings || []
+    const allWarnings = [...warnings, ...verticalWarnings, ...planWarnings]
     if (allWarnings.length > 0) {
       console.warn(`[plan-generator] ${allWarnings.length} warnings:`, allWarnings.slice(0, 8))
     }
-    return plan
+    return planModel
   }
 
   // Multi-storey: generate per-floor rooms with level-specific programmes
   const allRooms: { id: string; name: string; x: number; y: number; width: number; height: number; color?: string }[] = []
+  const allEntranceMarkers: PlanningZoneMarker[] = []
   const palette = ['#1d4ed8', '#0f766e', '#7c3aed', '#9a3412', '#0369a1', '#4d7c0f', '#be185d', '#b45309']
 
   for (let fi = 0; fi < floors; fi++) {
@@ -200,12 +210,14 @@ export function generatePlanModel(design: DesignOption): PlanModel {
 
     // Generate level-specific rooms with retry on failure
     let rawRooms: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
+    let layoutWarnings: string[] = []
+    let floorEntranceMarkers: PlanningZoneMarker[] = []
     let genSuccess = false
 
     for (let retry = 0; retry < 3; retry++) {
       try {
         const seed = Date.now() + fi + retry * 9973
-        const candidateRooms = generateLayoutByTypology(
+        const candidateResult = generateLayoutByTypology(
           buildingType,
           levelProgramme,
           footprint.width,
@@ -213,6 +225,8 @@ export function generatePlanModel(design: DesignOption): PlanModel {
           seed,
           floorContext,
         )
+
+        const candidateRooms = candidateResult.rooms
 
         // Validate: no NaN, no zero-area rooms
         const valid = candidateRooms.every(r =>
@@ -223,6 +237,8 @@ export function generatePlanModel(design: DesignOption): PlanModel {
 
         if (valid && candidateRooms.length > 0) {
           rawRooms = candidateRooms
+          layoutWarnings = candidateResult.warnings || []
+          floorEntranceMarkers = candidateResult.entranceMarkers || []
           genSuccess = true
           break
         }
@@ -233,7 +249,7 @@ export function generatePlanModel(design: DesignOption): PlanModel {
 
     if (!genSuccess) {
       // Fallback: generate zoned layout as last resort
-      rawRooms = generateLayoutByTypology(
+      const fallbackResult = generateLayoutByTypology(
         buildingType,
         levelProgramme,
         footprint.width,
@@ -241,13 +257,26 @@ export function generatePlanModel(design: DesignOption): PlanModel {
         Date.now() + fi,
         { ...floorContext, floorRole: 'ground-public' },
       )
+      rawRooms = fallbackResult.rooms
+      layoutWarnings = fallbackResult.warnings || []
+      floorEntranceMarkers = fallbackResult.entranceMarkers || []
       genSuccess = true
       verticalWarnings.push(`[Level ${fi}] fallback generation used after retries`)
     }
 
+    // Propagate packer warnings
+    for (const lw of layoutWarnings) {
+      verticalWarnings.push(`[Level ${fi} Layout] ${lw}`)
+    }
+
+    // Collect entrance markers from ground floor
+    if (fi === 0 && floorEntranceMarkers.length > 0) {
+      allEntranceMarkers.push(...floorEntranceMarkers)
+    }
+
     // Validate entrance separation for mixed-use ground floor
     if (buildingType === 'mixed-use' && fi === 0 && rawRooms.length > 0) {
-      const entranceResult = validateEntranceSeparation(rawRooms)
+      const entranceResult = validateEntranceSeparation(rawRooms, floorEntranceMarkers)
       if (!entranceResult.valid) {
         for (const conflict of entranceResult.conflicts) {
           verticalWarnings.push(`[Mixed-Use Entrance] ${conflict}`)
@@ -307,10 +336,81 @@ export function generatePlanModel(design: DesignOption): PlanModel {
     designOptionId: design.id,
   })
 
+  const planModel = plan as PlanModel
+  // Add entrance markers from ground floor if any
+  if (allEntranceMarkers.length > 0) {
+    planModel.entranceMarkers = allEntranceMarkers
+  }
+
   const allWarnings = [...warnings, ...verticalWarnings]
   if (allWarnings.length > 0) {
     console.warn(`[plan-generator] ${allWarnings.length} warnings:`, allWarnings.slice(0, 8))
   }
 
-  return plan
+  return planModel
+}
+
+function seedFromId(id: string): number {
+  let hash = 5381
+  for (let i = 0; i < id.length; i++) {
+    hash = ((hash << 5) + hash) + id.charCodeAt(i)
+    hash = hash & hash // Convert to 32-bit integer
+  }
+  return Math.abs(hash)
+}
+
+export function generateVariedPlanModel(
+  design: DesignOption,
+  seed?: number,
+): PlanModel {
+  const variationSeed = seed ?? seedFromId(design.id)
+  const area = design.grossFloorArea
+  const buildingType = design.buildingType || 'house'
+  const footprint = normalizeFootprint(area)
+  const wallThickness = 0.2
+  const program = programFromArea(area, buildingType)
+
+  const layoutResult = generateLayoutByTypology(
+    buildingType,
+    program,
+    footprint.width,
+    footprint.height,
+    variationSeed,
+  )
+
+  const rawRooms = layoutResult.rooms
+
+  const rooms = rawRooms.map(r => ({
+    id: r.id,
+    name: r.name,
+    x: Number(r.x.toFixed(2)),
+    y: Number(r.y.toFixed(2)),
+    width: Number(Math.max(r.width, 0.5).toFixed(2)),
+    height: Number(Math.max(r.height, 0.5).toFixed(2)),
+    color: ['#1d4ed8', '#0f766e', '#7c3aed', '#9a3412', '#0369a1', '#4d7c0f', '#be185d', '#b45309'][Math.abs(variationSeed) % 8],
+  }))
+
+  const { plan, warnings } = assemblePlan({
+    rooms,
+    width: footprint.width,
+    height: footprint.height,
+    wallThickness,
+    designOptionId: design.id,
+  })
+
+  const planModel = plan as PlanModel
+  // Add entrance markers if present
+  if (layoutResult.entranceMarkers && layoutResult.entranceMarkers.length > 0) {
+    planModel.entranceMarkers = layoutResult.entranceMarkers
+  }
+
+  const planWithSource = { ...planModel, planSource: 'advanced-generated-plan' as PlanSource }
+
+  const planWarnings = layoutResult.warnings || []
+  const allWarnings = [...warnings, ...planWarnings]
+  if (allWarnings.length > 0) {
+    console.warn(`[plan-generator] generateVariedPlanModel: ${allWarnings.length} warnings:`, allWarnings.slice(0, 8))
+  }
+
+  return planWithSource
 }

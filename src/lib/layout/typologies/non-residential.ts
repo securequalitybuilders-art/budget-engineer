@@ -358,13 +358,17 @@ export interface EntranceSeparationResult {
   repairs: string[]
 }
 
-export function validateEntranceSeparation(rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[]): EntranceSeparationResult {
+export function validateEntranceSeparation(
+  rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[],
+  entranceMarkers?: { id: string; label: string; x: number; y: number; width: number; height: number }[],
+): EntranceSeparationResult {
   const conflicts: string[] = []
   const repairs: string[] = []
 
-  const retailEntrance = rooms.find(r => r.name.includes('Retail / Public Entrance'))
-  const residentialEntrance = rooms.find(r => r.name.includes('Residential Lobby Entrance'))
-  const serviceEntrance = rooms.find(r => r.name.includes('Service / Back-of-House Entrance'))
+  const markers = entranceMarkers || []
+  const retailEntrance = rooms.find(r => r.name.includes('Retail / Public Entrance')) || markers.find(m => m.label.includes('Retail / Public Entrance'))
+  const residentialEntrance = rooms.find(r => r.name.includes('Residential Lobby Entrance')) || markers.find(m => m.label.includes('Residential Lobby Entrance'))
+  const serviceEntrance = rooms.find(r => r.name.includes('Service / Back-of-House Entrance')) || markers.find(m => m.label.includes('Service / Back-of-House Entrance'))
   const residentialLobby = rooms.find(r => r.name === 'Residential Lobby')
   const serviceCorridor = rooms.find(r => r.name === 'Service Corridor')
   const retailSpaces = rooms.filter(r => r.name.includes('Retail Space'))

@@ -35,6 +35,20 @@ export interface Opening {
   sillHeight?: number
 }
 
+export type PlanSource = 'persisted-plan' | 'advanced-generated-plan' | 'tier3-floorplan' | 'legacy-fallback-plan' | 'unknown'
+
+export type EntranceMarkerClass = 'retail-public' | 'residential-private' | 'service-boh'
+
+export interface PlanningZoneMarker {
+  id: string
+  type: EntranceMarkerClass
+  label: string
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 export interface PlanModel {
   id: string
   designOptionId: string
@@ -45,4 +59,10 @@ export interface PlanModel {
   walls: WallSegment[]
   openings: Opening[]
   scaleLabel: string
+  planSource?: PlanSource
+  entranceMarkers?: PlanningZoneMarker[]
+}
+
+export function getPlanSource(plan: PlanModel): PlanSource {
+  return plan.planSource ?? 'unknown'
 }

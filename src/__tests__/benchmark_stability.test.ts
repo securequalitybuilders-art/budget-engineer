@@ -349,7 +349,7 @@ describe('Repair/regeneration hardening', () => {
     const typologies = ['house', 'apartment', 'clinic', 'school', 'mixed-use', 'warehouse', 'worship', 'townhouse', 'duplex', 'commercial', 'office']
     for (const typ of typologies) {
       const program = makeProgram(['Room 1', 'Room 2', 'Room 3', 'Circulation'])
-      const rooms = generateLayoutByTypology(typ, program, 12, 10, 42)
+      const { rooms } = generateLayoutByTypology(typ, program, 12, 10, 42)
       expect(rooms.length).toBeGreaterThan(0)
       for (const r of rooms) {
         expect(r.width).toBeGreaterThanOrEqual(0.2)
@@ -362,7 +362,7 @@ describe('Repair/regeneration hardening', () => {
     const typologies = ['house', 'apartment', 'clinic', 'school', 'mixed-use', 'warehouse', 'worship']
     for (const typ of typologies) {
       const program = makeProgram(['Room 1', 'Room 2', 'Circulation'])
-      const rooms = generateLayoutByTypology(typ, program, 12, 10, 0, {
+      const { rooms } = generateLayoutByTypology(typ, program, 12, 10, 0, {
         levelIndex: 1, totalFloors: 2, floorRole: 'upper-private',
         isGround: false, isRoof: true, programmeTags: [],
       })
