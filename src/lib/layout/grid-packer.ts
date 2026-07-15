@@ -300,110 +300,14 @@ function packVerticalBand(
   return result
 }
 
-function placeAtMinimum(
-  r: RoomToPlace,
-  zoneOriginX: number,
-  zoneOriginY: number,
-  zoneW: number,
-  zoneH: number,
-  zoneId: string,
-  warnings: PackWarning[],
-): { id: string; name: string; x: number; y: number; width: number; height: number } | null {
-  const w = Math.min(r.minWidth, zoneW)
-  const h = Math.min(r.minDepth, zoneH)
-  if (w < 0.5 || h < 0.5) return null
-  const belowMin = w < r.minWidth - 0.01 || h < r.minDepth - 0.01
-  warnings.push({
-    message: belowMin
-      ? `Required room "${r.name}" overflowed zone "${zoneId}" — placed below minimum size, layout invalid`
-      : `Required room "${r.name}" overflowed zone "${zoneId}" — placed at minimum size`,
-    roomName: r.name,
-    zoneId,
-  })
-  return {
-    id: uid(),
-    name: r.name,
-    x: Number((zoneOriginX + Math.max(0, zoneW - w)).toFixed(2)),
-    y: Number((zoneOriginY + Math.max(0, zoneH - h)).toFixed(2)),
-    width: Number(w.toFixed(2)),
-    height: Number(h.toFixed(2)),
-  }
-}
-
-function packGridInZone(
-  rooms: RoomToPlace[],
-  zone: ZoneDefinition,
-  cellW: number,
-  cellH: number,
-  zoneOriginX: number,
-  zoneOriginY: number,
-  seed: number,
-  warnings: PackWarning[],
-): { id: string; name: string; x: number; y: number; width: number; height: number }[] {
-  const zoneCols = zone.colEnd - zone.colStart
-  const zoneRows = zone.rowEnd - zone.rowStart
-  const zoneW = zoneCols * cellW
-  const zoneH = zoneRows * cellH
-  const ordered = seed !== 0 ? seededShuffle(rooms, seed) : rooms
-  const result: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
-  let cellCol = 0
-  let cellRow = 0
-
-  for (const r of ordered) {
-    const colSpan = Math.min(zoneCols, Math.max(1, Math.ceil(r.minWidth / cellW)))
-    const rowSpan = Math.min(zoneRows, Math.max(1, Math.ceil(r.minDepth / cellH)))
-
-    if (cellCol + colSpan > zoneCols) {
-      cellCol = 0
-      cellRow += 1
-    }
-
-    if (cellRow + rowSpan > zoneRows) {
-      // Required rooms get placed at minimum size as fallback
-      if (!r.flexible) {
-        const fallback = placeAtMinimum(r, zoneOriginX, zoneOriginY, zoneW, zoneH, zone.id, warnings)
-        if (fallback) result.push(fallback)
-      }
-      continue
-    }
-
-    const w = colSpan * cellW
-    const h = rowSpan * cellH
-    if (belowMinimum(r, w, h) && !r.flexible) {
-      warnings.push({
-        message: `Required room "${r.name}" placed below minimum in grid zone`,
-        roomName: r.name,
-        zoneId: zone.id,
-      })
-    }
-
-    result.push({
-      id: uid(),
-      name: r.name,
-      x: Number((zoneOriginX + cellCol * cellW).toFixed(2)),
-      y: Number((zoneOriginY + cellRow * cellH).toFixed(2)),
-      width: Number(w.toFixed(2)),
-      height: Number(h.toFixed(2)),
-    })
-
-    cellCol += colSpan
-  }
-
-  return result
-}
-
 function pickDirection(
   zone: ZoneDefinition,
   cellW: number,
   cellH: number,
-): 'horizontal' | 'vertical' | 'grid' {
+): 'horizontal' | 'vertical' {
   const zoneW = (zone.colEnd - zone.colStart) * cellW
   const zoneH = (zone.rowEnd - zone.rowStart) * cellH
-  const aspect = zoneW / Math.max(zoneH, 0.01)
-
-  if (aspect > 1.8) return 'horizontal'
-  if (aspect < 0.55) return 'vertical'
-  return 'grid'
+  return zoneW > zoneH * 1.2 ? 'horizontal' : 'vertical'
 }
 
 /**
@@ -429,10 +333,7 @@ function packZone(
   if (direction === 'horizontal') {
     return packHorizontalBand(zoneRooms, zoneOriginX, zoneOriginY, zoneW, zoneH, seed, warnings)
   }
-  if (direction === 'vertical') {
-    return packVerticalBand(zoneRooms, zoneOriginX, zoneOriginY, zoneW, zoneH, seed, warnings)
-  }
-  return packGridInZone(zoneRooms, zone, cellW, cellH, zoneOriginX, zoneOriginY, seed, warnings)
+  return packVerticalBand(zoneRooms, zoneOriginX, zoneOriginY, zoneW, zoneH, seed, warnings)
 }
 
 /**
@@ -533,10 +434,25 @@ export function packTemplate(
         if (!r.flexible) {
           const zoneW = (zone.colEnd - zone.colStart) * cellW
           const zoneH = (zone.rowEnd - zone.rowStart) * cellH
-          const fallback = placeAtMinimum(r, zoneOriginX, zoneOriginY, zoneW, zoneH, zone.id, warnings)
-          if (fallback) {
-            allRooms.push(fallback)
+          const w = Math.min(r.minWidth, zoneW)
+          const h = Math.min(r.minDepth, zoneH)
+          if (w >= 0.5 && h >= 0.5) {
+            allRooms.push({
+              id: uid(),
+              name: r.name,
+              x: Number((zoneOriginX + Math.max(0, zoneW - w)).toFixed(2)),
+              y: Number((zoneOriginY + Math.max(0, zoneH - h)).toFixed(2)),
+              width: Number(w.toFixed(2)),
+              height: Number(h.toFixed(2)),
+            })
             placedNames.add(r.name)
+            warnings.push({
+              message: w < r.minWidth - 0.01 || h < r.minDepth - 0.01
+                ? `Required room "${r.name}" overflowed zone "${zone.id}" — placed below minimum size, layout invalid`
+                : `Required room "${r.name}" overflowed zone "${zone.id}" — placed at minimum size`,
+              roomName: r.name,
+              zoneId: zone.id,
+            })
           }
         }
       }

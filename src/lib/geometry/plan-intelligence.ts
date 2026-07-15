@@ -127,7 +127,7 @@ export function buildAdjacencyGraph(rooms: RoomRect[]): AdjacencyEdge[] {
 }
 
 function findSharedBoundary(a: RoomRect, b: RoomRect): AdjacencyEdge | null {
-  const eps = 0.01
+  const eps = 0.05
 
   // a is left of b — vertical shared edge
   if (Math.abs(a.x + a.width - b.x) < eps) {
