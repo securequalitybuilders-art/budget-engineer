@@ -1,4 +1,10 @@
 import type { RoomRect, WallSegment, Opening } from '../../domain/plan'
+import { normalizeRooms, detectOverlaps, snapCollection, snap } from './geometry-normalizer'
+import { isRequiredRoom } from '../layout/layout-templates'
+import { buildPolygons } from './room-polygons'
+import { detectSharedBoundaries } from './shared-boundaries'
+import { buildCanonicalWallGraph } from './canonical-wall-graph'
+import { resolveOpeningHosts } from './opening-hosts'
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 
@@ -127,7 +133,7 @@ export function buildAdjacencyGraph(rooms: RoomRect[]): AdjacencyEdge[] {
 }
 
 function findSharedBoundary(a: RoomRect, b: RoomRect): AdjacencyEdge | null {
-  const eps = 0.05
+  const eps = 0.01
 
   // a is left of b — vertical shared edge
   if (Math.abs(a.x + a.width - b.x) < eps) {
@@ -456,6 +462,7 @@ export function generateSmartOpenings(params: SmartOpeningsParams): Opening[] {
 
 export function validatePlanConnectivity(rooms: RoomRect[], openings: Opening[], walls: WallSegment[]): string[] {
   const warnings: string[] = []
+  let hasHardFailure = false
 
   // Build room-role map
   const roleMap = new Map<string, RoomRole>()
@@ -469,15 +476,26 @@ export function validatePlanConnectivity(rooms: RoomRect[], openings: Opening[],
     warnings.push('No circulation spine found (no Circulation/Hall/Lobby room)')
   }
 
-  // Check minimum room dimensions
+  // Check minimum room dimensions — hard fail for required rooms
   for (const room of rooms) {
     const dims = getMinimumDimensions(room.name)
-    if (room.width < dims.minWidth - 0.01) {
-      warnings.push(`Room "${room.name}" width ${room.width.toFixed(2)}m < minimum ${dims.minWidth}m`)
+    const required = isRequiredRoom(room.name)
+    const widthOk = room.width >= dims.minWidth - 0.01
+    const depthOk = room.height >= dims.minDepth - 0.01
+    if (!widthOk) {
+      const msg = `Room "${room.name}" width ${room.width.toFixed(2)}m < minimum ${dims.minWidth}m`
+      warnings.push(msg)
+      if (required) hasHardFailure = true
     }
-    if (room.height < dims.minDepth - 0.01) {
-      warnings.push(`Room "${room.name}" depth ${room.height.toFixed(2)}m < minimum ${dims.minDepth}m`)
+    if (!depthOk) {
+      const msg = `Room "${room.name}" depth ${room.height.toFixed(2)}m < minimum ${dims.minDepth}m`
+      warnings.push(msg)
+      if (required) hasHardFailure = true
     }
+  }
+
+  if (hasHardFailure) {
+    warnings.push('LAYOUT_REJECTED: One or more required rooms are below minimum dimensions')
   }
 
   // Check every private room has a door
@@ -705,31 +723,80 @@ export function outerWalls(width: number, height: number, thickness: number): Wa
 export function assemblePlan(input: PlanAssemblyInput) {
   const { rooms, width, height, wallThickness, designOptionId } = input
 
-  const extWalls = outerWalls(width, height, wallThickness)
-  const { walls: intWalls, adjacency } = buildWallGraphFromRooms(rooms)
-  const allWalls = [...extWalls, ...intWalls]
+  const snappedW = snap(width)
+  const snappedH = snap(height)
+  const { rooms: normalizedRooms, width: collWidth, height: collHeight } = snapCollection(normalizeRooms(rooms, width, height), width, height)
+  const canonicalW = Math.max(snappedW, collWidth)
+  const canonicalH = Math.max(snappedH, collHeight)
 
-  const openings = generateSmartOpenings({
-    rooms,
-    walls: allWalls,
+  const overlapWarnings: string[] = []
+
+  const overlaps = detectOverlaps(normalizedRooms)
+  if (overlaps.length > 0) {
+    for (const ov of overlaps) {
+      overlapWarnings.push(`Room overlap detected between "${ov.roomA}" and "${ov.roomB}"`)
+    }
+  }
+
+  const polygons = buildPolygons(normalizedRooms)
+  const boundaries = detectSharedBoundaries(polygons)
+  const { walls: allWalls, adjacency, externalWalls: extWalls } = buildCanonicalWallGraph(
+    polygons,
+    boundaries,
+    canonicalW,
+    canonicalH,
+    wallThickness,
+  )
+
+  const { openings, warnings: openingWarnings } = resolveOpeningHosts(
+    rooms.map((r, i) => ({ ...r, x: normalizedRooms[i]?.snappedX ?? r.x, y: normalizedRooms[i]?.snappedY ?? r.y, width: normalizedRooms[i]?.snappedW ?? r.width, height: normalizedRooms[i]?.snappedH ?? r.height })),
+    polygons,
     adjacency,
-    externalWalls: extWalls,
-  })
+    allWalls,
+    extWalls,
+  )
 
-  const warnings = validatePlanConnectivity(rooms, openings, allWalls)
+  const updatedRooms = rooms.map((r, i) => ({
+    ...r,
+    x: Number((normalizedRooms[i]?.snappedX ?? r.x).toFixed(2)),
+    y: Number((normalizedRooms[i]?.snappedY ?? r.y).toFixed(2)),
+    width: Number((normalizedRooms[i]?.snappedW ?? r.width).toFixed(2)),
+    height: Number((normalizedRooms[i]?.snappedH ?? r.height).toFixed(2)),
+  }))
+
+  // Clamp any room that still extends beyond canonical boundary
+  for (const room of updatedRooms) {
+    const right = room.x + room.width
+    const bottom = room.y + room.height
+    if (right > canonicalW) {
+      room.width = Number(Math.max(0.5, canonicalW - room.x).toFixed(2))
+    }
+    if (bottom > canonicalH) {
+      room.height = Number(Math.max(0.5, canonicalH - room.y).toFixed(2))
+    }
+  }
+
+  const validationWarnings = validatePlanConnectivity(updatedRooms, openings, allWalls)
+
+  const warnings = [...overlapWarnings, ...openingWarnings, ...validationWarnings]
+
+  const rejected = warnings.some(w =>
+    w.includes('LAYOUT_REJECTED') ||
+    w.includes('Room overlap detected'),
+  )
 
   const plan = {
     id: uid(),
     designOptionId,
-    width: Number(width.toFixed(2)),
-    height: Number(height.toFixed(2)),
+    width: canonicalW,
+    height: canonicalH,
     wallThickness,
-    rooms,
+    rooms: updatedRooms,
     walls: allWalls,
     openings,
     scaleLabel: '1:100 @ A3' as const,
-    planSource: 'legacy-fallback-plan' as const,
+    planSource: rejected ? 'canonical-generated-plan-rejected' as const : 'canonical-generated-plan' as const,
   }
 
-  return { plan, warnings }
+  return { plan, warnings, rejected }
 }

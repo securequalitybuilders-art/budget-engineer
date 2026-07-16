@@ -165,13 +165,18 @@ export function generatePlanModel(design: DesignOption): PlanModel {
       color: ['#1d4ed8', '#0f766e', '#7c3aed', '#9a3412', '#0369a1', '#4d7c0f', '#be185d', '#b45309'][Math.floor(Math.random() * 8)],
     }))
 
-    const { plan, warnings } = assemblePlan({
+    const result = assemblePlan({
       rooms,
       width: footprint.width,
       height: footprint.height,
       wallThickness,
       designOptionId: design.id,
     })
+
+    const { plan, warnings, rejected } = result
+    if (rejected) {
+      console.error(`[plan-generator] PLAN REJECTED: ${warnings.filter(w => w.includes('LAYOUT_REJECTED') || w.includes('overlap detected')).join('; ')}`)
+    }
 
     const planModel = plan as PlanModel
     // Add entrance markers if present
@@ -328,13 +333,18 @@ export function generatePlanModel(design: DesignOption): PlanModel {
   const planWidth = footprint.width
   const planHeight = footprint.height * floors * 1.1
 
-  const { plan, warnings } = assemblePlan({
+  const result = assemblePlan({
     rooms: allRooms,
     width: planWidth,
     height: planHeight,
     wallThickness,
     designOptionId: design.id,
   })
+
+  const { plan, warnings, rejected } = result
+  if (rejected) {
+    console.error(`[plan-generator] PLAN REJECTED: ${warnings.filter(w => w.includes('LAYOUT_REJECTED') || w.includes('overlap detected')).join('; ')}`)
+  }
 
   const planModel = plan as PlanModel
   // Add entrance markers from ground floor if any
@@ -390,7 +400,7 @@ export function generateVariedPlanModel(
     color: ['#1d4ed8', '#0f766e', '#7c3aed', '#9a3412', '#0369a1', '#4d7c0f', '#be185d', '#b45309'][Math.abs(variationSeed) % 8],
   }))
 
-  const { plan, warnings } = assemblePlan({
+  const result = assemblePlan({
     rooms,
     width: footprint.width,
     height: footprint.height,
@@ -398,13 +408,21 @@ export function generateVariedPlanModel(
     designOptionId: design.id,
   })
 
+  const { plan, warnings, rejected } = result
+  if (rejected) {
+    console.error(`[plan-generator] generateVariedPlanModel PLAN REJECTED: ${warnings.filter(w => w.includes('LAYOUT_REJECTED') || w.includes('overlap detected')).join('; ')}`)
+  }
+
   const planModel = plan as PlanModel
   // Add entrance markers if present
   if (layoutResult.entranceMarkers && layoutResult.entranceMarkers.length > 0) {
     planModel.entranceMarkers = layoutResult.entranceMarkers
   }
 
-  const planWithSource = { ...planModel, planSource: 'advanced-generated-plan' as PlanSource }
+  // Preserve canonical planSource (do NOT override to 'advanced-generated-plan')
+  const planWithSource = rejected
+    ? { ...planModel, planSource: 'canonical-generated-plan-rejected' as PlanSource }
+    : planModel
 
   const planWarnings = layoutResult.warnings || []
   const allWarnings = [...warnings, ...planWarnings]

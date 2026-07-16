@@ -35,7 +35,7 @@ export interface Opening {
   sillHeight?: number
 }
 
-export type PlanSource = 'persisted-plan' | 'advanced-generated-plan' | 'tier3-floorplan' | 'legacy-fallback-plan' | 'unknown'
+export type PlanSource = 'persisted-plan' | 'advanced-generated-plan' | 'tier3-floorplan' | 'legacy-fallback-plan' | 'unknown' | 'canonical-generated-plan' | 'canonical-generated-plan-rejected'
 
 export type EntranceMarkerClass = 'retail-public' | 'residential-private' | 'service-boh'
 

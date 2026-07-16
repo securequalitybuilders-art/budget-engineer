@@ -44,6 +44,9 @@ function createEmptyProject(projectId: string): InteriorProject {
     rooms: [],
     fixtures: [],
     materialAssignments: [],
+    joinery: [],
+    joineryDefs: [],
+    ffeEntries: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

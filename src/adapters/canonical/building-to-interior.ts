@@ -122,6 +122,9 @@ export function buildingGraphToInteriorProject(graph: BuildingGraph): InteriorPr
     rooms,
     fixtures: fixtureInstances,
     materialAssignments,
+    joinery: [],
+    joineryDefs: [],
+    ffeEntries: [],
     createdAt: graph.meta.createdAt,
     updatedAt: graph.meta.updatedAt,
   }

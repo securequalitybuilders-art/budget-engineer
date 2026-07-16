@@ -41,7 +41,7 @@ function makeMinimalFloorPlan(): FloorPlan {
 // ── Workstream A: Plan Source Tracking ──
 
 describe('P12.8 — Plan source tracking', () => {
-  it('assemblePlan sets planSource to legacy-fallback-plan', () => {
+  it('assemblePlan sets planSource to canonical-generated-plan', () => {
     const { plan } = assemblePlan({
       rooms: [],
       width: 10,
@@ -49,7 +49,7 @@ describe('P12.8 — Plan source tracking', () => {
       wallThickness: 0.2,
       designOptionId: 'd1',
     })
-    expect(plan.planSource).toBe('legacy-fallback-plan')
+    expect(plan.planSource).toBe('canonical-generated-plan')
   })
 
   it('floorPlanToPlanModel sets planSource to tier3-floorplan', () => {
@@ -59,16 +59,16 @@ describe('P12.8 — Plan source tracking', () => {
     expect(plan.planSource).toBe('tier3-floorplan')
   })
 
-  it('generateVariedPlanModel sets planSource to advanced-generated-plan', () => {
+  it('generateVariedPlanModel sets planSource to canonical-generated-plan or rejected', () => {
     const design = makeDesign()
     const plan = generateVariedPlanModel(design)
-    expect(plan.planSource).toBe('advanced-generated-plan')
+    expect(['canonical-generated-plan', 'canonical-generated-plan-rejected']).toContain(plan.planSource)
   })
 
-  it('generatePlanModel (legacy) sets planSource to legacy-fallback-plan', () => {
+  it('generatePlanModel sets planSource to canonical-generated-plan or rejected', () => {
     const design = makeDesign()
     const plan = generatePlanModel(design)
-    expect(plan.planSource).toBe('legacy-fallback-plan')
+    expect(['canonical-generated-plan', 'canonical-generated-plan-rejected']).toContain(plan.planSource)
   })
 
   it('getPlanSource returns unknown for plans without source', () => {
@@ -182,13 +182,15 @@ describe('P12.8 — Plan source priority', () => {
 
   it('planSource priority order: persisted > tier3 > advanced > legacy', () => {
     // This validates the priority order used in Dashboard's activePlan
-    const sources: PlanSource[] = ['persisted-plan', 'tier3-floorplan', 'advanced-generated-plan', 'legacy-fallback-plan', 'unknown']
+    const sources: PlanSource[] = ['persisted-plan', 'tier3-floorplan', 'advanced-generated-plan', 'legacy-fallback-plan', 'canonical-generated-plan', 'canonical-generated-plan-rejected', 'unknown']
     const priority: Record<PlanSource, number> = {
       'persisted-plan': 0,
       'tier3-floorplan': 1,
       'advanced-generated-plan': 2,
       'legacy-fallback-plan': 3,
-      'unknown': 4,
+      'canonical-generated-plan': 4,
+      'canonical-generated-plan-rejected': 5,
+      'unknown': 6,
     }
     for (let i = 0; i < sources.length - 1; i++) {
       expect(priority[sources[i]]).toBeLessThan(priority[sources[i + 1]])

@@ -1,5 +1,103 @@
 # Changelog
 
+## [2.0.0] - 2026-07-11 — Professional Architecture, Engineering & Preconstruction Platform
+
+### Summary
+
+Budget Engineer v2.0.0 is the first major release where the platform crosses from a strong architectural generator into a broader **professional-grade, local-first architecture, engineering, and preconstruction platform**.
+
+This release consolidates:
+
+- architecture-aware prompt-to-plan generation
+- canonical geometry and validated room/wall/opening logic
+- multi-storey and typology-aware planning
+- trade-detailed early-stage BOQ
+- schedules of materials and components
+- programme / Gantt / cashflow outputs
+- site analysis and heliodon workflows
+- interior documentation foundations
+- structural and MEP pre-design layers
+- review and delivery workflow foundations
+- platform-level project export/import, diagnostics, RBAC shell, and release hardening
+
+All core release gates are now clean:
+- TypeScript: 0 errors
+- Lint: 0 errors, 25 warnings (within policy)
+- Tests: 1,918 passing across 108 files
+- Build: green
+
+### Added
+- **Architectural generator intelligence**
+  - constrained zoning
+  - typology-aware planning
+  - vertical chassis
+  - floor-role-aware multi-storey logic
+  - apartment unit modelling
+  - mixed-use entrance separation
+  - canonical geometry normalization
+  - canonical wall graph
+  - validated opening host recovery
+- **Drawing and sheet intelligence**
+  - typed drafting standards
+  - lineweight hierarchy
+  - annotation engine
+  - drawing composition and sheet metadata
+- **Trade-detailed cost and planning**
+  - detailed BOQ
+  - schedules
+  - programme / Gantt
+  - cashflow outputs
+- **Professional workflow foundations**
+  - site analysis / heliodon
+  - interior documentation
+  - structural pre-design
+  - MEP pre-design
+  - review engine
+  - delivery workflow
+- **Enterprise platform MVP layer**
+  - project export/import
+  - diagnostics panel
+  - local RBAC shell
+  - plugin SDK scaffold
+  - i18n scaffold
+  - CI/CD baseline
+  - security baseline
+  - deployment packaging
+
+### Changed
+- Replaced the old strip/band room-packing primitive with a more robust template-seeded and validated geometry-driven planning pipeline
+- Strengthened downstream consistency between:
+  - plan generation
+  - BIM/3D
+  - BOQ
+  - schedules
+  - programme outputs
+  - review/delivery packaging
+- Restored full release integrity:
+  - typecheck green
+  - build gate restored
+  - deterministic fix for `floorPlanLabels` instability
+
+### Quality
+- 1,918 tests across 108 files
+- `npm run typecheck` clean
+- `npm run lint` clean under current warning policy
+- `npm test` fully green
+- `npm run build` successful
+
+### Positioning
+Budget Engineer v2.0.0 should be positioned as a:
+
+**professional-grade, local-first architecture, engineering, and preconstruction platform with human review and signoff in the loop**
+
+It is **not** positioned as:
+- a full licensed architect replacement
+- final structural engineering software
+- fully code-certified approval automation
+- native proprietary CAD/BIM suite replacement
+
+---
+
 ## [1.3.0] - 2026-07-12 — Enterprise Platform MVP
 
 ### Summary

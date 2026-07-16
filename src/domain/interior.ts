@@ -83,12 +83,106 @@ export interface MaterialAssignment {
   coverageM2: number;
 }
 
+export type JoineryType = 'wardrobe' | 'kitchen-unit' | 'vanity' | 'shelving' | 'bench' | 'cabinet';
+
+export interface JoineryDef {
+  id: string;
+  name: string;
+  joineryType: JoineryType;
+  width: number;
+  depth: number;
+  height: number;
+  materialId: string;
+  finishColor: string;
+  notes: string;
+}
+
+export interface JoineryInstance {
+  instanceId: string;
+  joineryDefId: string;
+  roomId: string;
+  wallIndex: number;
+  position: Point;
+  width: number;
+  height: number;
+  notes: string;
+}
+
+export interface FFEEntry {
+  id: string;
+  roomId: string;
+  itemName: string;
+  supplier: string;
+  modelRef: string;
+  quantity: number;
+  unit: string;
+  rateCents: number;
+  category: 'furniture' | 'fixture' | 'equipment' | 'artwork' | 'accessory';
+}
+
+export interface FinishScheduleEntry {
+  roomId: string;
+  roomName: string;
+  roomType: InteriorRoomType;
+  wallFinish: string;
+  wallMaterialId: string | null;
+  floorFinish: string;
+  floorMaterialId: string | null;
+  ceilingFinish: string;
+  ceilingMaterialId: string | null;
+  wallAreaM2: number;
+  floorAreaM2: number;
+  ceilingAreaM2: number;
+}
+
+export interface WetAreaElevationData {
+  roomId: string;
+  roomName: string;
+  walls: {
+    wallIndex: number;
+    wallLabel: string;
+    fixtures: { fixtureId: string; x: number; y: number; name: string }[];
+    finish: string;
+    waterproofing: boolean;
+  }[];
+}
+
+export interface KitchenElevationData {
+  roomId: string;
+  roomName: string;
+  walls: {
+    wallIndex: number;
+    wallLabel: string;
+    units: { x: number; y: number; width: number; height: number; type: string; name: string }[];
+    appliances: { x: number; y: number; width: number; height: number; name: string }[];
+    backsplash: string;
+    countertop: string;
+  }[];
+}
+
+export interface WardrobeElevationData {
+  roomId: string;
+  roomName: string;
+  wardrobes: {
+    width: number;
+    height: number;
+    depth: number;
+    doorStyle: string;
+    interiorConfig: string;
+    material: string;
+    finish: string;
+  }[];
+}
+
 export interface InteriorProject {
   id: string;
   projectId: string;
   rooms: InteriorRoom[];
   fixtures: FixtureInstance[];
   materialAssignments: MaterialAssignment[];
+  joinery: JoineryInstance[];
+  joineryDefs: JoineryDef[];
+  ffeEntries: FFEEntry[];
   createdAt: string;
   updatedAt: string;
 }

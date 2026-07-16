@@ -216,7 +216,7 @@ export function briefToBuildingGraph(
       id: `canonical-brief-${Date.now()}`,
       projectId: `brief-${brief.summary?.slice(0, 20) ?? 'project'}`,
       name: meta?.name ?? brief.summary ?? 'Brief-derived Design',
-      category: meta?.category ?? (brief.buildingType as any) ?? 'residential',
+      category: meta?.category ?? (brief.buildingType as import('@/domain/building').BuildingCategory) ?? 'residential',
       description: brief.summary ?? '',
       createdAt: meta?.createdAt ?? new Date().toISOString(),
       updatedAt: meta?.updatedAt ?? new Date().toISOString(),
