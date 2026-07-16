@@ -1,10 +1,15 @@
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState, useCallback, useEffect } from 'react'
 import { BoqExportPanel } from '@/components/dashboard/BoqExportPanel'
 import { SchedulesPanel } from '@/components/planning/SchedulesPanel'
 import { GanttChart } from '@/components/planning/GanttChart'
 import { CashflowChart } from '@/components/planning/CashflowChart'
-import { Box, ClipboardList, CalendarDays, TrendingUp, FileText } from 'lucide-react'
+import { DeliveryWorkflowPanel } from '@/components/delivery/DeliveryWorkflowPanel'
+import { ProcurementPanel } from '@/components/procurement/ProcurementPanel'
+import { Box, ClipboardList, CalendarDays, TrendingUp, FileText, FileSpreadsheet, ShoppingCart } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useDeliveryStore } from '@/stores/deliveryStore'
+import { useProcurementStore } from '@/stores/procurementStore'
+import { useProjectStore } from '@/stores/projectStore'
 import type { DesignOption } from '@/domain/boq'
 import type { BoqResult } from '@/adapters/designToBoq'
 import type { PlanModel } from '@/domain/plan'
@@ -29,6 +34,8 @@ const TABS = [
   { id: 'schedules', label: 'Schedules', icon: CalendarDays },
   { id: 'programme', label: 'Programme', icon: CalendarDays },
   { id: 'cashflow', label: 'Cashflow', icon: TrendingUp },
+  { id: 'delivery', label: 'Delivery', icon: FileSpreadsheet },
+  { id: 'procurement', label: 'Procurement', icon: ShoppingCart },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -43,6 +50,17 @@ export function CostDeliverStage({
 }: CostDeliverStageProps) {
   const [activeTab, setActiveTab] = useState<TabId>('boq')
   const projectStartDate = new Date().toISOString().split('T')[0]
+  const projectId = useProjectStore((s) => s.currentProjectId)
+
+  const { currentDelivery, loadForProject: loadDelivery } = useDeliveryStore()
+  const { loadForProject: loadProcurement } = useProcurementStore()
+
+  useEffect(() => {
+    if (projectId) {
+      loadDelivery(projectId)
+      loadProcurement(projectId)
+    }
+  }, [projectId, loadDelivery, loadProcurement])
   const region = projectRegion ?? 'zimbabwe'
 
   const detailedBoq = useMemo(() => {
@@ -178,6 +196,18 @@ export function CostDeliverStage({
               </span>
             </div>
             <GanttChart gantt={programme} currency={detailedBoq?.boq.currency ?? 'USD'} />
+          </div>
+        )}
+
+        {activeTab === 'delivery' && (
+          <div className="p-4">
+            <DeliveryWorkflowPanel delivery={currentDelivery} />
+          </div>
+        )}
+
+        {activeTab === 'procurement' && projectId && (
+          <div className="p-4">
+            <ProcurementPanel projectId={projectId} />
           </div>
         )}
 

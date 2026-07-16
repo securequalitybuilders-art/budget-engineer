@@ -24,6 +24,11 @@ const AcademyHome = lazy(() => import('@/pages/Academy').then((m) => ({ default:
 const AcademyLesson = lazy(() => import('@/pages/Academy').then((m) => ({ default: m.AcademyLesson })));
 const SiteAnalysis = lazy(() => import('@/pages/SiteAnalysis'));
 const SiteAnalysisStudio = lazy(() => import('@/pages/studio/SiteAnalysisStudio').then((m) => ({ default: m.SiteAnalysisStudio })));
+const AssuranceStudio = lazy(() => import('@/pages/studio/AssuranceStudio').then((m) => ({ default: m.AssuranceStudio })));
+const DeliveryStudio = lazy(() => import('@/pages/studio/DeliveryStudio').then((m) => ({ default: m.DeliveryStudio })));
+const HandoverStudio = lazy(() => import('@/pages/studio/HandoverStudio').then((m) => ({ default: m.HandoverStudio })));
+const ProcurementStudio = lazy(() => import('@/pages/studio/ProcurementStudio').then((m) => ({ default: m.ProcurementStudio })));
+const ProjectControlsStudio = lazy(() => import('@/pages/studio/ProjectControlsStudio').then((m) => ({ default: m.ProjectControlsStudio })));
 
 function SafeRoute({ children }: { children: React.ReactNode }) {
   return <ErrorBoundary><Suspense fallback={<PageLoader />}>{children}</Suspense></ErrorBoundary>;
@@ -105,6 +110,26 @@ const router = createBrowserRouter([
       {
         path: '/project/:id/studio/site-analysis',
         element: <SafeRoute><SiteAnalysisStudio /></SafeRoute>,
+      },
+      {
+        path: '/project/:id/studio/assurance',
+        element: <SafeRoute><AssuranceStudio /></SafeRoute>,
+      },
+      {
+        path: '/project/:id/studio/delivery',
+        element: <SafeRoute><DeliveryStudio /></SafeRoute>,
+      },
+      {
+        path: '/project/:id/studio/handover',
+        element: <SafeRoute><HandoverStudio /></SafeRoute>,
+      },
+      {
+        path: '/project/:id/studio/procurement',
+        element: <SafeRoute><ProcurementStudio /></SafeRoute>,
+      },
+      {
+        path: '/project/:id/studio/project-controls',
+        element: <SafeRoute><ProjectControlsStudio /></SafeRoute>,
       },
       {
         path: '/site-analysis',

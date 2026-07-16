@@ -23,6 +23,10 @@ import { CostDeliverStage } from '@/components/dashboard/stages/CostDeliverStage
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
 import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
+import { ProjectHealthSummaryCard } from '@/components/lifecycle/ProjectHealthSummaryCard';
+import { useAssuranceStore } from '@/stores/assuranceStore';
+import { useMilestoneStore } from '@/stores/milestoneStore';
+import { useChangeStore } from '@/stores/changeStore';
 import { Box, FileSpreadsheet, Bug, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { generateVariedPlanModel } from '@/engine/plan-generator';
@@ -159,11 +163,18 @@ export function Dashboard() {
     return buildBoqFromDesignOption(selectedDesign)
   }, [selectedDesign, persistedPlan, cadSyncSource, id])
 
+  const loadAssurance = useAssuranceStore((s) => s.loadForProject);
+  const loadMilestones = useMilestoneStore((s) => s.loadForProject);
+  const loadChanges = useChangeStore((s) => s.loadForProject);
+
   // ── Persistence: load saved AI designs on mount ──
   useEffect(() => {
     seed();
     if (id) {
       loadProject(id);
+      loadAssurance(id);
+      loadMilestones(id);
+      loadChanges(id);
       loadPersistedProjectWork(id).then((saved) => {
         if (saved.designs.length > 0 && aiDesignOptions.length === 0 && designOptions.length === 0) {
           setAiDesignOptions(saved.designs);
@@ -603,6 +614,11 @@ export function Dashboard() {
         </div>
 
         <div className="flex flex-1 overflow-hidden">
+          {/* Lifecycle summary bar */}
+          <div className="hidden w-56 flex-shrink-0 border-r border-[var(--border-default)] p-2 lg:flex">
+            <ProjectHealthSummaryCard />
+          </div>
+
           {/* Stage Rail — hidden on mobile */}
           <div className="hidden md:flex">
             <StageRail

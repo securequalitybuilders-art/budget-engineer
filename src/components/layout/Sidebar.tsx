@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
 import { Button } from '@/components/ui/Button';
-import { Plus, Home, Settings, Folder, Sofa, Monitor, Globe, BookOpen, Bug } from 'lucide-react';
+import { Plus, Home, Settings, Folder, Sofa, Monitor, Globe, BookOpen, Bug, ShieldCheck, FileSpreadsheet, FolderOpen, ShoppingCart, BarChart3 } from 'lucide-react';
 import { DisciplineSwitcher } from '@/components/studio/DisciplineSwitcher';
 import { RoleSwitcher } from '@/components/auth/RoleSwitcher';
 import { LocaleSwitcher } from '@/components/common/LocaleSwitcher';
@@ -88,7 +88,49 @@ export function Sidebar() {
               <Globe size={16} />
               Site Analysis
             </Link>
+            <Link
+              to={`/project/${currentProjectId}/studio/assurance`}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+            >
+              <ShieldCheck size={16} />
+              Assurance
+            </Link>
+            <Link
+              to={`/project/${currentProjectId}/studio/delivery`}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+            >
+              <FileSpreadsheet size={16} />
+              Delivery
+            </Link>
+            <Link
+              to={`/project/${currentProjectId}/studio/handover`}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+            >
+              <FolderOpen size={16} />
+              Handover
+            </Link>
           </div>
+
+          <div className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">
+            Project Controls
+          </div>
+          <div className="space-y-0.5">
+            <Link
+              to={`/project/${currentProjectId}/studio/procurement`}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+            >
+              <ShoppingCart size={16} />
+              Procurement
+            </Link>
+            <Link
+              to={`/project/${currentProjectId}/studio/project-controls`}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+            >
+              <BarChart3 size={16} />
+              Project Controls
+            </Link>
+          </div>
+
           <hr className="my-3 border-t border-[var(--border-default)]" />
           <DisciplineSwitcher className="mb-3" />
           <hr className="my-3 border-t border-[var(--border-default)]" />
