@@ -6,7 +6,8 @@ import { ArrowLeft, ShieldCheck } from 'lucide-react';
 
 export function AssuranceStudio() {
   const { id: projectId } = useParams<{ id: string }>();
-  const { loadForProject, isLoading } = useAssuranceStore();
+  const loadForProject = useAssuranceStore((s) => s.loadForProject);
+  const isLoading = useAssuranceStore((s) => s.isLoading);
 
   useEffect(() => {
     if (projectId) loadForProject(projectId);
@@ -41,15 +42,20 @@ export function AssuranceStudio() {
         >
           <ArrowLeft size={16} />
         </Link>
-        <div className="flex-1">
+        <div>
           <div className="flex items-center gap-2">
             <ShieldCheck size={20} className="text-[var(--brand-accent)]" />
             <h1 className="text-xl font-bold text-[var(--text-primary)]">Assurance Studio</h1>
           </div>
           <p className="text-xs text-[var(--text-muted)]">
-            Project intake, feasibility assessment, risk gates, solvency checks, and risk register.
+            Feasibility, risk gates, solvency, and go/no-go decisions.
           </p>
         </div>
+      </div>
+      <div className="flex gap-2 text-[9px]">
+        <Link to={`/project/${projectId}/studio/delivery`} className="text-cyan-400 hover:underline">Delivery</Link>
+        <span className="text-[var(--text-tertiary)]">·</span>
+        <Link to={`/project/${projectId}/studio/project-controls`} className="text-cyan-400 hover:underline">Project Controls</Link>
       </div>
       <AssurancePanel projectId={projectId} />
     </div>

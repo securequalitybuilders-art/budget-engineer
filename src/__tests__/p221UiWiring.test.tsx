@@ -15,6 +15,10 @@ function renderWithRoute(Component: React.ComponentType, path: string, initialEn
   )
 }
 
+function renderWithRouter(ui: React.ReactElement) {
+  return render(<MemoryRouter>{ui}</MemoryRouter>)
+}
+
 vi.mock('@/stores/projectStore', () => ({
   useProjectStore: () => ({
     currentProjectId: 'p1',
@@ -42,15 +46,18 @@ vi.mock('@/stores/disciplineStore', () => {
 
 // Mock all new stores to return empty data for test isolation
 vi.mock('@/stores/assuranceStore', () => ({
-  useAssuranceStore: () => ({
-    intakes: [],
-    feasibilityAssessments: [],
-    riskGates: [],
-    riskRegister: [],
-    solvencyChecks: [],
-    isLoading: false,
-    loadForProject: vi.fn(),
-  }),
+  useAssuranceStore: (selector?: (state: Record<string, unknown>) => unknown) => {
+    const state = {
+      intakes: [],
+      feasibilityAssessments: [],
+      riskGates: [],
+      riskRegister: [],
+      solvencyChecks: [],
+      isLoading: false,
+      loadForProject: vi.fn(),
+    }
+    return selector ? selector(state) : state
+  },
 }))
 
 vi.mock('@/stores/deliveryStore', () => ({
@@ -62,36 +69,45 @@ vi.mock('@/stores/deliveryStore', () => ({
 }))
 
 vi.mock('@/stores/procurementStore', () => ({
-  useProcurementStore: () => ({
-    requests: [],
-    quotes: [],
-    purchaseOrders: [],
-    deliveryRecords: [],
-    isLoading: false,
-    loadForProject: vi.fn(),
-  }),
+  useProcurementStore: (selector?: (state: Record<string, unknown>) => unknown) => {
+    const state = {
+      requests: [],
+      quotes: [],
+      purchaseOrders: [],
+      deliveryRecords: [],
+      isLoading: false,
+      loadForProject: vi.fn(),
+    }
+    return selector ? selector(state) : state
+  },
 }))
 
 vi.mock('@/stores/handoverStore', () => ({
-  useHandoverStore: () => ({
-    completionStages: [],
-    snagLists: [],
-    handoverPackages: [],
-    assetRegister: [],
-    warrantyRecords: [],
-    oAndMRecords: [],
-    isLoading: false,
-    loadForProject: vi.fn(),
-  }),
+  useHandoverStore: (selector?: (state: Record<string, unknown>) => unknown) => {
+    const state = {
+      completionStages: [],
+      snagLists: [],
+      handoverPackages: [],
+      assetRegister: [],
+      warrantyRecords: [],
+      oAndMRecords: [],
+      isLoading: false,
+      loadForProject: vi.fn(),
+    }
+    return selector ? selector(state) : state
+  },
 }))
 
 vi.mock('@/stores/projectControlsStore', () => ({
-  useProjectControlsStore: () => ({
-    baselines: [],
-    snapshots: [],
-    isLoading: false,
-    loadForProject: vi.fn(),
-  }),
+  useProjectControlsStore: (selector?: (state: Record<string, unknown>) => unknown) => {
+    const state = {
+      baselines: [],
+      snapshots: [],
+      isLoading: false,
+      loadForProject: vi.fn(),
+    }
+    return selector ? selector(state) : state
+  },
 }))
 
 // ── AssuranceStudio ──
@@ -258,7 +274,7 @@ describe('Sidebar P22.1 studio links', () => {
 describe('AssurancePanel', () => {
   it('renders all assurance tab buttons', async () => {
     const { AssurancePanel } = await import('@/components/assurance/AssurancePanel')
-    render(<AssurancePanel projectId="p1" />)
+    renderWithRouter(<AssurancePanel projectId="p1" />)
     expect(screen.getByText('Feasibility')).toBeTruthy()
     expect(screen.getByText('Risk Gates')).toBeTruthy()
     expect(screen.getByText('Risk Register')).toBeTruthy()
@@ -271,7 +287,7 @@ describe('AssurancePanel', () => {
 describe('ProcurementPanel', () => {
   it('renders all procurement tab buttons', async () => {
     const { ProcurementPanel } = await import('@/components/procurement/ProcurementPanel')
-    render(<ProcurementPanel projectId="p1" />)
+    renderWithRouter(<ProcurementPanel projectId="p1" />)
     expect(screen.getByText('Requests')).toBeTruthy()
     expect(screen.getByText('Purchase Orders')).toBeTruthy()
     expect(screen.getByText('Deliveries')).toBeTruthy()
@@ -283,10 +299,10 @@ describe('ProcurementPanel', () => {
 describe('HandoverPanel', () => {
   it('renders all handover tab buttons', async () => {
     const { HandoverPanel } = await import('@/components/handover/HandoverPanel')
-    render(<HandoverPanel projectId="p1" />)
+    renderWithRouter(<HandoverPanel projectId="p1" />)
     expect(screen.getByText('Completion')).toBeTruthy()
-    expect(screen.getByText('Snags')).toBeTruthy()
-    expect(screen.getByText('Packages')).toBeTruthy()
+    expect(screen.getAllByText('Snags').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Packages').length).toBeGreaterThan(0)
     expect(screen.getByText('Assets')).toBeTruthy()
     expect(screen.getByText('Warranties')).toBeTruthy()
   })
@@ -297,7 +313,7 @@ describe('HandoverPanel', () => {
 describe('ProjectControlsDashboard', () => {
   it('renders overview and alerts tab buttons', async () => {
     const { ProjectControlsDashboard } = await import('@/components/projectControls/ProjectControlsDashboard')
-    render(<ProjectControlsDashboard projectId="p1" />)
+    renderWithRouter(<ProjectControlsDashboard projectId="p1" />)
     expect(screen.getByText('Overview')).toBeTruthy()
     expect(screen.getByText(/^Alerts/)).toBeTruthy()
   })

@@ -1,16 +1,22 @@
 import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useProcurementStore } from '@/stores/procurementStore';
+import { useMilestoneStore } from '@/stores/milestoneStore';
 import { ProcurementPanel } from '@/components/procurement/ProcurementPanel';
 import { ArrowLeft, ShoppingCart } from 'lucide-react';
 
 export function ProcurementStudio() {
   const { id: projectId } = useParams<{ id: string }>();
-  const { loadForProject, isLoading } = useProcurementStore();
+  const loadForProject = useProcurementStore((s) => s.loadForProject);
+  const isLoading = useProcurementStore((s) => s.isLoading);
+  const loadMilestones = useMilestoneStore((s) => s.loadForProject);
 
   useEffect(() => {
-    if (projectId) loadForProject(projectId);
-  }, [projectId, loadForProject]);
+    if (projectId) {
+      loadForProject(projectId);
+      loadMilestones(projectId);
+    }
+  }, [projectId, loadForProject, loadMilestones]);
 
   if (!projectId) {
     return (
@@ -41,15 +47,20 @@ export function ProcurementStudio() {
         >
           <ArrowLeft size={16} />
         </Link>
-        <div className="flex-1">
+        <div>
           <div className="flex items-center gap-2">
             <ShoppingCart size={20} className="text-[var(--brand-accent)]" />
             <h1 className="text-xl font-bold text-[var(--text-primary)]">Procurement</h1>
           </div>
           <p className="text-xs text-[var(--text-muted)]">
-            Procurement requests, supplier quotes, purchase orders, and delivery tracking.
+            Requests, purchase orders, deliveries, and BOQ-linked procurement.
           </p>
         </div>
+      </div>
+      <div className="flex gap-2 text-[9px]">
+        <Link to={`/project/${projectId}/studio/delivery`} className="text-cyan-400 hover:underline">Delivery</Link>
+        <span className="text-[var(--text-tertiary)]">·</span>
+        <Link to={`/project/${projectId}/studio/project-controls`} className="text-cyan-400 hover:underline">Project Controls</Link>
       </div>
       <ProcurementPanel projectId={projectId} />
     </div>

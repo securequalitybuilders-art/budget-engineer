@@ -3,7 +3,12 @@ import { useHandoverStore } from '@/stores/handoverStore';
 import { useMilestoneStore } from '@/stores/milestoneStore';
 import { useChangeStore } from '@/stores/changeStore';
 import { assessHandoverReadiness } from '@/lib/lifecycle/handoverReadiness';
-import { Box, ClipboardCheck, Package, Archive, ShieldCheck, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { computeMilestoneLifecycleSummary } from '@/lib/lifecycle/lifecycleSummary';
+import { EmptyState } from '@/components/lifecycle/EmptyState';
+import { BlockerList } from '@/components/lifecycle/BlockerList';
+import { NextStepHint } from '@/components/lifecycle/NextStepHint';
+import { CrossStudioLinks, buildStudioLink } from '@/components/lifecycle/CrossStudioLinks';
+import { ClipboardCheck, Package, Archive, ShieldCheck, CheckCircle, XCircle, AlertTriangle, Flag, FolderOpen } from 'lucide-react';
 
 interface HandoverPanelProps {
   projectId: string;
@@ -34,11 +39,13 @@ const PACKAGE_STATUS_COLORS: Record<string, string> = {
   acknowledged: 'bg-amber-500/20 text-amber-400',
 };
 
-export function HandoverPanel(_props: HandoverPanelProps) {
+export function HandoverPanel({ projectId }: HandoverPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('completion');
   const { completionStages, snagLists, handoverPackages, assetRegister, warrantyRecords } = useHandoverStore();
   const milestones = useMilestoneStore((s) => s.milestones);
   const ncrs = useChangeStore((s) => s.ncrs);
+
+  const hasData = completionStages.length > 0 || snagLists.length > 0 || handoverPackages.length > 0 || assetRegister.length > 0 || warrantyRecords.length > 0;
 
   const readiness = useMemo(() => assessHandoverReadiness({
     completionStages,
@@ -48,8 +55,48 @@ export function HandoverPanel(_props: HandoverPanelProps) {
     ncrs,
   }), [completionStages, snagLists, handoverPackages, milestones, ncrs]);
 
+  const milestoneSummary = useMemo(() => computeMilestoneLifecycleSummary(milestones), [milestones]);
+
+  const crossLinks = useMemo(() => {
+    const links = [
+      buildStudioLink(projectId, 'delivery', 'Delivery', 'View delivery workflow and milestones'),
+    ];
+    if (readiness.blockers.some((b) => b.category === 'ncr')) {
+      links.push(buildStudioLink(projectId, 'project-controls', 'Project Controls', 'See NCR and issue status', 'warning'));
+    }
+    return links;
+  }, [projectId, readiness.blockers]);
+
+  const nextAction = useMemo(() => {
+    if (!hasData) {
+      return { hint: 'Handover requires data from delivery. Set up completion stages to begin.', severity: 'info' as const };
+    }
+    if (readiness.isReady) {
+      return { hint: 'All handover conditions met. Packages can be issued to the client.', severity: 'success' as const, actionLabel: 'Review packages', actionTo: `/project/${projectId}/studio/handover` };
+    }
+    if (readiness.blockers.length > 0) {
+      const blockingCount = readiness.blockers.filter((b) => b.severity === 'blocking').length;
+      const warningCount = readiness.blockers.filter((b) => b.severity === 'warning').length;
+      return {
+        hint: `${blockingCount} blocker(s), ${warningCount} warning(s) — resolve before handover can proceed.`,
+        severity: 'warning' as const,
+      };
+    }
+    return null;
+  }, [hasData, readiness, projectId]);
+
   return (
     <div className="space-y-6">
+      {/* Next action hint */}
+      {nextAction && (
+        <NextStepHint
+          hint={nextAction.hint}
+          actionLabel={nextAction.actionLabel}
+          actionTo={nextAction.actionTo}
+          severity={nextAction.severity}
+        />
+      )}
+
       {/* Handover Readiness Banner */}
       <div className={`rounded-xl border p-3 ${
         readiness.isReady
@@ -72,17 +119,33 @@ export function HandoverPanel(_props: HandoverPanelProps) {
             Handover {readiness.isReady ? 'Ready' : 'Not Ready'}
           </span>
           <span className="text-[9px] text-[var(--text-muted)]">
-            {readiness.stageCompletionPct}% completion
-            {readiness.blockers.length > 0 && ` · ${readiness.blockers.length} blocker(s)`}
+            Score: {readiness.overallScore}%
+            {readiness.blockers.length > 0 && ` · ${readiness.blockers.length} issue(s)`}
           </span>
         </div>
+
+        {/* Blocker details */}
         {readiness.blockers.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {readiness.blockers.map((b, i) => (
-              <span key={i} className="rounded-full bg-red-500/10 px-2 py-0.5 text-[9px] text-red-400">{b.description}</span>
-            ))}
+          <div className="mt-2">
+            <BlockerList
+              blockers={readiness.blockers.map((b) => ({
+                description: b.description,
+                severity: b.severity,
+                category: b.category,
+              }))}
+              title="What is blocking handover"
+            />
           </div>
         )}
+
+        {/* Progress breakdown */}
+        <div className="mt-2 grid grid-cols-5 gap-1 text-center">
+          <ProgressMini label="Stages" value={readiness.stageCompletionPct} />
+          <ProgressMini label="Snags" value={readiness.snagClosurePct} />
+          <ProgressMini label="NCRs" value={readiness.ncrClosurePct} />
+          <ProgressMini label="Milestones" value={readiness.milestoneDeliveryPct} />
+          <ProgressMini label="Packages" value={readiness.packagesPrepared > 0 ? 100 : 0} />
+        </div>
       </div>
 
       <div className="flex gap-0 border-b border-stone-700/60 bg-stone-900/30 rounded-t-xl overflow-hidden">
@@ -105,171 +168,228 @@ export function HandoverPanel(_props: HandoverPanelProps) {
         })}
       </div>
 
-      {activeTab === 'completion' && (
-        <div className="space-y-2">
-          {completionStages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-8 text-center">
-              <Box size={32} className="text-[var(--text-muted)]" />
-              <p className="text-sm text-[var(--text-muted)]">No completion stages set up.</p>
-            </div>
-          ) : (
-            completionStages.map((stage) => (
-              <div key={stage.id} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-[var(--text-primary)] capitalize">{stage.stage.replace(/-/g, ' ')}</span>
-                    <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[9px] text-[var(--text-muted)]">
-                      {stage.conditions.filter((c) => c.met).length}/{stage.conditions.length} conditions met
-                    </span>
-                  </div>
-                  <span className={`rounded-full px-2 py-0.5 text-[9px] font-medium ${STAGE_COLORS[stage.status] || ''}`}>
-                    {stage.status}
-                  </span>
-                </div>
-                <div className="flex gap-3 text-[9px] text-[var(--text-tertiary)]">
-                  <span>Target: {stage.targetDate}</span>
-                  {stage.achievedDate && <span>Achieved: {stage.achievedDate}</span>}
-                  <span>Certificates: {stage.certificates.length}</span>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {activeTab === 'snags' && (
-        <div className="space-y-2">
-          {snagLists.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-8 text-center">
-              <Box size={32} className="text-[var(--text-muted)]" />
-              <p className="text-sm text-[var(--text-muted)]">No snag lists yet.</p>
-            </div>
-          ) : (
-            snagLists.map((list) => (
-              <div key={list.id} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-[var(--text-primary)]">{list.name}</span>
-                  <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[9px] text-[var(--text-muted)]">
-                    {list.snagItems.length} items
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  {['open', 'in-progress', 'resolved', 'verified'].map((status) => {
-                    const count = list.snagItems.filter((s) => s.status === status).length;
-                    return (
-                      <div key={status} className="flex-1 rounded-md bg-[var(--bg-tertiary)] p-1.5 text-center">
-                        <div className="text-[9px] text-[var(--text-muted)] capitalize">{status}</div>
-                        <div className="text-xs font-semibold text-[var(--text-primary)]">{count}</div>
+      {!hasData ? (
+        <EmptyState
+          icon={<FolderOpen size={28} />}
+          title="No handover data yet"
+          description="Handover becomes relevant after delivery milestones are achieved. Set up completion stages and resolve delivery items first."
+          actionLabel="Go to Delivery"
+          actionTo={`/project/${projectId}/studio/delivery`}
+        />
+      ) : (
+        <>
+          {activeTab === 'completion' && (
+            <div className="space-y-2">
+              {completionStages.length === 0 ? (
+                <EmptyState
+                  title="No completion stages set up"
+                  description="Define completion stages to track handover progress against delivery milestones."
+                  actionLabel="View delivery milestones"
+                  actionTo={`/project/${projectId}/studio/delivery`}
+                  compact
+                />
+              ) : (
+                completionStages.map((stage) => (
+                  <div key={stage.id} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-[var(--text-primary)] capitalize">{stage.stage.replace(/-/g, ' ')}</span>
+                        <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[9px] text-[var(--text-muted)]">
+                          {stage.conditions.filter((c) => c.met).length}/{stage.conditions.length} conditions met
+                        </span>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))
+                      <span className={`rounded-full px-2 py-0.5 text-[9px] font-medium ${STAGE_COLORS[stage.status] || ''}`}>
+                        {stage.status}
+                      </span>
+                    </div>
+                    <div className="flex gap-3 text-[9px] text-[var(--text-tertiary)]">
+                      <span>Target: {stage.targetDate}</span>
+                      {stage.achievedDate && <span>Achieved: {stage.achievedDate}</span>}
+                      <span>Certificates: {stage.certificates.length}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {activeTab === 'snags' && (
+            <div className="space-y-2">
+              {snagLists.length === 0 ? (
+                <EmptyState
+                  title="No snag lists yet"
+                  description="Snags are raised during delivery inspections. Complete delivery inspections to populate snags."
+                  actionLabel="Go to Delivery"
+                  actionTo={`/project/${projectId}/studio/delivery`}
+                  compact
+                />
+              ) : (
+                snagLists.map((list) => (
+                  <div key={list.id} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-[var(--text-primary)]">{list.name}</span>
+                      <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[9px] text-[var(--text-muted)]">
+                        {list.snagItems.length} items
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      {['open', 'in-progress', 'resolved', 'verified'].map((status) => {
+                        const count = list.snagItems.filter((s) => s.status === status).length;
+                        return (
+                          <div key={status} className="flex-1 rounded-md bg-[var(--bg-tertiary)] p-1.5 text-center">
+                            <div className="text-[9px] text-[var(--text-muted)] capitalize">{status}</div>
+                            <div className="text-xs font-semibold text-[var(--text-primary)]">{count}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {activeTab === 'packages' && (
+            <div className="space-y-2">
+              {handoverPackages.length === 0 ? (
+                <EmptyState
+                  title="No handover packages yet"
+                  description="Create handover packages from completed delivery items to issue to the client."
+                  compact
+                />
+              ) : (
+                handoverPackages.map((pkg) => (
+                  <div key={pkg.id} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-[var(--text-primary)]">{pkg.name}</span>
+                        <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[9px] text-[var(--text-muted)] capitalize">{pkg.recipientType}</span>
+                      </div>
+                      <span className={`rounded-full px-2 py-0.5 text-[9px] font-medium ${PACKAGE_STATUS_COLORS[pkg.status] || ''}`}>
+                        {pkg.status}
+                      </span>
+                    </div>
+                    <div className="flex gap-3 text-[9px] text-[var(--text-tertiary)]">
+                      <span>Recipient: {pkg.recipient}</span>
+                      <span>Contents: {pkg.contents.filter((c) => c.status === 'included').length} included</span>
+                      {pkg.issuedDate && <span>Issued: {pkg.issuedDate}</span>}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {activeTab === 'assets' && (
+            <div className="space-y-2">
+              {assetRegister.length === 0 ? (
+                <EmptyState
+                  title="Asset register is empty"
+                  description="Assets are registered during handover as part of package content."
+                  compact
+                />
+              ) : (
+                assetRegister.map((asset) => (
+                  <div key={asset.id} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-[var(--text-primary)]">{asset.name}</span>
+                        <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[9px] text-[var(--text-muted)]">{asset.assetTag}</span>
+                      </div>
+                      <span className={`rounded-full px-2 py-0.5 text-[9px] font-medium ${
+                        asset.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                        asset.status === 'under-maintenance' ? 'bg-amber-500/20 text-amber-400' :
+                        'bg-gray-500/20 text-gray-400'
+                      }`}>
+                        {asset.status}
+                      </span>
+                    </div>
+                    <div className="flex gap-3 text-[9px] text-[var(--text-tertiary)]">
+                      <span>Category: {asset.category}</span>
+                      <span>Manufacturer: {asset.manufacturer}</span>
+                      <span>Warranty: {asset.warrantyExpiry}</span>
+                      <span>Life: {asset.expectedLifeYears}yrs</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {activeTab === 'warranties' && (
+            <div className="space-y-2">
+              {warrantyRecords.length === 0 ? (
+                <EmptyState
+                  title="No warranty records yet"
+                  description="Warranties are captured from installed assets during handover."
+                  compact
+                />
+              ) : (
+                warrantyRecords.map((warranty) => (
+                  <div key={warranty.id} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-[var(--text-primary)]">{warranty.provider}</span>
+                        <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[9px] text-[var(--text-muted)]">{warranty.warrantyType}</span>
+                      </div>
+                      <span className={`rounded-full px-2 py-0.5 text-[9px] font-medium ${
+                        warranty.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                        warranty.status === 'expired' ? 'bg-gray-500/20 text-gray-400' :
+                        warranty.status === 'claimed' ? 'bg-amber-500/20 text-amber-400' :
+                        'bg-blue-500/20 text-blue-400'
+                      }`}>
+                        {warranty.status}
+                      </span>
+                    </div>
+                    <div className="flex gap-3 text-[9px] text-[var(--text-tertiary)]">
+                      <span>Ref: {warranty.reference}</span>
+                      <span>Start: {warranty.startDate}</span>
+                      <span>Expiry: {warranty.expiryDate}</span>
+                      <span>Claims: {warranty.claimHistory.length}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Milestone context for handover */}
+      {milestoneSummary.total > 0 && (
+        <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Flag size={12} className="text-cyan-400" />
+            <span className="text-[10px] font-medium text-[var(--text-primary)]">Milestone Context</span>
+          </div>
+          <div className="flex items-center justify-between text-[9px] text-[var(--text-muted)]">
+            <span>{milestoneSummary.released}/{milestoneSummary.total} milestones released</span>
+            <span>{milestoneSummary.overallProgressPct}% complete</span>
+          </div>
+          <div className="mt-1 h-1 rounded-full bg-[var(--bg-tertiary)] overflow-hidden">
+            <div className="h-full rounded-full bg-cyan-500" style={{ width: `${milestoneSummary.overallProgressPct}%` }} />
+          </div>
+          {milestoneSummary.criticalDelayed.length > 0 && (
+            <div className="mt-1 text-[9px] text-red-400">
+              {milestoneSummary.criticalDelayed.length} critical milestone(s) delayed
+            </div>
           )}
         </div>
       )}
 
-      {activeTab === 'packages' && (
-        <div className="space-y-2">
-          {handoverPackages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-8 text-center">
-              <Box size={32} className="text-[var(--text-muted)]" />
-              <p className="text-sm text-[var(--text-muted)]">No handover packages yet.</p>
-            </div>
-          ) : (
-            handoverPackages.map((pkg) => (
-              <div key={pkg.id} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-[var(--text-primary)]">{pkg.name}</span>
-                    <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[9px] text-[var(--text-muted)] capitalize">{pkg.recipientType}</span>
-                  </div>
-                  <span className={`rounded-full px-2 py-0.5 text-[9px] font-medium ${PACKAGE_STATUS_COLORS[pkg.status] || ''}`}>
-                    {pkg.status}
-                  </span>
-                </div>
-                <div className="flex gap-3 text-[9px] text-[var(--text-tertiary)]">
-                  <span>Recipient: {pkg.recipient}</span>
-                  <span>Contents: {pkg.contents.filter((c) => c.status === 'included').length} included</span>
-                  {pkg.issuedDate && <span>Issued: {pkg.issuedDate}</span>}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+      {/* Cross-studio links */}
+      <CrossStudioLinks projectId={projectId} links={crossLinks} title="Related contexts" />
+    </div>
+  );
+}
 
-      {activeTab === 'assets' && (
-        <div className="space-y-2">
-          {assetRegister.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-8 text-center">
-              <Box size={32} className="text-[var(--text-muted)]" />
-              <p className="text-sm text-[var(--text-muted)]">Asset register is empty.</p>
-            </div>
-          ) : (
-            assetRegister.map((asset) => (
-              <div key={asset.id} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-[var(--text-primary)]">{asset.name}</span>
-                    <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[9px] text-[var(--text-muted)]">{asset.assetTag}</span>
-                  </div>
-                  <span className={`rounded-full px-2 py-0.5 text-[9px] font-medium ${
-                    asset.status === 'active' ? 'bg-green-500/20 text-green-400' :
-                    asset.status === 'under-maintenance' ? 'bg-amber-500/20 text-amber-400' :
-                    'bg-gray-500/20 text-gray-400'
-                  }`}>
-                    {asset.status}
-                  </span>
-                </div>
-                <div className="flex gap-3 text-[9px] text-[var(--text-tertiary)]">
-                  <span>Category: {asset.category}</span>
-                  <span>Manufacturer: {asset.manufacturer}</span>
-                  <span>Warranty: {asset.warrantyExpiry}</span>
-                  <span>Life: {asset.expectedLifeYears}yrs</span>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {activeTab === 'warranties' && (
-        <div className="space-y-2">
-          {warrantyRecords.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-8 text-center">
-              <Box size={32} className="text-[var(--text-muted)]" />
-              <p className="text-sm text-[var(--text-muted)]">No warranty records yet.</p>
-            </div>
-          ) : (
-            warrantyRecords.map((warranty) => (
-              <div key={warranty.id} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-[var(--text-primary)]">{warranty.provider}</span>
-                    <span className="rounded bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[9px] text-[var(--text-muted)]">{warranty.warrantyType}</span>
-                  </div>
-                  <span className={`rounded-full px-2 py-0.5 text-[9px] font-medium ${
-                    warranty.status === 'active' ? 'bg-green-500/20 text-green-400' :
-                    warranty.status === 'expired' ? 'bg-gray-500/20 text-gray-400' :
-                    warranty.status === 'claimed' ? 'bg-amber-500/20 text-amber-400' :
-                    'bg-blue-500/20 text-blue-400'
-                  }`}>
-                    {warranty.status}
-                  </span>
-                </div>
-                <div className="flex gap-3 text-[9px] text-[var(--text-tertiary)]">
-                  <span>Ref: {warranty.reference}</span>
-                  <span>Start: {warranty.startDate}</span>
-                  <span>Expiry: {warranty.expiryDate}</span>
-                  <span>Claims: {warranty.claimHistory.length}</span>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+function ProgressMini({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded bg-[var(--bg-tertiary)] p-1">
+      <div className="text-[8px] text-[var(--text-muted)]">{label}</div>
+      <div className={`text-[10px] font-bold ${value >= 100 ? 'text-green-400' : value >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+        {value}%
+      </div>
     </div>
   );
 }

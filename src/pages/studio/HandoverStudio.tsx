@@ -8,17 +8,18 @@ import { ArrowLeft, FolderOpen } from 'lucide-react';
 
 export function HandoverStudio() {
   const { id: projectId } = useParams<{ id: string }>();
-  const { loadForProject, isLoading } = useHandoverStore();
+  const loadHandover = useHandoverStore((s) => s.loadForProject);
+  const isLoading = useHandoverStore((s) => s.isLoading);
   const loadMilestones = useMilestoneStore((s) => s.loadForProject);
   const loadChanges = useChangeStore((s) => s.loadForProject);
 
   useEffect(() => {
     if (projectId) {
-      loadForProject(projectId);
+      loadHandover(projectId);
       loadMilestones(projectId);
       loadChanges(projectId);
     }
-  }, [projectId, loadForProject, loadMilestones, loadChanges]);
+  }, [projectId, loadHandover, loadMilestones, loadChanges]);
 
   if (!projectId) {
     return (
@@ -49,15 +50,20 @@ export function HandoverStudio() {
         >
           <ArrowLeft size={16} />
         </Link>
-        <div className="flex-1">
+        <div>
           <div className="flex items-center gap-2">
             <FolderOpen size={20} className="text-[var(--brand-accent)]" />
             <h1 className="text-xl font-bold text-[var(--text-primary)]">Handover Studio</h1>
           </div>
           <p className="text-xs text-[var(--text-muted)]">
-            Completion stages, snag lists, handover packages, asset register, warranties, and O&amp;M records.
+            Completion stages, snags, packages, assets, and warranties.
           </p>
         </div>
+      </div>
+      <div className="flex gap-2 text-[9px]">
+        <Link to={`/project/${projectId}/studio/delivery`} className="text-cyan-400 hover:underline">Delivery</Link>
+        <span className="text-[var(--text-tertiary)]">·</span>
+        <Link to={`/project/${projectId}/studio/project-controls`} className="text-cyan-400 hover:underline">Project Controls</Link>
       </div>
       <HandoverPanel projectId={projectId} />
     </div>

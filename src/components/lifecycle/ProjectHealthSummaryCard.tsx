@@ -3,14 +3,16 @@ import { useAssuranceStore } from '@/stores/assuranceStore';
 import { useMilestoneStore } from '@/stores/milestoneStore';
 import { useProjectControlsStore } from '@/stores/projectControlsStore';
 import { useChangeStore } from '@/stores/changeStore';
+import { useAuthStore } from '@/stores/authStore';
 import { computeProjectReadiness, computeMilestoneLifecycleSummary, computeProjectHealthSummary } from '@/lib/lifecycle/lifecycleSummary';
-import { Heart, Activity, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Heart, Activity, AlertTriangle, CheckCircle2, Eye, ShieldCheck, Flag } from 'lucide-react';
 
 export function ProjectHealthSummaryCard() {
   const assuranceStore = useAssuranceStore();
   const milestoneStore = useMilestoneStore();
   const controlsStore = useProjectControlsStore();
   const changeStore = useChangeStore();
+  const userRole = useAuthStore((s) => s.user.role);
 
   const readiness = useMemo(() => computeProjectReadiness({
     intakes: assuranceStore.intakes,
@@ -54,6 +56,16 @@ export function ProjectHealthSummaryCard() {
         </span>
       </div>
 
+      {/* Role badge */}
+      {userRole !== 'owner' && (
+        <div className="mb-2 flex items-center gap-1 rounded-md bg-[var(--bg-tertiary)] px-2 py-1">
+          <Eye size={10} className="text-[var(--text-tertiary)]" />
+          <span className="text-[8px] text-[var(--text-tertiary)]">
+            {userRole === 'reviewer' ? 'Reviewer' : 'Viewer'} mode
+          </span>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-2 text-[10px]">
         <MetricRow label="Readiness" value={readiness.overallState} color={readiness.overallState === 'cleared' ? 'text-green-400' : readiness.overallState === 'blocked' || readiness.overallState === 'rejected' ? 'text-red-400' : 'text-amber-400'} />
         <MetricRow label="Milestones" value={`${milestoneSummary.released}/${milestoneSummary.total}`} color="text-[var(--text-primary)]" />
@@ -65,6 +77,15 @@ export function ProjectHealthSummaryCard() {
             <MetricRow label="Schedule Var" value={`${health.scheduleVariance >= 0 ? '+' : ''}${health.scheduleVariance.toFixed(1)}%`} color={health.scheduleVariance >= 0 ? 'text-green-400' : 'text-red-400'} />
           </>
         )}
+      </div>
+
+      {/* Quick link bar */}
+      <div className="mt-3 flex items-center gap-2 text-[8px] text-[var(--text-tertiary)]">
+        <ShieldCheck size={10} />
+        <span>Assurance</span>
+        <span className="mx-0.5">·</span>
+        <Flag size={10} />
+        <span>{milestoneSummary.released}/{milestoneSummary.total} MS</span>
       </div>
     </div>
   );

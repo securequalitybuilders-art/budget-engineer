@@ -1,16 +1,22 @@
 import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useProjectControlsStore } from '@/stores/projectControlsStore';
+import { useMilestoneStore } from '@/stores/milestoneStore';
 import { ProjectControlsDashboard } from '@/components/projectControls/ProjectControlsDashboard';
 import { ArrowLeft, BarChart3 } from 'lucide-react';
 
 export function ProjectControlsStudio() {
   const { id: projectId } = useParams<{ id: string }>();
-  const { loadForProject, isLoading } = useProjectControlsStore();
+  const loadForProject = useProjectControlsStore((s) => s.loadForProject);
+  const isLoading = useProjectControlsStore((s) => s.isLoading);
+  const loadMilestones = useMilestoneStore((s) => s.loadForProject);
 
   useEffect(() => {
-    if (projectId) loadForProject(projectId);
-  }, [projectId, loadForProject]);
+    if (projectId) {
+      loadForProject(projectId);
+      loadMilestones(projectId);
+    }
+  }, [projectId, loadForProject, loadMilestones]);
 
   if (!projectId) {
     return (
@@ -41,15 +47,22 @@ export function ProjectControlsStudio() {
         >
           <ArrowLeft size={16} />
         </Link>
-        <div className="flex-1">
+        <div>
           <div className="flex items-center gap-2">
             <BarChart3 size={20} className="text-[var(--brand-accent)]" />
             <h1 className="text-xl font-bold text-[var(--text-primary)]">Project Controls</h1>
           </div>
           <p className="text-xs text-[var(--text-muted)]">
-            EVM metrics, schedule/cost variance, burn charts, alerts, and milestone tracking.
+            EVM metrics, milestone status, alerts, and performance dashboards.
           </p>
         </div>
+      </div>
+      <div className="flex gap-2 text-[9px]">
+        <Link to={`/project/${projectId}/studio/assurance`} className="text-cyan-400 hover:underline">Assurance</Link>
+        <span className="text-[var(--text-tertiary)]">·</span>
+        <Link to={`/project/${projectId}/studio/delivery`} className="text-cyan-400 hover:underline">Delivery</Link>
+        <span className="text-[var(--text-tertiary)]">·</span>
+        <Link to={`/project/${projectId}/studio/procurement`} className="text-cyan-400 hover:underline">Procurement</Link>
       </div>
       <ProjectControlsDashboard projectId={projectId} />
     </div>
