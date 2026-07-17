@@ -16,7 +16,8 @@ export type SheetStatus = 'pending' | 'generated' | 'error';
 export type DrawingTabId =
   | 'plan' | 'site-plan' | 'foundation' | 'roof'
   | 'ceiling' | 'electrical' | 'plumbing' | 'hvac'
-  | 'front' | 'side' | 'section' | 'presentation';
+  | 'front' | 'side' | 'section' | 'presentation'
+  | 'schedule-door' | 'schedule-window' | 'schedule-structural';
 
 export interface DrawingRegisterSheet {
   id: string;
@@ -48,15 +49,22 @@ export interface DrawingTypeDef {
 }
 
 export const DEFAULT_DRAWING_TYPES: DrawingTypeDef[] = [
+  { id: 'site-plan', title: 'Site Plan', discipline: 'A', sheetSequence: 100, viewId: 'site-plan', scale: '1:200', perFloor: false, description: 'Site context plan' },
   { id: 'floor-plan', title: 'Floor Plan', discipline: 'A', sheetSequence: 101, viewId: 'plan', scale: '1:100', perFloor: true, description: 'Architectural floor plan' },
-  { id: 'site-plan', title: 'Site Plan', discipline: 'A', sheetSequence: 200, viewId: 'site-plan', scale: '1:200', perFloor: false, description: 'Site context plan' },
-  { id: 'foundation', title: 'Foundation Plan', discipline: 'A', sheetSequence: 300, viewId: 'foundation', scale: '1:100', perFloor: false, description: 'Foundation layout' },
-  { id: 'roof-plan', title: 'Roof Plan', discipline: 'A', sheetSequence: 301, viewId: 'roof', scale: '1:100', perFloor: false, description: 'Roof layout and slopes' },
-  { id: 'rcp', title: 'Reflected Ceiling Plan', discipline: 'A', sheetSequence: 400, viewId: 'ceiling', scale: '1:100', perFloor: false, description: 'Reflected ceiling plan' },
-  { id: 'front-elevation', title: 'Front Elevation', discipline: 'A', sheetSequence: 501, viewId: 'front', scale: '1:100', perFloor: false, description: 'Front elevation view' },
-  { id: 'side-elevation', title: 'Side Elevation', discipline: 'A', sheetSequence: 502, viewId: 'side', scale: '1:100', perFloor: false, description: 'Side elevation view' },
-  { id: 'section', title: 'Section A–A', discipline: 'A', sheetSequence: 600, viewId: 'section', scale: '1:100', perFloor: false, description: 'Building section' },
-  { id: 'presentation', title: 'Presentation Sheet', discipline: 'A', sheetSequence: 700, viewId: 'presentation', scale: '1:100', perFloor: false, description: 'Composed presentation sheet' },
+  { id: 'roof-plan', title: 'Roof Plan', discipline: 'A', sheetSequence: 200, viewId: 'roof', scale: '1:100', perFloor: false, description: 'Roof layout and slopes' },
+  { id: 'rcp', title: 'Reflected Ceiling Plan', discipline: 'A', sheetSequence: 301, viewId: 'ceiling', scale: '1:100', perFloor: true, description: 'Reflected ceiling plan' },
+  { id: 'front-elevation', title: 'Front Elevation', discipline: 'A', sheetSequence: 401, viewId: 'front', scale: '1:100', perFloor: false, description: 'Front elevation view' },
+  { id: 'side-elevation', title: 'Side Elevation', discipline: 'A', sheetSequence: 402, viewId: 'side', scale: '1:100', perFloor: false, description: 'Side elevation view' },
+  { id: 'section', title: 'Section A–A', discipline: 'A', sheetSequence: 501, viewId: 'section', scale: '1:100', perFloor: false, description: 'Building section' },
+  
+  { id: 'foundation', title: 'Foundation Plan', discipline: 'S', sheetSequence: 100, viewId: 'foundation', scale: '1:100', perFloor: false, description: 'Foundation layout' },
+  
+  { id: 'schedule-door', title: 'Door Schedule', discipline: 'A', sheetSequence: 601, viewId: 'schedule-door', scale: 'NTS', perFloor: false, description: 'Door schedule' },
+  { id: 'schedule-window', title: 'Window Schedule', discipline: 'A', sheetSequence: 602, viewId: 'schedule-window', scale: 'NTS', perFloor: false, description: 'Window schedule' },
+  { id: 'schedule-structural', title: 'Structural Schedule', discipline: 'S', sheetSequence: 601, viewId: 'schedule-structural', scale: 'NTS', perFloor: false, description: 'Structural schedule' },
+  
+  { id: 'presentation', title: 'Presentation Sheet', discipline: 'A', sheetSequence: 900, viewId: 'presentation', scale: 'NTS', perFloor: false, description: 'Composed presentation sheet' },
+  
   { id: 'electrical', title: 'Electrical Plan', discipline: 'E', sheetSequence: 101, viewId: 'electrical', scale: '1:100', perFloor: true, description: 'Electrical layout' },
   { id: 'plumbing', title: 'Plumbing Plan', discipline: 'P', sheetSequence: 101, viewId: 'plumbing', scale: '1:100', perFloor: true, description: 'Plumbing layout' },
   { id: 'hvac', title: 'HVAC Plan', discipline: 'M', sheetSequence: 101, viewId: 'hvac', scale: '1:100', perFloor: true, description: 'HVAC layout' },

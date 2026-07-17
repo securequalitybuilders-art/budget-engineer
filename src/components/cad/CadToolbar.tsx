@@ -8,6 +8,7 @@ interface CadToolbarProps {
 const availableTools: { value: CadTool; label: string }[] = [
   { value: 'select', label: 'Select' },
   { value: 'wall', label: 'Wall' },
+  { value: 'boundary', label: 'Boundary' },
   { value: 'annotation', label: 'Annotate' },
 ]
 

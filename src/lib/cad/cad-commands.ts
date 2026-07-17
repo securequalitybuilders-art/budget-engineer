@@ -25,6 +25,21 @@ export function addWall(doc: CadDocument, floorId: string, start: CadPoint, end:
   return { ...doc, walls: [...doc.walls, wall] }
 }
 
+export function addBoundary(doc: CadDocument, points: CadPoint[]): CadDocument {
+  return {
+    ...doc,
+    boundaries: [
+      ...(doc.boundaries || []),
+      {
+        id: uid(),
+        points: points.map(p => ({ x: snap(p.x), y: snap(p.y) })),
+        layerId: 'boundaries',
+        bim: { classification: 'SiteBoundary', levelName: 'Site' }
+      }
+    ]
+  }
+}
+
 export function deleteWall(doc: CadDocument, wallId: string): CadDocument {
   return {
     ...doc,

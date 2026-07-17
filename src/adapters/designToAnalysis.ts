@@ -84,6 +84,7 @@ export function buildCadFromDesignOption(design: DesignOption): CadDocument | nu
     openings,
     annotations: [],
     blocks,
+    boundaries: [],
   }
 }
 

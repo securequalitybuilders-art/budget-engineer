@@ -111,6 +111,7 @@ function makeSampleCad(): CadDocument {
     annotations: [{ id: 'ca1', floorId: 'f1', position: { x: 5, y: 5 }, text: 'Living',
       kind: 'label', layerId: 'annotations' }],
     blocks: [],
+    boundaries: [],
   }
 }
 
@@ -357,7 +358,7 @@ describe('cadDocumentToBuildingGraph', () => {
       id: 'cad-empty', projectId: 'p1', designId: 'd1',
       activeFloorId: 'f1', activeTool: 'select',
       floors: [{ id: 'f1', name: 'Ground', elevation: 0, bim: { classification: '' } }],
-      layers: [], walls: [], openings: [], annotations: [], blocks: [],
+      layers: [], walls: [], openings: [], annotations: [], blocks: [], boundaries: [],
     }
     const { graph } = cadDocumentToBuildingGraph(cad)
     expect(graph.walls).toHaveLength(0)

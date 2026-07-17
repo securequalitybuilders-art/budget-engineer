@@ -1,62 +1,85 @@
-# Budget Engineer — Premium Architectural Studio
+# Budget Engineer — Professional Architecture, Engineering & Preconstruction Platform
 
 [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions)
-[![Version](https://img.shields.io/badge/version-1.3.0-blue)]()
-[![Tests](https://img.shields.io/badge/tests-1503-green)]()
+[![Version](https://img.shields.io/badge/version-2.0.0-blue)]()
+[![Tests](https://img.shields.io/badge/tests-1918-green)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
 [![PWA](https://img.shields.io/badge/PWA-offline--first-purple)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)]()
 
-**The open-source, local-first architectural design OS.**  
-Brief → 2D CAD → 3D BIM → engineering analysis → construction drawings → BOQ → presentation boards — all offline, with no paid APIs and no data leaving your machine.
+**Budget Engineer** is a **local-first architecture, engineering, preconstruction, procurement, and delivery platform** designed for professional use with **human review and signoff in the loop**.
 
-> *Making Construction Affordable for Everyone.*
+It combines:
 
-**Live demo:** [budget-engineer.vercel.app](https://budget-engineer.vercel.app/) — install as a PWA for full offline use.
+- architecture-aware prompt-to-plan generation
+- canonical room, wall, and opening geometry
+- multi-storey and typology-specific planning
+- technical drawing and sheet intelligence
+- trade-detailed early-stage BOQ, schedules, and programme outputs
+- site analysis and heliodon workflows
+- interior documentation foundations
+- structural and MEP pre-design support
+- review, delivery, procurement, and handover workflow foundations
+- local-first project export/import, diagnostics, and release-hardened engineering gates
 
 ---
 
-## Release Snapshot
+## Current Positioning
 
-**Budget Engineer v1.3.0** is the **Enterprise Platform MVP** release with full release-gate integrity.
+Budget Engineer is best positioned as:
 
-It preserves the original core workflow:
+> **a professional-grade, local-first architecture, engineering, and preconstruction platform with lifecycle workflow support and human review in the loop**
 
-- Brief
-- Concept
-- Design
-- Engineering
-- Docs & BIM
-- Cost & Deliver
+It is suitable for:
+- architectural planning and documentation
+- early-stage engineering and pre-design
+- BOQ, schedules, and programme generation
+- procurement-linked project coordination
+- delivery and handover workflow support
+- professional review and issue-driven project progression
 
-And adds enterprise deployment infrastructure:
+---
 
-- Docker & nginx production deployment
-- CSP security hardening & sanitization utilities
-- Project backup/import (.beproj) with Home Export All
-- Local RBAC with RoleGuard and RoleSwitcher
-- Plugin SDK with lifecycle hooks
-- i18n framework with locale switching
-- Portfolio pagination & performance budgets
-- Diagnostics panel (Ctrl+Shift+D)
+## What Budget Engineer Is Not Claiming
 
-### Quality Baseline
+Budget Engineer is **not** currently positioned as:
+- a full licensed architect replacement
+- final structural signoff software
+- automatic certified code approval
+- a native proprietary BIM/CAD suite replacement
+- a fully cloud-native collaboration platform
 
-| Metric | Value |
-|---|---|---|
-| Version | v1.3.0 |
-| Tests | 1,503 |
-| Test files | 87 |
-| TypeScript | 0 errors (strict mode) |
-| Build | tsc + vite, green |
-| Lint | 0 errors, max 25 warnings |
-| PWA | Enabled |
-| Deployment | Docker / Vercel / static hosting |
+Instead, it is designed to **compress professional workload while keeping human signoff in the loop**.
+
+---
+
+## Quality Snapshot
+
+- **TypeScript:** 0 errors
+- **Lint:** 0 errors (warnings within policy)
+- **Tests:** 1,918 passing
+- **Test files:** 108
+- **Build:** green
+
+---
+
+## Strategic Direction
+
+The platform has evolved from:
+- design and preconstruction intelligence
+
+into:
+- **Design + Assurance + Delivery + Handover**
+
+while preserving its core strengths:
+- local-first
+- offline-capable
+- typed and test-driven
+- interoperable
+- honest about limits
 
 ### Architecture Principles
 
-- **Local-first** — data is stored in IndexedDB on the user's device
-- **Offline-first** — works as a PWA after first load
 - **Zero paid APIs** — no OpenAI, Anthropic, Gemini, or paid SDK dependency
 - **No backend required** — deployable as a static web app
 - **Privacy by architecture** — no telemetry, no analytics, no forced cloud sync

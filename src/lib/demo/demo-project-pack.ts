@@ -229,6 +229,7 @@ function makeCadDocument(projectId: string, plan: PlanModel): CadDocument {
     })),
     annotations: [],
     blocks: [],
+    boundaries: [],
   }
 }
 

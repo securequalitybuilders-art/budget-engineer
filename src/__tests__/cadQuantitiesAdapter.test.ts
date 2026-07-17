@@ -25,6 +25,7 @@ function makeSampleCad(): CadDocument {
     ],
     annotations: [],
     blocks: [],
+    boundaries: [],
   }
 }
 

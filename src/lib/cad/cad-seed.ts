@@ -77,5 +77,6 @@ export function seedCadDocument(projectId: string, designId: string, plan: PlanM
     openings,
     annotations,
     blocks,
+    boundaries: [],
   }
 }

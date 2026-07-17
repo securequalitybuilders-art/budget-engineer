@@ -92,6 +92,7 @@ export function convertPlanModelToCadDocument(input: {
     openings,
     annotations: [],
     blocks: [],
+    boundaries: [],
   }
 
   return { cad, source: 'persisted-cad', warnings }

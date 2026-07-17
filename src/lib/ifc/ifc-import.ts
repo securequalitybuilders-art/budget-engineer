@@ -124,7 +124,7 @@ export function parseIfcStep(text: string, projectId: string): CadDocument | nul
 
   return {
     id: `cad-${projectId}`, projectId, designId: '', activeFloorId: floors[0]?.id ?? 'floor-1', activeTool: 'select',
-    floors, layers: [], walls, openings, annotations: [], blocks,
+    floors, layers: [], walls, openings, annotations: [], blocks, boundaries: [],
   };
 }
 

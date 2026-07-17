@@ -22,6 +22,9 @@ export interface BimMetadata {
   category: string;
   material?: MaterialSystem;
   properties: Record<string, string | number | boolean>;
+  fireRating?: string;
+  typeName?: string;
+  height?: number;
 }
 
 export interface CadWall {
@@ -45,6 +48,7 @@ export interface CadOpening {
   kind: OpeningKind;
   offset: number;
   width: number;
+  height?: number;
   sillHeight?: number;
   headHeight?: number;
   name: string;
@@ -53,7 +57,9 @@ export interface CadOpening {
 
 export type BlockKind =
   | 'sofa' | 'bed' | 'table' | 'wc' | 'stair' | 'core'
-  | 'column' | 'beam' | 'footing';
+  | 'column' | 'beam' | 'footing'
+  | 'light' | 'switch' | 'socket' | 'db_board' | 'sink' | 'shower' | 'hvac_unit' | 'manhole'
+  | 'ac_unit' | 'duct' | 'diffuser' | 'grille' | 'fc_u';
 
 export interface CadBlock {
   id: string;
@@ -68,6 +74,44 @@ export interface CadBlock {
   metadata: BimMetadata;
 }
 
+import type { DrawingProvenance, SiteBoundaryMode } from './drawing-provenance';
+
+export interface CadBoundary {
+  id: string;
+  points: Vec2[];
+  layerId: string;
+  boundaryMode?: SiteBoundaryMode;
+  provenance?: DrawingProvenance;
+  bim?: BimMetadata;
+}
+
+export type RoomProgramme =
+  | 'Living Room' | 'Kitchen' | 'Dining Room' | 'Bedroom 1' | 'Bedroom 2'
+  | 'Bedroom 3' | 'Bathroom' | 'Ensuite' | 'W/C' | 'Hallway' | 'Corridor'
+  | 'Stairwell' | 'Study' | 'Office' | 'Utility Room' | 'Laundry'
+  | 'Pantry' | 'Store Room' | 'Plant Room' | 'Garage' | 'Lobby'
+  | 'Reception' | 'Waiting Area' | 'Consultation Room' | 'Treatment Room'
+  | 'Kitchenette' | 'Meeting Room' | 'Open Plan' | 'Balcony' | 'Terrace'
+  | 'Void' | 'Circulation' | 'Lounge' | 'Family Room' | 'Games Room'
+  | 'Home Office' | 'Dressing Room' | 'Walk-in Wardrobe' | 'Mud Room'
+  | 'Porch' | 'Conservatory' | 'Sun Room' | 'Cellar' | 'Basement';
+
+export const CANONICAL_ROOM_NAMES: RoomProgramme[] = [
+  'Living Room', 'Kitchen', 'Dining Room', 'Bedroom 1', 'Bedroom 2',
+  'Bedroom 3', 'Bathroom', 'Ensuite', 'W/C', 'Hallway', 'Corridor',
+  'Stairwell', 'Study', 'Office', 'Utility Room', 'Laundry',
+  'Pantry', 'Store Room', 'Plant Room', 'Garage', 'Lobby',
+  'Reception', 'Waiting Area', 'Consultation Room', 'Treatment Room',
+  'Kitchenette', 'Meeting Room', 'Open Plan', 'Balcony', 'Terrace',
+  'Void', 'Circulation', 'Lounge', 'Family Room', 'Games Room',
+  'Home Office', 'Dressing Room', 'Walk-in Wardrobe', 'Mud Room',
+  'Porch', 'Conservatory', 'Sun Room', 'Cellar', 'Basement',
+];
+
+export function isCanonicalRoomName(name: string): boolean {
+  return (CANONICAL_ROOM_NAMES as readonly string[]).includes(name);
+}
+
 export interface CadDocument {
   id: string;
   projectId: string;
@@ -77,6 +121,8 @@ export interface CadDocument {
   walls: CadWall[];
   openings: CadOpening[];
   blocks: CadBlock[];
+  boundaries?: CadBoundary[];
+  roomProgramme?: Record<string, RoomProgramme>;
 }
 
 export type BimElementType =

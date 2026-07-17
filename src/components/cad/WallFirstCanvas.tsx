@@ -3,7 +3,7 @@ import type { CadDocument, CadOpening, CadTool, CadWall } from '../../domain/cad
 import type { PlanModel } from '../../domain/plan'
 import { moveOpeningOffset, moveWallEndpoint, setActiveTool, toggleLayer } from '../../lib/cad/cad-editing'
 import { healCadDocument } from '../../lib/cad/cad-healing'
-import { addAnnotation, addFloor, addOpening, addWall, deleteOpening, deleteWall, setActiveFloor } from '../../lib/cad/cad-commands'
+import { addAnnotation, addFloor, addOpening, addWall, deleteOpening, deleteWall, setActiveFloor, addBoundary } from '../../lib/cad/cad-commands'
 import { addBlock } from '../../lib/cad/cad-blocks'
 import { generateDimensionAnnotations } from '../../lib/cad/cad-dimensions'
 import { exportCobieLikeJson, exportIfcLikeJson } from '../../lib/cad/cad-exchange'
@@ -40,6 +40,7 @@ export function WallFirstCanvas({ document, basePlan, onChange, onUndo, onRedo, 
   const [selectedOpeningId, setSelectedOpeningId] = useState<string | null>(null)
   const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null)
   const [draftWallStart, setDraftWallStart] = useState<{ x: number; y: number } | null>(null)
+  const [draftBoundaryPoints, setDraftBoundaryPoints] = useState<{ x: number; y: number }[]>([])
   const model = useMemo(() => (document ? cadDocumentToRichPlanModel(document, basePlan) : null), [document, basePlan])
 
   if (!document || !model) {
@@ -58,6 +59,7 @@ export function WallFirstCanvas({ document, basePlan, onChange, onUndo, onRedo, 
   const visibleOpenings = doc.openings.filter((opening) => opening.floorId === doc.activeFloorId && visible(opening.layerId))
   const visibleAnnotations = doc.annotations.filter((annotation) => annotation.floorId === doc.activeFloorId && visible(annotation.layerId))
   const visibleBlocks = doc.blocks.filter((block) => block.floorId === doc.activeFloorId)
+  const visibleBoundaries = (doc.boundaries || []).filter((boundary) => visible(boundary.layerId))
 
   function toWorld(clientX: number, clientY: number, rect: DOMRect) {
     return {
@@ -84,7 +86,21 @@ export function WallFirstCanvas({ document, basePlan, onChange, onUndo, onRedo, 
     if (doc.activeTool === 'annotation') {
       const text = `Note ${doc.annotations.length + 1}`
       onChange(addAnnotation(doc, text, world))
+      return
     }
+
+    if (doc.activeTool === 'boundary') {
+      setDraftBoundaryPoints((prev) => [...prev, world])
+      return
+    }
+  }
+
+  function handleFinishBoundary() {
+    if (draftBoundaryPoints.length > 2) {
+      onChange(addBoundary(doc, draftBoundaryPoints))
+    }
+    setDraftBoundaryPoints([])
+    onChange(setActiveTool(doc, 'select'))
   }
 
   return (
@@ -96,6 +112,9 @@ export function WallFirstCanvas({ document, basePlan, onChange, onUndo, onRedo, 
         </div>
         <div className="flex flex-wrap gap-2">
           <CadToolbar doc={doc} onToolChange={updateTool} />
+          {doc.activeTool === 'boundary' && draftBoundaryPoints.length > 0 && (
+            <button onClick={handleFinishBoundary} className="rounded-xl border border-cyan-500/50 bg-cyan-900/50 px-3 py-2 text-sm text-cyan-200">Finish Boundary</button>
+          )}
           <button onClick={() => onChange(healCadDocument(doc))} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">Heal Topology</button>
         </div>
       </div>
@@ -229,6 +248,15 @@ export function WallFirstCanvas({ document, basePlan, onChange, onUndo, onRedo, 
               <rect key={block.id} x={block.position.x} y={block.position.y} width={block.width} height={block.height} fill={block.blockType === 'stair' ? '#8b5cf6' : '#22c55e'} fillOpacity={0.22} stroke={block.blockType === 'core' ? '#f97316' : '#94a3b8'} strokeWidth={0.05} />
             ))}
             {draftWallStart && doc.activeTool === 'wall' && <circle cx={draftWallStart.x} cy={draftWallStart.y} r={0.22} fill="#22d3ee" />}
+            {visibleBoundaries.map((bnd) => (
+              <polygon key={bnd.id} points={bnd.points.map(p => `${p.x},${p.y}`).join(' ')} fill="none" stroke="#ef4444" strokeWidth={0.1} strokeDasharray="1,0.5" />
+            ))}
+            {doc.activeTool === 'boundary' && draftBoundaryPoints.length > 0 && (
+              <polyline points={draftBoundaryPoints.map(p => `${p.x},${p.y}`).join(' ')} fill="none" stroke="#ef4444" strokeWidth={0.1} strokeDasharray="1,0.5" />
+            )}
+            {doc.activeTool === 'boundary' && draftBoundaryPoints.map((p, i) => (
+              <circle key={i} cx={p.x} cy={p.y} r={0.2} fill="#ef4444" />
+            ))}
           </g>
         </svg>
       </div>

@@ -14,6 +14,7 @@ import { ElectricalPlanView } from '@/components/drawings/ElectricalPlanView'
 import { PlumbingPlanView } from '@/components/drawings/PlumbingPlanView'
 import { HvacPlanView } from '@/components/drawings/HvacPlanView'
 import { PresentationSheetView } from '@/components/drawings/PresentationSheetView'
+import { ScheduleView } from '@/components/drawings/ScheduleView'
 import { DrawingRegisterPanel } from '@/components/drawings/DrawingRegisterPanel'
 import {
   computeFrontElevation,
@@ -28,9 +29,10 @@ import { Button } from '@/components/ui/Button'
 import { Monitor, Download } from 'lucide-react'
 import { convertPlanModelToCadDocument } from '@/adapters/planModelToCadAdapter'
 import { generateDxf, downloadDxf } from '@/lib/export/dxfWriter'
+import type { DrawingTabId } from '@/lib/drawings/drawing-register'
 import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
 
-type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'side' | 'section' | 'presentation' | 'register'
+type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'side' | 'section' | 'schedule-door' | 'schedule-window' | 'schedule-structural' | 'presentation' | 'register'
 
 const TABS: { id: DrawingTab; label: string }[] = [
   { id: 'plan', label: 'Plan' },
@@ -44,6 +46,9 @@ const TABS: { id: DrawingTab; label: string }[] = [
   { id: 'front', label: 'Front Elevation' },
   { id: 'side', label: 'Side Elevation' },
   { id: 'section', label: 'Section A-A' },
+  { id: 'schedule-door', label: 'Door Sch.' },
+  { id: 'schedule-window', label: 'Window Sch.' },
+  { id: 'schedule-structural', label: 'Struct. Sch.' },
   { id: 'presentation', label: 'Presentation Sheet' },
   { id: 'register', label: 'Register' },
 ] as { id: DrawingTab; label: string }[]
@@ -80,7 +85,7 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
 
   useEffect(() => {
     if (activeTab !== 'register') {
-      markGenerated(activeTab)
+      markGenerated(activeTab as DrawingTabId)
     }
   }, [activeTab, markGenerated])
 
@@ -253,6 +258,15 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
             canopyParams={sectionRoofType === 'canopy' ? sectionCanopyParams : null}
           />
         </div>
+      )}
+      {activeTab === 'schedule-door' && (
+        <ScheduleView activePlan={activePlan} design={design} scheduleType="door" />
+      )}
+      {activeTab === 'schedule-window' && (
+        <ScheduleView activePlan={activePlan} design={design} scheduleType="window" />
+      )}
+      {activeTab === 'schedule-structural' && (
+        <ScheduleView activePlan={activePlan} design={design} scheduleType="structural" />
       )}
       {activeTab === 'presentation' && (
         <PresentationSheetView

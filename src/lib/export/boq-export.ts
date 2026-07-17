@@ -2,7 +2,10 @@ import { BOQ, CadDocument, ProjectRecord } from '@/domain/ws6-types';
 import { currencySymbol } from '@/lib/utils/currency';
 import { buildPlanSvg } from '@/lib/drawings/plan-svg';
 import { buildSectionSvg, SectionConfig } from '@/lib/drawings/section-svg';
-import { buildDrawingRegister, planSheet, sectionSheet, type DrawingRegisterSheet } from '@/lib/drawings/drawing-register';
+import { buildElevationSvg } from '@/lib/drawings/elevation-svg';
+import { buildScheduleSvg } from '@/lib/drawings/disciplines/schedule-svg';
+import { buildPresentationSvg } from '@/lib/drawings/disciplines/presentation-svg';
+import { buildDrawingRegister, type DrawingRegisterSheet } from '@/lib/drawings/drawing-register';
 
 function csvCell(v: string | number): string {
   const s = String(v);
@@ -32,6 +35,7 @@ export function buildBoqDossierHtml(boq: BOQ, cad: CadDocument, project: Project
   const projName = project?.name ?? cad.id;
   const dateStr = new Date().toISOString().slice(0, 10);
   const register = buildDrawingRegister(cad as unknown as import('@/domain/cad').CadDocument, revision, dateStr);
+  
   const registerRows = register.map((s) => `
     <tr>
       <td><b>${s.sheetNumber}</b></td>
@@ -40,6 +44,7 @@ export function buildBoqDossierHtml(boq: BOQ, cad: CadDocument, project: Project
       <td>${s.scale}</td>
       <td class="num">${s.revision}</td>
     </tr>`).join('');
+    
   const revisionRows = register.flatMap((s: DrawingRegisterSheet) =>
     s.revisions.map((r) => `
     <tr>
@@ -49,13 +54,52 @@ export function buildBoqDossierHtml(boq: BOQ, cad: CadDocument, project: Project
       <td>${r.note}</td>
       <td>${r.by ?? ''}</td>
     </tr>`)).join('');
-  const planSections = cad.floors.map((f, i) => `
+    
+  const sheetSections = register.map((s) => {
+    let svgContent = '';
+    const floorId = s.floorIndex !== undefined && cad.floors[s.floorIndex] ? cad.floors[s.floorIndex].id : cad.floors[0]?.id;
+    
+    // Determine drawing type label for title block
+    let dType = 'ARCHITECTURAL';
+    if (s.discipline === 'S') dType = 'STRUCTURAL';
+    if (s.discipline === 'E') dType = 'ELECTRICAL';
+    if (s.discipline === 'M') dType = 'MECHANICAL';
+    if (s.discipline === 'P') dType = 'PLUMBING';
+
+    const meta = { 
+      project: projName, 
+      drawing: s.title, 
+      sheet: s.sheetNumber, 
+      date: dateStr, 
+      revision,
+      drawingType: dType,
+      provenanceSummary: s.viewId?.startsWith('schedule') ? undefined : (s.discipline !== 'A' ? 'Pre-design assumptions' : undefined)
+    };
+
+    if (s.viewId === 'section') {
+      svgContent = buildSectionSvg(cad, meta, sectionConfig);
+    } else if (s.viewId === 'front' || s.viewId === 'side') {
+      svgContent = buildElevationSvg(cad, s.viewId, meta);
+    } else if (s.viewId === 'schedule-door') {
+      svgContent = buildScheduleSvg(cad, 'door', meta);
+    } else if (s.viewId === 'schedule-window') {
+      svgContent = buildScheduleSvg(cad, 'window', meta);
+    } else if (s.viewId === 'schedule-structural') {
+      svgContent = buildScheduleSvg(cad, 'structural', meta);
+    } else if (s.viewId === 'presentation') {
+      svgContent = buildPresentationSvg(cad, meta);
+    } else if (['plan', 'site-plan', 'foundation', 'roof', 'ceiling', 'electrical', 'plumbing', 'hvac'].includes(s.viewId || '')) {
+      svgContent = buildPlanSvg(cad, floorId, meta, sectionConfig, s.viewId || 'plan');
+    } else {
+      svgContent = `<svg width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" fill="#0b1220"/><text x="400" y="300" fill="#94a3b8" text-anchor="middle">Drawing generation for ${s.viewId} coming soon</text></svg>`;
+    }
+
+    return `
     <div class="plan">
-      <h2>${planSheet(register, i)} · Floor Plan — ${f.name}</h2>
-      <div class="planbox">${buildPlanSvg(cad, f.id, {
-        project: projName, drawing: `Floor Plan — ${f.name}`, sheet: planSheet(register, i), date: dateStr, revision,
-      }, sectionConfig)}</div>
-    </div>`).join('');
+      <h2>${s.sheetNumber} · ${s.title}</h2>
+      <div class="planbox">${svgContent}</div>
+    </div>`;
+  }).join('');
 
   const rows = boq.items.map((it) => `
     <tr>
@@ -122,13 +166,7 @@ export function buildBoqDossierHtml(boq: BOQ, cad: CadDocument, project: Project
       <thead><tr><th>Sheet</th><th class="num">Rev</th><th>Date</th><th>Description</th><th>By</th></tr></thead>
       <tbody>${revisionRows}</tbody>
     </table>
-    ${planSections}
-    <div class="plan">
-      <h2>${sectionSheet(register)} · Building Section ${sectionConfig?.axis === 'BB' ? 'B–B' : 'A–A'}</h2>
-      <div class="planbox">${buildSectionSvg(cad, {
-        project: projName, drawing: `Section ${sectionConfig?.axis === 'BB' ? 'B–B' : 'A–A'}`, sheet: sectionSheet(register), date: dateStr, revision,
-      }, sectionConfig)}</div>
-    </div>
+    ${sheetSections}
     <h2>Bill of Quantities</h2>
     <table>
       <thead><tr>
