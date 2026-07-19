@@ -1,5 +1,85 @@
 # Changelog
 
+## [4.0.0] - 2026-07-11 — Professional Architecture, Engineering & Construction Lifecycle Platform
+
+### Summary
+
+Budget Engineer v4.0.0 is the first release where the platform becomes a coherent **local-first architecture, engineering, preconstruction, procurement, delivery, and handover system**.
+
+This release consolidates:
+
+- architecture-aware prompt-to-plan generation
+- canonical room, wall, and opening geometry
+- multi-storey and typology-aware planning
+- professional drawing and issue-sheet composition
+- trade-detailed early-stage BOQ, schedules, programme, and cashflow
+- site analysis and heliodon workflows
+- interior documentation foundations
+- structural and MEP pre-design support
+- assurance, delivery, procurement, handover, and project-controls workflows
+- local-first project export/import continuity
+- release-hardened engineering gates
+
+### Added
+- **Architectural generator maturity**
+  - constrained zoning
+  - typology-aware planning
+  - vertical chassis
+  - floor-role logic
+  - apartment unit modelling
+  - mixed-use entrance separation
+  - template-seeded grid packing
+  - canonical geometry normalization
+  - stable wall/opening host recovery
+- **Professional drawing subsystem**
+  - drafting theme and lineweight hierarchy
+  - dimension engine
+  - annotation and room-label system
+  - hatch/material expression
+  - façade-aware elevations
+  - richer section semantics
+  - coordinated sheet-set composition
+  - cover sheet, drawing register, and issue-sheet packaging
+- **Detailed cost/schedule/planning layer**
+  - trade-detailed early-stage BOQ
+  - schedules of materials/components
+  - programme / Gantt
+  - cashflow outputs
+- **Lifecycle platform**
+  - assurance workflows
+  - milestone/proof/release logic
+  - procurement linkage
+  - handover and project-controls workflows
+  - export/import lifecycle continuity
+
+### Changed
+- The platform now behaves as a **connected lifecycle system** rather than separate design and cost tools
+- The drawing engine now supports coordinated issue-style sheets rather than isolated SVG outputs
+- Geometry, drawings, BOQ, schedules, and lifecycle workflows now share stronger internal coherence
+- Release gates and test reliability have been hardened across the platform
+
+### Quality
+- TypeScript: 0 errors
+- Lint: 0 errors under current warning policy
+- Tests: full automated suite green
+- Build: green
+
+### Positioning
+Budget Engineer v4.0.0 is best positioned as a:
+
+**professional-grade, local-first architecture, engineering, and construction lifecycle platform with human review and signoff in the loop**
+
+### Important honesty note
+This release does **not** claim:
+- full licensed architect replacement
+- final structural engineering signoff software
+- automatic certified code approval
+- native proprietary CAD/BIM suite equivalence
+- fully cloud-native collaboration
+- full CAFM / maintenance platform
+
+---
+
 ## [2.0.0] - 2026-07-11 — Professional Architecture, Engineering & Preconstruction Platform
 
 ### Summary
