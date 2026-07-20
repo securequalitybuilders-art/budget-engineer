@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useProcurementStore } from '@/stores/procurementStore';
 import { useMilestoneStore } from '@/stores/milestoneStore';
+import { useAssuranceStore } from '@/stores/assuranceStore';
 import { enrichProcurementWithBOQLinks, type LinkedBOQInfo } from '@/lib/lifecycle/procurementBoqLinker';
-import { computeProcurementLifecycleSummary } from '@/lib/lifecycle/lifecycleSummary';
+import { computeProcurementLifecycleSummary, computeBlockingDependencies } from '@/lib/lifecycle/lifecycleSummary';
 import { EmptyState } from '@/components/lifecycle/EmptyState';
 import { NextStepHint } from '@/components/lifecycle/NextStepHint';
 import { CrossStudioLinks, buildStudioLink } from '@/components/lifecycle/CrossStudioLinks';
-import { ClipboardList, ShoppingCart, Truck, Link, ArrowRight } from 'lucide-react';
+import { StatusTransitionGuide } from '@/components/lifecycle/StatusTransitionGuide';
+import { ClipboardList, ShoppingCart, Truck, Link, ArrowRight, AlertTriangle } from 'lucide-react';
 
 interface ProcurementPanelProps {
   projectId: string;
@@ -41,6 +43,7 @@ export function ProcurementPanel({ projectId }: ProcurementPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('requests');
   const { requests, purchaseOrders, deliveryRecords } = useProcurementStore();
   const milestones = useMilestoneStore((s) => s.milestones);
+  const assuranceStore = useAssuranceStore();
   const [boqEnrichment, setBoqEnrichment] = useState<Map<string, LinkedBOQInfo>>(new Map());
 
   useEffect(() => {
@@ -55,13 +58,27 @@ export function ProcurementPanel({ projectId }: ProcurementPanelProps) {
 
   const summary = useMemo(() => computeProcurementLifecycleSummary({ requests, purchaseOrders }), [requests, purchaseOrders]);
 
+  const dependencies = useMemo(() => computeBlockingDependencies({
+    readiness: { overallState: 'cleared', goNoGoDecision: null, feasibilityPassed: true, allRequiredGatesPassed: true, blockedGateNames: [], openRisksCritical: 0, openRisksHigh: 0, solvencyConfirmed: true, blockers: [] },
+    milestoneSummary: { total: milestones.length, released: milestones.filter(m => m.releaseState === 'released').length, held: 0, rejected: 0, pending: 0, criticalDelayed: [], overallProgressPct: 0, byCategory: {} },
+    procurementSummary: summary,
+    handoverSummary: { completionStagesTotal: 0, completionStagesAchieved: 0, openSnagItems: 0, resolvedSnagItems: 0, packagesIssued: 0, packagesTotal: 0, assetsRegistered: 0, warrantiesActive: 0, isHandoverReady: false },
+    solvencyChecks: assuranceStore.solvencyChecks,
+    projectId,
+  }), [milestones, summary, assuranceStore.solvencyChecks, projectId]);
+
+  const solvencyDeps = dependencies.filter(d => d.fromModule === 'assurance' && d.toModule === 'procurement');
+
   const crossLinks = useMemo(() => {
     const links = [buildStudioLink(projectId, 'project-controls', 'Project Controls', 'See procurement cost on controls')];
     if (milestones.length > 0) {
       links.push(buildStudioLink(projectId, 'delivery', 'Delivery', 'View milestone-linked delivery'));
     }
+    if (solvencyDeps.length > 0 && solvencyDeps[0].status !== 'clear') {
+      links.push(buildStudioLink(projectId, 'assurance', 'Assurance', solvencyDeps[0].reason, solvencyDeps[0].status === 'blocked' ? 'critical' : 'warning'));
+    }
     return links;
-  }, [projectId, milestones.length]);
+  }, [projectId, milestones.length, solvencyDeps]);
 
   const nextAction = useMemo(() => {
     if (!hasData) {
@@ -78,6 +95,30 @@ export function ProcurementPanel({ projectId }: ProcurementPanelProps) {
     <div className="space-y-6">
       {/* Next action hint */}
       {nextAction && <NextStepHint hint={nextAction.hint} severity={nextAction.severity} />}
+
+      {/* Lifecycle transition guide */}
+      <StatusTransitionGuide
+        projectId={projectId}
+        currentModule="procurement"
+        dependencies={dependencies}
+      />
+
+      {/* Solvency dependency warning */}
+      {solvencyDeps.length > 0 && solvencyDeps[0].status !== 'clear' && (
+        <div className={`rounded-lg border p-3 ${solvencyDeps[0].status === 'blocked' ? 'border-red-500/20 bg-red-500/5' : 'border-amber-500/20 bg-amber-500/5'}`}>
+          <div className="flex items-center gap-2">
+            <AlertTriangle size={14} className={solvencyDeps[0].status === 'blocked' ? 'text-red-400' : 'text-amber-400'} />
+            <span className={`text-[10px] font-medium ${solvencyDeps[0].status === 'blocked' ? 'text-red-300' : 'text-amber-300'}`}>
+              {solvencyDeps[0].reason}
+            </span>
+            {solvencyDeps[0].actionTo && (
+              <a href={solvencyDeps[0].actionTo} className="ml-auto rounded bg-white/5 px-2 py-0.5 text-[9px] text-cyan-300 transition-colors hover:bg-white/10">
+                {solvencyDeps[0].actionLabel}
+              </a>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Procurement summary bar */}
       {hasData && (

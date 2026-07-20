@@ -2,11 +2,17 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAssuranceStore } from '@/stores/assuranceStore';
 import { useAuthStore } from '@/stores/authStore';
-import { computeProjectReadiness } from '@/lib/lifecycle/lifecycleSummary';
+import { useMilestoneStore } from '@/stores/milestoneStore';
+import { useProcurementStore } from '@/stores/procurementStore';
+import { useHandoverStore } from '@/stores/handoverStore';
+import { useProjectControlsStore } from '@/stores/projectControlsStore';
+import { useChangeStore } from '@/stores/changeStore';
+import { computeProjectReadiness, computeMilestoneLifecycleSummary, computeProcurementLifecycleSummary, computeHandoverLifecycleSummary, computeBlockingDependencies } from '@/lib/lifecycle/lifecycleSummary';
 import { ProjectReadinessChip } from '@/components/lifecycle/ProjectReadinessChip';
 import { EmptyState } from '@/components/lifecycle/EmptyState';
 import { NextStepHint } from '@/components/lifecycle/NextStepHint';
 import { CrossStudioLinks, buildStudioLink } from '@/components/lifecycle/CrossStudioLinks';
+import { StatusTransitionGuide } from '@/components/lifecycle/StatusTransitionGuide';
 import { ShieldCheck, ArrowRight, Eye } from 'lucide-react';
 
 interface AssurancePanelProps {
@@ -39,9 +45,15 @@ const RISK_SEVERITY_COLORS: Record<string, string> = {
 
 export function AssurancePanel({ projectId }: AssurancePanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('feasibility');
-  const { feasibilityAssessments, riskGates, riskRegister, solvencyChecks } =
-    useAssuranceStore();
+  const assuranceStore = useAssuranceStore();
   const user = useAuthStore((s) => s.user);
+  const milestoneStore = useMilestoneStore();
+  const procurementStore = useProcurementStore();
+  const handoverStore = useHandoverStore();
+  const controlsStore = useProjectControlsStore();
+  const changeStore = useChangeStore();
+
+  const { feasibilityAssessments, riskGates, riskRegister, solvencyChecks } = assuranceStore;
 
   const latestAssessment = useMemo(
     () => feasibilityAssessments.sort((a, b) => new Date(b.assessmentDate).getTime() - new Date(a.assessmentDate).getTime())[0],
@@ -61,6 +73,29 @@ export function AssurancePanel({ projectId }: AssurancePanelProps) {
   );
 
   const hasData = feasibilityAssessments.length > 0 || riskGates.length > 0 || riskRegister.length > 0 || solvencyChecks.length > 0;
+
+  const milestoneSummary = useMemo(() => computeMilestoneLifecycleSummary(milestoneStore.milestones), [milestoneStore.milestones]);
+  const procurementSummary = useMemo(() => computeProcurementLifecycleSummary({
+    requests: procurementStore.requests,
+    purchaseOrders: procurementStore.purchaseOrders.map(po => ({ status: po.status, totalCents: po.totalCents })),
+  }), [procurementStore.requests, procurementStore.purchaseOrders]);
+  const handoverSummary = useMemo(() => computeHandoverLifecycleSummary({
+    completionStages: handoverStore.completionStages,
+    snagLists: handoverStore.snagLists,
+    handoverPackages: handoverStore.handoverPackages.map(p => ({ status: p.status })),
+    assetRegister: handoverStore.assetRegister,
+    warrantyRecords: handoverStore.warrantyRecords.map(w => ({ status: w.status })),
+  }), [handoverStore]);
+  const dependencies = useMemo(() => computeBlockingDependencies({
+    readiness,
+    milestoneSummary,
+    procurementSummary,
+    handoverSummary,
+    solvencyChecks,
+    projectId,
+  }), [readiness, milestoneSummary, procurementSummary, handoverSummary, solvencyChecks, projectId]);
+
+  void controlsStore; void changeStore; void procurementStore; void handoverStore;
 
   const crossLinks = useMemo(() => [
     buildStudioLink(projectId, 'delivery', 'Delivery', 'View milestone-linked deliveries'),
@@ -103,6 +138,14 @@ export function AssurancePanel({ projectId }: AssurancePanelProps) {
           severity={nextAction.severity}
         />
       )}
+
+      {/* Lifecycle transition guide */}
+      <StatusTransitionGuide
+        projectId={projectId}
+        currentModule="assurance"
+        dependencies={dependencies}
+        readinessState={readiness.overallState}
+      />
 
       {/* Role indicator */}
       {user.role !== 'owner' && (

@@ -84,7 +84,9 @@ export type FixtureKey =
   | 'plumbing'
   | 'hvac'
   | 'elevation-front'
-  | 'elevation-side'
+  | 'elevation-rear'
+  | 'elevation-left'
+  | 'elevation-right'
   | 'section'
   | 'presentation';
 
@@ -112,7 +114,9 @@ export function generateFixtures(
     'plumbing': () => buildPlumbingPlanSvg(cad, 'f1', meta, printMode),
     'hvac': () => buildHvacPlanSvg(cad, 'f1', meta, printMode),
     'elevation-front': () => buildElevationSvg(cad, 'front', meta, printMode),
-    'elevation-side': () => buildElevationSvg(cad, 'side', meta, printMode),
+    'elevation-rear': () => buildElevationSvg(cad, 'rear', meta, printMode),
+    'elevation-left': () => buildElevationSvg(cad, 'left', meta, printMode),
+    'elevation-right': () => buildElevationSvg(cad, 'right', meta, printMode),
     'section': () => buildSectionSvg(cad, meta, sectionConfig, printMode),
     'presentation': () => buildPresentationSvg(cad, meta),
   };
@@ -173,7 +177,9 @@ export function assertFixtureContent(fixture: FixtureOutput): string[] {
       if (!svg.includes('concrete-hatch')) failures.push('foundation: missing concrete hatch');
       break;
     case 'elevation-front':
-    case 'elevation-side':
+    case 'elevation-rear':
+    case 'elevation-left':
+    case 'elevation-right':
       if (!svg.includes('±0.000')) failures.push('elevation: missing ground line datum');
       break;
     case 'section':

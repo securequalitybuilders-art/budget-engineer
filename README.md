@@ -1,101 +1,79 @@
-# Budget Engineer — Professional Architecture, Engineering & Preconstruction Platform
+# Budget Engineer — Professional Architecture, Engineering & Construction Lifecycle Platform
 
 [![CI](https://github.com/securequalitybuilders-art/budget-engineer/actions/workflows/ci.yml/badge.svg)](https://github.com/securequalitybuilders-art/budget-engineer/actions)
-[![Version](https://img.shields.io/badge/version-2.0.0-blue)]()
-[![Tests](https://img.shields.io/badge/tests-1918-green)]()
+[![Version](https://img.shields.io/badge/version-4.0.0-blue)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
 [![PWA](https://img.shields.io/badge/PWA-offline--first-purple)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)]()
 
-**Budget Engineer** is a **local-first architecture, engineering, preconstruction, procurement, and delivery platform** designed for professional use with **human review and signoff in the loop**.
+**Budget Engineer** is a **local-first architecture, engineering, preconstruction, procurement, delivery, and handover platform** designed for professional use with **human review and signoff in the loop**.
 
-It combines:
+It combines 18 capability groups across the full design-to-delivery lifecycle:
 
-- architecture-aware prompt-to-plan generation
-- canonical room, wall, and opening geometry
-- multi-storey and typology-specific planning
-- technical drawing and sheet intelligence
-- trade-detailed early-stage BOQ, schedules, and programme outputs
-- site analysis and heliodon workflows
-- interior documentation foundations
-- structural and MEP pre-design support
-- review, delivery, procurement, and handover workflow foundations
-- local-first project export/import, diagnostics, and release-hardened engineering gates
-
----
-
-## Current Positioning
-
-Budget Engineer is best positioned as:
-
-> **a professional-grade, local-first architecture, engineering, and preconstruction platform with lifecycle workflow support and human review in the loop**
-
-It is suitable for:
-- architectural planning and documentation
-- early-stage engineering and pre-design
-- BOQ, schedules, and programme generation
-- procurement-linked project coordination
-- delivery and handover workflow support
-- professional review and issue-driven project progression
+- AI-assisted architectural brief-to-plan generation
+- Interactive 2D CAD editing with undo/redo and touch support
+- 3D BIM viewing with dollhouse, walkthrough, and parametric canopy
+- Interior design studio with 62 fixtures and 14 room templates
+- Environmental site analysis (heliodon, shadow, wind)
+- Image-to-floor-plan import with offline wall detection
+- 11 construction drawing types with PDF/PNG export
+- Professional DXF pipeline (AIA layers, A4–A0, roundtrip tested)
+- Presentation board editor on A1/A0 sheets
+- Engineering analysis with 7 calculators and clash detection
+- Geometry-derived BOQ with 4 regional rate cards
+- Building code compliance checks for 4 SADC jurisdictions
+- Procurement, delivery, assurance, and handover workflows
+- Lifecycle project tracking with status transitions and health dashboards
+- Package export and submission packaging with deterministic numbering
+- Validation and pilot-readiness evaluation with calibration transparency
+- Plugin SDK for build-time extension
 
 ---
 
-## What Budget Engineer Is Not Claiming
+## Commercial Positioning
 
-Budget Engineer is **not** currently positioned as:
-- a full licensed architect replacement
-- final structural signoff software
-- automatic certified code approval
-- a native proprietary BIM/CAD suite replacement
-- a fully cloud-native collaboration platform
+### What It Is
 
-Instead, it is designed to **compress professional workload while keeping human signoff in the loop**.
+> **A professional-grade, local-first architecture, engineering, and construction lifecycle platform with human review in the loop.**
+
+Budget Engineer supports professionals across the full project lifecycle — from brief and concept through design, engineering, documentation, BOQ/cost, procurement, delivery, and handover — while keeping all data local, all processing offline, and all decisions under human professional control.
+
+### Who It Is For
+
+- Architects and architectural technologists
+- Engineers (structural, MEP) in early-stage pre-design
+- Quantity surveyors and cost consultants
+- Contractors preparing preconstruction packages
+- Developers evaluating project feasibility
+- Students learning the design-to-construction pipeline
+- Organizations evaluating or piloting the platform
+
+### What Requires Human Review
+
+Budget Engineer is an assistive professional tool, not an automated replacement for licensed professionals. Every capability group that produces decision-grade output is clearly flagged with human review requirements. See the in-app **Product Package** panel for the complete capability manifest with review annotations.
+
+### What It Does Not Claim
+
+Budget Engineer does **not** position itself as:
+- A full licensed architect replacement
+- Final structural engineering signoff software
+- Automatic certified building code approval
+- A native proprietary CAD/BIM suite replacement (DWG, RVT)
+- A fully cloud-native, multi-tenant collaboration platform
+- A construction management, ERP, or accounting system
+
+The platform is designed to **compress professional workflow time while keeping human expertise and signoff firmly in the loop**.
 
 ---
 
 ## Quality Snapshot
 
-- **TypeScript:** 0 errors
+- **TypeScript:** 0 errors (strict mode)
 - **Lint:** 0 errors (warnings within policy)
-- **Tests:** 1,918 passing
-- **Test files:** 108
+- **Test files:** 130+ test files
 - **Build:** green
-
----
-
-## Strategic Direction
-
-The platform has evolved from:
-- design and preconstruction intelligence
-
-into:
-- **Design + Assurance + Delivery + Handover**
-
-while preserving its core strengths:
-- local-first
-- offline-capable
-- typed and test-driven
-- interoperable
-- honest about limits
-
-### Architecture Principles
-
-- **Zero paid APIs** — no OpenAI, Anthropic, Gemini, or paid SDK dependency
-- **No backend required** — deployable as a static web app
-- **Privacy by architecture** — no telemetry, no analytics, no forced cloud sync
-
----
-
-## What is Budget Engineer?
-
-Budget Engineer is a **multi-discipline architectural design operating system** that runs entirely in your browser. It takes a project from an AI-assisted architectural brief through 2D drafting, 3D modelling, engineering analysis, environmental studies, construction documentation, and cost estimation — without ever requiring a server, a paid subscription, or an internet connection.
-
-**Built for:**
-- Architects & engineers in low-infrastructure environments
-- DIY builders and homeowner-developers
-- NGOs and government housing programs
-- Small to mid-size construction firms
-- Architecture students learning the design pipeline
+- **PWA:** offline-capable after first load
+- **Architecture principles:** zero paid APIs, no backend, no telemetry, privacy by architecture
 
 ---
 
@@ -356,7 +334,7 @@ See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for full details.
 | `npm run preview` | Preview production build locally |
 | `npm run typecheck` | TypeScript strict check (`tsc --noEmit`) |
 | `npm run lint` | ESLint with max 25 warnings |
-| `npm test` | Run all 1,503 tests (Vitest) |
+| `npm test` | Run all tests (Vitest) |
 | `npm run test:watch` | Tests in watch mode |
 | `npm run lighthouse` | Build + Lighthouse CI audit |
 
@@ -402,7 +380,7 @@ See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for full details.
 | **Fully offline** | PWA with service worker. Works without network after first load. |
 | **Privacy by architecture** | No telemetry, no analytics, no data collection, no data leaves the device. |
 | **Modular** | Domain models → stores → adapters → components. Clean separation. |
-| **Test-first** | 1,503 tests. Every feature phase includes dedicated test coverage. |
+| **Test-first** | Full suite passing. Every feature phase includes dedicated test coverage. |
 | **Honest UX** | All limitations documented in-app. No false claims about capabilities. |
 
 ---
@@ -429,7 +407,7 @@ Each push to `main` runs via GitHub Actions:
 1. `npm ci`
 2. `npm run typecheck`
 3. `npm run lint`
-4. `npm test` (1,503 tests across 87 test files)
+4. `npm test` (full automated suite)
 5. `npm run build` (PWA service worker generated)
 
 ---
@@ -438,12 +416,12 @@ Each push to `main` runs via GitHub Actions:
 
 | Detail | Value |
 |---|---|
-| Current version | v1.3.0 |
-| Codename | Enterprise Platform MVP |
+| Current version | v4.0.0 |
+| Release | Professional Architecture, Engineering & Construction Lifecycle Platform |
 | Live demo | [budget-engineer.vercel.app](https://budget-engineer.vercel.app/) |
 | GitHub | [github.com/securequalitybuilders-art/budget-engineer](https://github.com/securequalitybuilders-art/budget-engineer) |
-| Tests | 1,503 across 87 test files |
-| Architecture | Local-first, no paid APIs, no backend, no cloud LLM |
+| Deployment | Local-first, Docker, Vercel, Netlify, static hosting |
+| Architecture | Local-first, zero paid APIs, no backend, no cloud LLM |
 
 See [CHANGELOG.md](CHANGELOG.md) for full release history. Release notes for each version are in `docs/RELEASE_NOTES_v*.md`.
 

@@ -179,6 +179,18 @@ vi.mock('@/lib/lifecycle/lifecycleSummary', () => ({
     packagesTotal: 0, assetsRegistered: 0, warrantiesActive: 0,
     isHandoverReady: false,
   }),
+  computeBlockingDependencies: () => [],
+  computeNextActions: () => [],
+  computeProjectLifecycleSummary: () => ({
+    health: { health: 'on-track' as const, readinessState: 'cleared' as const, milestoneProgressPct: 60, openIssues: 2, budgetUtilizationPct: 85, scheduleVariance: 2.5, costVariance: 1.2 },
+    readiness: { overallState: 'cleared', goNoGoDecision: null, feasibilityPassed: true, allRequiredGatesPassed: true, blockedGateNames: [], openRisksCritical: 0, openRisksHigh: 0, solvencyConfirmed: true, blockers: [] },
+    milestoneSummary: { total: 5, released: 3, held: 1, rejected: 0, pending: 1, criticalDelayed: [], overallProgressPct: 60, byCategory: { design: { total: 5, released: 3, progressPct: 60 } } },
+    procurementSummary: { totalRequests: 0, openRequests: 0, awardedRequests: 0, totalPurchaseOrders: 0, deliveredPOs: 0, totalSpendCents: 0, linkedBOQLinesCount: 0 },
+    handoverSummary: { completionStagesTotal: 0, completionStagesAchieved: 0, openSnagItems: 0, resolvedSnagItems: 0, packagesIssued: 0, packagesTotal: 0, assetsRegistered: 0, warrantiesActive: 0, isHandoverReady: false },
+    dependencies: [],
+    nextActions: [],
+    evm: { budgetUtilizationPct: 85, scheduleVariance: 2.5, costVariance: 1.2 },
+  }),
 }))
 
 vi.mock('@/lib/lifecycle/handoverReadiness', () => ({
@@ -398,6 +410,274 @@ describe('P23 — Empty states with action guidance', () => {
     const { ProcurementPanel } = await import('@/components/procurement/ProcurementPanel')
     renderWithRouter(<ProcurementPanel projectId="p1" />)
     expect(screen.getAllByText(/BOQ/).length).toBeGreaterThan(0)
+  })
+})
+
+// ── Lifecycle transition guide ──
+
+describe('P23 — StatusTransitionGuide', () => {
+  it('renders the lifecycle flow steps', async () => {
+    const { StatusTransitionGuide } = await import('@/components/lifecycle/StatusTransitionGuide')
+    renderWithRouter(
+      <StatusTransitionGuide
+        projectId="p1"
+        currentModule="assurance"
+        dependencies={[]}
+      />
+    )
+    expect(screen.getByText('Lifecycle Flow')).toBeTruthy()
+    const linkEls = screen.getAllByRole('link')
+    const labels = ['Assurance', 'Delivery', 'Procurement', 'Handover', 'Project Controls']
+    for (const label of labels) {
+      expect(linkEls.some(el => el.textContent?.includes(label))).toBeTruthy()
+    }
+  })
+
+  it('highlights current module with cyan styling on the link', async () => {
+    const { StatusTransitionGuide } = await import('@/components/lifecycle/StatusTransitionGuide')
+    renderWithRouter(
+      <StatusTransitionGuide
+        projectId="p1"
+        currentModule="handover"
+        dependencies={[]}
+      />
+    )
+    const links = screen.getAllByRole('link')
+    const activeLink = links.find(
+      (el) => el.className?.includes('text-cyan')
+    )
+    expect(activeLink).toBeTruthy()
+    expect(activeLink!.textContent).toContain('Handover')
+  })
+
+  it('shows "Next:" label with next module hint', async () => {
+    const { StatusTransitionGuide } = await import('@/components/lifecycle/StatusTransitionGuide')
+    renderWithRouter(
+      <StatusTransitionGuide
+        projectId="p1"
+        currentModule="delivery"
+        dependencies={[]}
+      />
+    )
+    expect(screen.getByText(/Next/)).toBeTruthy()
+  })
+})
+
+// ── Project Lifecycle Dashboard ──
+
+describe('P23 — ProjectLifecycleDashboard', () => {
+  it('renders health banner with module summary cards', async () => {
+    const { ProjectLifecycleDashboard } = await import('@/components/lifecycle/ProjectLifecycleDashboard')
+    renderWithRouter(<ProjectLifecycleDashboard projectId="p1" />)
+    expect(screen.getByText('on-track')).toBeTruthy()
+    expect(screen.getByText('Assurance')).toBeTruthy()
+    expect(screen.getByText('Milestones')).toBeTruthy()
+    expect(screen.getByText('Procurement')).toBeTruthy()
+    expect(screen.getByText('Handover')).toBeTruthy()
+  })
+})
+
+// ── Blocking dependencies (real function) ──
+
+describe('P23 — computeBlockingDependencies', () => {
+  it('all dependencies are "clear" when all modules are stable', async () => {
+    const { computeBlockingDependencies } = await vi.importActual<typeof import('@/lib/lifecycle/lifecycleSummary')>('@/lib/lifecycle/lifecycleSummary')
+    const result = computeBlockingDependencies({
+      readiness: {
+        overallState: 'cleared', goNoGoDecision: null, feasibilityPassed: true,
+        allRequiredGatesPassed: true, blockedGateNames: [], openRisksCritical: 0,
+        openRisksHigh: 0, solvencyConfirmed: true, blockers: [],
+      },
+      milestoneSummary: {
+        total: 5, released: 5, held: 0, rejected: 0, pending: 0,
+        criticalDelayed: [], overallProgressPct: 100,
+        byCategory: { design: { total: 5, released: 5, progressPct: 100 } },
+      },
+      procurementSummary: {
+        totalRequests: 3, openRequests: 0, awardedRequests: 3,
+        totalPurchaseOrders: 2, deliveredPOs: 2, totalSpendCents: 50000000,
+        linkedBOQLinesCount: 2,
+      },
+      handoverSummary: {
+        completionStagesTotal: 4, completionStagesAchieved: 4,
+        openSnagItems: 0, resolvedSnagItems: 3, packagesIssued: 2,
+        packagesTotal: 2, assetsRegistered: 5, warrantiesActive: 3,
+        isHandoverReady: true,
+      },
+      solvencyChecks: [{ id: 'sc1', projectId: 'p1', entityType: 'client', entityId: 'ent1', entityName: 'Test Client', checkDate: '2024-01-01', creditScore: 750, financialStatementsReviewed: true, litigationHistory: [], outstandingJudgments: [], isSolvent: true, notes: '', checkedBy: 'u1' }],
+      projectId: 'p1',
+    })
+    expect(result.length).toBeGreaterThan(0)
+    expect(result.every(d => d.status === 'clear')).toBeTruthy()
+  })
+
+  it('identifies assurance→delivery block when assurance not cleared', async () => {
+    const { computeBlockingDependencies } = await vi.importActual<typeof import('@/lib/lifecycle/lifecycleSummary')>('@/lib/lifecycle/lifecycleSummary')
+    const result = computeBlockingDependencies({
+      readiness: {
+        overallState: 'blocked', goNoGoDecision: null, feasibilityPassed: false,
+        allRequiredGatesPassed: false, blockedGateNames: ['feasibility'],
+        openRisksCritical: 1, openRisksHigh: 2, solvencyConfirmed: false,
+        blockers: ['Feasibility not passed'],
+      },
+      milestoneSummary: {
+        total: 0, released: 0, held: 0, rejected: 0, pending: 0,
+        criticalDelayed: [], overallProgressPct: 0,
+        byCategory: {},
+      },
+      procurementSummary: {
+        totalRequests: 0, openRequests: 0, awardedRequests: 0,
+        totalPurchaseOrders: 0, deliveredPOs: 0, totalSpendCents: 0,
+        linkedBOQLinesCount: 0,
+      },
+      handoverSummary: {
+        completionStagesTotal: 0, completionStagesAchieved: 0,
+        openSnagItems: 0, resolvedSnagItems: 0, packagesIssued: 0,
+        packagesTotal: 0, assetsRegistered: 0, warrantiesActive: 0,
+        isHandoverReady: false,
+      },
+      solvencyChecks: [],
+      projectId: 'p1',
+    })
+    const deliveryBlock = result.find(d => d.fromModule === 'assurance' && d.toModule === 'delivery')
+    expect(deliveryBlock).toBeDefined()
+    expect(deliveryBlock!.status).toBe('blocked')
+  })
+
+  it('identifies solvency→procurement warning when no solvency checks run', async () => {
+    const { computeBlockingDependencies } = await vi.importActual<typeof import('@/lib/lifecycle/lifecycleSummary')>('@/lib/lifecycle/lifecycleSummary')
+    const result = computeBlockingDependencies({
+      readiness: {
+        overallState: 'cleared', goNoGoDecision: null, feasibilityPassed: true,
+        allRequiredGatesPassed: true, blockedGateNames: [], openRisksCritical: 0,
+        openRisksHigh: 0, solvencyConfirmed: false, blockers: [],
+      },
+      milestoneSummary: {
+        total: 3, released: 1, held: 0, rejected: 0, pending: 2,
+        criticalDelayed: [], overallProgressPct: 33,
+        byCategory: {},
+      },
+      procurementSummary: {
+        totalRequests: 0, openRequests: 0, awardedRequests: 0,
+        totalPurchaseOrders: 0, deliveredPOs: 0, totalSpendCents: 0,
+        linkedBOQLinesCount: 0,
+      },
+      handoverSummary: {
+        completionStagesTotal: 0, completionStagesAchieved: 0,
+        openSnagItems: 0, resolvedSnagItems: 0, packagesIssued: 0,
+        packagesTotal: 0, assetsRegistered: 0, warrantiesActive: 0,
+        isHandoverReady: false,
+      },
+      solvencyChecks: [],
+      projectId: 'p1',
+    })
+    const solvencyDep = result.find(d => d.fromModule === 'assurance' && d.toModule === 'procurement')
+    expect(solvencyDep).toBeDefined()
+    expect(solvencyDep!.status).toBe('warning')
+  })
+})
+
+// ── computeNextActions ──
+
+describe('P23 — computeNextActions', () => {
+  it('returns high-priority actions for blocked dependencies', async () => {
+    const { computeBlockingDependencies, computeNextActions } = await vi.importActual<typeof import('@/lib/lifecycle/lifecycleSummary')>('@/lib/lifecycle/lifecycleSummary')
+    const readiness = {
+      overallState: 'blocked' as const, goNoGoDecision: null, feasibilityPassed: false,
+      allRequiredGatesPassed: false, blockedGateNames: ['feasibility'],
+      openRisksCritical: 2, openRisksHigh: 3, solvencyConfirmed: false,
+      blockers: [] as string[],
+    }
+    const deps = computeBlockingDependencies({
+      readiness,
+      milestoneSummary: { total: 0, released: 0, held: 0, rejected: 0, pending: 0, criticalDelayed: [], overallProgressPct: 0, byCategory: {} },
+      procurementSummary: { totalRequests: 0, openRequests: 0, awardedRequests: 0, totalPurchaseOrders: 0, deliveredPOs: 0, totalSpendCents: 0, linkedBOQLinesCount: 0 },
+      handoverSummary: { completionStagesTotal: 0, completionStagesAchieved: 0, openSnagItems: 0, resolvedSnagItems: 0, packagesIssued: 0, packagesTotal: 0, assetsRegistered: 0, warrantiesActive: 0, isHandoverReady: false },
+      solvencyChecks: [],
+      projectId: 'p1',
+    })
+    const actions = computeNextActions({
+      readiness,
+      milestoneSummary: { total: 0, released: 0, held: 0, rejected: 0, pending: 0, criticalDelayed: [], overallProgressPct: 0, byCategory: {} },
+      procurementSummary: { totalRequests: 0, openRequests: 0, awardedRequests: 0, totalPurchaseOrders: 0, deliveredPOs: 0, totalSpendCents: 0, linkedBOQLinesCount: 0 },
+      handoverSummary: { completionStagesTotal: 0, completionStagesAchieved: 0, openSnagItems: 0, resolvedSnagItems: 0, packagesIssued: 0, packagesTotal: 0, assetsRegistered: 0, warrantiesActive: 0, isHandoverReady: false },
+      dependencies: deps,
+      projectId: 'p1',
+    })
+    expect(actions.length).toBeGreaterThan(0)
+    const highPriority = actions.filter(a => a.priority === 'high')
+    expect(highPriority.length).toBeGreaterThan(0)
+  })
+
+  it('returns only low-priority suggestions when all clear', async () => {
+    const { computeNextActions } = await vi.importActual<typeof import('@/lib/lifecycle/lifecycleSummary')>('@/lib/lifecycle/lifecycleSummary')
+    const actions = computeNextActions({
+      readiness: {
+        overallState: 'cleared', goNoGoDecision: null, feasibilityPassed: true,
+        allRequiredGatesPassed: true, blockedGateNames: [], openRisksCritical: 0,
+        openRisksHigh: 0, solvencyConfirmed: true, blockers: [],
+      },
+      milestoneSummary: {
+        total: 5, released: 5, held: 0, rejected: 0, pending: 0,
+        criticalDelayed: [], overallProgressPct: 100,
+        byCategory: { design: { total: 5, released: 5, progressPct: 100 } },
+      },
+      procurementSummary: {
+        totalRequests: 0, openRequests: 0, awardedRequests: 0,
+        totalPurchaseOrders: 0, deliveredPOs: 0, totalSpendCents: 0,
+        linkedBOQLinesCount: 0,
+      },
+      handoverSummary: {
+        completionStagesTotal: 4, completionStagesAchieved: 4,
+        openSnagItems: 0, resolvedSnagItems: 0, packagesIssued: 0,
+        packagesTotal: 0, assetsRegistered: 0, warrantiesActive: 0,
+        isHandoverReady: true,
+      },
+      dependencies: [],
+    })
+    expect(actions.length).toBeGreaterThan(0)
+    expect(actions.some(a => a.priority === 'high')).toBeTruthy()
+    expect(actions.some(a => a.priority === 'low' && a.module === 'project-controls')).toBeTruthy()
+  })
+})
+
+// ── computeProjectLifecycleSummary ──
+
+describe('P23 — computeProjectLifecycleSummary', () => {
+  it('returns complete summary with all sections', async () => {
+    const { computeProjectLifecycleSummary } = await vi.importActual<typeof import('@/lib/lifecycle/lifecycleSummary')>('@/lib/lifecycle/lifecycleSummary')
+    const summary = computeProjectLifecycleSummary({
+      health: {
+        health: 'on-track' as const, readinessState: 'cleared' as const,
+        milestoneProgressPct: 60, openIssues: 2,
+        budgetUtilizationPct: 0, scheduleVariance: 0, costVariance: 0,
+      },
+      readiness: {
+        overallState: 'cleared', goNoGoDecision: null, feasibilityPassed: true,
+        allRequiredGatesPassed: true, blockedGateNames: [], openRisksCritical: 0,
+        openRisksHigh: 0, solvencyConfirmed: true, blockers: [],
+      },
+      milestoneSummary: {
+        total: 5, released: 3, held: 0, rejected: 0, pending: 2,
+        criticalDelayed: [], overallProgressPct: 60,
+        byCategory: {},
+      },
+      procurementSummary: {
+        totalRequests: 2, openRequests: 1, awardedRequests: 1,
+        totalPurchaseOrders: 1, deliveredPOs: 0, totalSpendCents: 25000000,
+        linkedBOQLinesCount: 1,
+      },
+      handoverSummary: {
+        completionStagesTotal: 4, completionStagesAchieved: 2,
+        openSnagItems: 3, resolvedSnagItems: 1, packagesIssued: 0,
+        packagesTotal: 0, assetsRegistered: 0, warrantiesActive: 0,
+        isHandoverReady: false,
+      },
+    })
+    expect(summary).toBeDefined()
+    expect(summary.health).toBeDefined()
+    expect(summary.dependencies).toBeDefined()
+    expect(summary.nextActions).toBeDefined()
   })
 })
 

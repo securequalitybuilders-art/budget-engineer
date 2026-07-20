@@ -315,7 +315,11 @@ describe('benchmarkRunner — P14-P20 wired to validationEngine', () => {
 
     it('detects regressions when previous scorecards are provided', async () => {
       const first = await runAllBenchmarks();
-      const improved = first.map(s => ({ ...s, overallScore: Math.min(100, s.overallScore + 10) }));
+      const improved = first.map(s => ({
+        ...s,
+        overallScore: 100,
+        metrics: s.metrics.map(m => ({ ...m, actual: typeof m.actual === 'number' ? m.actual + 1000 : m.actual })),
+      }));
       const report = await runFullValidation(improved);
       expect(report.regressionRecords.length).toBeGreaterThanOrEqual(1);
     });

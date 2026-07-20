@@ -1,5 +1,27 @@
 export type BenchmarkCategory = 'plan' | 'boq' | 'schedule' | 'programme' | 'code-check';
+
+export type ValidationDomain =
+  | 'geometry-validity'
+  | 'programme-layout-validity'
+  | 'drawing-documentation-completeness'
+  | 'package-completeness'
+  | 'boq-procurement-linkage-integrity'
+  | 'lifecycle-workflow-continuity'
+  | 'export-import-integrity'
+  | 'human-review-required';
+
 export type AcceptanceLevel = 'pass' | 'marginal' | 'fail' | 'not-rated';
+
+export type ValidationResultStatus = 'pass' | 'warning' | 'fail' | 'not-applicable';
+
+export interface ValidationResult {
+  domain: ValidationDomain;
+  status: ValidationResultStatus;
+  reason: string;
+  details: string[];
+  requiresHumanReview: boolean;
+  humanReviewNote?: string;
+}
 
 export interface BenchmarkReference {
   id: string;
@@ -9,6 +31,7 @@ export interface BenchmarkReference {
   sourceType: 'real-project' | 'qs-estimate' | 'published-data' | 'reference-design' | 'expert-review';
   date: string;
   notes: string;
+  domains: ValidationDomain[];
 }
 
 export interface BenchmarkMetric {
@@ -68,32 +91,33 @@ export interface ValidationReport {
   regressionRecords: RegressionRecord[];
   weaknesses: KnownWeakness[];
   summary: string;
+  validationResults: ValidationResult[];
 }
 
 const PLANNING_BENCHMARKS: BenchmarkReference[] = [
-  { id: 'bm-plan-1', name: 'Single-Storey House (3BR)', category: 'plan', source: 'Reference design set A', sourceType: 'reference-design', date: '2025-01-15', notes: 'Detached 3-bedroom house, 120m²' },
-  { id: 'bm-plan-2', name: 'Duplex (2 units)', category: 'plan', source: 'Built project B', sourceType: 'real-project', date: '2025-03-20', notes: 'Semi-detached duplex with shared party wall' },
-  { id: 'bm-boq-1', name: 'Residential BOQ', category: 'boq', source: 'QS estimate C', sourceType: 'qs-estimate', date: '2025-02-10', notes: 'Bill of quantities for 150m² residence' },
-  { id: 'bm-sched-1', name: 'Construction Schedule', category: 'schedule', source: 'Published data D', sourceType: 'published-data', date: '2025-04-05', notes: 'Typical 6-month residential build schedule' },
-  { id: 'bm-code-1', name: 'SANS 10400 Compliance', category: 'code-check', source: 'Expert review E', sourceType: 'expert-review', date: '2025-05-01', notes: 'Code compliance check for residential project' },
-  { id: 'bm-site-1', name: 'Site Analysis Outputs', category: 'plan', source: 'Budget Engineer P14', sourceType: 'reference-design', date: '2025-07-01', notes: 'Site analysis orientation score, diagram count, and recommendation quality' },
-  { id: 'bm-interior-1', name: 'Interior Documentation Outputs', category: 'plan', source: 'Budget Engineer P15', sourceType: 'reference-design', date: '2025-07-01', notes: 'Finish schedule generation, elevation data, and FFE schedule completeness' },
-  { id: 'bm-structural-1', name: 'Structural Pre-Design Outputs', category: 'plan', source: 'Budget Engineer P16', sourceType: 'reference-design', date: '2025-07-01', notes: 'Slab system, beam/column/footing candidates, and structural BOQ quantities' },
-  { id: 'bm-mep-1', name: 'MEP Pre-Design Outputs', category: 'plan', source: 'Budget Engineer P17', sourceType: 'reference-design', date: '2025-07-01', notes: 'Plumbing fixture/stack generation, electrical point/circuit layout, HVAC sizing' },
-  { id: 'bm-review-1', name: 'Code Review Engine Outputs', category: 'code-check', source: 'Budget Engineer P18', sourceType: 'reference-design', date: '2025-07-01', notes: 'Issue detection, severity classification, and review decision quality' },
-  { id: 'bm-delivery-1', name: 'Delivery Workflow Outputs', category: 'schedule', source: 'Budget Engineer P20', sourceType: 'reference-design', date: '2025-07-01', notes: 'Sheet revision workflow, package creation, and transmittal generation' },
-  { id: 'bm-site-terrain', name: 'Site Analysis — Terrain Detection', category: 'plan', source: 'Budget Engineer P14', sourceType: 'reference-design', date: '2025-07-01', notes: 'Verifies steep terrain is identified and recommendations adjust accordingly' },
-  { id: 'bm-site-adjacent', name: 'Site Analysis — Adjacent Building Impact', category: 'plan', source: 'Budget Engineer P14', sourceType: 'reference-design', date: '2025-07-01', notes: 'Adjacent building impact factor computed correctly from building geometry' },
-  { id: 'bm-interior-wardrobe', name: 'Interior — Wardrobe Joinery', category: 'plan', source: 'Budget Engineer P15', sourceType: 'reference-design', date: '2025-07-01', notes: 'Wardrobe elevation generation with joinery definitions and instances' },
-  { id: 'bm-interior-export', name: 'Interior — Export Formats', category: 'plan', source: 'Budget Engineer P15', sourceType: 'reference-design', date: '2025-07-01', notes: 'CSV and HTML export of finish and FFE schedules' },
-  { id: 'bm-structural-slab', name: 'Structural — Slab Thickness Consistency', category: 'plan', source: 'Budget Engineer P16', sourceType: 'reference-design', date: '2025-07-01', notes: 'Slab thickness within expected range for residential spans' },
-  { id: 'bm-structural-loading', name: 'Structural — Column Load Estimates', category: 'plan', source: 'Budget Engineer P16', sourceType: 'reference-design', date: '2025-07-01', notes: 'Column load estimates are positive and proportional to tributary area' },
-  { id: 'bm-mep-demand', name: 'MEP — Water Demand Calculation', category: 'plan', source: 'Budget Engineer P17', sourceType: 'reference-design', date: '2025-07-01', notes: 'Plumbing zone water demand computed correctly from fixture types' },
-  { id: 'bm-mep-circuit', name: 'MEP — Circuit Loading', category: 'plan', source: 'Budget Engineer P17', sourceType: 'reference-design', date: '2025-07-01', notes: 'Electrical circuit loads do not exceed breaker capacity' },
-  { id: 'bm-review-bad', name: 'Review — Failing Design Detection', category: 'code-check', source: 'Budget Engineer P18', sourceType: 'reference-design', date: '2025-07-01', notes: 'Deliberately non-compliant design triggers critical failures' },
-  { id: 'bm-review-good', name: 'Review — Compliant Design Pass', category: 'code-check', source: 'Budget Engineer P18', sourceType: 'reference-design', date: '2025-07-01', notes: 'Compliant design passes all rule checks with minimal issues' },
-  { id: 'bm-delivery-signoff', name: 'Delivery — Sign-off Workflow', category: 'schedule', source: 'Budget Engineer P20', sourceType: 'reference-design', date: '2025-07-01', notes: 'Sheet sign-off by checker and approver with status transitions' },
-  { id: 'bm-delivery-register', name: 'Delivery — Drawing Register', category: 'schedule', source: 'Budget Engineer P20', sourceType: 'reference-design', date: '2025-07-01', notes: 'Drawing register generated from multiple sheets with revision tracking' },
+  { id: 'bm-plan-1', name: 'Single-Storey House (3BR)', category: 'plan', source: 'Reference design set A', sourceType: 'reference-design', date: '2025-01-15', notes: 'Detached 3-bedroom house, 120m²', domains: ['geometry-validity', 'programme-layout-validity'] },
+  { id: 'bm-plan-2', name: 'Duplex (2 units)', category: 'plan', source: 'Built project B', sourceType: 'real-project', date: '2025-03-20', notes: 'Semi-detached duplex with shared party wall', domains: ['geometry-validity', 'programme-layout-validity'] },
+  { id: 'bm-boq-1', name: 'Residential BOQ', category: 'boq', source: 'QS estimate C', sourceType: 'qs-estimate', date: '2025-02-10', notes: 'Bill of quantities for 150m² residence', domains: ['boq-procurement-linkage-integrity'] },
+  { id: 'bm-sched-1', name: 'Construction Schedule', category: 'schedule', source: 'Published data D', sourceType: 'published-data', date: '2025-04-05', notes: 'Typical 6-month residential build schedule', domains: ['lifecycle-workflow-continuity'] },
+  { id: 'bm-code-1', name: 'SANS 10400 Compliance', category: 'code-check', source: 'Expert review E', sourceType: 'expert-review', date: '2025-05-01', notes: 'Code compliance check for residential project', domains: ['human-review-required'] },
+  { id: 'bm-site-1', name: 'Site Analysis Outputs', category: 'plan', source: 'Budget Engineer P14', sourceType: 'reference-design', date: '2025-07-01', notes: 'Site analysis orientation score, diagram count, and recommendation quality', domains: ['geometry-validity', 'programme-layout-validity'] },
+  { id: 'bm-interior-1', name: 'Interior Documentation Outputs', category: 'plan', source: 'Budget Engineer P15', sourceType: 'reference-design', date: '2025-07-01', notes: 'Finish schedule generation, elevation data, and FFE schedule completeness', domains: ['drawing-documentation-completeness'] },
+  { id: 'bm-structural-1', name: 'Structural Pre-Design Outputs', category: 'plan', source: 'Budget Engineer P16', sourceType: 'reference-design', date: '2025-07-01', notes: 'Slab system, beam/column/footing candidates, and structural BOQ quantities', domains: ['geometry-validity', 'boq-procurement-linkage-integrity'] },
+  { id: 'bm-mep-1', name: 'MEP Pre-Design Outputs', category: 'plan', source: 'Budget Engineer P17', sourceType: 'reference-design', date: '2025-07-01', notes: 'Plumbing fixture/stack generation, electrical point/circuit layout, HVAC sizing', domains: ['geometry-validity', 'boq-procurement-linkage-integrity'] },
+  { id: 'bm-review-1', name: 'Code Review Engine Outputs', category: 'code-check', source: 'Budget Engineer P18', sourceType: 'reference-design', date: '2025-07-01', notes: 'Issue detection, severity classification, and review decision quality', domains: ['human-review-required'] },
+  { id: 'bm-delivery-1', name: 'Delivery Workflow Outputs', category: 'schedule', source: 'Budget Engineer P20', sourceType: 'reference-design', date: '2025-07-01', notes: 'Sheet revision workflow, package creation, and transmittal generation', domains: ['package-completeness', 'export-import-integrity'] },
+  { id: 'bm-site-terrain', name: 'Site Analysis — Terrain Detection', category: 'plan', source: 'Budget Engineer P14', sourceType: 'reference-design', date: '2025-07-01', notes: 'Verifies steep terrain is identified and recommendations adjust accordingly', domains: ['geometry-validity'] },
+  { id: 'bm-site-adjacent', name: 'Site Analysis — Adjacent Building Impact', category: 'plan', source: 'Budget Engineer P14', sourceType: 'reference-design', date: '2025-07-01', notes: 'Adjacent building impact factor computed correctly from building geometry', domains: ['geometry-validity', 'programme-layout-validity'] },
+  { id: 'bm-interior-wardrobe', name: 'Interior — Wardrobe Joinery', category: 'plan', source: 'Budget Engineer P15', sourceType: 'reference-design', date: '2025-07-01', notes: 'Wardrobe elevation generation with joinery definitions and instances', domains: ['drawing-documentation-completeness'] },
+  { id: 'bm-interior-export', name: 'Interior — Export Formats', category: 'plan', source: 'Budget Engineer P15', sourceType: 'reference-design', date: '2025-07-01', notes: 'CSV and HTML export of finish and FFE schedules', domains: ['export-import-integrity'] },
+  { id: 'bm-structural-slab', name: 'Structural — Slab Thickness Consistency', category: 'plan', source: 'Budget Engineer P16', sourceType: 'reference-design', date: '2025-07-01', notes: 'Slab thickness within expected range for residential spans', domains: ['geometry-validity'] },
+  { id: 'bm-structural-loading', name: 'Structural — Column Load Estimates', category: 'plan', source: 'Budget Engineer P16', sourceType: 'reference-design', date: '2025-07-01', notes: 'Column load estimates are positive and proportional to tributary area', domains: ['geometry-validity'] },
+  { id: 'bm-mep-demand', name: 'MEP — Water Demand Calculation', category: 'plan', source: 'Budget Engineer P17', sourceType: 'reference-design', date: '2025-07-01', notes: 'Plumbing zone water demand computed correctly from fixture types', domains: ['geometry-validity'] },
+  { id: 'bm-mep-circuit', name: 'MEP — Circuit Loading', category: 'plan', source: 'Budget Engineer P17', sourceType: 'reference-design', date: '2025-07-01', notes: 'Electrical circuit loads do not exceed breaker capacity', domains: ['geometry-validity'] },
+  { id: 'bm-review-bad', name: 'Review — Failing Design Detection', category: 'code-check', source: 'Budget Engineer P18', sourceType: 'reference-design', date: '2025-07-01', notes: 'Deliberately non-compliant design triggers critical failures', domains: ['human-review-required'] },
+  { id: 'bm-review-good', name: 'Review — Compliant Design Pass', category: 'code-check', source: 'Budget Engineer P18', sourceType: 'reference-design', date: '2025-07-01', notes: 'Compliant design passes all rule checks with minimal issues', domains: ['human-review-required'] },
+  { id: 'bm-delivery-signoff', name: 'Delivery — Sign-off Workflow', category: 'schedule', source: 'Budget Engineer P20', sourceType: 'reference-design', date: '2025-07-01', notes: 'Sheet sign-off by checker and approver with status transitions', domains: ['lifecycle-workflow-continuity'] },
+  { id: 'bm-delivery-register', name: 'Delivery — Drawing Register', category: 'schedule', source: 'Budget Engineer P20', sourceType: 'reference-design', date: '2025-07-01', notes: 'Drawing register generated from multiple sheets with revision tracking', domains: ['export-import-integrity', 'package-completeness'] },
 ];
 
 export function getBenchmarks(category?: BenchmarkCategory): BenchmarkReference[] {
@@ -176,7 +200,8 @@ export function detectRegressions(
 export function generateValidationReport(
   scorecards: CalibrationScorecard[],
   previousScorecards: CalibrationScorecard[],
-  weaknesses: KnownWeakness[]
+  weaknesses: KnownWeakness[],
+  validationResults: ValidationResult[] = []
 ): ValidationReport {
   const passed = scorecards.filter(s => s.overallAcceptance === 'pass').length;
   const marginal = scorecards.filter(s => s.overallAcceptance === 'marginal').length;
@@ -188,13 +213,15 @@ export function generateValidationReport(
 
   const regressionRecords = detectRegressions(previousScorecards, scorecards);
   const openWeaknesses = weaknesses.filter(w => w.status === 'open');
+  const validationFailures = validationResults.filter(r => r.status === 'fail');
 
   const summary = [
     `Validation run: ${scorecards.length} benchmarks evaluated. Overall score: ${overallScore}%.`,
     `${passed} passed, ${marginal} marginal, ${failed} failed, ${notRated} not rated.`,
     regressionRecords.length > 0 ? `${regressionRecords.length} regression(s) detected.` : 'No regressions detected.',
+    validationFailures.length > 0 ? `${validationFailures.length} validation failure(s) found.` : '',
     openWeaknesses.length > 0 ? `${openWeaknesses.length} known weakness(es) open: ${openWeaknesses.map(w => w.area).join(', ')}.` : 'All known weaknesses addressed.',
-  ].join(' ');
+  ].filter(Boolean).join(' ');
 
   return {
     id: `val-${Date.now()}`,
@@ -206,7 +233,97 @@ export function generateValidationReport(
     regressionRecords,
     weaknesses,
     summary,
+    validationResults,
   };
+}
+
+export function classifyValidationResults(validationResults: ValidationResult[]): {
+  passes: ValidationResult[];
+  warnings: ValidationResult[];
+  failures: ValidationResult[];
+  notApplicable: ValidationResult[];
+  requiresHumanReview: ValidationResult[];
+} {
+  const passes = validationResults.filter(r => r.status === 'pass');
+  const warnings = validationResults.filter(r => r.status === 'warning');
+  const failures = validationResults.filter(r => r.status === 'fail');
+  const notApplicable = validationResults.filter(r => r.status === 'not-applicable');
+  const requiresHumanReview = validationResults.filter(r => r.requiresHumanReview);
+  return { passes, warnings, failures, notApplicable, requiresHumanReview };
+}
+
+export function getBlockerSummary(validationResults: ValidationResult[]): {
+  blockers: string[];
+  warningsList: string[];
+  reviewRequired: string[];
+} {
+  const blockers: string[] = [];
+  const warningsList: string[] = [];
+  const reviewRequired: string[] = [];
+
+  for (const r of validationResults) {
+    if (r.status === 'fail') {
+      blockers.push(`[${r.domain}] ${r.reason}`);
+    } else if (r.status === 'warning') {
+      warningsList.push(`[${r.domain}] ${r.reason}`);
+    }
+    if (r.requiresHumanReview && r.humanReviewNote) {
+      reviewRequired.push(`[${r.domain}] ${r.humanReviewNote}`);
+    }
+  }
+
+  return { blockers, warningsList, reviewRequired };
+}
+
+export function formatValidationResultsHtml(validationResults: ValidationResult[]): string {
+  const { passes, warnings, failures, notApplicable, requiresHumanReview } = classifyValidationResults(validationResults);
+  const total = validationResults.length;
+
+  let html = `<div style="font-family:sans-serif;font-size:10px;margin-top:12px">
+<h4 style="font-size:11px;margin:0 0 6px">Validation Results (${total} checks)</h4>
+<div style="display:flex;gap:6px;margin-bottom:8px">
+<div style="background:#f0fdf4;border-radius:4px;padding:4px 8px;text-align:center">
+<span style="font-size:14px;font-weight:bold;color:#22c55e">${passes.length}</span>
+<div style="font-size:8px;color:#666">Pass</div>
+</div>
+<div style="background:#fffbeb;border-radius:4px;padding:4px 8px;text-align:center">
+<span style="font-size:14px;font-weight:bold;color:#f59e0b">${warnings.length}</span>
+<div style="font-size:8px;color:#666">Warning</div>
+</div>
+<div style="background:#fef2f2;border-radius:4px;padding:4px 8px;text-align:center">
+<span style="font-size:14px;font-weight:bold;color:#ef4444">${failures.length}</span>
+<div style="font-size:8px;color:#666">Fail</div>
+</div>
+<div style="background:#f0f0f0;border-radius:4px;padding:4px 8px;text-align:center">
+<span style="font-size:14px;font-weight:bold;color:#999">${notApplicable.length}</span>
+<div style="font-size:8px;color:#666">N/A</div>
+</div>
+</div>`;
+
+  if (failures.length > 0) {
+    html += `<div style="margin-bottom:6px"><strong style="font-size:10px;color:#ef4444">Blockers</strong><ul style="margin:2px 0;padding-left:16px">`;
+    for (const f of failures) {
+      html += `<li style="font-size:9px;color:#dc2626">[${f.domain}] ${f.reason}</li>`;
+    }
+    html += `</ul></div>`;
+  }
+  if (warnings.length > 0) {
+    html += `<div style="margin-bottom:6px"><strong style="font-size:10px;color:#f59e0b">Warnings</strong><ul style="margin:2px 0;padding-left:16px">`;
+    for (const w of warnings) {
+      html += `<li style="font-size:9px;color:#d97706">[${w.domain}] ${w.reason}</li>`;
+    }
+    html += `</ul></div>`;
+  }
+  if (requiresHumanReview.length > 0) {
+    html += `<div style="margin-bottom:6px"><strong style="font-size:10px;color:#6366f1">Human Review Required</strong><ul style="margin:2px 0;padding-left:16px">`;
+    for (const r of requiresHumanReview) {
+      html += `<li style="font-size:9px;color:#4f46e5">${r.humanReviewNote}</li>`;
+    }
+    html += `</ul></div>`;
+  }
+
+  html += `</div>`;
+  return html;
 }
 
 export function generateValidationReportHtml(report: ValidationReport): string {
@@ -266,6 +383,10 @@ export function generateValidationReportHtml(report: ValidationReport): string {
     for (const r of report.regressionRecords) {
       html += `<p style="font-size:10px">${r.notes} [Status: ${r.status}]</p>`;
     }
+  }
+
+  if (report.validationResults && report.validationResults.length > 0) {
+    html += formatValidationResultsHtml(report.validationResults);
   }
 
   html += `<h3 style="font-size:13px;margin:16px 0 4px">Known Weaknesses</h3>`;

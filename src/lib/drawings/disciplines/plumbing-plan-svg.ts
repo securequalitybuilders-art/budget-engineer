@@ -150,7 +150,7 @@ export function buildPlumbingPlanSvg(
     { color: pal.wire, label: 'Hot water supply 15mm Cu', dash: '2 2' },
     { color: pal.accent, label: 'Cold water supply 15mm MDPE', dash: '2 2' },
     { color: pal.outline, label: 'Vent pipe 32mm Cu', dash: '3 3' },
-    { color: '#9333ea', label: 'Wet core / services shaft', dash: '6 3' },
+    { color: pal.outline, label: 'Wet core / services shaft', dash: '6 3' },
   ];
   parts.push(renderLegend(legendItems, vp.w - 180, 40, 'PLUMBING LEGEND'));
 

@@ -11,7 +11,9 @@ import { ShortcutsHelp } from '@/components/layout/ShortcutsHelp';
 import { PageLoader } from '@/components/layout/PageLoader';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { DiagnosticsPanel } from '@/components/common/DiagnosticsPanel';
+import { ProductPackagePanel } from '@/components/commercial/ProductPackagePanel';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { FileText, X } from 'lucide-react';
 
 const Home = lazy(() => import('@/pages/Home').then((m) => ({ default: m.Home })));
 const ProjectWizard = lazy(() => import('@/pages/ProjectWizard').then((m) => ({ default: m.ProjectWizard })));
@@ -29,6 +31,7 @@ const DeliveryStudio = lazy(() => import('@/pages/studio/DeliveryStudio').then((
 const HandoverStudio = lazy(() => import('@/pages/studio/HandoverStudio').then((m) => ({ default: m.HandoverStudio })));
 const ProcurementStudio = lazy(() => import('@/pages/studio/ProcurementStudio').then((m) => ({ default: m.ProcurementStudio })));
 const ProjectControlsStudio = lazy(() => import('@/pages/studio/ProjectControlsStudio').then((m) => ({ default: m.ProjectControlsStudio })));
+const PilotReviewPage = lazy(() => import('@/pages/pilot/PilotReviewPage').then((m) => ({ default: m.PilotReviewPage })));
 
 function SafeRoute({ children }: { children: React.ReactNode }) {
   return <ErrorBoundary><Suspense fallback={<PageLoader />}>{children}</Suspense></ErrorBoundary>;
@@ -37,6 +40,7 @@ function SafeRoute({ children }: { children: React.ReactNode }) {
 function GlobalLayout() {
   useKeyboardShortcuts();
   const [diagOpen, setDiagOpen] = useState(false);
+  const [pkgOpen, setPkgOpen] = useState(false);
 
   useEffect(() => {
     const link = document.querySelector('link[rel="canonical"]')
@@ -50,12 +54,15 @@ function GlobalLayout() {
         setDiagOpen((o) => !o)
       }
     }
-    function handleToggle() { setDiagOpen((o) => !o) }
+    function handleDiagToggle() { setDiagOpen((o) => !o) }
+    function handlePkgToggle() { setPkgOpen((o) => !o) }
     window.addEventListener('keydown', handleKey)
-    window.addEventListener('toggle-diagnostics', handleToggle)
+    window.addEventListener('toggle-diagnostics', handleDiagToggle)
+    window.addEventListener('toggle-product-package', handlePkgToggle)
     return () => {
       window.removeEventListener('keydown', handleKey)
-      window.removeEventListener('toggle-diagnostics', handleToggle)
+      window.removeEventListener('toggle-diagnostics', handleDiagToggle)
+      window.removeEventListener('toggle-product-package', handlePkgToggle)
     }
   }, [])
 
@@ -70,6 +77,24 @@ function GlobalLayout() {
         <CommandPalette />
         <ShortcutsHelp />
         {diagOpen && <DiagnosticsPanel onClose={() => setDiagOpen(false)} />}
+        {pkgOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setPkgOpen(false)}>
+            <div className="max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between border-b border-[var(--border-default)] px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <FileText size={16} className="text-[var(--brand-accent)]" />
+                  <span className="text-sm font-semibold">Product Package</span>
+                </div>
+                <button onClick={() => setPkgOpen(false)} className="rounded p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">
+                  <X size={14} />
+                </button>
+              </div>
+              <div className="max-h-[75vh] overflow-y-auto p-4">
+                <ProductPackagePanel />
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </>
   );
@@ -134,6 +159,10 @@ const router = createBrowserRouter([
       {
         path: '/site-analysis',
         element: <SafeRoute><SiteAnalysis /></SafeRoute>,
+      },
+      {
+        path: '/pilot-review',
+        element: <SafeRoute><PilotReviewPage /></SafeRoute>,
       },
       {
         path: '/academy',

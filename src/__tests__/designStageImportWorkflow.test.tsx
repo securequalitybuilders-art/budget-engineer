@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, cleanup, screen, fireEvent } from '@testing-library/react'
+import { render, cleanup, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 afterEach(cleanup)
@@ -48,7 +48,7 @@ describe('DesignStage import workflow buttons', () => {
         <DesignStage {...defaultProps} onOpenImportWorkflow={vi.fn()} />
       </MemoryRouter>
     )
-    expect(screen.getByText('Guided Import (AI detection)')).toBeTruthy()
+    await waitFor(() => expect(screen.getByText('Guided Import (AI detection)')).toBeTruthy(), { timeout: 5000 })
   })
 
   it('shows "Quick Import" button in empty state', async () => {
@@ -58,7 +58,7 @@ describe('DesignStage import workflow buttons', () => {
         <DesignStage {...defaultProps} />
       </MemoryRouter>
     )
-    expect(screen.getByText('Quick Import (DXF / image / PDF)')).toBeTruthy()
+    await waitFor(() => expect(screen.getByText('Quick Import (DXF / image / PDF)')).toBeTruthy(), { timeout: 5000 })
   })
 
   it('shows "Generate Design Options" button in empty state', async () => {
@@ -68,7 +68,7 @@ describe('DesignStage import workflow buttons', () => {
         <DesignStage {...defaultProps} />
       </MemoryRouter>
     )
-    expect(screen.getByText('Generate Design Options')).toBeTruthy()
+    await waitFor(() => expect(screen.getByText('Generate Design Options')).toBeTruthy(), { timeout: 5000 })
   })
 
   it('calls onOpenImportWorkflow when Guided Import button is clicked', async () => {
@@ -79,7 +79,7 @@ describe('DesignStage import workflow buttons', () => {
         <DesignStage {...defaultProps} onOpenImportWorkflow={onOpenImportWorkflow} />
       </MemoryRouter>
     )
-    const button = screen.getByText('Guided Import (AI detection)')
+    const button = await waitFor(() => screen.getByText('Guided Import (AI detection)'), { timeout: 5000 })
     fireEvent.click(button)
     expect(onOpenImportWorkflow).toHaveBeenCalledOnce()
   })

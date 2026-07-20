@@ -343,15 +343,16 @@ export function renderOverallDimensions(vp: Viewport): string {
 export function renderSectionMark(sectionMark: SectionConfig, vp: Viewport): string {
   const parts: string[] = [];
   const bubble = sectionMark.axis === 'AA' ? 'A' : 'B';
+  const pos = sectionMark.position ?? 0;
   if (sectionMark.axis === 'AA') {
-    const ly = vp.py({ x: 0, y: sectionMark.position });
+    const ly = vp.py({ x: 0, y: pos });
     parts.push(`<line x1="6" y1="${ly.toFixed(1)}" x2="${(vp.w - 6).toFixed(1)}" y2="${ly.toFixed(1)}" stroke="#d4a574" stroke-width="1.5" stroke-dasharray="10 4 2 4"/>`);
     for (const cx of [14, vp.w - 14]) {
       parts.push(`<circle cx="${cx.toFixed(1)}" cy="${ly.toFixed(1)}" r="9" fill="#0b1220" stroke="#d4a574" stroke-width="1.5"/>`);
       parts.push(`<text x="${cx.toFixed(1)}" y="${(ly + 4).toFixed(1)}" fill="#d4a574" font-size="11" font-weight="700" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">${bubble}</text>`);
     }
   } else {
-    const lx = vp.px({ x: sectionMark.position, y: 0 });
+    const lx = vp.px({ x: pos, y: 0 });
     parts.push(`<line x1="${lx.toFixed(1)}" y1="6" x2="${lx.toFixed(1)}" y2="${(vp.h - 6).toFixed(1)}" stroke="#d4a574" stroke-width="1.5" stroke-dasharray="10 4 2 4"/>`);
     for (const cy of [14, vp.h - 14]) {
       parts.push(`<circle cx="${lx.toFixed(1)}" cy="${cy.toFixed(1)}" r="9" fill="#0b1220" stroke="#d4a574" stroke-width="1.5"/>`);

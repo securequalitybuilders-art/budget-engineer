@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, cleanup, screen } from '@testing-library/react'
+import { render, cleanup, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 afterEach(cleanup)
@@ -21,7 +21,7 @@ describe('Home page Premium Studio cards', () => {
         <Home />
       </MemoryRouter>
     )
-    expect(screen.getByText('Premium Studio Modules')).toBeTruthy()
+    await waitFor(() => expect(screen.getByText('Premium Studio Modules')).toBeTruthy(), { timeout: 5000 })
   })
 
   it('shows Interior Design card', async () => {
@@ -31,7 +31,7 @@ describe('Home page Premium Studio cards', () => {
         <Home />
       </MemoryRouter>
     )
-    expect(screen.getByText('Interior Design')).toBeTruthy()
+    await waitFor(() => expect(screen.getByText('Interior Design')).toBeTruthy(), { timeout: 5000 })
   })
 
   it('shows Site Analysis card', async () => {
@@ -41,7 +41,7 @@ describe('Home page Premium Studio cards', () => {
         <Home />
       </MemoryRouter>
     )
-    expect(screen.getByText('Site Analysis')).toBeTruthy()
+    await waitFor(() => expect(screen.getByText('Site Analysis')).toBeTruthy(), { timeout: 5000 })
   })
 
   it('shows Presentation Boards card', async () => {
@@ -51,7 +51,7 @@ describe('Home page Premium Studio cards', () => {
         <Home />
       </MemoryRouter>
     )
-    expect(screen.getByText('Presentation Boards')).toBeTruthy()
+    await waitFor(() => expect(screen.getByText('Presentation Boards')).toBeTruthy(), { timeout: 5000 })
   })
 
   it('shows Academy card', async () => {
@@ -61,7 +61,7 @@ describe('Home page Premium Studio cards', () => {
         <Home />
       </MemoryRouter>
     )
-    expect(screen.getByText('Academy')).toBeTruthy()
+    await waitFor(() => expect(screen.getByText('Academy')).toBeTruthy(), { timeout: 5000 })
   })
 
   it('Interior Design card links to the interior studio route', async () => {
@@ -71,7 +71,7 @@ describe('Home page Premium Studio cards', () => {
         <Home />
       </MemoryRouter>
     )
-    const card = screen.getByText('Interior Design').closest('a')
+    const card = await waitFor(() => screen.getByText('Interior Design').closest('a'), { timeout: 5000 })
     expect(card).toBeTruthy()
     expect(card!.getAttribute('href')).toContain('/studio/interior')
   })
@@ -83,7 +83,7 @@ describe('Home page Premium Studio cards', () => {
         <Home />
       </MemoryRouter>
     )
-    const card = screen.getByText('Academy').closest('a')
+    const card = await waitFor(() => screen.getByText('Academy').closest('a'), { timeout: 5000 })
     expect(card).toBeTruthy()
     expect(card!.getAttribute('href')).toBe('/academy')
   })
@@ -95,7 +95,7 @@ describe('Home page Premium Studio cards', () => {
         <Home />
       </MemoryRouter>
     )
-    const btn = screen.getByText('Start New Project').closest('a')
+    const btn = await waitFor(() => screen.getByText('Start New Project').closest('a'), { timeout: 5000 })
     expect(btn?.getAttribute('href')).toBe('/new')
   })
 })

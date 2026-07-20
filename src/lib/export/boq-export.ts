@@ -78,7 +78,7 @@ export function buildBoqDossierHtml(boq: BOQ, cad: CadDocument, project: Project
 
     if (s.viewId === 'section') {
       svgContent = buildSectionSvg(cad, meta, sectionConfig);
-    } else if (s.viewId === 'front' || s.viewId === 'side') {
+    } else if (s.viewId === 'front' || s.viewId === 'rear' || s.viewId === 'left' || s.viewId === 'right') {
       svgContent = buildElevationSvg(cad, s.viewId, meta);
     } else if (s.viewId === 'schedule-door') {
       svgContent = buildScheduleSvg(cad, 'door', meta);

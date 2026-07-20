@@ -1,9 +1,188 @@
-import type { ProjectIntake, FeasibilityAssessment, RiskGate, RiskRegisterEntry, GoNoGoDecision } from '@/domain/assurance'
+import type { ProjectIntake, FeasibilityAssessment, RiskGate, RiskRegisterEntry, GoNoGoDecision, SolvencyCheck } from '@/domain/assurance'
 import type { Milestone } from '@/domain/milestone'
 import type { NCR, RFI, SnagItem } from '@/domain/change'
 import type { CompletionStage, SnagList } from '@/domain/handover'
 import type { ProcurementRequest } from '@/domain/procurement'
 import type { ProjectControlsSnapshot } from '@/domain/projectControls'
+
+export type ModuleDependency = {
+  fromModule: string
+  toModule: string
+  status: 'clear' | 'blocked' | 'warning' | 'unknown'
+  reason: string
+  actionLabel?: string
+  actionTo?: string
+}
+
+export type ProjectLifecycleSummary = {
+  health: ProjectHealthSummary
+  readiness: ProjectReadiness
+  milestones: MilestoneLifecycleSummary
+  procurement: ProcurementLifecycleSummary
+  handover: HandoverLifecycleSummary
+  dependencies: ModuleDependency[]
+  nextActions: { module: string; action: string; priority: 'high' | 'medium' | 'low'; actionTo?: string }[]
+}
+
+export function computeBlockingDependencies(params: {
+  readiness: ProjectReadiness
+  milestoneSummary: MilestoneLifecycleSummary
+  procurementSummary: ProcurementLifecycleSummary
+  handoverSummary: HandoverLifecycleSummary
+  solvencyChecks: SolvencyCheck[]
+  projectId?: string
+}): ModuleDependency[] {
+  const deps: ModuleDependency[] = []
+  const pid = params.projectId ?? ''
+
+  // Assurance → Delivery
+  if (params.readiness.overallState === 'blocked' || params.readiness.overallState === 'rejected') {
+    deps.push({ fromModule: 'assurance', toModule: 'delivery', status: 'blocked', reason: 'Assurance gates not cleared — delivery cannot proceed', actionLabel: 'Review gates', actionTo: pid ? `/project/${pid}/studio/assurance` : undefined })
+  } else if (params.readiness.overallState === 'not-started') {
+    deps.push({ fromModule: 'assurance', toModule: 'delivery', status: 'blocked', reason: 'Assurance not yet started — complete intake first', actionLabel: 'Start assurance', actionTo: pid ? `/project/${pid}/studio/assurance` : undefined })
+  } else if (params.readiness.overallState === 'in-feasibility') {
+    deps.push({ fromModule: 'assurance', toModule: 'delivery', status: 'warning', reason: 'Assurance in feasibility review — awaiting decision' })
+  } else {
+    deps.push({ fromModule: 'assurance', toModule: 'delivery', status: 'clear', reason: 'Assurance cleared — delivery may proceed' })
+  }
+
+  // Delivery → Procurement
+  if (params.milestoneSummary.total === 0) {
+    deps.push({ fromModule: 'delivery', toModule: 'procurement', status: 'warning', reason: 'No milestones defined — procurement may lack delivery context', actionLabel: 'View milestones', actionTo: pid ? `/project/${pid}/studio/delivery` : undefined })
+  } else {
+    deps.push({ fromModule: 'delivery', toModule: 'procurement', status: 'clear', reason: 'Milestones defined — procurement has delivery context' })
+  }
+
+  // Assurance → Procurement (solvency)
+  const hasSolvencyIssues = params.solvencyChecks.length > 0 && params.solvencyChecks.some(c => !c.isSolvent)
+  if (hasSolvencyIssues) {
+    deps.push({ fromModule: 'assurance', toModule: 'procurement', status: 'blocked', reason: 'Solvency checks pending or failing — procurement cannot award', actionLabel: 'Check solvency', actionTo: pid ? `/project/${pid}/studio/assurance` : undefined })
+  } else if (params.solvencyChecks.length === 0) {
+    deps.push({ fromModule: 'assurance', toModule: 'procurement', status: 'warning', reason: 'No solvency checks run — verify before awarding', actionLabel: 'Run checks', actionTo: pid ? `/project/${pid}/studio/assurance` : undefined })
+  } else {
+    deps.push({ fromModule: 'assurance', toModule: 'procurement', status: 'clear', reason: 'Solvency checks passed' })
+  }
+
+  // Delivery → Handover
+  if (params.milestoneSummary.released === 0) {
+    deps.push({ fromModule: 'delivery', toModule: 'handover', status: 'blocked', reason: 'No milestones released — handover cannot begin', actionLabel: 'View milestones', actionTo: pid ? `/project/${pid}/studio/delivery` : undefined })
+  } else {
+    deps.push({ fromModule: 'delivery', toModule: 'handover', status: 'clear', reason: `${params.milestoneSummary.released} milestone(s) released — handover context available` })
+  }
+
+  // Handover → Closeout (project controls)
+  if (params.handoverSummary.completionStagesTotal > 0 && params.handoverSummary.isHandoverReady) {
+    deps.push({ fromModule: 'handover', toModule: 'project-controls', status: 'clear', reason: 'Handover ready — finalize project controls for closeout' })
+  } else if (params.handoverSummary.completionStagesTotal > 0) {
+    deps.push({ fromModule: 'handover', toModule: 'project-controls', status: 'warning', reason: 'Handover in progress — continue resolving open items', actionLabel: 'View handover', actionTo: pid ? `/project/${pid}/studio/handover` : undefined })
+  } else {
+    deps.push({ fromModule: 'handover', toModule: 'project-controls', status: 'unknown', reason: 'Handover not yet started' })
+  }
+
+  // Procurement → Delivery
+  if (params.procurementSummary.totalPurchaseOrders > 0 && params.procurementSummary.deliveredPOs < params.procurementSummary.totalPurchaseOrders) {
+    deps.push({ fromModule: 'procurement', toModule: 'delivery', status: 'warning', reason: `${params.procurementSummary.totalPurchaseOrders - params.procurementSummary.deliveredPOs} PO(s) not yet delivered — may affect delivery schedule`, actionLabel: 'View procurement', actionTo: pid ? `/project/${pid}/studio/procurement` : undefined })
+  } else if (params.procurementSummary.totalPurchaseOrders > 0) {
+    deps.push({ fromModule: 'procurement', toModule: 'delivery', status: 'clear', reason: 'All POs delivered — procurement supports delivery' })
+  }
+
+  return deps
+}
+
+export function computeNextActions(params: {
+  readiness: ProjectReadiness
+  milestoneSummary: MilestoneLifecycleSummary
+  procurementSummary: ProcurementLifecycleSummary
+  handoverSummary: HandoverLifecycleSummary
+  dependencies: ModuleDependency[]
+  projectId?: string
+}): { module: string; action: string; priority: 'high' | 'medium' | 'low'; actionTo?: string }[] {
+  const actions: { module: string; action: string; priority: 'high' | 'medium' | 'low'; actionTo?: string }[] = []
+  const pid = params.projectId ?? ''
+
+  // Blocked dependencies → high priority
+  for (const dep of params.dependencies) {
+    if (dep.status === 'blocked') {
+      actions.push({ module: dep.fromModule, action: dep.reason, priority: 'high', actionTo: dep.actionTo })
+    }
+  }
+
+  // Warning dependencies → medium priority
+  for (const dep of params.dependencies) {
+    if (dep.status === 'warning' && !actions.some(a => a.action === dep.reason)) {
+      actions.push({ module: dep.fromModule, action: dep.reason, priority: 'medium', actionTo: dep.actionTo })
+    }
+  }
+
+  // Assurance not started
+  if (params.readiness.overallState === 'not-started') {
+    actions.push({ module: 'assurance', action: 'Start project intake and feasibility assessment', priority: 'high', actionTo: pid ? `/project/${pid}/studio/assurance` : undefined })
+  }
+
+  // No milestones
+  if (params.milestoneSummary.total === 0) {
+    actions.push({ module: 'delivery', action: 'Define project milestones to track delivery progress', priority: 'high', actionTo: pid ? `/project/${pid}/studio/delivery` : undefined })
+  }
+
+  // Procurement has open requests
+  if (params.procurementSummary.openRequests > 0) {
+    actions.push({ module: 'procurement', action: `${params.procurementSummary.openRequests} open procurement request(s) — review and award`, priority: 'medium', actionTo: pid ? `/project/${pid}/studio/procurement` : undefined })
+  }
+
+  // Handover readiness
+  if (params.handoverSummary.completionStagesTotal > 0 && !params.handoverSummary.isHandoverReady) {
+    actions.push({ module: 'handover', action: `Handover not ready (${params.handoverSummary.openSnagItems} open snag(s), ${params.handoverSummary.completionStagesTotal - params.handoverSummary.completionStagesAchieved} incomplete stage(s))`, priority: 'medium', actionTo: pid ? `/project/${pid}/studio/handover` : undefined })
+  }
+
+  // Project controls snapshot
+  if (params.milestoneSummary.total > 0) {
+    actions.push({ module: 'project-controls', action: 'Take a project controls snapshot to track EVM and health', priority: 'low', actionTo: pid ? `/project/${pid}/studio/project-controls` : undefined })
+  }
+
+  // Handover ready → closeout
+  if (params.handoverSummary.isHandoverReady) {
+    actions.push({ module: 'handover', action: 'Handover ready — issue packages and complete closeout', priority: 'high', actionTo: pid ? `/project/${pid}/studio/handover` : undefined })
+  }
+
+  return actions
+}
+
+export function computeProjectLifecycleSummary(params: {
+  readiness: ProjectReadiness
+  milestoneSummary: MilestoneLifecycleSummary
+  procurementSummary: ProcurementLifecycleSummary
+  handoverSummary: HandoverLifecycleSummary
+  health: ProjectHealthSummary
+  solvencyChecks?: SolvencyCheck[]
+  projectId?: string
+}): ProjectLifecycleSummary {
+  const solvency = params.solvencyChecks ?? []
+  const dependencies = computeBlockingDependencies({
+    readiness: params.readiness,
+    milestoneSummary: params.milestoneSummary,
+    procurementSummary: params.procurementSummary,
+    handoverSummary: params.handoverSummary,
+    solvencyChecks: solvency,
+    projectId: params.projectId,
+  })
+  const nextActions = computeNextActions({
+    readiness: params.readiness,
+    milestoneSummary: params.milestoneSummary,
+    procurementSummary: params.procurementSummary,
+    handoverSummary: params.handoverSummary,
+    dependencies,
+    projectId: params.projectId,
+  })
+  return {
+    health: params.health,
+    readiness: params.readiness,
+    milestones: params.milestoneSummary,
+    procurement: params.procurementSummary,
+    handover: params.handoverSummary,
+    dependencies,
+    nextActions,
+  }
+}
 
 export type ProjectReadiness = {
   overallState: 'not-started' | 'in-feasibility' | 'cleared' | 'blocked' | 'deferred' | 'rejected'

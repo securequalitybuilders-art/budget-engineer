@@ -2,12 +2,14 @@ import { useState, useMemo } from 'react';
 import { useHandoverStore } from '@/stores/handoverStore';
 import { useMilestoneStore } from '@/stores/milestoneStore';
 import { useChangeStore } from '@/stores/changeStore';
+import { useAssuranceStore } from '@/stores/assuranceStore';
 import { assessHandoverReadiness } from '@/lib/lifecycle/handoverReadiness';
-import { computeMilestoneLifecycleSummary } from '@/lib/lifecycle/lifecycleSummary';
+import { computeMilestoneLifecycleSummary, computeBlockingDependencies } from '@/lib/lifecycle/lifecycleSummary';
 import { EmptyState } from '@/components/lifecycle/EmptyState';
 import { BlockerList } from '@/components/lifecycle/BlockerList';
 import { NextStepHint } from '@/components/lifecycle/NextStepHint';
 import { CrossStudioLinks, buildStudioLink } from '@/components/lifecycle/CrossStudioLinks';
+import { StatusTransitionGuide } from '@/components/lifecycle/StatusTransitionGuide';
 import { ClipboardCheck, Package, Archive, ShieldCheck, CheckCircle, XCircle, AlertTriangle, Flag, FolderOpen } from 'lucide-react';
 
 interface HandoverPanelProps {
@@ -44,6 +46,7 @@ export function HandoverPanel({ projectId }: HandoverPanelProps) {
   const { completionStages, snagLists, handoverPackages, assetRegister, warrantyRecords } = useHandoverStore();
   const milestones = useMilestoneStore((s) => s.milestones);
   const ncrs = useChangeStore((s) => s.ncrs);
+  const assuranceStore = useAssuranceStore();
 
   const hasData = completionStages.length > 0 || snagLists.length > 0 || handoverPackages.length > 0 || assetRegister.length > 0 || warrantyRecords.length > 0;
 
@@ -56,6 +59,25 @@ export function HandoverPanel({ projectId }: HandoverPanelProps) {
   }), [completionStages, snagLists, handoverPackages, milestones, ncrs]);
 
   const milestoneSummary = useMemo(() => computeMilestoneLifecycleSummary(milestones), [milestones]);
+
+  const dependencies = useMemo(() => computeBlockingDependencies({
+    readiness: { overallState: 'cleared', goNoGoDecision: null, feasibilityPassed: true, allRequiredGatesPassed: true, blockedGateNames: [], openRisksCritical: 0, openRisksHigh: 0, solvencyConfirmed: true, blockers: [] },
+    milestoneSummary,
+    procurementSummary: { totalRequests: 0, openRequests: 0, awardedRequests: 0, totalPurchaseOrders: 0, deliveredPOs: 0, totalSpendCents: 0, linkedBOQLinesCount: 0 },
+    handoverSummary: {
+      completionStagesTotal: completionStages.length,
+      completionStagesAchieved: completionStages.filter(s => s.status === 'achieved').length,
+      openSnagItems: snagLists.flatMap(l => l.snagItems).filter(s => s.status === 'open' || s.status === 'in-progress').length,
+      resolvedSnagItems: snagLists.flatMap(l => l.snagItems).filter(s => s.status === 'resolved' || s.status === 'verified').length,
+      packagesIssued: handoverPackages.filter(p => p.status === 'issued' || p.status === 'acknowledged').length,
+      packagesTotal: handoverPackages.length,
+      assetsRegistered: assetRegister.length,
+      warrantiesActive: warrantyRecords.filter(w => w.status === 'active').length,
+      isHandoverReady: readiness.isReady,
+    },
+    solvencyChecks: assuranceStore.solvencyChecks,
+    projectId,
+  }), [milestones, milestoneSummary, completionStages, snagLists, handoverPackages, assetRegister, warrantyRecords, readiness.isReady, assuranceStore.solvencyChecks, projectId]);
 
   const crossLinks = useMemo(() => {
     const links = [
@@ -96,6 +118,13 @@ export function HandoverPanel({ projectId }: HandoverPanelProps) {
           severity={nextAction.severity}
         />
       )}
+
+      {/* Lifecycle transition guide */}
+      <StatusTransitionGuide
+        projectId={projectId}
+        currentModule="handover"
+        dependencies={dependencies}
+      />
 
       {/* Handover Readiness Banner */}
       <div className={`rounded-xl border p-3 ${

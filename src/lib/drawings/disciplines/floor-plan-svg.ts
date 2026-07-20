@@ -1,6 +1,8 @@
 import type { CadDocument } from '@/domain/ws6-types';
 import type { TitleBlockMeta } from '../title-block';
 import type { SectionConfig } from '../section-svg';
+import type { SheetCoordinator } from '../sheet-coordination';
+import { DEFAULT_COORDINATOR } from '../sheet-coordination';
 import {
   computeViewport, startSvg, endSvg, renderGrid, renderWalls,
   renderOpenings, renderBlocks, renderDrawingTitle,
@@ -16,6 +18,7 @@ export function buildFloorPlanSvg(
   titleMeta?: TitleBlockMeta,
   sectionMark?: SectionConfig,
   printMode = false,
+  coordinator: SheetCoordinator = DEFAULT_COORDINATOR,
 ): string {
   const floor = cad.floors.find((f) => f.id === floorId) ?? cad.floors[0];
   if (!floor) return '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200"><text x="200" y="100" fill="#94a3b8" text-anchor="middle">No floor data</text></svg>';
@@ -142,26 +145,26 @@ export function buildFloorPlanSvg(
     const dbCy1 = vp.py({ x: 0, y: midY + 1 });
     const dbCx2 = vp.px({ x: midX - 1, y: 0 });
     const dbCy2 = vp.py({ x: 0, y: midY - 1 });
-    parts.push(renderDetailBubble(1, 'A-201', dbCx1, dbCy1, printMode));
-    parts.push(renderDetailBubble(2, 'A-202', dbCx2, dbCy2, printMode));
+    parts.push(renderDetailBubble(1, coordinator.getSheetForView('detail-1'), dbCx1, dbCy1, printMode));
+    parts.push(renderDetailBubble(2, coordinator.getSheetForView('detail-2'), dbCx2, dbCy2, printMode));
   }
 
   // ── Elevation reference marks ──
   if (walls.length > 0) {
     const elevY = vp.py({ x: 0, y: vp.minY }) - 20;
     const elevTopY = vp.py({ x: 0, y: vp.maxY }) + 20;
-    parts.push(renderElevationRefMark('E1', 'A-301', vp.px({ x: vp.minX, y: 0 }), elevY, 'right', printMode));
-    parts.push(renderElevationRefMark('E2', 'A-302', vp.px({ x: vp.maxX, y: 0 }), elevTopY, 'left', printMode));
+    parts.push(renderElevationRefMark('E1', coordinator.getSheetForView('front'), vp.px({ x: vp.minX, y: 0 }), elevY, 'right', printMode));
+    parts.push(renderElevationRefMark('E2', coordinator.getSheetForView('rear'), vp.px({ x: vp.maxX, y: 0 }), elevTopY, 'left', printMode));
   }
 
   // ── Cross-sheet references ──
-  parts.push(renderCrossSheetRef('A-401', 'Section A–A', vp.w - 80, vp.h - 175, printMode));
+  parts.push(renderCrossSheetRef(coordinator.getSheetForView('section-aa-alt'), coordinator.getLabel('section-aa-alt'), vp.w - 80, vp.h - 175, printMode));
 
   // Schedule cross-reference tags
   if (openings.length > 0) {
     const scheduleTagX = vp.w - 90;
     const scheduleTagY = vp.h - 130;
-    parts.push(renderScheduleRef('D/W', 'Schedule A-601', scheduleTagX, scheduleTagY, printMode));
+    parts.push(renderScheduleRef('D/W', 'Schedule ' + coordinator.getSheetForView('schedule-door'), scheduleTagX, scheduleTagY, printMode));
     const tagNoteY = vp.printMode ? '#475569' : '#64748b';
     parts.push(`<text x="${(scheduleTagX + 10).toFixed(1)}" y="${(scheduleTagY + 32).toFixed(1)}" fill="${tagNoteY}" font-size="6" font-family="Arial,Helvetica,sans-serif">See door/window schedule for sizes</text>`);
   }

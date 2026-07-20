@@ -16,7 +16,7 @@ export type SheetStatus = 'pending' | 'generated' | 'error';
 export type DrawingTabId =
   | 'plan' | 'site-plan' | 'foundation' | 'roof'
   | 'ceiling' | 'electrical' | 'plumbing' | 'hvac'
-  | 'front' | 'side' | 'section' | 'presentation'
+  | 'front' | 'rear' | 'left' | 'right' | 'section' | 'presentation'
   | 'schedule-door' | 'schedule-window' | 'schedule-structural';
 
 export interface DrawingRegisterSheet {
@@ -54,7 +54,9 @@ export const DEFAULT_DRAWING_TYPES: DrawingTypeDef[] = [
   { id: 'roof-plan', title: 'Roof Plan', discipline: 'A', sheetSequence: 200, viewId: 'roof', scale: '1:100', perFloor: false, description: 'Roof layout and slopes' },
   { id: 'rcp', title: 'Reflected Ceiling Plan', discipline: 'A', sheetSequence: 301, viewId: 'ceiling', scale: '1:100', perFloor: true, description: 'Reflected ceiling plan' },
   { id: 'front-elevation', title: 'Front Elevation', discipline: 'A', sheetSequence: 401, viewId: 'front', scale: '1:100', perFloor: false, description: 'Front elevation view' },
-  { id: 'side-elevation', title: 'Side Elevation', discipline: 'A', sheetSequence: 402, viewId: 'side', scale: '1:100', perFloor: false, description: 'Side elevation view' },
+  { id: 'rear-elevation', title: 'Rear Elevation', discipline: 'A', sheetSequence: 402, viewId: 'rear', scale: '1:100', perFloor: false, description: 'Rear elevation view' },
+  { id: 'left-elevation', title: 'Left Side Elevation', discipline: 'A', sheetSequence: 403, viewId: 'left', scale: '1:100', perFloor: false, description: 'Left side elevation view' },
+  { id: 'right-elevation', title: 'Right Side Elevation', discipline: 'A', sheetSequence: 404, viewId: 'right', scale: '1:100', perFloor: false, description: 'Right side elevation view' },
   { id: 'section', title: 'Section A–A', discipline: 'A', sheetSequence: 501, viewId: 'section', scale: '1:100', perFloor: false, description: 'Building section' },
   
   { id: 'foundation', title: 'Foundation Plan', discipline: 'S', sheetSequence: 100, viewId: 'foundation', scale: '1:100', perFloor: false, description: 'Foundation layout' },

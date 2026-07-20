@@ -173,7 +173,8 @@ describe('ProcurementStudio', () => {
   it('renders the Procurement title with project ID', async () => {
     const { ProcurementStudio } = await import('@/pages/studio/ProcurementStudio')
     renderWithRoute(ProcurementStudio, '/project/:id/studio/procurement', '/project/p1/studio/procurement')
-    expect(screen.getByText('Procurement')).toBeTruthy()
+    expect(screen.getAllByText('Procurement').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByRole('heading', { name: 'Procurement' })).toBeTruthy()
   })
 })
 

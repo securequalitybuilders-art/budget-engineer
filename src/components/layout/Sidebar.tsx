@@ -3,7 +3,7 @@ import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
-import { Plus, Home, Settings, Folder, Sofa, Monitor, Globe, BookOpen, Bug, ShieldCheck, FileSpreadsheet, FolderOpen, ShoppingCart, BarChart3, Eye } from 'lucide-react';
+import { Plus, Home, Settings, Folder, Sofa, Monitor, Globe, BookOpen, Bug, ShieldCheck, FileSpreadsheet, FolderOpen, ShoppingCart, BarChart3, Eye, FileText } from 'lucide-react';
 import { DisciplineSwitcher } from '@/components/studio/DisciplineSwitcher';
 import { RoleSwitcher } from '@/components/auth/RoleSwitcher';
 import { LocaleSwitcher } from '@/components/common/LocaleSwitcher';
@@ -246,6 +246,13 @@ export function Sidebar() {
         >
           <Bug size={16} />
           Diagnostics <span className="text-[10px] text-[var(--text-tertiary)]">Ctrl+Shift+D</span>
+        </button>
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('toggle-product-package'))}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+        >
+          <FileText size={16} />
+          Product Package
         </button>
       </div>
     </aside>

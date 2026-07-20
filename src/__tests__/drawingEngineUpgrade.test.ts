@@ -228,7 +228,7 @@ describe('Discipline SVG Generators', () => {
   });
 
   test('buildElevationSvg renders side elevation', () => {
-    const svg = buildElevationSvg(makeCad(), 'side');
+    const svg = buildElevationSvg(makeCad(), 'right');
     expect(isValidSvg(svg)).toBe(true);
     expect(svg).toContain('Side Elevation');
   });
@@ -396,9 +396,9 @@ describe('Drawing Engine Orchestrator', () => {
   });
 
   test('orchestrator routes side elevation', () => {
-    const svg = buildDisciplinePlanSvg({ cad, viewId: 'side' });
+    const svg = buildDisciplinePlanSvg({ cad, viewId: 'left' });
     expect(isValidSvg(svg)).toBe(true);
-    expect(svg).toContain('Side Elevation');
+    expect(svg).toContain('Left Side Elevation');
   });
 
   test('orchestrator routes section', () => {
@@ -463,7 +463,8 @@ describe('Regression Safety', () => {
       () => buildPlumbingPlanSvg(cad),
       () => buildHvacPlanSvg(cad),
       () => buildElevationSvg(cad, 'front'),
-      () => buildElevationSvg(cad, 'side'),
+      () => buildElevationSvg(cad, 'right'),
+      () => buildElevationSvg(cad, 'rear'),
       () => buildSectionSvg(cad),
       () => buildPresentationSvg(cad),
       () => buildScheduleSvg(cad, 'door'),

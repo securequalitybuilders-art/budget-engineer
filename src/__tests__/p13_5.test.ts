@@ -205,7 +205,7 @@ describe('P13.5 — Workstream 2: Section & Elevation Depth', () => {
     const svg = buildSectionSvg(cad, FIXTURE_META, sectionConfig);
     expect(svg).toContain('SCREED');
     expect(svg).toContain('FIN');
-    expect(svg).toContain('H/C');
+    expect(svg).toContain('HC');
     expect(svg).toContain('RC SLAB');
   });
 
@@ -239,9 +239,9 @@ describe('P13.5 — Workstream 2: Section & Elevation Depth', () => {
     expect(svg).toContain('TRUSSES');
   });
 
-  test('section SVG contains construction notes block', () => {
+  test('section SVG contains keynote schedule with construction details', () => {
     const svg = buildSectionSvg(cad, FIXTURE_META, sectionConfig);
-    expect(svg).toContain('CONSTRUCTION NOTES');
+    expect(svg).toContain('KEYNOTES');
     expect(svg).toContain('EXTERNAL WALLS');
     expect(svg).toContain('FOUNDATION');
     expect(svg).toContain('REINFORCEMENT');

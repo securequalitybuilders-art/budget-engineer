@@ -43,7 +43,9 @@ export function buildDisciplinePlanSvg(options: BuildDisciplineOptions): string 
     case 'hvac':
       return buildHvacPlanSvg(cad, floorId, titleMeta, printMode);
     case 'front':
-    case 'side':
+    case 'rear':
+    case 'left':
+    case 'right':
       return buildElevationSvg(cad, viewId, titleMeta, printMode);
     case 'section':
       return buildSectionSvg(cad, titleMeta, sectionConfig, printMode);

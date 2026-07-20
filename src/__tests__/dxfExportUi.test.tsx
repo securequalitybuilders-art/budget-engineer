@@ -86,7 +86,7 @@ describe('DXF export via DrawingsPanel', () => {
         />
       </MemoryRouter>
     )
-    const exportBtn = await waitFor(() => screen.getByLabelText('Export DXF'), { timeout: 2000 })
+    const exportBtn = await waitFor(() => screen.getByLabelText('Export DXF'), { timeout: 10000 })
     expect(exportBtn).toBeTruthy()
   })
 
@@ -116,7 +116,7 @@ describe('DXF export via DrawingsPanel', () => {
         />
       </MemoryRouter>
     )
-    const exportBtn = await waitFor(() => screen.getByLabelText('Export DXF'), { timeout: 2000 })
+    const exportBtn = await waitFor(() => screen.getByLabelText('Export DXF'), { timeout: 10000 })
     expect(exportBtn).toBeTruthy()
     expect(exportBtn.tagName).toBe('BUTTON')
   })

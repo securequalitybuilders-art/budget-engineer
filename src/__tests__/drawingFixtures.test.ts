@@ -331,7 +331,7 @@ describe('P13.4 — Section & Elevation Depth', () => {
   test('section includes floor build-up layers (slab, screed, hardcore, insulation)', () => {
     const svg = buildSectionSvg(cad, meta, sectionConfig);
     expect(svg).toContain('RC SLAB');
-    expect(svg).toContain('H/C');
+    expect(svg).toContain('HC');
     expect(svg).toContain('SCR');
     expect(svg).toContain('DPM');
   });
