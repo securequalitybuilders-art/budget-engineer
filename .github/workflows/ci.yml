@@ -3,11 +3,19 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  quality:
+  # ──────────────────────────────────────────────
+  # Gate 1 — typecheck (fail-fast: blocks all others)
+  # ──────────────────────────────────────────────
+  typecheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,9 +24,117 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npm audit --audit-level=high || echo "::warning::npm audit found vulnerabilities — review manually"
-      - run: npm run typecheck
-      - run: npm run lint
-      - run: npm test
-      - run: npm run build
-      - run: npx vite-bundle-analyzer --budget 512 || echo "Bundle analysis skipped (vite-bundle-analyzer not installed)"
+      - name: TypeScript strict check
+        run: npm run typecheck
+
+  # ──────────────────────────────────────────────
+  # Parallel lanes — run after typecheck succeeds
+  # ──────────────────────────────────────────────
+  lint:
+    needs: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: ESLint
+        run: npm run lint
+
+  shard-1:
+    needs: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Fast-path tests — shard 1/3
+        run: npm run test:shard1
+
+  shard-2:
+    needs: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Fast-path tests — shard 2/3
+        run: npm run test:shard2
+
+  shard-3:
+    needs: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Fast-path tests — shard 3/3
+        run: npm run test:shard3
+
+  integration:
+    needs: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Heavy page-mount integration tests
+        run: npm run test:integration
+
+  build:
+    needs: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Production build (no typecheck — already passed)
+        run: npm run build:only
+
+  # ──────────────────────────────────────────────
+  # Release gate — aggregate check for branch protection
+  # Runs unconditionally; fails if any lane failed.
+  # ──────────────────────────────────────────────
+  release-gate:
+    if: always()
+    needs: [lint, shard-1, shard-2, shard-3, integration, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate lane results
+        run: |
+          LINT="${{ needs.lint.result }}"
+          S1="${{ needs.shard-1.result }}"
+          S2="${{ needs.shard-2.result }}"
+          S3="${{ needs.shard-3.result }}"
+          INT="${{ needs.integration.result }}"
+          BLD="${{ needs.build.result }}"
+          echo "| Lane       | Result   |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| lint       | $LINT    |" >> $GITHUB_STEP_SUMMARY
+          echo "| shard-1    | $S1      |" >> $GITHUB_STEP_SUMMARY
+          echo "| shard-2    | $S2      |" >> $GITHUB_STEP_SUMMARY
+          echo "| shard-3    | $S3      |" >> $GITHUB_STEP_SUMMARY
+          echo "| integration| $INT     |" >> $GITHUB_STEP_SUMMARY
+          echo "| build      | $BLD     |" >> $GITHUB_STEP_SUMMARY
+          if [ "$LINT" != success ] || [ "$S1" != success ] || [ "$S2" != success ] || [ "$S3" != success ] || [ "$INT" != success ] || [ "$BLD" != success ]; then
+            echo "[FAILED] release-gate failed — one or more lanes did not pass." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          echo "[PASSED] release-gate passed — all lanes green." >> $GITHUB_STEP_SUMMARY

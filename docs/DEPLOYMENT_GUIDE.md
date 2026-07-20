@@ -1,251 +1,250 @@
-# Deployment Guide — Budget Engineer
+# Deployment Guide
 
-> **Repository:** https://github.com/securequalitybuilders-art/budget-engineer  
-> **Version:** v4.0.0  
-> **Updated:** 2026-07-19
-
----
-
-## Overview
-
-Budget Engineer is a **local-first single-page application (SPA)**. It has no server-side backend, no cloud database, and no remote authentication service. All project data is stored in **IndexedDB** in the user's browser.
-
-This guide covers all supported deployment modes, from local development to production hosting.
+Budget Engineer is a local-first SPA PWA. There is no backend, no database server,
+and no cloud API dependency. Deployment means serving the static `dist/` build to
+users.
 
 ---
 
-## Deployment Profiles
+## Deployment Lifecycle
 
-| Profile | Description | Best For |
-|---------|-------------|----------|
-| **Local Workstation** | Run via `npm run dev` or production build preview | Single-user evaluation, development, testing |
-| **Office / Local-Network** | Static hosting on intranet (nginx, Apache, IIS) | Supervised team use within an office |
-| **Docker Hosted** | Containerized with nginx via Docker Compose | Demo environments, internal deployments |
-| **Static Hosting** | Vercel, Netlify, Cloudflare Pages, GitHub Pages | Live demos, pilot rollouts, professional use |
+```
+local dev ──> PR preview ──> main (staging) ──> release tag ──> production
+    │             │               │                   │              │
+    │             │               │                   │              │
+    ▼             ▼               ▼                   ▼              ▼
+  ┌─────┐   ┌──────────┐   ┌──────────┐        ┌──────────┐   ┌──────────┐
+  │npm  │   │preview   │   │validated │        │release   │   │live site │
+  │run  │   │deploy    │   │main build│        │artifact  │   │verified  │
+  │dev  │   │(auto)    │   │(auto)    │        │(tagged)  │   │          │
+  └─────┘   └──────────┘   └──────────┘        └──────────┘   └──────────┘
+```
 
-All profiles share the same local-first data model. See [OPERATIONAL_READINESS.md](OPERATIONAL_READINESS.md) for data storage, backup, and operational guidance.
+### Stage details
+
+| Stage | Trigger | Automation | Gate | Deploy |
+|-------|---------|------------|------|--------|
+| **Local dev** | `npm run dev` | None | None | Not deployed |
+| **PR preview** | Push to PR branch | CI pipeline + build validation | CI release-gate (required for merge) | Auto-deploy by Vercel/Netlify (if connected) |
+| **Main build** | Push to `main` | CI pipeline + build validation | CI release-gate | Auto-deploy by Vercel/Netlify (if connected) |
+| **Release tag** | `git tag v* && git push --tags` | CI pipeline + build validation + release checklist | CI release-gate | Manual or auto (depends on hosting config) |
+| **Production** | Manual promotion or auto-deploy | Smoke-test verification | Operator sign-off | Static host / Vercel / Netlify |
+
+### Key principle
+
+> **CI validates quality. The operator validates the deployment.**
+
+The CI pipeline confirms the code is correct. The deploy workflow confirms the
+build is structurally sound. The operator confirms the live site works correctly.
 
 ---
 
-## Prerequisites
+## Hosting Options
 
-- Node.js 20+
-- npm 9+
-- Git
+### Vercel (recommended)
 
----
+`vercel.json` at the project root configures SPA rewrites:
 
-## Local Development
-
-```bash
-git clone https://github.com/securequalitybuilders-art/budget-engineer
-cd budget-engineer
-npm install
-npm run dev
-```
-
-Open http://localhost:5173.
-
----
-
-## Build for Production
-
-```bash
-npm run build
-```
-
-Output is in `dist/`. Preview locally:
-
-```bash
-npm run preview
-```
-
----
-
-## Validation Before Deploy
-
-```bash
-npm run typecheck   # TypeScript strict check (0 errors expected)
-npm run lint        # ESLint (0 errors, within 25-warning budget)
-npm test            # Full Vitest suite
-npm run build       # Production bundle + PWA generation
-```
-
----
-
-## Deployment Profile: Local Workstation
-
-**Infrastructure:** Node.js 20+, modern browser (Chrome, Firefox, Edge, Safari)
-
-```bash
-npm run build
-npm run preview     # Serves dist/ on http://localhost:4173
-```
-
-Data is stored in the browser's IndexedDB. Use project export (ZIP) for backup.
-
----
-
-## Deployment Profile: Docker Hosted
-
-### Dockerfile (included)
-
-Multi-stage build: Node.js builder → nginx runtime. Outputs ~2 MB static image.
-
-```dockerfile
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --ignore-scripts
-COPY . .
-RUN npm run build
-
-FROM nginx:stable-alpine AS runtime
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-### Docker Compose (included)
-
-```yaml
-version: "3.9"
-services:
-  budget-engineer:
-    build: .
-    ports:
-      - "8080:80"
-    restart: unless-stopped
-```
-
-```bash
-docker compose up -d
-# Open http://localhost:8080
-```
-
-### nginx Configuration (included)
-
-```nginx
-server {
-    listen 80;
-    server_name _;
-    root /usr/share/nginx/html;
-    index index.html;
-
-    gzip on;
-    gzip_types text/css application/javascript application/json image/svg+xml;
-    gzip_min_length 256;
-
-    location / {
-        try_files $uri $uri/ /index.html;  # SPA fallback
-    }
-
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|ttf|woff2)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-}
-```
-
----
-
-## Deployment Profile: Static Hosting
-
-### Vercel
-
-1. Push to GitHub (default branch: `main`).
-2. Import repo at https://vercel.com/new.
-3. **Framework preset:** Vite
-4. **Build command:** `npm run build`
-5. **Output directory:** `dist`
-6. **Root directory:** `./`
-7. `vercel.json` (already in repo) handles SPA routing fallback.
-
-**vercel.json:**
 ```json
 {
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
 ```
+
+**Setup:**
+1. Push the repo to GitHub
+2. Import the repo at [vercel.com/import](https://vercel.com/import)
+3. Framework preset: **Vite**
+4. Build command: `npm run build`
+5. Output directory: `dist`
+
+**Auto-deploy behavior:**
+
+| Trigger | Vercel Action |
+|---------|---------------|
+| Push to PR branch | Preview deployment at `https://pr-{number}--{project}.vercel.app` |
+| Push to `main` | Production deployment at `https://{project}.vercel.app` |
+| Push tag `v*` | Deploys from the tag commit (treated as production) |
+
+Vercel runs its own build independently. The GitHub Actions CI pipeline runs in
+parallel. The CI release-gate must pass before merging — it is the quality gate.
+Vercel's deployment is the distribution mechanism.
 
 ### Netlify
 
-1. Push to GitHub.
-2. Import repo at https://app.netlify.com/start.
-3. **Build command:** `npm run build`
-4. **Publish directory:** `dist`
-5. `public/_redirects` (included) handles SPA fallback:
+`public/_redirects` at the project root configures SPA fallback:
+
 ```
 /*    /index.html   200
 ```
 
-### Any Static Host
+**Setup:**
+1. Push the repo to GitHub
+2. Import the repo at [app.netlify.com](https://app.netlify.com)
+3. Build command: `npm run build`
+4. Publish directory: `dist`
 
-Since this is an SPA with `createBrowserRouter`, **all routes must fall back to `index.html`**.
+Netlify auto-deploys on every push (PR preview + main production), same as Vercel.
 
-| Host | Fallback method |
-|------|----------------|
-| Vercel | `vercel.json` rewrites |
-| Netlify | `public/_redirects` |
-| GitHub Pages | 404.html → index.html trick or custom action |
-| Firebase | `firebase.json` rewrites |
-| Nginx | `try_files $uri /index.html;` |
-| Apache | `.htaccess` RewriteRule |
+### Static host (any)
 
----
+Upload the `dist/` directory to any static file server (S3, Nginx, Apache, GitHub Pages):
 
-## PWA / Offline
+```bash
+npm run build
+# upload dist/ to your host
+```
 
-- **vite-plugin-pwa** with `generateSW` strategy.
-- Service worker registered on first visit (auto-update).
-- Precaches static assets for offline operation.
-- All project data in IndexedDB — available offline after first sync.
-- Test offline mode: build → serve `dist/` → DevTools → Application → Service Workers → Offline.
+Ensure SPA fallback is configured on the server (all paths → `/index.html`).
 
 ---
 
-## No Paid APIs
+## Release Process
 
-This application uses **zero paid APIs, zero cloud LLMs, zero external AI services**.
+### Creating a release
 
-- All AI parsing and design generation is deterministic, local JavaScript.
-- No OpenAI, no Anthropic, no Gemini, no Vercel AI SDK, no cloud dependency.
-- WebLLM (`@mlc-ai/web-llm`) is **opt-in and not installed by default**.
+1. Ensure `package.json` version is updated and committed on `main`
+2. Create and push a signed tag matching the version:
+
+   ```bash
+   git tag -s vX.Y.Z -m "Release vX.Y.Z"
+   git push origin vX.Y.Z
+   ```
+
+3. The CI pipeline runs automatically on the tag push
+4. The Deploy workflow runs, validates the build, and prints the release checklist
+5. Publish release notes on GitHub Releases
+6. Verify the live production deployment
+
+### Release tag naming
+
+Tags must match the pattern `v*` (e.g., `v4.0.0`, `v4.1.0`, `v5.0.0`).
+Only tags trigger the `release-ready` job in the Deploy workflow.
+
+### What must pass before a release
+
+| Check | Enforced by | Fail action |
+|-------|-------------|-------------|
+| TypeScript strict check (0 errors) | CI typecheck job | Merge blocked |
+| ESLint (max 25 warnings) | CI lint job | Merge blocked |
+| All fast-path tests pass | CI shard-1/2/3 jobs | Merge blocked |
+| Integration tests pass | CI integration job | Merge blocked |
+| Production build succeeds | CI build job | Merge blocked |
+| CI release-gate passes | CI release-gate job | Merge blocked |
+| Build artifact structure valid | Deploy validate-build job | Amber signal |
+| Smoke-test checklist passed | Operator | Release not promoted |
 
 ---
 
-## Troubleshooting
+## Smoke-Test Checklist
 
-| Problem | Solution |
-|---------|----------|
-| Blank page after deploy | Ensure SPA fallback is configured for your host |
-| `@mlc-ai/web-llm` build error | Externalized in vite.config.ts; safe to ignore if not installed |
-| Three.js chunk too large | BIM viewer is lazy-loaded; first load may be slower |
-| PWA not updating | Service worker uses auto-update; close all tabs and reopen |
-| CORS errors | All assets are local; no external CDN dependencies |
-| PWA not registering | Deploy requires HTTPS for service worker registration |
+After every deployment (preview or production), verify:
+
+### Core functionality
+
+- [ ] App loads without console errors
+- [ ] Service worker registers (if PWA enabled)
+- [ ] Home page renders with navigation
+- [ ] Create new project works
+- [ ] Open existing project loads data
+- [ ] All major routes load without 404
+- [ ] SPA fallback works (refresh on a sub-route)
+
+### Feature areas
+
+- [ ] CAD editor tools work (wall, door, window placement)
+- [ ] 3D viewer loads and renders
+- [ ] BOQ generates correctly
+- [ ] Export (DXF, PDF, CSV, SVG) produces valid files
+- [ ] Drawing tools (dimensions, annotations) work
+- [ ] Board layout renders and exports
+- [ ] Sun-path / shadow analysis loads
+- [ ] Cost estimation displays regional rates
+- [ ] Site analysis loads and processes images
+
+### Offline / PWA
+
+- [ ] App loads when network is disconnected
+- [ ] Previously viewed projects are accessible offline
+- [ ] Service worker cache contains expected assets
+
+### Performance
+
+- [ ] Initial load completes within reasonable time
+- [ ] Route transitions are smooth
+- [ ] No memory leaks on prolonged use (optional spot-check)
 
 ---
 
-## Post-Deploy Smoke Test
+## Rollback
 
-After deploying, verify:
+### Vercel
 
-- [ ] Home page loads without errors
-- [ ] Project wizard creates a new project
-- [ ] Dashboard loads with 6-stage workspace
-- [ ] AI brief generates rooms
-- [ ] 2D CAD canvas renders and responds to edits
-- [ ] 3D BIM toggle works
-- [ ] BOQ panel shows data with correct currency
-- [ ] Export CSV/HTML/PDF downloads correctly
-- [ ] Project export ZIP downloads
-- [ ] PWA installs and works offline
-- [ ] Diagnostics panel opens (Ctrl+Shift+D)
-- [ ] All routes resolve (no 404 on /project/:id, /portfolio, /academy)
+1. Go to the Vercel dashboard → Deployments
+2. Find the last known-good deployment
+3. Click the "..." menu → "Promote to Production"
+
+Vercel keeps all deployment history. Rollback is instant.
+
+### Netlify
+
+1. Go to the Netlify dashboard → Deployes
+2. Find the last known-good deploy
+3. Click "Publish deploy"
+
+### Static host
+
+Re-upload the previous `dist/` build. If you keep release artifacts:
+
+```bash
+# After each release, archive the build:
+npm run build
+tar -czf dist-vX.Y.Z.tar.gz dist/
+```
+
+---
+
+## CI ↔ Deploy Relationship
+
+The CI workflow and Deploy workflow run independently but are complementary:
+
+```
+CI (quality validation)            Deploy (build + operator signal)
+─────────────────────────           ─────────────────────────────────
+  typecheck ──> gate 1               validate-build (artifact check)
+    │                                ├── preview (PR only)
+    ├── lint                         ├── production-ready (main only)
+    ├── shard-1/2/3                  └── release-ready (tag only)
+    ├── integration
+    ├── build
+    └── release-gate (aggregate)
+```
+
+| Workflow | Runs on | Purpose |
+|----------|---------|---------|
+| CI | PRs, main, tags | Quality validation — must pass before merge |
+| Deploy | PRs, main, tags | Build artifact validation + operator deployment guidance |
+
+Both must be green for a complete clean signal. The Deploy workflow does not
+check CI results — they are independent by design. Branch protection rules
+enforce the CI release-gate as a merge requirement.
+
+---
+
+## Deployment Status Summary
+
+| Signal | What it means |
+|--------|---------------|
+| CI green (release-gate passed) | Code quality, tests, and build all pass |
+| Deploy green (validate-build passed) | Build artifacts are structurally complete |
+| Preview deployed | PR has a live preview URL (Vercel/Netlify auto-deploy) |
+| Production deployed | `main` or tag is live at the production URL |
+| Smoke-test passed | Operator confirmed the live site works correctly |
+
+---
+
+## Related
+
+- [CI Workflow](../.github/workflows/ci.yml) — quality pipeline definition
+- [Deploy Workflow](../.github/workflows/deploy.yml) — deployment pipeline definition
+- [CHANGELOG](../CHANGELOG.md) — release history

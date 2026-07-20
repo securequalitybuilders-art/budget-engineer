@@ -70,8 +70,6 @@ beforeEach(() => {
 
 afterEach(() => cleanup())
 
-// stageRegistry tests moved to StageRail section
-// ── STAGE RAIL ──
 describe('StageRail', () => {
   const archStages = getStagesForDiscipline('ARCH')
 
@@ -86,30 +84,21 @@ describe('StageRail', () => {
     expect(screen.getByText('Properties')).toBeTruthy()
   })
 
-  it('has role="navigation" and aria-label', () => {
+  it('has role="navigation" and aria-label, shows section headings', () => {
     render(<StageRail activeStageId={'brief' as StageId} onStageChange={vi.fn()} />)
     const nav = screen.getByRole('navigation')
     expect(nav).toBeTruthy()
     expect(nav.getAttribute('aria-label')).toBe('Dashboard navigation')
-  })
-
-  it('shows Workflow and Project Tools section headings', () => {
-    render(<StageRail activeStageId={'brief' as StageId} onStageChange={vi.fn()} />)
     expect(screen.getByText('Workflow')).toBeTruthy()
     expect(screen.getByText('Project Tools')).toBeTruthy()
   })
 
-  it('applies aria-current="step" to the active stage button', () => {
-    render(<StageRail activeStageId={'design' as StageId} onStageChange={vi.fn()} />)
+  it('applies aria-current="step" to active stage and "page" to active tool', () => {
+    render(<StageRail activeStageId={'design' as StageId} onStageChange={vi.fn()} activeTool="history" onToolChange={vi.fn()} />)
     const buttons = screen.getAllByRole('button')
-    const activeButton = buttons.find((b) => b.getAttribute('aria-current') === 'step')
-    expect(activeButton).toBeTruthy()
-    expect(activeButton?.textContent).toContain('Design')
-  })
-
-  it('applies aria-current="page" to the active tool button', () => {
-    render(<StageRail activeStageId={'brief' as StageId} onStageChange={vi.fn()} activeTool="history" onToolChange={vi.fn()} />)
-    const buttons = screen.getAllByRole('button')
+    const activeBtn = buttons.find((b) => b.getAttribute('aria-current') === 'step')
+    expect(activeBtn).toBeTruthy()
+    expect(activeBtn?.textContent).toContain('Design')
     const activeToolBtn = buttons.find((b) => b.getAttribute('aria-current') === 'page')
     expect(activeToolBtn).toBeTruthy()
     expect(activeToolBtn?.textContent).toContain('History')
@@ -145,7 +134,6 @@ describe('StageRail', () => {
   })
 })
 
-// ── PROJECT TOOLS (rendered in main area) ──
 describe('Project Tools panels', () => {
   it('TransactionPanel renders with variant="full"', () => {
     const { container } = render(<TransactionPanel variant="full" />)
@@ -172,21 +160,20 @@ describe('Project Tools panels', () => {
   })
 })
 
-// ── BRIEF STAGE ──
 describe('BriefStage', () => {
+  const baseProps = {
+    onParsed: vi.fn(),
+    onDesignOptionsGenerated: vi.fn(),
+    onTier3Plans: vi.fn(),
+    onBuildingTypeChange: vi.fn(),
+    visibleDesignOptions: [] as import('@/domain/boq').DesignOption[],
+    selectedDesignId: null as string | null,
+    setSelectedDesignId: vi.fn(),
+    selectedDesign: null as import('@/domain/boq').DesignOption | null,
+  }
+
   it('renders without crashing', () => {
-    const { container } = render(
-      <BriefStage
-        onParsed={vi.fn()}
-        onDesignOptionsGenerated={vi.fn()}
-        onTier3Plans={vi.fn()}
-        onBuildingTypeChange={vi.fn()}
-        visibleDesignOptions={[]}
-        selectedDesignId={null}
-        setSelectedDesignId={vi.fn()}
-        selectedDesign={null}
-      />
-    )
+    const { container } = render(<BriefStage {...baseProps} />)
     expect(container.textContent).toBeTruthy()
   })
 
@@ -195,27 +182,14 @@ describe('BriefStage', () => {
       { id: 'opt-1', name: 'Option A', grossFloorArea: 120, floors: 1, buildingType: 'house', elements: [{ id: 'e1', type: 'wall', category: 'Wall', name: 'Wall', unit: 'm', quantity: 50 }] },
       { id: 'opt-2', name: 'Option B', grossFloorArea: 150, floors: 2, buildingType: 'house', elements: [] },
     ]
-    render(
-      <BriefStage
-        onParsed={vi.fn()}
-        onDesignOptionsGenerated={vi.fn()}
-        onTier3Plans={vi.fn()}
-        onBuildingTypeChange={vi.fn()}
-        visibleDesignOptions={mockOptions}
-        selectedDesignId={null}
-        setSelectedDesignId={vi.fn()}
-        selectedDesign={null}
-      />
-    )
+    render(<BriefStage {...baseProps} visibleDesignOptions={mockOptions} />)
     expect(screen.getByText('Designs generated')).toBeTruthy()
     expect(screen.getByText('Option A')).toBeTruthy()
     expect(screen.getByText('Option B')).toBeTruthy()
   })
 })
 
-// ── CONCEPT STAGE ──
 describe('ConceptStage', () => {
-
   it('shows empty state when no design options', () => {
     render(
       <ConceptStage
@@ -250,7 +224,6 @@ describe('ConceptStage', () => {
   })
 })
 
-// ── DESIGN STAGE ──
 describe('DesignStage', () => {
   const baseProps = {
     projectId: null as string | null,
@@ -308,7 +281,6 @@ describe('DesignStage', () => {
   })
 })
 
-// ── ENGINEERING STAGE ──
 describe('EngineeringStage', () => {
   it('shows empty state when no design selected', () => {
     render(
@@ -342,7 +314,6 @@ describe('EngineeringStage', () => {
   })
 })
 
-// ── DOCS & BIM STAGE ──
 describe('DocsBimStage', () => {
   it('shows empty state when no design/plan', () => {
     render(<DocsBimStage activePlan={null} selectedDesign={null} />)
@@ -361,7 +332,6 @@ describe('DocsBimStage', () => {
   })
 })
 
-// ── COST & DELIVER STAGE ──
 describe('CostDeliverStage', () => {
   it('shows empty state when no design selected', () => {
     render(

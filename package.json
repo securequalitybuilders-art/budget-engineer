@@ -6,11 +6,19 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:only": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 25",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:fast": "vitest run",
+    "test:shard1": "vitest run --shard=1/3",
+    "test:shard2": "vitest run --shard=2/3",
+    "test:shard3": "vitest run --shard=3/3",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:ci": "npm run typecheck && npm run test:shard1 && npm run test:shard2 && npm run test:shard3 && npm run test:integration",
+    "test:release": "npm run typecheck && npm run build:only && npm test && npm run test:integration",
     "lighthouse": "npm run build && lhci autorun"
   },
   "dependencies": {

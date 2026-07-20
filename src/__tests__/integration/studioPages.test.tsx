@@ -5,7 +5,6 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 afterEach(cleanup)
 
-// ── Helpers ──
 function renderWithRoute(Component: React.ComponentType, path: string, initialEntry: string) {
   return render(
     <MemoryRouter initialEntries={[initialEntry]}>
@@ -16,7 +15,6 @@ function renderWithRoute(Component: React.ComponentType, path: string, initialEn
   )
 }
 
-// Mock stores used by InteriorStudio
 vi.mock('@/stores/interiorStore', () => {
   const useInteriorStore = vi.fn()
   useInteriorStore.mockImplementation((selector?: (state: Record<string, unknown>) => unknown) => {
@@ -39,23 +37,13 @@ vi.mock('@/stores/projectStore', () => ({
   }),
 }))
 
-// ── InteriorStudio ──
-
 describe('InteriorStudio', () => {
   it('shows "No project selected" when URL param is missing', async () => {
     const { InteriorStudio } = await import('@/pages/studio/InteriorStudio')
     renderWithRoute(InteriorStudio, '/studio/:id?', '/studio/')
     expect(screen.getByText('No project selected.')).toBeTruthy()
   })
-
-  it('shows "No project selected" when at root path without param', async () => {
-    const { InteriorStudio } = await import('@/pages/studio/InteriorStudio')
-    renderWithRoute(InteriorStudio, '/studio/:id?', '/studio/')
-    expect(screen.getByText('No project selected.')).toBeTruthy()
-  })
 })
-
-// ── PresentationStudio ──
 
 describe('PresentationStudio', () => {
   it('shows "No project selected" when no project ID', async () => {
@@ -74,8 +62,6 @@ describe('PresentationStudio', () => {
     expect(screen.getByText('Presentation Boards')).toBeTruthy()
   })
 })
-
-// ── SiteAnalysisStudio ──
 
 describe('SiteAnalysisStudio', () => {
   it('shows "No project selected" when no project ID', async () => {

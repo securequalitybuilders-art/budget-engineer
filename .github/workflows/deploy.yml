@@ -1,0 +1,125 @@
+name: Deploy
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+    tags: ['v*']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Production build
+        run: npm run build:only
+      - name: Verify build artifacts
+        run: |
+          echo "### Build Artifact Verification" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Checking dist/ structure..." | tee -a $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          ERR=0
+          for f in index.html assets/index-*.js; do
+            if [ -f "dist/$f" ]; then
+              echo "  found: dist/$f" | tee -a $GITHUB_STEP_SUMMARY
+            else
+              echo "  MISSING: dist/$f" | tee -a $GITHUB_STEP_SUMMARY
+              ERR=1
+            fi
+          done
+          if ls dist/sw.js 2>/dev/null; then
+            echo "  found: dist/sw.js (PWA enabled)" | tee -a $GITHUB_STEP_SUMMARY
+          else
+            echo "  note: dist/sw.js not found (PWA may be excluded in this build)" | tee -a $GITHUB_STEP_SUMMARY
+          fi
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          SIZE=$(du -sh dist/ | cut -f1)
+          COUNT=$(find dist/ -type f | wc -l)
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total size:** $SIZE  " >> $GITHUB_STEP_SUMMARY
+          echo "**File count:** $COUNT  " >> $GITHUB_STEP_SUMMARY
+          [ "$ERR" = 0 ] || { echo "Build validation failed — missing critical files."; exit 1; }
+      - name: Check SPA fallback configs
+        run: |
+          if [ -f vercel.json ]; then
+            echo "vercel.json present — SPA rewrite configured"
+          fi
+          if [ -f public/_redirects ]; then
+            echo "public/_redirects present — Netlify/static host SPA fallback configured"
+          fi
+
+  preview:
+    needs: validate-build
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Preview deployment ready
+        run: |
+          echo "## Preview Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Build validated for PR **#${{ github.event.number }}**." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Auto-deploy (if connected to a hosting provider)" | tee -a $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Provider | Preview URL |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Vercel** | https://pr-${{ github.event.number }}--budget-engineer.vercel.app |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Netlify** | https://deploy-preview-${{ github.event.number }}--budget-engineer.netlify.app |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Manual deploy" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo 'Upload the `dist/` directory (from the validate-build step) to any static host.' >> $GITHUB_STEP_SUMMARY
+
+  production-ready:
+    needs: validate-build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Production deployment ready
+        run: |
+          echo "## Production Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Build validated for \`main\` commit **${{ github.sha }}**." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Before confirming the deploy" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. Verify [CI release-gate](${{ github.server_url }}/${{ github.repository }}/actions/workflows/ci.yml) passed for this commit" >> $GITHUB_STEP_SUMMARY
+          echo "2. If auto-deploy (Vercel/Netlify): deployment happens automatically on \`main\` push" >> $GITHUB_STEP_SUMMARY
+          echo "3. If manual: upload \`dist/\` to your static host" >> $GITHUB_STEP_SUMMARY
+          echo "4. Run the smoke-test checklist against the live URL" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "_A green CI pipeline + validated build = the commit is deployable._" >> $GITHUB_STEP_SUMMARY
+          echo "_Actual deployment to production is a separate action that must be verified._" >> $GITHUB_STEP_SUMMARY
+
+  release-ready:
+    needs: validate-build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release deployment ready
+        run: |
+          echo "## Release Deployment — \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Release tag **${{ github.ref_name }}** build validated." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Release checklist" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] CI release-gate passed for this tag" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Smoke-test checklist completed against the build" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Release notes published in GitHub Releases" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] CHANGELOG.md updated with this version" >> $GITHUB_STEP_SUMMARY
+           echo "- [ ] Version tag \`${{ github.ref_name }}\` matches package.json version" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Production deployment triggered (auto or manual)" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Live site verified after deployment" >> $GITHUB_STEP_SUMMARY

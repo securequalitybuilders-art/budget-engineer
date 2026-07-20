@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, cleanup, screen, fireEvent, waitFor } from '@testing-library/react'
+import React from 'react'
+import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest'
+import { render, cleanup, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 afterEach(cleanup)
@@ -16,6 +17,17 @@ vi.mock('@/components/bim/LazyBimModel3D', () => ({
 vi.mock('@/components/drawings/DrawingsPanel', () => ({
   DrawingsPanel: () => <div data-testid="drawings-panel">DrawingsPanel</div>,
 }))
+
+vi.mock('@/stores/furnitureStore', () => ({
+  useFurnitureStore: vi.fn(() => ({ activeDefId: null, setActiveDef: vi.fn() })),
+}))
+
+let DesignStage: React.ComponentType<any>
+
+beforeAll(async () => {
+  const mod = await import('@/components/dashboard/stages/DesignStage')
+  DesignStage = mod.DesignStage
+})
 
 const defaultProps = {
   projectId: 'p1',
@@ -42,56 +54,50 @@ const defaultProps = {
 
 describe('DesignStage import workflow buttons', () => {
   it('shows "Guided Import (AI detection)" button in empty state', async () => {
-    const { DesignStage } = await import('@/components/dashboard/stages/DesignStage')
     render(
       <MemoryRouter>
         <DesignStage {...defaultProps} onOpenImportWorkflow={vi.fn()} />
       </MemoryRouter>
     )
-    await waitFor(() => expect(screen.getByText('Guided Import (AI detection)')).toBeTruthy(), { timeout: 5000 })
+    expect(await screen.findByText('Guided Import (AI detection)')).toBeTruthy()
   })
 
   it('shows "Quick Import" button in empty state', async () => {
-    const { DesignStage } = await import('@/components/dashboard/stages/DesignStage')
     render(
       <MemoryRouter>
         <DesignStage {...defaultProps} />
       </MemoryRouter>
     )
-    await waitFor(() => expect(screen.getByText('Quick Import (DXF / image / PDF)')).toBeTruthy(), { timeout: 5000 })
+    expect(await screen.findByText('Quick Import (DXF / image / PDF)')).toBeTruthy()
   })
 
   it('shows "Generate Design Options" button in empty state', async () => {
-    const { DesignStage } = await import('@/components/dashboard/stages/DesignStage')
     render(
       <MemoryRouter>
         <DesignStage {...defaultProps} />
       </MemoryRouter>
     )
-    await waitFor(() => expect(screen.getByText('Generate Design Options')).toBeTruthy(), { timeout: 5000 })
+    expect(await screen.findByText('Generate Design Options')).toBeTruthy()
   })
 
   it('calls onOpenImportWorkflow when Guided Import button is clicked', async () => {
     const onOpenImportWorkflow = vi.fn()
-    const { DesignStage } = await import('@/components/dashboard/stages/DesignStage')
     render(
       <MemoryRouter>
         <DesignStage {...defaultProps} onOpenImportWorkflow={onOpenImportWorkflow} />
       </MemoryRouter>
     )
-    const button = await waitFor(() => screen.getByText('Guided Import (AI detection)'), { timeout: 5000 })
+    const button = await screen.findByText('Guided Import (AI detection)')
     fireEvent.click(button)
     expect(onOpenImportWorkflow).toHaveBeenCalledOnce()
   })
 
   it('does NOT show Guided Import button when onOpenImportWorkflow is undefined', async () => {
-    const { DesignStage } = await import('@/components/dashboard/stages/DesignStage')
     render(
       <MemoryRouter>
         <DesignStage {...defaultProps} />
       </MemoryRouter>
     )
-    const buttons = screen.queryAllByText('Guided Import (AI detection)')
-    expect(buttons.length).toBe(0)
+    expect(screen.queryByText('Guided Import (AI detection)')).toBeFalsy()
   })
 })

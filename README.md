@@ -331,12 +331,81 @@ See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for full details.
 |---|---|
 | `npm run dev` | Start the dev server (Vite HMR) |
 | `npm run build` | TypeScript check + production build + PWA generation |
+| `npm run build:only` | Production build without typecheck (for CI) |
 | `npm run preview` | Preview production build locally |
 | `npm run typecheck` | TypeScript strict check (`tsc --noEmit`) |
 | `npm run lint` | ESLint with max 25 warnings |
-| `npm test` | Run all tests (Vitest) |
+| `npm test` | Run fast-path unit/component tests (single thread) |
 | `npm run test:watch` | Tests in watch mode |
+| `npm run test:fast` | Alias for `npm test` (fast-path only) |
+| `npm run test:shard1` | Fast-path shard 1/3 (for CI parallel execution) |
+| `npm run test:shard2` | Fast-path shard 2/3 |
+| `npm run test:shard3` | Fast-path shard 3/3 |
+| `npm run test:integration` | Run heavy three.js / page-mount integration tests |
+| `npm run test:ci` | CI simulation: typecheck + 3 shards + integration (sequential) |
+| `npm run test:release` | Full release gate: typecheck → build → fast tests → integration |
 | `npm run lighthouse` | Build + Lighthouse CI audit |
+
+## Validation Lanes
+
+Tests are organized into explicit lanes for clear CI and local verification:
+
+| Lane | Coverage | Wall Time | When to Run |
+|------|----------|-----------|-------------|
+| **typecheck** | `tsc --noEmit` — 0 errors | ~20s | Always before commit |
+| **fast shard 1** | ~45 test files (unit + component) | ~2-3 min | CI parallel runner 1 |
+| **fast shard 2** | ~45 test files (unit + component) | ~2-3 min | CI parallel runner 2 |
+| **fast shard 3** | ~46 test files (unit + component) | ~2-3 min | CI parallel runner 3 |
+| **integration** | 2 files, 7 heavy page-mount tests | ~15s | CI parallel runner 4; before merging |
+| **build** | `vite build` | ~2-3 min | CI after typecheck passes |
+
+**Sharding**: Vitest `--shard` splits test files deterministically by path. Each shard pays its own module-loading cost. In CI, all 3 fast shards + integration run in parallel, reducing wall time from ~8 min to ~3 min. Locally, `npm test` runs all fast-path files in a single thread (simplest).
+
+## CI Pipeline
+
+The GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push to `main` and every pull request targeting `main`. It also runs on version tags (`v*`) for release verification.
+
+### Job structure
+
+```
+push / pull_request
+        │
+   ┌────┴────┐
+   │ typecheck│  ← Gate 1 (fail-fast)
+   └────┬────┘
+        │
+   ┌────┼────┬────┬────┬────┐
+   │    │    │    │    │    │
+   ▼    ▼    ▼    ▼    ▼    ▼
+ lint shard-1 shard-2 shard-3 integration build
+   │    │     │      │      │         │
+   └────┴─────┴──────┴──────┴─────────┘
+                  │
+                  ▼
+           release-gate  ← Aggregate check for branch protection
+```
+
+### Commands → Jobs
+
+| Job | Script | Purpose |
+|-----|--------|---------|
+| `typecheck` | `npm run typecheck` | TypeScript strict check — 0 errors required |
+| `lint` | `npm run lint` | ESLint — max 25 warnings |
+| `shard-1` | `npm run test:shard1` | Fast-path tests shard 1/3 |
+| `shard-2` | `npm run test:shard2` | Fast-path tests shard 2/3 |
+| `shard-3` | `npm run test:shard3` | Fast-path tests shard 3/3 |
+| `integration` | `npm run test:integration` | Heavy three.js / page-mount tests |
+| `build` | `npm run build:only` | Production build (typecheck already passed) |
+| `release-gate` | (aggregate check) | Passes only if all above lanes pass |
+
+### Release gate definition
+
+A **release** is any tag matching `v*` pushed to the repository. The workflow runs the same set of lanes for both PRs and tags. The `release-gate` job aggregates results from all parallel lanes and:
+
+- **Passes** — every lane succeeded → the commit is fit for release
+- **Fails** — one or more lanes failed → the release must not proceed
+
+There is no separate "light" release path. Every release must pass typecheck, lint, all test shards, integration tests, and a production build.
 
 ---
 
@@ -344,7 +413,7 @@ See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for full details.
 
 | Metric | Value |
 |---|---|---|
-| Tests | 1,503 across 87 test files |
+| Tests | 1,500+ across 136 fast-path + 2 integration test files |
 | TypeScript | 0 errors (strict mode) |
 | Lighthouse A11y | 100 |
 | Lighthouse Best Practices | 100 |
@@ -387,28 +456,66 @@ See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for full details.
 
 ## Deploy
 
-See [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) for Vercel, Netlify, and static hosting instructions.
+See [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) for the full deployment lifecycle:
+hosting setup, preview vs production, release process, smoke-test checklist, and
+rollback guidance.
 
-Quick deploy to Vercel:
+Quick reference:
 
-```bash
-npm run build    # generates dist/
-# Upload dist/ to any static host
-```
+| Deploy target | Command / Trigger | Result |
+|---------------|-------------------|--------|
+| Local dev | `npm run dev` | Vite HMR dev server |
+| PR preview | Push to PR branch (Vercel/Netlify auto-deploy) | Preview URL |
+| Production | Push to `main` (Vercel/Netlify auto-deploy) | Live URL |
+| Production | `npm run build && upload dist/` | Any static host |
 
-SPA fallback is configured via `vercel.json` and `_redirects` for Netlify.
+SPA fallback is configured via `vercel.json` and `public/_redirects` for Netlify.
 
 ---
 
 ## CI Pipeline
 
-Each push to `main` runs via GitHub Actions:
+Two GitHub Actions workflows run in parallel:
 
-1. `npm ci`
-2. `npm run typecheck`
-3. `npm run lint`
-4. `npm test` (full automated suite)
-5. `npm run build` (PWA service worker generated)
+**CI** (`.github/workflows/ci.yml`) — quality validation on every PR, main push,
+and tag push:
+
+```
+push / pull_request / tag v*
+        │
+   ┌────┴────┐
+   │ typecheck│  ← Gate 1 (fail-fast)
+   └────┬────┘
+        │
+   ┌────┼────┬────┬────┬────┐
+   │    │    │    │    │    │
+   ▼    ▼    ▼    ▼    ▼    ▼
+ lint shard-1 shard-2 shard-3 integration build
+   │    │     │      │      │         │
+   └────┴─────┴──────┴──────┴─────────┘
+                  │
+                  ▼
+           release-gate  ← Aggregate check for branch protection
+```
+
+| Job | What it runs | Purpose |
+|-----|--------------|---------|
+| `typecheck` | `npm run typecheck` | TypeScript strict check — 0 errors required |
+| `lint` | `npm run lint` | ESLint — max 25 warnings |
+| `shard-1/2/3` | `npm run test:shard{1,2,3}` | Fast-path tests split into 3 parallel shards |
+| `integration` | `npm run test:integration` | Heavy three.js / page-mount tests |
+| `build` | `npm run build:only` | Production build (typecheck already passed in gate) |
+| `release-gate` | Aggregate check | Passes only when all 6 lanes pass — single check for branch protection |
+
+**Deploy** (`.github/workflows/deploy.yml`) — build artifact validation and
+deployment signal:
+
+| Job | Runs on | Purpose |
+|-----|---------|---------|
+| `validate-build` | PRs, main, tags | Builds the app and verifies dist/ artifact structure |
+| `preview` | PRs only | Reports preview deployment readiness |
+| `production-ready` | main only | Confirms build is valid for production deploy |
+| `release-ready` | tags only | Provides release checklist for operator sign-off |
 
 ---
 
@@ -423,7 +530,7 @@ Each push to `main` runs via GitHub Actions:
 | Deployment | Local-first, Docker, Vercel, Netlify, static hosting |
 | Architecture | Local-first, zero paid APIs, no backend, no cloud LLM |
 
-See [CHANGELOG.md](CHANGELOG.md) for full release history. Release notes for each version are in `docs/RELEASE_NOTES_v*.md`.
+See [CHANGELOG.md](CHANGELOG.md) for full release history. Releases are published on [GitHub Releases](https://github.com/securequalitybuilders-art/budget-engineer/releases).
 
 ---
 

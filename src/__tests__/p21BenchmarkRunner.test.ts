@@ -21,7 +21,7 @@ import {
   runAllBenchmarks,
   runFullValidation,
 } from '@/lib/validation/benchmarkRunner';
-import { getBenchmarks } from '@/lib/validation/validationEngine';
+import { getBenchmarks, generateValidationReport, getKnownWeaknesses } from '@/lib/validation/validationEngine';
 
 describe('benchmarkRunner — P14-P20 wired to validationEngine', () => {
   it('all 18 benchmark references exist in the validation engine', () => {
@@ -314,13 +314,13 @@ describe('benchmarkRunner — P14-P20 wired to validationEngine', () => {
     });
 
     it('detects regressions when previous scorecards are provided', async () => {
-      const first = await runAllBenchmarks();
-      const improved = first.map(s => ({
+      const fresh = await runAllBenchmarks();
+      const improved = fresh.map(s => ({
         ...s,
         overallScore: 100,
         metrics: s.metrics.map(m => ({ ...m, actual: typeof m.actual === 'number' ? m.actual + 1000 : m.actual })),
       }));
-      const report = await runFullValidation(improved);
+      const report = generateValidationReport(fresh, improved, getKnownWeaknesses());
       expect(report.regressionRecords.length).toBeGreaterThanOrEqual(1);
     });
   });

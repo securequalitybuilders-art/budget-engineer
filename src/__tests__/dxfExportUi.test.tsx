@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
-import { render, cleanup, screen, waitFor } from '@testing-library/react'
+import React from 'react'
+import { describe, it, expect, vi, beforeAll, afterEach, beforeEach } from 'vitest'
+import { render, cleanup, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import type { DesignOption } from '@/domain/boq'
 import type { PlanModel } from '@/domain/plan'
@@ -71,12 +72,21 @@ vi.mock('@/components/drawings/DrawingRegisterPanel', () => ({
   DrawingRegisterPanel: () => <div data-testid="drawing-register">DrawingRegisterPanel</div>,
 }))
 
+let DrawingsPanel: React.ComponentType<any>
+let DesignStage: React.ComponentType<any>
+
+beforeAll(async () => {
+  const dp = await import('@/components/drawings/DrawingsPanel')
+  DrawingsPanel = dp.DrawingsPanel
+  const ds = await import('@/components/dashboard/stages/DesignStage')
+  DesignStage = ds.DesignStage
+})
+
 describe('DXF export via DrawingsPanel', () => {
   const minimalPlan = { id: 'plan1', width: 10, height: 10 } as unknown as PlanModel
   const minimalDesign = { id: 'd1', name: 'Test' } as unknown as DesignOption
 
   it('renders DXF button in DrawingsPanel when activePlan exists', async () => {
-    const { DrawingsPanel } = await import('@/components/drawings/DrawingsPanel')
     render(
       <MemoryRouter initialEntries={['/project/p1']}>
         <DrawingsPanel
@@ -86,12 +96,10 @@ describe('DXF export via DrawingsPanel', () => {
         />
       </MemoryRouter>
     )
-    const exportBtn = await waitFor(() => screen.getByLabelText('Export DXF'), { timeout: 10000 })
-    expect(exportBtn).toBeTruthy()
+    expect(await screen.findByLabelText('Export DXF')).toBeTruthy()
   })
 
   it('does NOT render DXF button when no activePlan', async () => {
-    const { DrawingsPanel } = await import('@/components/drawings/DrawingsPanel')
     render(
       <MemoryRouter initialEntries={['/project/p1']}>
         <DrawingsPanel
@@ -106,7 +114,6 @@ describe('DXF export via DrawingsPanel', () => {
   })
 
   it('shows DXF button with correct aria-label and Download icon', async () => {
-    const { DrawingsPanel } = await import('@/components/drawings/DrawingsPanel')
     render(
       <MemoryRouter initialEntries={['/project/p1']}>
         <DrawingsPanel
@@ -116,7 +123,7 @@ describe('DXF export via DrawingsPanel', () => {
         />
       </MemoryRouter>
     )
-    const exportBtn = await waitFor(() => screen.getByLabelText('Export DXF'), { timeout: 10000 })
+    const exportBtn = await screen.findByLabelText('Export DXF')
     expect(exportBtn).toBeTruthy()
     expect(exportBtn.tagName).toBe('BUTTON')
   })
@@ -124,7 +131,6 @@ describe('DXF export via DrawingsPanel', () => {
 
 describe('DXF export via DesignStage', () => {
   it('renders DXF button in DesignStage toolbar when activePlan exists', async () => {
-    const { DesignStage } = await import('@/components/dashboard/stages/DesignStage')
     const design = { id: 'd1', name: 'Test' } as unknown as DesignOption
     const plan = { id: 'plan1', width: 10, height: 10 } as unknown as PlanModel
     render(
@@ -154,7 +160,6 @@ describe('DXF export via DesignStage', () => {
         />
       </MemoryRouter>
     )
-    const dxfBtn = await waitFor(() => screen.getByLabelText('Export DXF'), { timeout: 5000 })
-    expect(dxfBtn).toBeTruthy()
+    expect(await screen.findByLabelText('Export DXF')).toBeTruthy()
   })
 })

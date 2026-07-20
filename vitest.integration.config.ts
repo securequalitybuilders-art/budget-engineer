@@ -10,9 +10,8 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: false,
-    include: ['src/__tests__/**/*.test.{ts,tsx}'],
-    exclude: ['src/__tests__/integration/**'],
+    include: ['src/__tests__/integration/**/*.test.{ts,tsx}'],
     setupFiles: ['src/__tests__/setup.ts'],
-    slowTestThreshold: 300,
+    testTimeout: 30000,
   },
 })

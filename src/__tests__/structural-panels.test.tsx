@@ -37,60 +37,36 @@ describe('StructuralGeneratorPanel', () => {
     expect(container.textContent).toMatch(/no design selected/i)
   })
 
-  it('shows column/beam/footing counts when graph is provided', () => {
+  it('shows column/beam/footing counts and design summary', () => {
     render(<StructuralGeneratorPanel graph={sampleGraph()} />)
     expect(screen.getByText('Columns')).toBeTruthy()
     expect(screen.getByText('Beams')).toBeTruthy()
     expect(screen.getByText('Footings')).toBeTruthy()
-  })
-
-  it('shows design summary with wall/space/floor counts', () => {
-    render(<StructuralGeneratorPanel graph={sampleGraph()} />)
     expect(screen.getByText(/Walls:/)).toBeTruthy()
     expect(screen.getByText(/Spaces:/)).toBeTruthy()
     expect(screen.getByText(/Floors:/)).toBeTruthy()
-  })
-
-  it('shows column positions', () => {
-    render(<StructuralGeneratorPanel graph={sampleGraph()} />)
     expect(screen.getByText(/C1:/)).toBeTruthy()
     expect(screen.getByText('Column Positions')).toBeTruthy()
-  })
-
-  it('shows footing placements', () => {
-    render(<StructuralGeneratorPanel graph={sampleGraph()} />)
     expect(screen.getByText(/F1:/)).toBeTruthy()
     expect(screen.getByText('Footing Placements')).toBeTruthy()
   })
 })
 
 describe('MaterialSwitchPanel', () => {
-  it('renders material selection buttons', () => {
+  it('renders material selections, rates, cost estimates and IFC', () => {
     render(<MaterialSwitchPanel slabAreaM2={100} />)
     expect(screen.getByText('Concrete')).toBeTruthy()
     expect(screen.getByText('Steel')).toBeTruthy()
     expect(screen.getByText('Timber')).toBeTruthy()
-  })
-
-  it('shows rate table', () => {
-    render(<MaterialSwitchPanel slabAreaM2={100} />)
     expect(screen.getByText(/Rate Table/i)).toBeTruthy()
     expect(screen.getAllByText(/Wall/).length).toBeGreaterThanOrEqual(1)
-  })
-
-  it('shows cost estimate', () => {
-    render(<MaterialSwitchPanel slabAreaM2={100} />)
     expect(screen.getByText(/Rebar required/)).toBeTruthy()
     expect(screen.getByText(/Estimated structural total/)).toBeTruthy()
-  })
-
-  it('shows IFC classification', () => {
-    render(<MaterialSwitchPanel slabAreaM2={100} />)
     expect(screen.getByText(/IFC Classification/i)).toBeTruthy()
     expect(screen.getByText('IfcColumn')).toBeTruthy()
   })
 
-  it('shows slab area input', () => {
+  it('shows slab area input with correct value', () => {
     render(<MaterialSwitchPanel slabAreaM2={50} />)
     const inputs = screen.getAllByRole('spinbutton')
     expect(inputs.length).toBeGreaterThanOrEqual(1)
@@ -104,19 +80,11 @@ describe('ClashHealerPanel', () => {
     expect(container.textContent).toMatch(/no design selected/i)
   })
 
-  it('shows wall and opening counts', () => {
-    const { container } = render(<ClashHealerPanel graph={sampleGraph()} />)
-    expect(container.textContent).toMatch(/Walls/)
-    expect(container.textContent).toMatch(/Openings/)
-  })
-
-  it('shows run clash detection button', () => {
+  it('shows wall and opening counts, clash detection button, and clash warning', () => {
     render(<ClashHealerPanel graph={sampleGraph()} />)
+    expect(screen.getByText(/Walls/)).toBeTruthy()
+    expect(screen.getByText(/Openings/)).toBeTruthy()
     expect(screen.getByRole('button', { name: /run clash detection/i })).toBeTruthy()
-  })
-
-  it('shows potential clash warning', () => {
-    render(<ClashHealerPanel graph={sampleGraph()} />)
     expect(screen.getByText(/Potential clashes detected/i)).toBeTruthy()
   })
 })
