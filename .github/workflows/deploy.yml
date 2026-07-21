@@ -29,23 +29,45 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Checking dist/ structure..." | tee -a $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
+
+          echo "dist/ tree:" | tee -a $GITHUB_STEP_SUMMARY
+          ls -la dist || echo "dist/ not present" | tee -a $GITHUB_STEP_SUMMARY
+          echo "" | tee -a $GITHUB_STEP_SUMMARY
+
+          if [ -d dist/assets ]; then
+            echo "dist/assets/ contents:" | tee -a $GITHUB_STEP_SUMMARY
+            ls -la dist/assets | tee -a $GITHUB_STEP_SUMMARY
+          else
+            echo "dist/assets/ does not exist" | tee -a $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
           ERR=0
-          for f in index.html assets/index-*.js; do
-            if [ -f "dist/$f" ]; then
-              echo "  found: dist/$f" | tee -a $GITHUB_STEP_SUMMARY
-            else
-              echo "  MISSING: dist/$f" | tee -a $GITHUB_STEP_SUMMARY
-              ERR=1
-            fi
-          done
+
+          if [ -f "dist/index.html" ]; then
+            echo "  found: dist/index.html" | tee -a $GITHUB_STEP_SUMMARY
+          else
+            echo "  MISSING: dist/index.html" | tee -a $GITHUB_STEP_SUMMARY
+            ERR=1
+          fi
+
+          if ls dist/assets/*.js 1> /dev/null 2>&1; then
+            echo "  found JS assets:" | tee -a $GITHUB_STEP_SUMMARY
+            ls -1 dist/assets/*.js | sed 's/^/    /' | tee -a $GITHUB_STEP_SUMMARY
+          else
+            echo "  MISSING: dist/assets/*.js" | tee -a $GITHUB_STEP_SUMMARY
+            ERR=1
+          fi
+
           if ls dist/sw.js 2>/dev/null; then
             echo "  found: dist/sw.js (PWA enabled)" | tee -a $GITHUB_STEP_SUMMARY
           else
             echo "  note: dist/sw.js not found (PWA may be excluded in this build)" | tee -a $GITHUB_STEP_SUMMARY
           fi
+
           echo '```' >> $GITHUB_STEP_SUMMARY
-          SIZE=$(du -sh dist/ | cut -f1)
-          COUNT=$(find dist/ -type f | wc -l)
+          SIZE=$(du -sh dist/ | cut -f1 2>/dev/null || echo "0")
+          COUNT=$(find dist/ -type f 2>/dev/null | wc -l || echo "0")
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Total size:** $SIZE  " >> $GITHUB_STEP_SUMMARY
           echo "**File count:** $COUNT  " >> $GITHUB_STEP_SUMMARY
