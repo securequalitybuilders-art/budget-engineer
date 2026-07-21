@@ -24,53 +24,42 @@ jobs:
       - name: Production build
         run: npm run build:only
       - name: Verify build artifacts
+        shell: bash
         run: |
-          echo "### Build Artifact Verification" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Checking dist/ structure..." | tee -a $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "### Build Artifact Verification" >> "$GITHUB_STEP_SUMMARY"
+          echo "Checking dist/ structure..."
 
-          ERR=0
+          test -f dist/index.html || { echo "MISSING: dist/index.html"; exit 1; }
 
-          echo "Contents of dist/ (maxdepth 3):" | tee -a $GITHUB_STEP_SUMMARY
-          find dist -maxdepth 3 -type f | sed 's|^|  |' | tee -a $GITHUB_STEP_SUMMARY
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          import sys
 
-          # index.html
-          if [ -f "dist/index.html" ]; then
-            echo "  found: dist/index.html" | tee -a $GITHUB_STEP_SUMMARY
-          else
-            echo "  MISSING: dist/index.html" | tee -a $GITHUB_STEP_SUMMARY
-            ERR=1
-          fi
+          index_html = Path("dist/index.html")
+          text = index_html.read_text(encoding="utf-8", errors="ignore")
 
-          # verify the JS entry referenced by index.html
-          SCRIPT_PATH=$(grep -oE 'src="/[^"]+\.js"' dist/index.html | head -n 1 | sed 's/^src="\///; s/"$//')
-          if [ -n "$SCRIPT_PATH" ]; then
-            if [ -f "dist/$SCRIPT_PATH" ]; then
-              echo "  found: dist/$SCRIPT_PATH" | tee -a $GITHUB_STEP_SUMMARY
-            else
-              echo "  MISSING: dist/$SCRIPT_PATH" | tee -a $GITHUB_STEP_SUMMARY
-              ERR=1
-            fi
-          else
-            echo "  MISSING: no JS entry reference found in dist/index.html" | tee -a $GITHUB_STEP_SUMMARY
-            ERR=1
-          fi
+          matches = re.findall(r'''(?:src|href)=["']/?(assets/[^"']+\.js)["']''', text)
 
-          # service worker (optional)
-          if [ -f "dist/sw.js" ]; then
-            echo "  found: dist/sw.js (PWA enabled)" | tee -a $GITHUB_STEP_SUMMARY
-          else
-            echo "  note: dist/sw.js not found (PWA may be excluded in this build)" | tee -a $GITHUB_STEP_SUMMARY
-          fi
+          if not matches:
+              print("MISSING: no JS asset reference found in dist/index.html")
+              sys.exit(1)
 
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          SIZE=$(du -sh dist/ | cut -f1)
-          COUNT=$(find dist/ -type f | wc -l)
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Total size:** $SIZE  " >> $GITHUB_STEP_SUMMARY
-          echo "**File count:** $COUNT  " >> $GITHUB_STEP_SUMMARY
-          [ "$ERR" = 0 ] || { echo "Build validation failed — missing critical files."; exit 1; }
+          missing = [m for m in matches if not Path("dist", m).exists()]
+          if missing:
+              print("MISSING: referenced JS assets do not exist:")
+              for m in missing:
+                  print(f"- dist/{m}")
+              sys.exit(1)
+
+          print(f"FOUND_JS={matches[0]}")
+          PY
+
+          test -f dist/sw.js || { echo "MISSING: dist/sw.js"; exit 1; }
+
+          echo "- found: dist/index.html" >> "$GITHUB_STEP_SUMMARY"
+          echo "- found: JS asset referenced by index.html" >> "$GITHUB_STEP_SUMMARY"
+          echo "- found: dist/sw.js (PWA enabled)" >> "$GITHUB_STEP_SUMMARY"
       - name: Check SPA fallback configs
         run: |
           if [ -f vercel.json ]; then
