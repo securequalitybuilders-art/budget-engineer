@@ -23,6 +23,16 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Production build
         run: npm run build:only
+      - name: Debug build output
+        shell: bash
+        run: |
+          echo "### Build Output Debug" >> "$GITHUB_STEP_SUMMARY"
+          echo "Contents of dist/:"
+          find dist -maxdepth 2 -type f | sort || echo "dist/ missing"
+          echo ""
+          echo "JS references inside dist/index.html:"
+          grep -oE 'assets/[^\"]+\.js' dist/index.html || echo "No JS asset references found in index.html"
+
       - name: Verify build artifacts
         shell: bash
         run: |
@@ -31,7 +41,7 @@ jobs:
 
           test -f dist/index.html || { echo "MISSING: dist/index.html"; exit 1; }
 
-          ENTRY_JS=$(grep -oE '(assets/[^\"]+\.js)' dist/index.html | head -1)
+          ENTRY_JS=$(grep -oE 'assets/[^\"]+\.js' dist/index.html | head -1)
 
           if [ -z "$ENTRY_JS" ]; then
             echo "MISSING: no JS asset reference found in dist/index.html"
