@@ -1,3 +1,5 @@
+import 'fake-indexeddb/auto'
+
 const store: Record<string, string> = {}
 const localStorageMock: Storage = {
   getItem: (key: string) => store[key] ?? null,
