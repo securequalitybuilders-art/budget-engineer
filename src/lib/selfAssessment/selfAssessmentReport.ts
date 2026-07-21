@@ -91,7 +91,7 @@ th{background:#f5f5f5;font-weight:600}
 
   const r = report.result;
 
-  let html = `<h1>Self-Assessment Report</h1>
+  const html = `<h1>Self-Assessment Report</h1>
 <p><strong>${report.projectName}</strong> — ${report.typology}, ${report.storeyProfile}</p>
 <p>Generated ${new Date(report.generatedAt).toLocaleDateString()} · ${report.matchedCaseCount} matched reference case(s)</p>
 

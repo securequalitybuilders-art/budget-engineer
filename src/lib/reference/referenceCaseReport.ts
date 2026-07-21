@@ -106,7 +106,7 @@ th{background:#f5f5f5;font-weight:600}
     return `<span class="${cls}">${ann?.prefix ?? marker}</span>`;
   };
 
-  let html = `<h1>Reference Case Coverage Report</h1>
+  const html = `<h1>Reference Case Coverage Report</h1>
 <p>${report.caseCount} reference cases · Generated ${new Date(report.generatedAt).toLocaleDateString()}</p>
 
 <h2>Overview</h2>
