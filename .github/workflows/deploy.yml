@@ -31,35 +31,32 @@ jobs:
 
           test -f dist/index.html || { echo "MISSING: dist/index.html"; exit 1; }
 
-          python - <<'PY'
-          from pathlib import Path
-          import re
-          import sys
+          ENTRY_JS=$(grep -oE '(assets/[^\"]+\.js)' dist/index.html | head -1)
 
-          index_html = Path("dist/index.html")
-          text = index_html.read_text(encoding="utf-8", errors="ignore")
+          if [ -z "$ENTRY_JS" ]; then
+            echo "MISSING: no JS asset reference found in dist/index.html"
+            echo "Dist contents:"
+            find dist -maxdepth 2 -type f | sort
+            exit 1
+          fi
 
-          matches = re.findall(r'''(?:src|href)=["']/?(assets/[^"']+\.js)["']''', text)
+          test -f "dist/$ENTRY_JS" || {
+            echo "MISSING: referenced JS asset dist/$ENTRY_JS"
+            echo "Dist contents:"
+            find dist -maxdepth 2 -type f | sort
+            exit 1
+          }
 
-          if not matches:
-              print("MISSING: no JS asset reference found in dist/index.html")
-              sys.exit(1)
+          test -f dist/sw.js || {
+            echo "MISSING: dist/sw.js"
+            exit 1
+          }
 
-          missing = [m for m in matches if not Path("dist", m).exists()]
-          if missing:
-              print("MISSING: referenced JS assets do not exist:")
-              for m in missing:
-                  print(f"- dist/{m}")
-              sys.exit(1)
-
-          print(f"FOUND_JS={matches[0]}")
-          PY
-
-          test -f dist/sw.js || { echo "MISSING: dist/sw.js"; exit 1; }
-
-          echo "- found: dist/index.html" >> "$GITHUB_STEP_SUMMARY"
-          echo "- found: JS asset referenced by index.html" >> "$GITHUB_STEP_SUMMARY"
-          echo "- found: dist/sw.js (PWA enabled)" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "- found: dist/index.html"
+            echo "- found: dist/$ENTRY_JS"
+            echo "- found: dist/sw.js (PWA enabled)"
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Check SPA fallback configs
         run: |
           if [ -f vercel.json ]; then
