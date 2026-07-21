@@ -43,12 +43,17 @@ jobs:
             ERR=1
           fi
 
-          # any JS asset in dist/assets/ — more flexible than a single exact name
-          if ls dist/assets/*.js 1>/dev/null 2>&1; then
-            echo "  found: dist/assets/*.js" | tee -a $GITHUB_STEP_SUMMARY
-            ls -1 dist/assets/*.js | sed 's/^/    /' | tee -a $GITHUB_STEP_SUMMARY
+          # verify the JS entry referenced by index.html
+          SCRIPT_PATH=$(grep -oE 'src="/[^"]+\.js"' dist/index.html | head -n 1 | sed 's/^src="\///; s/"$//')
+          if [ -n "$SCRIPT_PATH" ]; then
+            if [ -f "dist/$SCRIPT_PATH" ]; then
+              echo "  found: dist/$SCRIPT_PATH" | tee -a $GITHUB_STEP_SUMMARY
+            else
+              echo "  MISSING: dist/$SCRIPT_PATH" | tee -a $GITHUB_STEP_SUMMARY
+              ERR=1
+            fi
           else
-            echo "  MISSING: dist/assets/*.js (no JS bundles found in dist/assets/)" | tee -a $GITHUB_STEP_SUMMARY
+            echo "  MISSING: no JS entry reference found in dist/index.html" | tee -a $GITHUB_STEP_SUMMARY
             ERR=1
           fi
 
