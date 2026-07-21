@@ -30,19 +30,10 @@ jobs:
           echo "Checking dist/ structure..." | tee -a $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
-          echo "dist/ tree:" | tee -a $GITHUB_STEP_SUMMARY
-          ls -la dist || echo "dist/ not present" | tee -a $GITHUB_STEP_SUMMARY
-          echo "" | tee -a $GITHUB_STEP_SUMMARY
-
-          if [ -d dist/assets ]; then
-            echo "dist/assets/ contents:" | tee -a $GITHUB_STEP_SUMMARY
-            ls -la dist/assets | tee -a $GITHUB_STEP_SUMMARY
-          else
-            echo "dist/assets/ does not exist" | tee -a $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-
           ERR=0
+
+          echo "Contents of dist/ (maxdepth 3):" | tee -a $GITHUB_STEP_SUMMARY
+          find dist -maxdepth 3 -type f | sed 's|^|  |' | tee -a $GITHUB_STEP_SUMMARY
 
           if [ -f "dist/index.html" ]; then
             echo "  found: dist/index.html" | tee -a $GITHUB_STEP_SUMMARY
@@ -51,11 +42,16 @@ jobs:
             ERR=1
           fi
 
-          if ls dist/assets/*.js 1> /dev/null 2>&1; then
-            echo "  found JS assets:" | tee -a $GITHUB_STEP_SUMMARY
-            ls -1 dist/assets/*.js | sed 's/^/    /' | tee -a $GITHUB_STEP_SUMMARY
+          if ls dist/assets/index*.js 1>/dev/null 2>&1; then
+            echo "  found: $(ls dist/assets/index*.js | head -n1)" | tee -a $GITHUB_STEP_SUMMARY
+          elif ls dist/assets/index.*.js 1>/dev/null 2>&1; then
+            echo "  found: $(ls dist/assets/index.*.js | head -n1)" | tee -a $GITHUB_STEP_SUMMARY
+          elif ls dist/*/index*.js 1>/dev/null 2>&1; then
+            echo "  found: $(ls dist/*/index*.js | head -n1)" | tee -a $GITHUB_STEP_SUMMARY
+          elif ls dist/*.js 1>/dev/null 2>&1; then
+            echo "  found: $(ls dist/*.js | head -n1) (top-level JS file)" | tee -a $GITHUB_STEP_SUMMARY
           else
-            echo "  MISSING: dist/assets/*.js" | tee -a $GITHUB_STEP_SUMMARY
+            echo "  MISSING: JS entry asset (expected something like dist/assets/index-*.js)" | tee -a $GITHUB_STEP_SUMMARY
             ERR=1
           fi
 
@@ -66,8 +62,8 @@ jobs:
           fi
 
           echo '```' >> $GITHUB_STEP_SUMMARY
-          SIZE=$(du -sh dist/ | cut -f1 2>/dev/null || echo "0")
-          COUNT=$(find dist/ -type f 2>/dev/null | wc -l || echo "0")
+          SIZE=$(du -sh dist/ | cut -f1)
+          COUNT=$(find dist/ -type f | wc -l)
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Total size:** $SIZE  " >> $GITHUB_STEP_SUMMARY
           echo "**File count:** $COUNT  " >> $GITHUB_STEP_SUMMARY
