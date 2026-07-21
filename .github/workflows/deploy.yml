@@ -35,6 +35,7 @@ jobs:
           echo "Contents of dist/ (maxdepth 3):" | tee -a $GITHUB_STEP_SUMMARY
           find dist -maxdepth 3 -type f | sed 's|^|  |' | tee -a $GITHUB_STEP_SUMMARY
 
+          # index.html
           if [ -f "dist/index.html" ]; then
             echo "  found: dist/index.html" | tee -a $GITHUB_STEP_SUMMARY
           else
@@ -42,20 +43,17 @@ jobs:
             ERR=1
           fi
 
-          if ls dist/assets/index*.js 1>/dev/null 2>&1; then
-            echo "  found: $(ls dist/assets/index*.js | head -n1)" | tee -a $GITHUB_STEP_SUMMARY
-          elif ls dist/assets/index.*.js 1>/dev/null 2>&1; then
-            echo "  found: $(ls dist/assets/index.*.js | head -n1)" | tee -a $GITHUB_STEP_SUMMARY
-          elif ls dist/*/index*.js 1>/dev/null 2>&1; then
-            echo "  found: $(ls dist/*/index*.js | head -n1)" | tee -a $GITHUB_STEP_SUMMARY
-          elif ls dist/*.js 1>/dev/null 2>&1; then
-            echo "  found: $(ls dist/*.js | head -n1) (top-level JS file)" | tee -a $GITHUB_STEP_SUMMARY
+          # any JS asset in dist/assets/ — more flexible than a single exact name
+          if ls dist/assets/*.js 1>/dev/null 2>&1; then
+            echo "  found: dist/assets/*.js" | tee -a $GITHUB_STEP_SUMMARY
+            ls -1 dist/assets/*.js | sed 's/^/    /' | tee -a $GITHUB_STEP_SUMMARY
           else
-            echo "  MISSING: JS entry asset (expected something like dist/assets/index-*.js)" | tee -a $GITHUB_STEP_SUMMARY
+            echo "  MISSING: dist/assets/*.js (no JS bundles found in dist/assets/)" | tee -a $GITHUB_STEP_SUMMARY
             ERR=1
           fi
 
-          if ls dist/sw.js 2>/dev/null; then
+          # service worker (optional)
+          if [ -f "dist/sw.js" ]; then
             echo "  found: dist/sw.js (PWA enabled)" | tee -a $GITHUB_STEP_SUMMARY
           else
             echo "  note: dist/sw.js not found (PWA may be excluded in this build)" | tee -a $GITHUB_STEP_SUMMARY
