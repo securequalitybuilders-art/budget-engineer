@@ -13,5 +13,15 @@ export default defineConfig({
     include: ['src/__tests__/integration/**/*.test.{ts,tsx}'],
     setupFiles: ['src/__tests__/setup.ts'],
     testTimeout: 30000,
+    poolOptions: {
+      threads: {
+        minThreads: 1,
+        maxThreads: 2,
+      },
+      forks: {
+        minThreads: 1,
+        maxThreads: 2,
+      }
+    }
   },
 })

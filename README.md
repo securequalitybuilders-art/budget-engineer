@@ -507,15 +507,23 @@ push / pull_request / tag v*
 | `build` | `npm run build:only` | Production build (typecheck already passed in gate) |
 | `release-gate` | Aggregate check | Passes only when all 6 lanes pass — single check for branch protection |
 
-**Deploy** (`.github/workflows/deploy.yml`) — build artifact validation and
-deployment signal:
+**Deploy** (`.github/workflows/deploy.yml`) — build artifact validation,
+automated smoke verification, and deployment signal:
 
 | Job | Runs on | Purpose |
 |-----|---------|---------|
 | `validate-build` | PRs, main, tags | Builds the app and verifies dist/ artifact structure |
+| `smoke-test` | PRs, main, tags | Playwright smoke tests (with URL retry + PREVIEW NOT READY detection) |
 | `preview` | PRs only | Reports preview deployment readiness |
 | `production-ready` | main only | Confirms build is valid for production deploy |
 | `release-ready` | tags only | Provides release checklist for operator sign-off |
+
+Provider configuration is set via workflow `env:` variables:
+`PROVIDER`, `PRODUCTION_URL`, `PREVIEW_URL_PATTERN`. Each checks for a
+[GitHub repo variable](https://docs.github.com/en/actions/learn-github-actions/variables)
+first, then falls back to the default. See
+[docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md#environment-configuration)
+for the full variable reference and override instructions.
 
 ---
 

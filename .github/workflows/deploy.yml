@@ -6,6 +6,21 @@ on:
   push:
     branches: [main]
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'Deployment URL to smoke-test'
+        required: false
+        type: string
+
+env:
+  # ── Provider / environment configuration ──
+  # Each value checks for a GitHub repo variable first (set via
+  # Settings → Secrets and variables → Actions → Variables),
+  # then falls back to the default shown below.
+  PROVIDER: ${{ vars.PROVIDER || 'Vercel' }}
+  PRODUCTION_URL: ${{ vars.PRODUCTION_URL || 'https://budget-engineer.vercel.app' }}
+  PREVIEW_URL_PATTERN: ${{ vars.PREVIEW_URL_PATTERN || 'https://pr-{number}--budget-engineer.vercel.app' }}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -89,14 +104,128 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Auto-deploy (if connected to a hosting provider)" | tee -a $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Provider | Preview URL |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|-------------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Vercel** | https://pr-${{ github.event.number }}--budget-engineer.vercel.app |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Netlify** | https://deploy-preview-${{ github.event.number }}--budget-engineer.netlify.app |" >> $GITHUB_STEP_SUMMARY
+          echo "| Detail | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Provider | $PROVIDER |" >> $GITHUB_STEP_SUMMARY
+          echo "| Preview URL pattern | $PREVIEW_URL_PATTERN |" >> $GITHUB_STEP_SUMMARY
+          echo "| This PR preview | ${PREVIEW_URL_PATTERN//\{number\}/${{ github.event.number }}} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Manual deploy" >> $GITHUB_STEP_SUMMARY
+          echo "> **Other providers:** Netlify → \`https://deploy-preview-{number}--{project}.netlify.app\`." >> $GITHUB_STEP_SUMMARY
+          echo "> For any static host, upload \`dist/\` after the build is validated." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo 'Upload the `dist/` directory (from the validate-build step) to any static host.' >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "_Provider: $PROVIDER | Production: $PRODUCTION_URL | Preview pattern: PREVIEW_URL_PATTERN_" >> $GITHUB_STEP_SUMMARY
+          echo "_Set any of these via GitHub repo variables (Settings → Variables → Actions)_" >> $GITHUB_STEP_SUMMARY
+
+  smoke-test:
+    needs: validate-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine target URL
+        id: url
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.target_url }}" ]]; then
+            echo "url=${{ github.event.inputs.target_url }}" >> $GITHUB_OUTPUT
+            echo "source=manual (workflow_dispatch input)" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            PATTERN="$PREVIEW_URL_PATTERN"
+            URL="${PATTERN//\{number\}/${{ github.event.number }}}"
+            echo "url=$URL" >> $GITHUB_OUTPUT
+            echo "source=PREVIEW_URL_PATTERN (PR #${{ github.event.number }})" >> $GITHUB_OUTPUT
+          else
+            echo "url=$PRODUCTION_URL" >> $GITHUB_OUTPUT
+            echo "source=PRODUCTION_URL (default or repo variable)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check URL readiness (with retry)
+        id: preflight
+        run: |
+          URL="${{ steps.url.outputs.url }}"
+          echo "Target URL: **$URL**" >> $GITHUB_STEP_SUMMARY
+          echo "Source: ${{ steps.url.outputs.source }}" >> $GITHUB_STEP_SUMMARY
+          echo "Provider: $PROVIDER" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Checking URL reachability..." | tee -a $GITHUB_STEP_SUMMARY
+          MAX_ATTEMPTS=5
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 "$URL" 2>/dev/null || echo "000")
+            echo "Attempt $i/$MAX_ATTEMPTS: HTTP $HTTP_CODE" | tee -a $GITHUB_STEP_SUMMARY
+            if [ "$HTTP_CODE" != "000" ] && [ "$HTTP_CODE" != "502" ] && [ "$HTTP_CODE" != "503" ]; then
+              echo "reason=reachable" >> $GITHUB_OUTPUT
+              echo "URL is reachable (HTTP $HTTP_CODE)" | tee -a $GITHUB_STEP_SUMMARY
+              exit 0
+            fi
+            if [ $i -lt $MAX_ATTEMPTS ]; then
+              SLEEP=$((i * 10))
+              echo "Retrying in ${SLEEP}s..." | tee -a $GITHUB_STEP_SUMMARY
+              sleep $SLEEP
+            fi
+          done
+          echo "reason=unreachable" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "URL did not become reachable after $MAX_ATTEMPTS attempts." | tee -a $GITHUB_STEP_SUMMARY
+
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --ignore-scripts
+
+      - name: Install Playwright browsers
+        if: steps.preflight.outputs.reason == 'reachable'
+        run: npx playwright install --with-deps chromium
+
+      - name: Run smoke tests
+        id: smoke
+        if: steps.preflight.outputs.reason == 'reachable'
+        env:
+          BASE_URL: ${{ steps.url.outputs.url }}
+        run: npm run test:smoke
+
+      - name: Report smoke test results
+        if: always()
+        run: |
+          echo "## Smoke Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Target URL | ${{ steps.url.outputs.url }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| URL source | ${{ steps.url.outputs.source }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Provider | $PROVIDER |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ steps.preflight.outputs.reason }}" == "unreachable" ]]; then
+            echo "### Result: PREVIEW NOT READY" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The target URL did not respond after polling with retries." >> $GITHUB_STEP_SUMMARY
+            echo "This usually means the hosting provider's preview deployment" >> $GITHUB_STEP_SUMMARY
+            echo "is still building or has not been triggered yet." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Recommended action:** Re-run this job in a few minutes." >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ steps.smoke.conclusion }}" == "failure" ]] || [[ "${{ steps.smoke.conclusion }}" == "cancelled" ]]; then
+            echo "### Result: SMOKE FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The app is reachable but failed one or more smoke checks." >> $GITHUB_STEP_SUMMARY
+            echo "Check the Playwright output above for details." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Recommended action:** Investigate the failure before promoting." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### Result: PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All 6 smoke checks passed." >> $GITHUB_STEP_SUMMARY
+            echo "- App shell loads without crash" >> $GITHUB_STEP_SUMMARY
+            echo "- Page title and navigation render" >> $GITHUB_STEP_SUMMARY
+            echo "- SPA fallback works on sub-route refresh" >> $GITHUB_STEP_SUMMARY
+            echo "- Known routes return app shell, not 404" >> $GITHUB_STEP_SUMMARY
+            echo "- Manifest is present" >> $GITHUB_STEP_SUMMARY
+            echo "- Static assets (JS bundles) are served" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "_Smoke passed — proceed with manual verification._" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "_Automated smoke tests verify deployment health — they do not verify architectural or professional correctness._" >> $GITHUB_STEP_SUMMARY
+          echo "_Operator must still run the full [smoke-test checklist](../docs/DEPLOYMENT_GUIDE.md#smoke-test-checklist) before release signoff._" >> $GITHUB_STEP_SUMMARY
 
   production-ready:
     needs: validate-build
@@ -107,17 +236,31 @@ jobs:
         run: |
           echo "## Production Deployment" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Build validated for \`main\` commit **${{ github.sha }}**." >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Provider | $PROVIDER |" >> $GITHUB_STEP_SUMMARY
+          echo "| Production URL | $PRODUCTION_URL |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Before confirming the deploy" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "1. Verify [CI release-gate](${{ github.server_url }}/${{ github.repository }}/actions/workflows/ci.yml) passed for this commit" >> $GITHUB_STEP_SUMMARY
-          echo "2. If auto-deploy (Vercel/Netlify): deployment happens automatically on \`main\` push" >> $GITHUB_STEP_SUMMARY
+          echo "2. If auto-deploy ($PROVIDER/Netlify): deployment happens automatically on \`main\` push" >> $GITHUB_STEP_SUMMARY
           echo "3. If manual: upload \`dist/\` to your static host" >> $GITHUB_STEP_SUMMARY
-          echo "4. Run the smoke-test checklist against the live URL" >> $GITHUB_STEP_SUMMARY
+          echo "4. Check [smoke-test results](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for automated deployment verification" >> $GITHUB_STEP_SUMMARY
+          echo "5. Run the manual smoke-test checklist against the live URL" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Smoke outcome interpretation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Smoke result | What it means | Action |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| **PASSED** | App is alive and serving shell correctly | Proceed with manual verification |" >> $GITHUB_STEP_SUMMARY
+          echo "| **FAILED** | App reachable but checks failed | Investigate before promoting |" >> $GITHUB_STEP_SUMMARY
+          echo "| **PREVIEW NOT READY** | URL not reachable yet | Re-run smoke-test job later |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "_A green CI pipeline + validated build = the commit is deployable._" >> $GITHUB_STEP_SUMMARY
+          echo "_Provider: $PROVIDER | Production URL configured via PRODUCTION_URL env variable._" >> $GITHUB_STEP_SUMMARY
+          echo "_A green CI pipeline + validated build + passing smoke tests = the commit is deployable._" >> $GITHUB_STEP_SUMMARY
           echo "_Actual deployment to production is a separate action that must be verified._" >> $GITHUB_STEP_SUMMARY
 
   release-ready:
@@ -129,14 +272,27 @@ jobs:
         run: |
           echo "## Release Deployment — \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Release tag **${{ github.ref_name }}** build validated." >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Provider | $PROVIDER |" >> $GITHUB_STEP_SUMMARY
+          echo "| Production URL | $PRODUCTION_URL |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tag | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Release checklist" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- [ ] CI release-gate passed for this tag" >> $GITHUB_STEP_SUMMARY
-          echo "- [ ] Smoke-test checklist completed against the build" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Automated smoke tests passed (check [smoke-test results](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}))" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Manual smoke-test checklist completed against the build" >> $GITHUB_STEP_SUMMARY
           echo "- [ ] Release notes published in GitHub Releases" >> $GITHUB_STEP_SUMMARY
           echo "- [ ] CHANGELOG.md updated with this version" >> $GITHUB_STEP_SUMMARY
-           echo "- [ ] Version tag \`${{ github.ref_name }}\` matches package.json version" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Version tag \`${{ github.ref_name }}\` matches package.json version" >> $GITHUB_STEP_SUMMARY
           echo "- [ ] Production deployment triggered (auto or manual)" >> $GITHUB_STEP_SUMMARY
           echo "- [ ] Live site verified after deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Smoke outcome interpretation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Smoke result | What it means | Action |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| **PASSED** | App is alive and serving shell correctly | Proceed with manual verification |" >> $GITHUB_STEP_SUMMARY
+          echo "| **FAILED** | App reachable but checks failed | Investigate before promoting |" >> $GITHUB_STEP_SUMMARY
+          echo "| **PREVIEW NOT READY** | URL not reachable yet | Re-run smoke-test job later |" >> $GITHUB_STEP_SUMMARY

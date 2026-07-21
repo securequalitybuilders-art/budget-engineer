@@ -14,5 +14,15 @@ export default defineConfig({
     exclude: ['src/__tests__/integration/**'],
     setupFiles: ['src/__tests__/setup.ts'],
     slowTestThreshold: 300,
+    poolOptions: {
+      threads: {
+        minThreads: 1,
+        maxThreads: 2,
+      },
+      forks: {
+        minThreads: 1,
+        maxThreads: 2,
+      }
+    }
   },
 })

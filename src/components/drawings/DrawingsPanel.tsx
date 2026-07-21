@@ -5,6 +5,7 @@ import type { PlanModel } from '@/domain/plan'
 import type { CanopyParams } from '@/engine/canopy/canopyGeometry'
 import { PlanCanvas } from '@/components/cad/PlanCanvas'
 import { ElevationView } from '@/components/drawings/ElevationView'
+import { SvgElevationView } from '@/components/drawings/SvgElevationView'
 import { SectionView } from '@/components/drawings/SectionView'
 import { SitePlanView } from '@/components/drawings/SitePlanView'
 import { FoundationPlanView } from '@/components/drawings/FoundationPlanView'
@@ -28,6 +29,9 @@ import {
 import { Button } from '@/components/ui/Button'
 import { Monitor, Download } from 'lucide-react'
 import { convertPlanModelToCadDocument } from '@/adapters/planModelToCadAdapter'
+import { convertPlanModelToWs6Cad } from '@/adapters/planModelToWs6Cad'
+import { buildElevationSvg } from '@/lib/drawings/elevation-svg'
+import type { TitleBlockMeta } from '@/lib/drawings/title-block'
 import { generateDxf, downloadDxf } from '@/lib/export/dxfWriter'
 import type { DrawingTabId } from '@/lib/drawings/drawing-register'
 import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
@@ -124,6 +128,29 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
     try { return computeSideElevation(activePlan!, floors, storeyHeight, pitchHeight) } catch { return null }
   }, [activePlan, floors, storeyHeight, pitchHeight])
 
+  const ws6CadDoc = useMemo(() => {
+    if (!activePlan || floors < 1) return null
+    try {
+      return convertPlanModelToWs6Cad(activePlan, floors, storeyHeight)
+    } catch { return null }
+  }, [activePlan, floors, storeyHeight])
+
+  const frontElevationSvg = useMemo(() => {
+    if (!ws6CadDoc) return null
+    try {
+      const titleMeta: TitleBlockMeta = { project: design?.name ?? 'Budget Engineer', drawing: 'FRONT ELEVATION', scale: '1:100' }
+      return buildElevationSvg(ws6CadDoc, 'front', titleMeta)
+    } catch { return null }
+  }, [ws6CadDoc, design?.name])
+
+  const sideElevationSvg = useMemo(() => {
+    if (!ws6CadDoc) return null
+    try {
+      const titleMeta: TitleBlockMeta = { project: design?.name ?? 'Budget Engineer', drawing: 'RIGHT SIDE ELEVATION', scale: '1:100' }
+      return buildElevationSvg(ws6CadDoc, 'right', titleMeta)
+    } catch { return null }
+  }, [ws6CadDoc, design?.name])
+
   const sectionDrawing = useMemo(() => {
     try { return computeSection(activePlan!, floors, storeyHeight, pitchHeight) } catch { return null }
   }, [activePlan, floors, storeyHeight, pitchHeight])
@@ -183,24 +210,32 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
         <HvacPlanView activePlan={activePlan} />
       )}
       {activeTab === 'front' && (
-        <ElevationView
-          drawing={frontDrawing}
-          activePlan={activePlan}
-          floors={floors}
-          storeyHeight={storeyHeight}
-          pitchHeight={pitchHeight}
-          title="FRONT ELEVATION"
-        />
+        frontElevationSvg ? (
+          <SvgElevationView svgContent={frontElevationSvg} title="FRONT ELEVATION" />
+        ) : (
+          <ElevationView
+            drawing={frontDrawing}
+            activePlan={activePlan}
+            floors={floors}
+            storeyHeight={storeyHeight}
+            pitchHeight={pitchHeight}
+            title="FRONT ELEVATION"
+          />
+        )
       )}
       {activeTab === 'side' && (
-        <ElevationView
-          drawing={sideDrawing}
-          activePlan={activePlan}
-          floors={floors}
-          storeyHeight={storeyHeight}
-          pitchHeight={pitchHeight}
-          title="SIDE ELEVATION"
-        />
+        sideElevationSvg ? (
+          <SvgElevationView svgContent={sideElevationSvg} title="RIGHT SIDE ELEVATION" />
+        ) : (
+          <ElevationView
+            drawing={sideDrawing}
+            activePlan={activePlan}
+            floors={floors}
+            storeyHeight={storeyHeight}
+            pitchHeight={pitchHeight}
+            title="SIDE ELEVATION"
+          />
+        )
       )}
       {activeTab === 'section' && (
         <div className="flex flex-col gap-2">
@@ -312,7 +347,7 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
       </div>
 
       <p className="text-[10px] text-stone-400 leading-relaxed">
-        Elevations and section derived from the same PlanModel geometry as 2D/3D.
+        Elevations use enhanced facade composition with typology-aware rhythm, opening profiles, and depth cues.
         {activePlan.wallThickness > 0 && ` Wall thickness ${activePlan.wallThickness.toFixed(2)} m.`}
         Storey height {storeyHeight.toFixed(1)} m. Roof pitch height {pitchHeight.toFixed(1)} m.
       </p>
