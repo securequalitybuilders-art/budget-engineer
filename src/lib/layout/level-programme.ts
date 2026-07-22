@@ -163,7 +163,9 @@ export function computeLevelProgrammes(typology: string, storeyCount: number): P
           floorRole = 'ground-public'
           label = 'Ground Floor'
           programmeTags = ['public', 'entertaining', 'service']
-          roomAllocations = groundPublicRooms()
+          roomAllocations = storeyCount > 1
+            ? groundPublicRooms().filter(r => r.name !== 'Stairwell')
+            : groundPublicRooms()
         } else if (isRoof) {
           floorRole = 'upper-private'
           label = `Floor ${i + 1} — Bedrooms`
@@ -186,7 +188,9 @@ export function computeLevelProgrammes(typology: string, storeyCount: number): P
           floorRole = 'ground-public'
           label = 'Ground Floor — Living'
           programmeTags = ['public', 'living', 'kitchen', 'party-wall']
-          roomAllocations = groundPublicRooms()
+          roomAllocations = storeyCount > 1
+            ? groundPublicRooms().filter(r => r.name !== 'Stairwell')
+            : groundPublicRooms()
         } else {
           floorRole = 'upper-private'
           label = `Floor ${i + 1} — Bedrooms`

@@ -18,6 +18,7 @@ const ROLE_MAP: Record<string, RoomRole> = {
   'Stairwell': 'circulation',
   'Gallery': 'circulation',
   'Lounge / Dining': 'public',
+  'Living / Kitchen / Dining': 'public',
   'Living Room': 'public',
   'Lounge': 'public',
   'Dining': 'public',
@@ -91,11 +92,13 @@ const MINIMUM_DIMENSIONS: Record<string, RoomMinimums> = {
   'Kitchen': { minWidth: 2.5, minDepth: 3.0 },
   'Kitchenette': { minWidth: 2.0, minDepth: 2.0 },
   'Lounge / Dining': { minWidth: 3.5, minDepth: 4.0 },
+  'Living / Kitchen / Dining': { minWidth: 3.5, minDepth: 3.5 },
   'Living Room': { minWidth: 3.5, minDepth: 4.0 },
   'Dining Room': { minWidth: 3.0, minDepth: 3.5 },
+  'Reception': { minWidth: 3.0, minDepth: 3.5 },
   'Study / Flex': { minWidth: 2.5, minDepth: 2.5 },
   'Study': { minWidth: 2.5, minDepth: 2.5 },
-  'Circulation': { minWidth: 1.2, minDepth: 1.2 },
+  'Circulation': { minWidth: 1.5, minDepth: 1.5 },
   'Laundry': { minWidth: 1.8, minDepth: 2.0 },
   'Guest WC': { minWidth: 1.5, minDepth: 1.5 },
   'Veranda': { minWidth: 1.5, minDepth: 2.0 },
@@ -583,7 +586,8 @@ export function generateZonedLayout(params: ZonedLayoutParams): RoomRect[] {
 
   // Reserve corridor space
   const circRatioSum = circulationRooms.reduce((s, r) => s + r.ratio, 0)
-  const corridorDepth = Math.max(corridorWidth, circRatioSum > 0 ? height * circRatioSum : corridorWidth)
+  const maxCircMinDepth = circulationRooms.reduce((max, r) => Math.max(max, r.minDims.minDepth), 0)
+  const corridorDepth = Math.max(corridorWidth, circRatioSum > 0 ? height * circRatioSum : corridorWidth, maxCircMinDepth)
 
   // Remaining height for public (front) and private (rear) zones
   const remainingH = height - corridorDepth
@@ -613,51 +617,119 @@ export function generateZonedLayout(params: ZonedLayoutParams): RoomRect[] {
   const rooms: RoomRect[] = []
   const palette = ['#1d4ed8', '#0f766e', '#7c3aed', '#9a3412', '#0369a1', '#4d7c0f', '#be185d', '#b45309', '#6d28d9', '#0e7490']
 
-  // Helper to place rooms horizontally within a band, enforcing minimums without overflow
+  function depthForRoom(name: string, role: string, baseDepth: number, minDepth: number): number {
+    const generic = (() => {
+      if (role === 'circulation') return Math.max(baseDepth, 1.8)
+      if (role === 'wet' && (name.includes('Bathroom') || name.includes('WC'))) return Math.max(baseDepth * 0.7, 2.2)
+      if (role === 'wet' && name.includes('Kitchen')) return Math.max(baseDepth * 0.85, 2.8)
+      if (role === 'public') return Math.max(baseDepth * 1.1, 3.5)
+      if (role === 'private') return Math.max(baseDepth, 3.0)
+      if (role === 'service') return Math.max(baseDepth * 0.7, 2.0)
+      return Math.max(baseDepth, 2.5)
+    })()
+    return Math.max(generic, minDepth)
+  }
+
   function placeHorizontalBand(
-    bandRooms: { name: string; ratio: number; minDims: RoomMinimums }[],
+    bandRooms: { name: string; ratio: number; minDims: RoomMinimums; role: string }[],
     bandY: number,
     bandDepth: number,
     ratioSum: number,
   ) {
-    let x = 0
-    for (let i = 0; i < bandRooms.length; i++) {
-      const r = bandRooms[i]
-      const isLast = i === bandRooms.length - 1
-      const remainingW = Math.max(0, width - x)
+    // Pre-compute room heights for all rooms
+    const heights = bandRooms.map(r => Math.min(
+      depthForRoom(r.name, r.role, bandDepth, r.minDims.minDepth),
+      bandDepth + 0.5,
+    ))
+
+    // Compute proportional widths, respecting minimums where possible
+    const rawWidths = bandRooms.map(r => {
+      const ratioW = width * (r.ratio / Math.max(ratioSum, 0.01))
+      const areaW = (r.minDims.minWidth * r.minDims.minDepth) / Math.max(heights[0], 0.01)
+      return Math.max(ratioW, areaW, 1.5)
+    })
+
+    const totalRaw = rawWidths.reduce((s, w) => s + w, 0)
+    const scale = totalRaw > width ? width / totalRaw : 1
+    const scaledWidths = rawWidths.map(w => w * scale)
+
+    // Sort rooms by priority: larger minimal width first (more constrained first)
+    // But we need to maintain the original programme order for determinism
+    const indices = bandRooms.map((_, i) => i)
+
+    // Assign widths: ensure each room gets a fair share while respecting minimums
+    const assigned: number[] = new Array(bandRooms.length).fill(0)
+    let remainingW = width
+
+    for (const idx of indices) {
+      const r = bandRooms[idx]
+      const isLast = idx === indices[indices.length - 1]
+      const wantsW = scaledWidths[idx]
 
       if (isLast) {
-        // Last room takes all remaining width (at minimum)
-        rooms.push({
-          id: uid(),
-          name: r.name,
-          x: Number(x.toFixed(2)),
-          y: Number(bandY.toFixed(2)),
-          width: Number(Math.max(r.minDims.minWidth, remainingW).toFixed(2)),
-          height: Number(bandDepth.toFixed(2)),
-          color: palette[rooms.length % palette.length],
-        })
-        break
+        assigned[idx] = Math.max(r.minDims.minWidth, remainingW)
+      } else {
+        assigned[idx] = Math.max(r.minDims.minWidth, Math.min(wantsW, remainingW - 0.01))
       }
 
-      const minArea = r.minDims.minWidth * r.minDims.minDepth
-      const ratioW = width * (r.ratio / Math.max(ratioSum, 0.01))
-      const areaW = bandDepth > 0.01 ? minArea / bandDepth : minArea
-      const desiredW = Math.max(ratioW, areaW, r.minDims.minWidth, 1.5)
-      const clampedW = Math.min(desiredW, remainingW)
+      remainingW = Math.max(0, remainingW - assigned[idx])
+      if (remainingW <= 0) break
+    }
 
-      if (clampedW <= 0) break
+    // Drop rooms from the end until minimums fit (totalMinW <= width)
+    let keepCount = bandRooms.length
+    for (let drop = 0; drop < bandRooms.length; drop++) {
+      const slice = bandRooms.slice(0, bandRooms.length - drop)
+      const sliceMinW = slice.reduce((s, r) => s + r.minDims.minWidth, 0)
+      if (sliceMinW <= width || slice.length <= 1) {
+        keepCount = slice.length
+        break
+      }
+    }
+    const keptRooms = bandRooms.slice(0, keepCount)
+    const keptHeights = heights.slice(0, keepCount)
+    const keptRatioSum = keptRooms.reduce((s, r) => s + r.ratio, 0) || 1
+
+    // Distribute width for kept rooms
+    let x = 0
+    for (let i = 0; i < keptRooms.length; i++) {
+      const r = keptRooms[i]
+      const isLast = i === keptRooms.length - 1
+      const remainingW = Math.max(0, width - x)
+
+      // Reserve minimum width for remaining rooms after this one
+      const laterMinSum = keptRooms.slice(i + 1).reduce((s, rm) => s + rm.minDims.minWidth, 0)
+      const maxForThis = Math.max(0, remainingW - laterMinSum)
+
+      const ratioW = width * (r.ratio / keptRatioSum)
+      const desiredW = Math.max(r.minDims.minWidth, ratioW)
+      const w = isLast
+        ? Math.max(r.minDims.minWidth, remainingW)
+        : Math.min(desiredW, maxForThis)
+
+      if (w <= 0) break
 
       rooms.push({
         id: uid(),
         name: r.name,
         x: Number(x.toFixed(2)),
         y: Number(bandY.toFixed(2)),
-        width: Number(clampedW.toFixed(2)),
-        height: Number(bandDepth.toFixed(2)),
+        width: Number(Math.min(w, remainingW).toFixed(2)),
+        height: Number(keptHeights[i].toFixed(2)),
         color: palette[rooms.length % palette.length],
       })
-      x += clampedW
+      x += w
+    }
+
+    // Extend last placed room to fill remaining width
+    if (rooms.length > 0) {
+      const last = rooms[rooms.length - 1]
+      if (last.y === Number(bandY.toFixed(2))) {
+        const fillEnd = width - (last.x + last.width)
+        if (fillEnd > 0.01) {
+          last.width = Number((last.width + fillEnd).toFixed(2))
+        }
+      }
     }
   }
 
@@ -756,12 +828,13 @@ export function assemblePlan(input: PlanAssemblyInput) {
     extWalls,
   )
 
+  const snap05 = (v: number) => Math.round(v / 0.05) * 0.05
   const updatedRooms = rooms.map((r, i) => ({
     ...r,
-    x: Number((normalizedRooms[i]?.snappedX ?? r.x).toFixed(2)),
-    y: Number((normalizedRooms[i]?.snappedY ?? r.y).toFixed(2)),
-    width: Number((normalizedRooms[i]?.snappedW ?? r.width).toFixed(2)),
-    height: Number((normalizedRooms[i]?.snappedH ?? r.height).toFixed(2)),
+    x: snap05(normalizedRooms[i]?.snappedX ?? r.x),
+    y: snap05(normalizedRooms[i]?.snappedY ?? r.y),
+    width: snap05(normalizedRooms[i]?.snappedW ?? r.width),
+    height: snap05(normalizedRooms[i]?.snappedH ?? r.height),
   }))
 
   // Clamp any room that still extends beyond canonical boundary
@@ -769,10 +842,31 @@ export function assemblePlan(input: PlanAssemblyInput) {
     const right = room.x + room.width
     const bottom = room.y + room.height
     if (right > canonicalW) {
-      room.width = Number(Math.max(0.5, canonicalW - room.x).toFixed(2))
+      room.width = snap05(Math.max(0.5, canonicalW - room.x))
     }
     if (bottom > canonicalH) {
-      room.height = Number(Math.max(0.5, canonicalH - room.y).toFixed(2))
+      room.height = snap05(Math.max(0.5, canonicalH - room.y))
+    }
+  }
+
+  // Fix sub-centimeter floating-point boundary artifacts between adjacent same-zone rooms
+  const boundaryEpsilon = 0.001
+  const same = (a: number, b: number) => Math.abs(a - b) < boundaryEpsilon
+  for (let i = 0; i < updatedRooms.length; i++) {
+    for (let j = i + 1; j < updatedRooms.length; j++) {
+      const a = updatedRooms[i]
+      const b = updatedRooms[j]
+      if (same(a.y, b.y) && same(a.height, b.height)) {
+        if (a.x < b.x) {
+          const rightA = a.x + a.width
+          if (rightA > b.x && rightA - b.x < boundaryEpsilon) b.x = rightA
+        }
+      } else if (same(a.x, b.x) && same(a.width, b.width)) {
+        if (a.y < b.y) {
+          const bottomA = a.y + a.height
+          if (bottomA > b.y && bottomA - b.y < boundaryEpsilon) b.y = bottomA
+        }
+      }
     }
   }
 

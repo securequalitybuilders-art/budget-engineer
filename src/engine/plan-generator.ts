@@ -4,6 +4,9 @@ import { getRoomProgram } from './roomPrograms'
 import { isResidential } from './buildingTypes'
 import { generateLayoutByTypology, type FloorContext } from '../lib/layout/typology-router'
 import { assemblePlan } from '../lib/geometry/plan-intelligence'
+
+const GRID = 0.05
+const snap05 = (v: number) => Math.round(v / GRID) * GRID
 import { generateBuildingChassis, validateVerticalConstraints, getConstraintsForLevel } from '../lib/layout/vertical-chassis'
 import { computeLevelStack } from '../lib/layout/level-stack'
 import { isWetRoom } from '../lib/layout/shaft-stack'
@@ -14,10 +17,11 @@ import { computeStructuralBridge } from '../lib/structure/structural-bridge'
 import { validateEntranceSeparation } from '../lib/layout/typologies/non-residential'
 
 function normalizeFootprint(area: number) {
-  const width = Math.sqrt(area * 1.18)
+  const targetAspect = area <= 140 ? 1.25 : 1.18
+  const width = Math.sqrt(area * targetAspect)
   const height = area / width
   return {
-    width: Math.round(width * 10) / 10,
+    width: Math.ceil(width * 10) / 10,
     height: Math.round(height * 10) / 10,
   }
 }
@@ -27,48 +31,58 @@ function programFromArea(area: number, buildingType: string): Array<{ name: stri
     return getRoomProgram(buildingType)
   }
 
-  if (area <= 100) {
+  if (area <= 79) {
     return [
-      { name: 'Lounge / Dining', ratio: 0.22 },
-      { name: 'Kitchen', ratio: 0.1 },
-      { name: 'Bedroom 1', ratio: 0.14 },
-      { name: 'Bedroom 2', ratio: 0.12 },
-      { name: 'Bedroom 3', ratio: 0.11 },
-      { name: 'Bathroom 1', ratio: 0.07 },
-      { name: 'Bathroom 2', ratio: 0.06 },
-      { name: 'Circulation', ratio: 0.1 },
-      { name: 'Veranda', ratio: 0.08 },
+      { name: 'Living / Kitchen / Dining', ratio: 0.45 },
+      { name: 'Bedroom 1', ratio: 0.24 },
+      { name: 'Bedroom 2', ratio: 0.19 },
+      { name: 'Bathroom 1', ratio: 0.12 },
     ]
   }
 
-  if (area <= 125) {
+  if (area <= 80) {
     return [
-      { name: 'Lounge / Dining', ratio: 0.24 },
-      { name: 'Kitchen', ratio: 0.11 },
-      { name: 'Bedroom 1', ratio: 0.15 },
-      { name: 'Bedroom 2', ratio: 0.12 },
-      { name: 'Bedroom 3', ratio: 0.11 },
-      { name: 'Bathroom 1', ratio: 0.07 },
-      { name: 'Bathroom 2', ratio: 0.06 },
-      { name: 'Study / Flex', ratio: 0.06 },
-      { name: 'Circulation', ratio: 0.08 },
+      { name: 'Lounge / Dining', ratio: 0.27 },
+      { name: 'Kitchen', ratio: 0.12 },
+      { name: 'Bedroom 1', ratio: 0.18 },
+      { name: 'Bedroom 2', ratio: 0.15 },
+      { name: 'Bathroom 1', ratio: 0.10 },
+      { name: 'Circulation', ratio: 0.10 },
+    ]
+  }
+
+  if (area <= 100) {
+    return [
+      { name: 'Lounge / Dining', ratio: 0.28 },
+      { name: 'Kitchen', ratio: 0.14 },
+      { name: 'Bedroom 1', ratio: 0.21 },
+      { name: 'Bedroom 2', ratio: 0.17 },
+      { name: 'Bathroom 1', ratio: 0.11 },
+      { name: 'Circulation', ratio: 0.09 },
+    ]
+  }
+
+  if (area <= 110) {
+    const totalNoCirc = 0.26 + 0.11 + 0.16 + 0.14 + 0.12 + 0.08
+    return [
+      { name: 'Lounge / Dining', ratio: 0.26 / totalNoCirc },
+      { name: 'Kitchen', ratio: 0.11 / totalNoCirc },
+      { name: 'Bedroom 1', ratio: 0.16 / totalNoCirc },
+      { name: 'Bedroom 2', ratio: 0.14 / totalNoCirc },
+      { name: 'Bedroom 3', ratio: 0.12 / totalNoCirc },
+      { name: 'Bathroom 1', ratio: 0.08 / totalNoCirc },
     ]
   }
 
   return [
-    { name: 'Lounge / Dining', ratio: 0.23 },
-    { name: 'Kitchen', ratio: 0.1 },
+    { name: 'Lounge / Dining', ratio: 0.22 },
+    { name: 'Kitchen', ratio: 0.10 },
     { name: 'Bedroom 1', ratio: 0.14 },
     { name: 'Bedroom 2', ratio: 0.12 },
     { name: 'Bedroom 3', ratio: 0.11 },
-    { name: 'Guest Room', ratio: 0.09 },
-    { name: 'Bathroom 1', ratio: 0.06 },
-    { name: 'Bathroom 2', ratio: 0.05 },
-    { name: 'Study / Flex', ratio: 0.05 },
-    { name: 'Circulation', ratio: 0.05 },
+    { name: 'Bathroom 1', ratio: 0.07 },
+    { name: 'Bathroom 2', ratio: 0.06 },
     { name: 'Veranda', ratio: 0.05 },
-    { name: 'Store', ratio: 0.03 },
-    { name: 'Laundry', ratio: 0.02 },
   ]
 }
 
@@ -144,50 +158,85 @@ export function generatePlanModel(design: DesignOption): PlanModel {
   }
 
   if (floors <= 1) {
-    // Single floor: original path
-    const layoutResult = generateLayoutByTypology(
-      buildingType,
-      program,
-      footprint.width,
-      footprint.height,
-      Date.now(),
-    )
+    // Single floor: retry with different seeds (→ different templates)
+    let bestLayout: { rooms: any[]; warnings?: string[]; entranceMarkers?: any[]; valid?: boolean } | null = null
+    let bestRejectedWarnings: string[] = []
 
-    const rawRooms = layoutResult.rooms
+    for (let retry = 0; retry < 3; retry++) {
+      const seed = Date.now() + retry * 9973 + retry * 7919
+      const layoutResult = generateLayoutByTypology(
+        buildingType,
+        program,
+        footprint.width,
+        footprint.height,
+        seed,
+      )
 
-    const rooms = rawRooms.map(r => ({
+      const rawRooms = layoutResult.rooms
+      const rooms = rawRooms.map(r => ({
+        id: r.id,
+        name: r.name,
+        x: snap05(r.x),
+        y: snap05(r.y),
+        width: snap05(Math.max(r.width, 0.5)),
+        height: snap05(Math.max(r.height, 0.5)),
+        color: ['#1d4ed8', '#0f766e', '#7c3aed', '#9a3412', '#0369a1', '#4d7c0f', '#be185d', '#b45309'][((seed * 16807) % 2147483647) % 8],
+      }))
+
+      const result = assemblePlan({
+        rooms,
+        width: footprint.width,
+        height: footprint.height,
+        wallThickness,
+        designOptionId: design.id,
+      })
+
+      if (!result.rejected && layoutResult.valid !== false) {
+        bestLayout = { rooms: layoutResult.rooms, warnings: layoutResult.warnings, entranceMarkers: layoutResult.entranceMarkers, valid: true }
+        bestRejectedWarnings = []
+        const planModel = result.plan as PlanModel
+        if (layoutResult.entranceMarkers && layoutResult.entranceMarkers.length > 0) {
+          planModel.entranceMarkers = layoutResult.entranceMarkers
+        }
+        const allWarnings = [...result.warnings, ...verticalWarnings, ...(layoutResult.warnings || [])]
+        if (allWarnings.length > 0) {
+          console.warn(`[plan-generator] ${allWarnings.length} warnings:`, allWarnings.slice(0, 8))
+        }
+        return planModel
+      }
+
+      // Track best despite rejection for fallback
+      if (!bestLayout || result.warnings.length < bestRejectedWarnings.length) {
+        bestLayout = { rooms: layoutResult.rooms, warnings: layoutResult.warnings, entranceMarkers: layoutResult.entranceMarkers, valid: false }
+        bestRejectedWarnings = result.warnings
+      }
+    }
+
+    // All retries rejected — use best attempt anyway, log clearly
+    console.error(`[plan-generator] PLAN REJECTED after 3 retries: ${bestRejectedWarnings.filter(w => w.includes('LAYOUT_REJECTED') || w.includes('overlap detected')).join('; ')}`)
+    const finalRooms = (bestLayout?.rooms || []).map(r => ({
       id: r.id,
       name: r.name,
-      x: Number(r.x.toFixed(2)),
-      y: Number(r.y.toFixed(2)),
-      width: Number(Math.max(r.width, 0.5).toFixed(2)),
-      height: Number(Math.max(r.height, 0.5).toFixed(2)),
-      color: ['#1d4ed8', '#0f766e', '#7c3aed', '#9a3412', '#0369a1', '#4d7c0f', '#be185d', '#b45309'][Math.floor(Math.random() * 8)],
+      x: snap05(r.x),
+      y: snap05(r.y),
+      width: snap05(Math.max(r.width, 0.5)),
+      height: snap05(Math.max(r.height, 0.5)),
+      color: ['#1d4ed8', '#0f766e', '#7c3aed', '#9a3412', '#0369a1', '#4d7c0f', '#be185d', '#b45309'][Math.abs(Date.now() * 16807) % 8],
     }))
-
-    const result = assemblePlan({
-      rooms,
+    const fallbackResult = assemblePlan({
+      rooms: finalRooms,
       width: footprint.width,
       height: footprint.height,
       wallThickness,
       designOptionId: design.id,
     })
-
-    const { plan, warnings, rejected } = result
-    if (rejected) {
-      console.error(`[plan-generator] PLAN REJECTED: ${warnings.filter(w => w.includes('LAYOUT_REJECTED') || w.includes('overlap detected')).join('; ')}`)
+    const planModel = fallbackResult.plan as PlanModel
+    if (bestLayout?.entranceMarkers && bestLayout.entranceMarkers.length > 0) {
+      planModel.entranceMarkers = bestLayout.entranceMarkers
     }
-
-    const planModel = plan as PlanModel
-    // Add entrance markers if present
-    if (layoutResult.entranceMarkers && layoutResult.entranceMarkers.length > 0) {
-      planModel.entranceMarkers = layoutResult.entranceMarkers
-    }
-
-    const planWarnings = layoutResult.warnings || []
-    const allWarnings = [...warnings, ...verticalWarnings, ...planWarnings]
+    const allWarnings = [...fallbackResult.warnings, ...verticalWarnings, ...(bestLayout?.warnings || [])]
     if (allWarnings.length > 0) {
-      console.warn(`[plan-generator] ${allWarnings.length} warnings:`, allWarnings.slice(0, 8))
+      console.warn(`[plan-generator] ${allWarnings.length} warnings (fallback):`, allWarnings.slice(0, 8))
     }
     return planModel
   }
@@ -209,9 +258,6 @@ export function generatePlanModel(design: DesignOption): PlanModel {
       isRoof: fi === floors - 1,
       programmeTags: levelProfile?.levels[fi]?.programmeTags ?? [],
     }
-
-    // Get constraints from chassis for this level
-    const constraints = chassis ? getConstraintsForLevel(chassis, fi) : []
 
     // Generate level-specific rooms with retry on failure
     let rawRooms: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
@@ -297,10 +343,10 @@ export function generatePlanModel(design: DesignOption): PlanModel {
     const levelRooms = rawRooms.map(r => ({
       id: r.id,
       name: r.name,
-      x: Number(r.x.toFixed(2)),
-      y: Number((r.y + yOffset).toFixed(2)),
-      width: Number(Math.max(r.width, 0.5).toFixed(2)),
-      height: Number(Math.max(r.height, 0.5).toFixed(2)),
+      x: snap05(r.x),
+      y: snap05(r.y + yOffset),
+      width: snap05(Math.max(r.width, 0.5)),
+      height: snap05(Math.max(r.height, 0.5)),
       color: palette[fi % palette.length],
     }))
 
@@ -310,10 +356,18 @@ export function generatePlanModel(design: DesignOption): PlanModel {
       clampToPartyWall(levelRooms, pwX)
     }
 
-    // Add constraint markers as thin rooms
+    allRooms.push(...levelRooms)
+    verticalWarnings.push(`[Level ${fi}] ${floorRole}: generated ${rawRooms.length} rooms`)
+  }
+
+  // Collect all constraint markers across floors (for post-assemblePlan addition)
+  const allConstraintMarkers: { id: string; name: string; x: number; y: number; width: number; height: number; color: string }[] = []
+  for (let fi = 0; fi < floors; fi++) {
+    const constraints = chassis ? getConstraintsForLevel(chassis, fi) : []
+    const yOffset = fi * footprint.height * 1.1
     for (const c of constraints) {
       if (c.type === 'core-reserve' || c.type === 'shaft-reserve') {
-        levelRooms.push({
+        allConstraintMarkers.push({
           id: `constraint-${fi}-${c.type}`,
           name: `[${c.label}]`,
           x: c.x,
@@ -324,9 +378,6 @@ export function generatePlanModel(design: DesignOption): PlanModel {
         })
       }
     }
-
-    allRooms.push(...levelRooms)
-    verticalWarnings.push(`[Level ${fi}] ${floorRole}: generated ${rawRooms.length} rooms`)
   }
 
   // Build the plan from all rooms
@@ -343,7 +394,7 @@ export function generatePlanModel(design: DesignOption): PlanModel {
 
   const { plan, warnings, rejected } = result
   if (rejected) {
-    console.error(`[plan-generator] PLAN REJECTED: ${warnings.filter(w => w.includes('LAYOUT_REJECTED') || w.includes('overlap detected')).join('; ')}`)
+    console.error(`[plan-generator] PLAN REJECTED: ${warnings.map(w => w.includes('LAYOUT_REJECTED') || w.includes('overlap detected') ? w : '').filter(Boolean).join('; ')}`)
   }
 
   const planModel = plan as PlanModel
@@ -351,6 +402,9 @@ export function generatePlanModel(design: DesignOption): PlanModel {
   if (allEntranceMarkers.length > 0) {
     planModel.entranceMarkers = allEntranceMarkers
   }
+
+  // Add constraint markers to the final plan model (post-assemblePlan to avoid false overlap rejection)
+  planModel.rooms.push(...allConstraintMarkers)
 
   const allWarnings = [...warnings, ...verticalWarnings]
   if (allWarnings.length > 0) {
@@ -393,10 +447,10 @@ export function generateVariedPlanModel(
   const rooms = rawRooms.map(r => ({
     id: r.id,
     name: r.name,
-    x: Number(r.x.toFixed(2)),
-    y: Number(r.y.toFixed(2)),
-    width: Number(Math.max(r.width, 0.5).toFixed(2)),
-    height: Number(Math.max(r.height, 0.5).toFixed(2)),
+    x: snap05(r.x),
+    y: snap05(r.y),
+    width: snap05(Math.max(r.width, 0.5)),
+    height: snap05(Math.max(r.height, 0.5)),
     color: ['#1d4ed8', '#0f766e', '#7c3aed', '#9a3412', '#0369a1', '#4d7c0f', '#be185d', '#b45309'][Math.abs(variationSeed) % 8],
   }))
 
