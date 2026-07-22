@@ -1,5 +1,50 @@
 import { LW } from './lineweights';
 
+export const WALL_GRADIENT_ID = 'wall-face-gradient';
+export const WALL_GRADIENT_DEF = `<linearGradient id="${WALL_GRADIENT_ID}" x1="0%" y1="0%" x2="0%" y2="100%">
+<stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>
+<stop offset="100%" stop-color="#ffffff" stop-opacity="0.06"/>
+</linearGradient>`;
+
+export function renderWallSurfaceGradient(
+  leftX: number, rightX: number,
+  topY: number, wallH: number,
+): string[] {
+  const parts: string[] = [];
+  parts.push(`<rect x="${leftX.toFixed(1)}" y="${topY.toFixed(1)}" width="${(rightX - leftX).toFixed(1)}" height="${wallH.toFixed(1)}" fill="url(#${WALL_GRADIENT_ID})" pointer-events="none"/>`);
+  return parts;
+}
+
+export function renderWallEdgeShadow(
+  leftX: number, rightX: number,
+  faceTopY: number, faceBotY: number,
+  printMode: boolean,
+): string[] {
+  const parts: string[] = [];
+  const edgeShadow = printMode ? '#475569' : '#0a0f1a';
+  const outerGlow = printMode ? '#64748b' : '#1e293b';
+
+  parts.push(`<line x1="${leftX.toFixed(1)}" y1="${faceTopY.toFixed(1)}" x2="${leftX.toFixed(1)}" y2="${faceBotY.toFixed(1)}" stroke="${edgeShadow}" stroke-width="3" opacity="0.25"/>`);
+  parts.push(`<line x1="${leftX.toFixed(1)}" y1="${faceTopY.toFixed(1)}" x2="${leftX.toFixed(1)}" y2="${faceBotY.toFixed(1)}" stroke="${outerGlow}" stroke-width="1" opacity="0.4"/>`);
+
+  parts.push(`<line x1="${rightX.toFixed(1)}" y1="${faceTopY.toFixed(1)}" x2="${rightX.toFixed(1)}" y2="${faceBotY.toFixed(1)}" stroke="${edgeShadow}" stroke-width="3" opacity="0.25"/>`);
+  parts.push(`<line x1="${rightX.toFixed(1)}" y1="${faceTopY.toFixed(1)}" x2="${rightX.toFixed(1)}" y2="${faceBotY.toFixed(1)}" stroke="${outerGlow}" stroke-width="1" opacity="0.4"/>`);
+
+  return parts;
+}
+
+export function renderStoreyBand(
+  leftX: number, rightX: number,
+  bandY: number,
+  printMode: boolean,
+): string[] {
+  const parts: string[] = [];
+  const bandColor = printMode ? '#475569' : '#0f172a';
+  parts.push(`<line x1="${leftX.toFixed(1)}" y1="${bandY.toFixed(1)}" x2="${rightX.toFixed(1)}" y2="${bandY.toFixed(1)}" stroke="${bandColor}" stroke-width="2" opacity="0.35"/>`);
+  parts.push(`<line x1="${leftX.toFixed(1)}" y1="${(bandY + 1).toFixed(1)}" x2="${rightX.toFixed(1)}" y2="${(bandY + 1).toFixed(1)}" stroke="${bandColor}" stroke-width="0.5" opacity="0.15"/>`);
+  return parts;
+}
+
 export interface DepthCueConfig {
   lintelDepthPx: number;
   sillProjectionPx: number;

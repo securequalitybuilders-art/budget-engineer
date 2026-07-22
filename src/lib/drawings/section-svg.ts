@@ -183,16 +183,23 @@ export function buildSectionSvg(cad: CadDocument, titleMeta?: TitleBlockMeta, co
       parts.push(`<text x="${(opX + opW + 3).toFixed(1)}" y="${(sz(baseZ + sill) + 10).toFixed(1)}" fill="${textSub}" font-size="5" font-family="Arial,Helvetica,sans-serif">SILL +${(baseZ + sill).toFixed(2)}</text>`);
     }
 
-    // Room label at cut
-    for (const [, prog] of roomsAtCut) {
-      if (cad.floors.some(f => f.id === floor.id)) {
-        parts.push(`<text x="${((leftX + rightX) / 2).toFixed(1)}" y="${(sz(baseZ + floor.height * 0.5) - 4).toFixed(1)}" fill="${projColor}" font-size="6" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-style="italic">${prog}</text>`);
+    // Room label at cut — ground floor only to avoid repeating same labels on every storey
+    if (fi === 0) {
+      const roomLabels = [...new Set(roomsAtCut.values())];
+      const labelY = sz(baseZ + floor.height * 0.5) - 4;
+      const labelText = roomLabels.slice(0, 3).join(' · ');
+      if (labelText) {
+        parts.push(`<text x="${((leftX + rightX) / 2).toFixed(1)}" y="${labelY.toFixed(1)}" fill="${projColor}" font-size="6" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-style="italic">${labelText}</text>`);
       }
     }
 
-    // Floor level label
-    parts.push(`<text x="${(rightX + 6).toFixed(1)}" y="${(sz(baseZ) - 2).toFixed(1)}" fill="${textSub}" font-size="10" font-family="Arial,Helvetica,sans-serif">${floor.name} +${baseZ.toFixed(2)}</text>`);
+    // Floor level label — structural slab level (SSL)
+    parts.push(`<text x="${(rightX + 6).toFixed(1)}" y="${(sz(baseZ) - 2).toFixed(1)}" fill="${textSub}" font-size="10" font-family="Arial,Helvetica,sans-serif">${floor.name} SSL +${baseZ.toFixed(2)}</text>`);
     parts.push(`<line x1="${(rightX + 2).toFixed(1)}" y1="${sz(baseZ).toFixed(1)}" x2="${(w - 20).toFixed(1)}" y2="${sz(baseZ).toFixed(1)}" stroke="${projColor}" stroke-width="${LW.REFERENCE}" stroke-dasharray="4 4"/>`);
+    // Finished Floor Level (FFL) — top of finish build-up
+    const fflZ = baseZ + 0.1;
+    parts.push(`<line x1="${(rightX + 22).toFixed(1)}" y1="${sz(fflZ).toFixed(1)}" x2="${(w - 20).toFixed(1)}" y2="${sz(fflZ).toFixed(1)}" stroke="${projColor}" stroke-width="${LW.HATCH}" stroke-dasharray="2 2"/>`);
+    parts.push(`<text x="${(rightX + 26).toFixed(1)}" y="${(sz(fflZ) - 2).toFixed(1)}" fill="${projColor}" font-size="7" font-family="Arial,Helvetica,sans-serif">FFL +${fflZ.toFixed(2)}</text>`);
   }
 
   // ── Roof (roof-type aware) ──

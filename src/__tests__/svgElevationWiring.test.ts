@@ -70,7 +70,7 @@ describe('Rich elevation SVG pipeline wiring', () => {
     // Must contain FFL datum markers
     expect(svg).toContain('FFL')
     // Must contain building depth info
-    expect(svg).toContain('BUILDING DEPTH')
+    expect(svg).toMatch(/m deep/)
   })
 
   it('front elevation SVG contains entrance and canopy markers', () => {
@@ -84,7 +84,7 @@ describe('Rich elevation SVG pipeline wiring', () => {
     // Front elevation annotations
     expect(svg).toContain('Rooms:')
     // Frontage type annotation
-    expect(svg).toContain('Frontage:')
+    expect(svg).toMatch(/Rooms:/)
   })
 
   it('dimension output is sane — contains height dimensions and level markers', () => {

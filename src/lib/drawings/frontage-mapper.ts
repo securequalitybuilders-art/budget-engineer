@@ -1,7 +1,7 @@
 import type { CadDocument, Vec2, RoomProgramme, FaçadeOrientation } from '@/domain/ws6-types';
 import type { FrontageMapping, FaçadeSegment, FaçadeComposition } from '@/domain/ws6-types';
 
-const ENTRANCE_PROGRAMMES: RoomProgramme[] = ['Living Room', 'Reception', 'Lobby', 'Porch', 'Hallway'];
+const ENTRANCE_PROGRAMMES: RoomProgramme[] = ['Living Room', 'Lounge / Dining', 'Living / Kitchen / Dining', 'Lounge', 'Family Room', 'Reception', 'Lobby', 'Porch', 'Hallway'];
 const PUBLIC_FRONTAGE: Set<string> = new Set([
   'Living Room', 'Reception', 'Lobby', 'Porch', 'Reception / Waiting',
   'Sales Floor', 'Open Plan', 'Meeting Room', 'Dining Area',
@@ -321,7 +321,7 @@ export function mapRoomsToFrontage(cad: CadDocument): FrontageMapping[] {
   return mappings;
 }
 
-export function getEntranceOpening(cad: CadDocument): { openingId: string; x: number; floorId: string } | null {
+export function getEntranceOpening(cad: CadDocument): { openingId: string; pos: Vec2; floorId: string } | null {
   if (!cad.roomProgramme) return null;
 
   const entries = Object.entries(cad.roomProgramme);
@@ -335,12 +335,15 @@ export function getEntranceOpening(cad: CadDocument): { openingId: string; x: nu
     const len = Math.hypot(wall.end.x - wall.start.x, wall.end.y - wall.start.y);
     if (len < 0.01) continue;
     const t = door.offset / len;
-    const x = wall.start.x + (wall.end.x - wall.start.x) * t;
-    return { openingId: door.id, x, floorId: wall.floorId };
+    const pos: Vec2 = {
+      x: wall.start.x + (wall.end.x - wall.start.x) * t,
+      y: wall.start.y + (wall.end.y - wall.start.y) * t,
+    };
+    return { openingId: door.id, pos, floorId: wall.floorId };
   }
 
   for (const [_roomId, programme] of entries) {
-    if (programme !== 'Living Room') continue;
+    if (!ENTRANCE_PROGRAMMES.includes(programme)) continue;
     const wall = cad.walls.find(w => w.structural && orientWall(w) === 'front');
     if (!wall) continue;
     const door = cad.openings.find(o => o.wallId === wall.id && o.kind === 'door');
@@ -348,8 +351,11 @@ export function getEntranceOpening(cad: CadDocument): { openingId: string; x: nu
     const len = Math.hypot(wall.end.x - wall.start.x, wall.end.y - wall.start.y);
     if (len < 0.01) continue;
     const t = door.offset / len;
-    const x = wall.start.x + (wall.end.x - wall.start.x) * t;
-    return { openingId: door.id, x, floorId: wall.floorId };
+    const pos: Vec2 = {
+      x: wall.start.x + (wall.end.x - wall.start.x) * t,
+      y: wall.start.y + (wall.end.y - wall.start.y) * t,
+    };
+    return { openingId: door.id, pos, floorId: wall.floorId };
   }
 
   return null;

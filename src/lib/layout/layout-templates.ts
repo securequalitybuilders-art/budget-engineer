@@ -47,12 +47,12 @@ const SIDE_CORRIDOR: LayoutTemplate = {
   typology: 'house',
   minArea: 0,
   maxArea: 9999,
-  cols: 4,
-  rows: 3,
+  cols: 5,
+  rows: 4,
   zones: [
-    { id: 'front-public', label: 'Front Public', role: 'public', colStart: 0, colEnd: 3, rowStart: 0, rowEnd: 1, acceptRoles: ['public', 'service'], priority: 2 },
-    { id: 'circulation', label: 'Side Hall', role: 'circulation', colStart: 3, colEnd: 4, rowStart: 0, rowEnd: 3, acceptRoles: ['circulation'], priority: 4 },
-    { id: 'rear-private', label: 'Rear Private', role: 'private', colStart: 0, colEnd: 3, rowStart: 1, rowEnd: 3, acceptRoles: ['private', 'wet'], priority: 1 },
+      { id: 'front-public', label: 'Front Public', role: 'public', colStart: 0, colEnd: 4, rowStart: 0, rowEnd: 2, acceptRoles: ['public', 'service', 'wet'], priority: 2 },
+      { id: 'rear-private', label: 'Rear Private', role: 'private', colStart: 0, colEnd: 4, rowStart: 2, rowEnd: 4, acceptRoles: ['private'], priority: 1 },
+    { id: 'circulation', label: 'Side Hall', role: 'circulation', colStart: 4, colEnd: 5, rowStart: 0, rowEnd: 4, acceptRoles: ['circulation'], priority: 4 },
   ],
 }
 
@@ -65,9 +65,9 @@ const L_PLAN: LayoutTemplate = {
   cols: 4,
   rows: 4,
   zones: [
-    { id: 'front-public', label: 'Front Public', role: 'public', colStart: 0, colEnd: 4, rowStart: 0, rowEnd: 2, acceptRoles: ['public', 'service'], priority: 2 },
+    { id: 'front-public', label: 'Front Public', role: 'public', colStart: 0, colEnd: 4, rowStart: 0, rowEnd: 2, acceptRoles: ['public', 'service', 'wet'], priority: 2 },
     { id: 'circulation', label: 'Central Hall', role: 'circulation', colStart: 1, colEnd: 3, rowStart: 2, rowEnd: 3, acceptRoles: ['circulation'], priority: 4 },
-    { id: 'rear-private', label: 'Rear Private', role: 'private', colStart: 0, colEnd: 4, rowStart: 2, rowEnd: 4, acceptRoles: ['private', 'wet'], priority: 1 },
+    { id: 'rear-private', label: 'Rear Private', role: 'private', colStart: 0, colEnd: 4, rowStart: 2, rowEnd: 4, acceptRoles: ['private'], priority: 1 },
     { id: 'courtyard-void', label: 'Courtyard', role: 'void', colStart: 0, colEnd: 1, rowStart: 2, rowEnd: 3, acceptRoles: [], priority: 0 },
   ],
 }
@@ -112,14 +112,14 @@ const COMPACT_GRID: LayoutTemplate = {
   name: 'Compact Grid House',
   typology: 'house',
   minArea: 0,
-  maxArea: 100,
-  cols: 3,
+  maxArea: 65,
+  cols: 4,
   rows: 3,
   zones: [
-    { id: 'public-left', label: 'Public', role: 'public', colStart: 0, colEnd: 1, rowStart: 0, rowEnd: 2, acceptRoles: ['public', 'service'], priority: 2 },
-    { id: 'corridor-spine', label: 'Hall', role: 'circulation', colStart: 1, colEnd: 2, rowStart: 0, rowEnd: 3, acceptRoles: ['circulation'], priority: 4 },
-    { id: 'private-right', label: 'Private', role: 'private', colStart: 2, colEnd: 3, rowStart: 0, rowEnd: 3, acceptRoles: ['private'], priority: 1 },
-    { id: 'wet-bl', label: 'Wet', role: 'wet', colStart: 0, colEnd: 1, rowStart: 2, rowEnd: 3, acceptRoles: ['wet', 'service'], priority: 3 },
+    { id: 'public-left', label: 'Public', role: 'public', colStart: 0, colEnd: 2, rowStart: 0, rowEnd: 2, acceptRoles: ['public', 'service'], priority: 2 },
+    { id: 'corridor-spine', label: 'Hall', role: 'circulation', colStart: 2, colEnd: 3, rowStart: 0, rowEnd: 3, acceptRoles: ['circulation'], priority: 4 },
+    { id: 'private-right', label: 'Private', role: 'private', colStart: 3, colEnd: 4, rowStart: 0, rowEnd: 3, acceptRoles: ['private'], priority: 1 },
+    { id: 'wet-bl', label: 'Wet', role: 'wet', colStart: 0, colEnd: 2, rowStart: 2, rowEnd: 3, acceptRoles: ['wet', 'service'], priority: 3 },
   ],
 }
 
@@ -348,13 +348,8 @@ export function isRequiredRoom(name: string): boolean {
   return true
 }
 
-export function pickHouseTemplate(area: number, seed = 0): LayoutTemplate {
-  const candidates = HOUSE_TEMPLATES.filter(t => area >= t.minArea && area <= t.maxArea)
-  if (candidates.length === 0) return CENTRAL_LOBBY
-  if (seed === 0 || candidates.length === 1) return candidates[0]
-  let s = seed % 2147483647
-  if (s <= 0) s += 2147483646
-  s = (s * 16807) % 2147483647
-  const idx = s % candidates.length
-  return candidates[idx]
+export function pickHouseTemplate(area: number, _seed = 0): LayoutTemplate {
+  if (area <= 65) return COMPACT_GRID
+  if (area <= 100) return SIDE_CORRIDOR
+  return L_PLAN
 }

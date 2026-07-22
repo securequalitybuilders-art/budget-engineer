@@ -51,6 +51,20 @@ export function candidateSectionCuts(cad: CadDocument, axis: 'AA' | 'BB'): { pos
     }
   }
 
+  // Add openings (doors/windows) as candidates — sections cutting through openings
+  // produce more meaningful architectural sections
+  for (const o of cad.openings) {
+    const host = cad.walls.find(w => w.id === o.wallId);
+    if (host) {
+      const p = (planeF(host.start) + planeF(host.end)) / 2;
+      const key = Math.round(p * 10);
+      if (!positions.has(key)) {
+        positions.add(key);
+        candidates.push({ position: p, source: `opening-${o.kind}` });
+      }
+    }
+  }
+
   const allPts = cad.walls.flatMap(w => [w.start, w.end]);
   const planes = allPts.map(planeF);
   const mid = (Math.min(...planes, 0) + Math.max(...planes, 1)) / 2;

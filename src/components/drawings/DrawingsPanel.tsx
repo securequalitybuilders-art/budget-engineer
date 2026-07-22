@@ -6,6 +6,7 @@ import type { CanopyParams } from '@/engine/canopy/canopyGeometry'
 import { PlanCanvas } from '@/components/cad/PlanCanvas'
 import { ElevationView } from '@/components/drawings/ElevationView'
 import { SvgElevationView } from '@/components/drawings/SvgElevationView'
+import { ElevationDiagnostics } from '@/components/drawings/ElevationDiagnostics'
 import { SectionView } from '@/components/drawings/SectionView'
 import { SitePlanView } from '@/components/drawings/SitePlanView'
 import { FoundationPlanView } from '@/components/drawings/FoundationPlanView'
@@ -31,6 +32,7 @@ import { Monitor, Download } from 'lucide-react'
 import { convertPlanModelToCadDocument } from '@/adapters/planModelToCadAdapter'
 import { convertPlanModelToWs6Cad } from '@/adapters/planModelToWs6Cad'
 import { buildElevationSvg } from '@/lib/drawings/elevation-svg'
+import { computeFaçadeComposition } from '@/lib/drawings/frontage-mapper'
 import type { TitleBlockMeta } from '@/lib/drawings/title-block'
 import { generateDxf, downloadDxf } from '@/lib/export/dxfWriter'
 import type { DrawingTabId } from '@/lib/drawings/drawing-register'
@@ -155,6 +157,49 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
     try { return computeSection(activePlan!, floors, storeyHeight, pitchHeight) } catch { return null }
   }, [activePlan, floors, storeyHeight, pitchHeight])
 
+  // ── Runtime diagnostics ──
+  const elevationOrientation = activeTab === 'side' ? 'right' : 'front'
+
+  const roomCount = activePlan?.rooms?.length ?? 0
+
+  const openingCountOnFace = useMemo(() => {
+    if (!ws6CadDoc) return 0
+    try {
+      const comp = computeFaçadeComposition(ws6CadDoc, elevationOrientation)
+      return comp.segments.reduce((sum, seg) => sum + seg.openingCount, 0)
+    } catch { return 0 }
+  }, [ws6CadDoc, elevationOrientation])
+
+  const segmentCount = useMemo(() => {
+    if (!ws6CadDoc) return 0
+    try {
+      const comp = computeFaçadeComposition(ws6CadDoc, elevationOrientation)
+      return comp.segments.length
+    } catch { return 0 }
+  }, [ws6CadDoc, elevationOrientation])
+
+  const isRichActive = activeTab === 'front' ? !!frontElevationSvg : !!sideElevationSvg
+  const ws6ConversionOk = !!ws6CadDoc
+
+  const pipeline: 'rich-svg' | 'legacy-fallback' | 'none' = isRichActive ? 'rich-svg' : (ws6ConversionOk ? 'legacy-fallback' : 'none')
+  const fallbackReason = ws6ConversionOk && !isRichActive
+    ? (() => {
+        try {
+          const comp = computeFaçadeComposition(ws6CadDoc!, elevationOrientation)
+          if (comp.segments.length === 0) return 'Zero facade segments for this orientation'
+        } catch { return 'Façade composition threw' }
+        try {
+          if (elevationOrientation === 'front' && !frontElevationSvg) return 'buildElevationSvg(front) returned null'
+          if (elevationOrientation === 'right' && !sideElevationSvg) return 'buildElevationSvg(right) returned null'
+        } catch { return 'buildElevationSvg threw' }
+        return 'Unknown fallback reason'
+      })()
+    : undefined
+
+  if (fallbackReason && ws6ConversionOk) {
+    console.warn(`[DrawingsPanel] Rich SVG eligible but fallback active: ${fallbackReason} (orientation=${elevationOrientation}, segments=${segmentCount}, openings=${openingCountOnFace}, rooms=${roomCount})`)
+  }
+
   if (!activePlan || floors < 1) {
     return (
       <div className="flex items-center justify-center rounded-3xl border border-white/10 bg-white/5 p-12">
@@ -210,32 +255,54 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
         <HvacPlanView activePlan={activePlan} />
       )}
       {activeTab === 'front' && (
-        frontElevationSvg ? (
-          <SvgElevationView svgContent={frontElevationSvg} title="FRONT ELEVATION" />
-        ) : (
-          <ElevationView
-            drawing={frontDrawing}
-            activePlan={activePlan}
-            floors={floors}
-            storeyHeight={storeyHeight}
-            pitchHeight={pitchHeight}
-            title="FRONT ELEVATION"
+        <div className="flex flex-col gap-2">
+          <ElevationDiagnostics
+            pipeline={pipeline}
+            fallbackReason={fallbackReason}
+            roomCount={roomCount}
+            openingCountOnFace={openingCountOnFace}
+            floorCount={floors}
+            segmentCount={segmentCount}
+            conversionOk={ws6ConversionOk}
           />
-        )
+          {frontElevationSvg ? (
+            <SvgElevationView svgContent={frontElevationSvg} title="FRONT ELEVATION" />
+          ) : (
+            <ElevationView
+              drawing={frontDrawing}
+              activePlan={activePlan}
+              floors={floors}
+              storeyHeight={storeyHeight}
+              pitchHeight={pitchHeight}
+              title="FRONT ELEVATION"
+            />
+          )}
+        </div>
       )}
       {activeTab === 'side' && (
-        sideElevationSvg ? (
-          <SvgElevationView svgContent={sideElevationSvg} title="RIGHT SIDE ELEVATION" />
-        ) : (
-          <ElevationView
-            drawing={sideDrawing}
-            activePlan={activePlan}
-            floors={floors}
-            storeyHeight={storeyHeight}
-            pitchHeight={pitchHeight}
-            title="SIDE ELEVATION"
+        <div className="flex flex-col gap-2">
+          <ElevationDiagnostics
+            pipeline={pipeline}
+            fallbackReason={fallbackReason}
+            roomCount={roomCount}
+            openingCountOnFace={openingCountOnFace}
+            floorCount={floors}
+            segmentCount={segmentCount}
+            conversionOk={ws6ConversionOk}
           />
-        )
+          {sideElevationSvg ? (
+            <SvgElevationView svgContent={sideElevationSvg} title="RIGHT SIDE ELEVATION" />
+          ) : (
+            <ElevationView
+              drawing={sideDrawing}
+              activePlan={activePlan}
+              floors={floors}
+              storeyHeight={storeyHeight}
+              pitchHeight={pitchHeight}
+              title="SIDE ELEVATION"
+            />
+          )}
+        </div>
       )}
       {activeTab === 'section' && (
         <div className="flex flex-col gap-2">

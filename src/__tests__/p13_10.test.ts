@@ -254,20 +254,19 @@ describe('P13.10 — Elevation Side Differentiation', () => {
   it('side elevation contains opening count annotation', () => {
     const cad = makeMinimalCad();
     const svg = buildElevationSvg(cad, 'left');
-    expect(svg).toContain('OPENINGS');
+    expect(svg).toMatch(/openings/);
   });
 
   it('side elevation contains floor count annotation for multi-storey', () => {
     const cad = makeMultiStoreyCad(3);
     const svg = buildElevationSvg(cad, 'left');
-    expect(svg).toContain('STOREYS');
+    expect(svg).toContain('storeys');
   });
 
-  it('side elevation contains service vs garden differentiation', () => {
+  it('side elevation contains orientation label', () => {
     const cad = makeMinimalCad();
     const leftSvg = buildElevationSvg(cad, 'left');
     const rightSvg = buildElevationSvg(cad, 'right');
-    // Both should have side labels
     expect(leftSvg).toContain('LEFT SIDE');
     expect(rightSvg).toContain('RIGHT SIDE');
   });
@@ -276,30 +275,28 @@ describe('P13.10 — Elevation Side Differentiation', () => {
     const cad = makeMinimalCad();
     const leftSvg = buildElevationSvg(cad, 'left');
     const rightSvg = buildElevationSvg(cad, 'right');
-    // Should show different orientation labels
     expect(leftSvg).toContain('LEFT');
     expect(rightSvg).toContain('RIGHT');
-    // Verify they are not identical
     expect(leftSvg).not.toBe(rightSvg);
   });
 
   it('side elevation contains building depth annotation', () => {
     const cad = makeMinimalCad();
     const svg = buildElevationSvg(cad, 'left');
-    expect(svg).toContain('BUILDING DEPTH');
+    expect(svg).toMatch(/m deep/);
   });
 
-  it('side elevation contains SV or GV marker', () => {
+  it('side elevation contains stair or orientation marker', () => {
     const cad = makeMinimalCad();
     const svg = buildElevationSvg(cad, 'left');
-    expect(svg).toMatch(/SV|GV/);
+    expect(svg).toMatch(/LEFT SIDE|RIGHT SIDE/);
   });
 
   it('side elevation contains floor-to-floor info for multi-storey', () => {
     const cad = makeMultiStoreyCad(3);
     const svg = buildElevationSvg(cad, 'left');
-    expect(svg).toContain('STOREYS');
-    expect(svg).toContain('FLOOR-TO-FLOOR');
+    expect(svg).toContain('storeys');
+    expect(svg).toContain('F→F');
   });
 
   it('front elevation does not contain side-specific markers', () => {

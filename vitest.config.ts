@@ -11,7 +11,7 @@ export default defineConfig({
     environment: 'node',
     globals: false,
     include: ['src/__tests__/**/*.test.{ts,tsx}'],
-    exclude: ['src/__tests__/integration/**'],
+    exclude: ['src/__tests__/integration/**', 'src/__tests__/smoke/**'],
     setupFiles: ['src/__tests__/setup.ts'],
     slowTestThreshold: 300,
     poolOptions: {

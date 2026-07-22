@@ -155,13 +155,13 @@ describe('P13.8 — Side Elevation Specifics', () => {
   it('side elevations include building depth', () => {
     const cad = makeMinimalCad();
     const leftSvg = buildElevationSvg(cad, 'left');
-    expect(leftSvg).toContain('BUILDING DEPTH');
+    expect(leftSvg).toMatch(/m deep/);
   });
 
-  it('side elevations include service/garden side annotation', () => {
+  it('side elevations include side orientation annotation', () => {
     const cad = makeMinimalCad();
     const leftSvg = buildElevationSvg(cad, 'left');
-    expect(leftSvg).toContain('SERVICE / ACCESS SIDE');
+    expect(leftSvg).toContain('LEFT SIDE');
   });
 });
 

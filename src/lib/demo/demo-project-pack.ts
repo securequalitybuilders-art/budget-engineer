@@ -233,6 +233,46 @@ function makeCadDocument(projectId: string, plan: PlanModel): CadDocument {
   }
 }
 
+export interface DemoScenario {
+  slug: string
+  name: string
+  description: string
+  brief: string
+  capabilities: string[]
+  complexity: 'basic' | 'intermediate' | 'advanced'
+  buildingType: string
+  region: string
+  areaM2: number
+  estimatedCostCents: number
+}
+
+export const DEMO_SCENARIOS: DemoScenario[] = [
+  {
+    slug: 'demo-residence',
+    name: 'Demo Residence',
+    description: 'A modern 3-bedroom family house in Harare with open-plan living, master en-suite, and covered patio.',
+    brief: 'I want to build a modern 3-bedroom family house. The house should have an open-plan living/dining/kitchen area, 3 bedrooms (master with en-suite), a family bathroom, guest toilet, and a covered patio.',
+    capabilities: [
+      'brief-to-design',
+      'plan-model',
+      'cad-drawing',
+      'boq-estimation',
+      'compliance-checking',
+      'validation-tiers',
+      '3d-bim-viewer',
+    ],
+    complexity: 'basic',
+    buildingType: 'house',
+    region: 'zimbabwe',
+    areaM2: 120,
+    estimatedCostCents: 4_500_000,
+  },
+]
+
+export function getDemoScenarioBySlug(slug: string): DemoScenario | undefined {
+  return DEMO_SCENARIOS.find((s) => s.slug === slug)
+}
+
 export async function loadDemoProject(): Promise<string> {
   await seedRates()
 

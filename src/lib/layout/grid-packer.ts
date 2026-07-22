@@ -4,6 +4,12 @@ import { getMinimumDimensions, classifyRoom } from '../geometry/plan-intelligenc
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 
+const GRID = 0.05
+const grid = (v: number) => Math.round(v / GRID)
+const ungrid = (g: number) => g * GRID
+const snapGrid = (v: number) => ungrid(grid(v))
+const snap05 = snapGrid
+
 export interface GridCell {
   col: number
   row: number
@@ -42,10 +48,10 @@ export function buildGrid(
       cells.push({
         col: c,
         row: r,
-        x: Number((c * cellW).toFixed(2)),
-        y: Number((r * cellH).toFixed(2)),
-        width: Number(cellW.toFixed(2)),
-        height: Number(cellH.toFixed(2)),
+        x: snap05(c * cellW),
+        y: snap05(r * cellH),
+        width: snap05(cellW),
+        height: snap05(cellH),
         zoneId: null,
         occupied: false,
       })
@@ -58,13 +64,31 @@ export function assignZonesToGrid(
   cells: GridCell[],
   template: LayoutTemplate,
 ): void {
-  for (const zone of template.zones) {
+  const byPriority = (a: typeof template.zones[0], b: typeof template.zones[0]) => b.priority - a.priority
+  const voidZones = template.zones.filter(z => z.acceptRoles.length === 0).sort(byPriority)
+  const nonVoidZones = template.zones.filter(z => z.acceptRoles.length > 0).sort(byPriority)
+
+  for (const zone of voidZones) {
     for (const cell of cells) {
       if (
         cell.col >= zone.colStart &&
         cell.col < zone.colEnd &&
         cell.row >= zone.rowStart &&
         cell.row < zone.rowEnd
+      ) {
+        cell.zoneId = zone.id
+      }
+    }
+  }
+
+  for (const zone of nonVoidZones) {
+    for (const cell of cells) {
+      if (
+        cell.col >= zone.colStart &&
+        cell.col < zone.colEnd &&
+        cell.row >= zone.rowStart &&
+        cell.row < zone.rowEnd &&
+        cell.zoneId === null
       ) {
         cell.zoneId = zone.id
       }
@@ -142,7 +166,6 @@ function packHorizontalBand(
 
   // Try un-scaled fit first
   if (totalMinW <= zoneW) {
-    // Distribute remaining space proportionally
     const spare = zoneW - totalMinW
     const result: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
     let x = 0
@@ -150,70 +173,85 @@ function packHorizontalBand(
       const r = ordered[i]
       const extra = spare * (r.ratio / ratioSum)
       const w = r.minWidth + extra
+      const roomX = snap05(zoneX + x)
+      const remaining = zoneW - (roomX - zoneX)
+      const clippedW = snap05(Math.min(w, remaining))
       result.push({
         id: uid(),
         name: r.name,
-        x: Number((zoneX + x).toFixed(2)),
-        y: Number(zoneY.toFixed(2)),
-        width: Number(w.toFixed(2)),
-        height: Number(zoneH.toFixed(2)),
+        x: roomX,
+        y: snap05(zoneY),
+        width: clippedW,
+        height: snap05(zoneH),
       })
-      x += w
+      x = (roomX - zoneX) + clippedW
     }
     return result
   }
 
-  // Overflow: try moving flexible rooms first (handled by caller)
-  // If we reach here, only required rooms remain. Check if scaling violates minimums.
-  const required = ordered.filter(r => !r.flexible)
-  const requiredMinW = required.reduce((s, r) => s + r.minWidth, 0)
-
-  if (requiredMinW > zoneW && required.length > 0) {
-    // Required rooms can't fit even at minimum widths — mark invalid
-    for (const r of required) {
-      warnings.push({
-        message: `Required room "${r.name}" cannot fit in zone — overflow with minimums`,
-        roomName: r.name,
+  // Overflow: try vertical stacking first — if zone is deep enough,
+  // split into rows so each room gets full zone width but less depth.
+  if (zoneH >= ordered[0]?.minDepth * 1.5 && ordered.length > 0) {
+    const rowCount = Math.min(ordered.length, Math.floor(zoneH / 1.5))
+    const rowH = zoneH / rowCount
+    const result: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
+    for (let i = 0; i < ordered.length; i++) {
+      const r = ordered[i]
+      const row = i % rowCount
+      const w = zoneW
+      const h = Math.max(0.8, Math.min(rowH, zoneH - row * rowH))
+      if (belowMinimum(r, w, h)) {
+        warnings.push({
+          message: `Required room "${r.name}" placed below minimum depth in vertical split — layout invalid`,
+          roomName: r.name,
+        })
+      }
+      result.push({
+        id: uid(),
+        name: r.name,
+        x: snap05(zoneX),
+        y: snap05(zoneY + row * rowH),
+        width: snap05(w),
+        height: snap05(h),
       })
     }
+    return result
   }
 
-  // Scale-to-fit as last resort, but flag any below-minimum rooms
-  const scale = Math.min(1, zoneW / Math.max(totalMinW, 0.01))
+  // Scale-to-fit as last resort
+  const totalMinW_all = ordered.reduce((s, r) => s + r.minWidth, 0)
+  const scale = Math.min(1, zoneW / Math.max(totalMinW_all, 0.01))
   const result: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
   let x = 0
 
   for (let i = 0; i < ordered.length; i++) {
     const r = ordered[i]
     const isLast = i === ordered.length - 1
-    const remainingW = Math.max(0, zoneW - x)
+    const roomX = snap05(zoneX + x)
+    const remainingW = Math.max(0, zoneW - (roomX - zoneX))
     const minArea = r.minWidth * r.minDepth
     const ratioW = zoneW * (r.ratio / ratioSum)
     const areaW = zoneH > 0.01 ? minArea / zoneH : minArea
     const desiredW = Math.max(ratioW, areaW, r.minWidth * scale, 1.5 * scale)
     const w = isLast ? Math.max(0.5, remainingW) : Math.min(desiredW, remainingW)
 
-    if (belowMinimum(r, w, zoneH) && r.flexible) {
-      warnings.push({
-        message: `Flexible room "${r.name}" placed below minimum size in overflow`,
-        roomName: r.name,
-      })
-    } else if (belowMinimum(r, w, zoneH)) {
+    if (belowMinimum(r, w, zoneH) && !r.flexible) {
       warnings.push({
         message: `Required room "${r.name}" placed below minimum size in overflow — layout invalid`,
         roomName: r.name,
       })
     }
 
+    const snappedW = snap05(Math.min(w, remainingW))
     result.push({
       id: uid(),
       name: r.name,
-      x: Number((zoneX + x).toFixed(2)),
-      y: Number(zoneY.toFixed(2)),
-      width: Number(w.toFixed(2)),
-      height: Number(zoneH.toFixed(2)),
+      x: roomX,
+      y: snap05(zoneY),
+      width: snappedW,
+      height: snap05(zoneH),
     })
-    x += w
+    x = (roomX - zoneX) + snappedW
   }
 
   return result
@@ -240,30 +278,52 @@ function packVerticalBand(
       const r = ordered[i]
       const extra = spare * (r.ratio / ratioSum)
       const h = r.minDepth + extra
+      const roomY = snap05(zoneY + y)
+      const remaining = zoneH - (roomY - zoneY)
+      const snappedH = snap05(Math.min(h, remaining))
       result.push({
         id: uid(),
         name: r.name,
-        x: Number(zoneX.toFixed(2)),
-        y: Number((zoneY + y).toFixed(2)),
-        width: Number(zoneW.toFixed(2)),
-        height: Number(h.toFixed(2)),
+        x: snap05(zoneX),
+        y: roomY,
+        width: snap05(zoneW),
+        height: snappedH,
       })
-      y += h
+      y = (roomY - zoneY) + snappedH
     }
     return result
   }
 
-  const required = ordered.filter(r => !r.flexible)
-  const requiredMinH = required.reduce((s, r) => s + r.minDepth, 0)
-  if (requiredMinH > zoneH && required.length > 0) {
-    for (const r of required) {
-      warnings.push({
-        message: `Required room "${r.name}" cannot fit in vertical zone — overflow with minimums`,
-        roomName: r.name,
+  // Overflow: try horizontal split first — if zone is wide enough,
+  // split into columns so each room gets full zone height but less width.
+  if (zoneW >= ordered[0]?.minWidth * 1.5 && ordered.length > 0) {
+    const colCount = Math.min(ordered.length, Math.floor(zoneW / 1.5))
+    const colW = zoneW / colCount
+    const result: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
+    for (let i = 0; i < ordered.length; i++) {
+      const r = ordered[i]
+      const col = i % colCount
+      const w = Math.max(0.8, Math.min(colW, zoneW - col * colW))
+      const h = zoneH
+      if (belowMinimum(r, w, h)) {
+        warnings.push({
+          message: `Required room "${r.name}" placed below minimum width in horizontal split — layout invalid`,
+          roomName: r.name,
+        })
+      }
+      result.push({
+        id: uid(),
+        name: r.name,
+        x: snap05(zoneX + col * colW),
+        y: snap05(zoneY),
+        width: snap05(w),
+        height: snap05(h),
       })
     }
+    return result
   }
 
+  // Scale-to-fit as last resort
   const totalMinH_all = ordered.reduce((s, r) => s + r.minDepth, 0)
   const scale = Math.min(1, zoneH / Math.max(totalMinH_all, 0.01))
   const result: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
@@ -272,7 +332,8 @@ function packVerticalBand(
   for (let i = 0; i < ordered.length; i++) {
     const r = ordered[i]
     const isLast = i === ordered.length - 1
-    const remainingH = Math.max(0, zoneH - y)
+    const roomY = snap05(zoneY + y)
+    const remainingH = Math.max(0, zoneH - (roomY - zoneY))
     const minArea = r.minWidth * r.minDepth
     const ratioH = zoneH * (r.ratio / ratioSum)
     const areaH = zoneW > 0.01 ? minArea / zoneW : minArea
@@ -286,15 +347,16 @@ function packVerticalBand(
       })
     }
 
+    const snappedH = snap05(Math.min(h, remainingH))
     result.push({
       id: uid(),
       name: r.name,
-      x: Number(zoneX.toFixed(2)),
-      y: Number((zoneY + y).toFixed(2)),
-      width: Number(zoneW.toFixed(2)),
-      height: Number(h.toFixed(2)),
+      x: snap05(zoneX),
+      y: roomY,
+      width: snap05(zoneW),
+      height: snappedH,
     })
-    y += h
+    y = (roomY - zoneY) + snappedH
   }
 
   return result
@@ -440,10 +502,10 @@ export function packTemplate(
             allRooms.push({
               id: uid(),
               name: r.name,
-              x: Number((zoneOriginX + Math.max(0, zoneW - w)).toFixed(2)),
-              y: Number((zoneOriginY + Math.max(0, zoneH - h)).toFixed(2)),
-              width: Number(w.toFixed(2)),
-              height: Number(h.toFixed(2)),
+              x: snap05(zoneOriginX + Math.max(0, zoneW - w)),
+              y: snap05(zoneOriginY + Math.max(0, zoneH - h)),
+              width: snap05(w),
+              height: snap05(h),
             })
             placedNames.add(r.name)
             warnings.push({
@@ -491,15 +553,26 @@ export function packTemplate(
     r.name === 'Circulation' || r.name.includes('Hall') || r.name.includes('Corridor'),
   )
   if (!hasCirculation && circulationCells.length > 0) {
-    const circCell = circulationCells[0]
-    allRooms.push({
-      id: uid(),
-      name: 'Circulation',
-      x: circCell.x,
-      y: circCell.y,
-      width: circCell.width,
-      height: circCell.height,
-    })
+    // Find first circulation cell not overlapping any existing room
+    let circCell = null
+    for (const cc of circulationCells) {
+      const overlaps = allRooms.some(r => {
+        const eps = 0.03
+        return r.x < cc.x + cc.width - eps && r.x + r.width - eps > cc.x &&
+               r.y < cc.y + cc.height - eps && r.y + r.height - eps > cc.y
+      })
+      if (!overlaps) { circCell = cc; break }
+    }
+    if (circCell) {
+      allRooms.push({
+        id: uid(),
+        name: 'Circulation',
+        x: circCell.x,
+        y: circCell.y,
+        width: circCell.width,
+        height: circCell.height,
+      })
+    }
   }
 
   return {

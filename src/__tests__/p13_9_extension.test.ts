@@ -567,16 +567,16 @@ describe('P13.9-EXT — Depth Cues in Elevation SVG', () => {
     expect(svg).toContain('<rect');
   });
 
-  it('rear elevation contains service core depth annotations', () => {
+  it('rear elevation contains room annotations', () => {
     const cad = makeMultiStoreyCad(3);
     const svg = buildElevationSvg(cad, 'rear');
-    expect(svg).toContain('SERVICE');
+    expect(svg).toContain('Rooms:');
   });
 
   it('side elevation contains depth cues', () => {
     const cad = makeMinimalCad();
     const svg = buildElevationSvg(cad, 'left');
-    expect(svg).toContain('BUILDING DEPTH');
+    expect(svg).toMatch(/m deep/);
   });
 
   it('side elevation contains orientation differentiation', () => {
@@ -617,12 +617,12 @@ describe('P13.9-EXT — Depth Cues in Elevation SVG', () => {
   it('orientation differentiation appears in side elevations', () => {
     const cad = makeMinimalCad();
     const svg = buildElevationSvg(cad, 'left');
-    expect(svg).toContain('SERVICE');
+    expect(svg).toContain('LEFT SIDE');
   });
 
-  it('cross-sheet references appear in side elevations', () => {
+  it('cross-sheet references appear in elevations', () => {
     const cad = makeMinimalCad();
-    const svg = buildElevationSvg(cad, 'left');
+    const svg = buildElevationSvg(cad, 'front');
     expect(svg).toContain('CONT. ON');
   });
 });

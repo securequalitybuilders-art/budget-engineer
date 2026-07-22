@@ -13,12 +13,13 @@ import {
   renderColumnRhythm, renderBalconyProjection, renderBalconyStack,
   renderVerandahProjection, renderSymmetryCenterline, renderEntranceCanopy,
   renderMaterialZoneHatch, renderUpperFloorSetback, renderPodiumTransition,
-  renderTerraceEdge, renderSideDifferentiation,
+  renderTerraceEdge,
 } from './facade-rhythm';
 import { buildDeterministicSeed } from './deterministic-facade-variation';
 import {
   getDepthCueConfig, renderOpeningSurround, renderPlinthWithDepth,
   renderSlabShadowLine, renderSlabEdgeProfile, renderCorniceCoping, renderWallFaceTransition,
+  renderWallEdgeShadow, renderStoreyBand, renderWallSurfaceGradient, WALL_GRADIENT_DEF,
 } from './facade-depth';
 import { renderKeynoteCallout, renderKeynoteSchedule, type KeynoteEntry } from './leader-notes';
 import { renderElevationBubble, renderCrossSheetReference } from './elevation-reference-engine';
@@ -113,7 +114,7 @@ function buildElevationFromOrientation(
 
   const parts: string[] = [];
   parts.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${Math.round(w)}" height="${Math.round(svgH)}" viewBox="0 0 ${w} ${svgH}">`);
-  parts.push(`<defs>${HATCH_PATTERNS}</defs>`);
+  parts.push(`<defs>${HATCH_PATTERNS}${WALL_GRADIENT_DEF}</defs>`);
   parts.push(`<rect width="${w}" height="${svgH}" fill="${bg}"/>`);
 
   const groundY = sz(0);
@@ -125,8 +126,10 @@ function buildElevationFromOrientation(
   parts.push(`<rect x="0" y="${groundY.toFixed(1)}" width="${w}" height="${(svgH - groundY).toFixed(1)}" fill="${printMode ? '#f8fafc' : '#0b1220'}" opacity="${printMode ? 0.3 : 0.4}"/>`);
   parts.push(...renderLevelDatum(0, 'GL', 20, groundY, true, printMode));
 
-  // Plinth line at base with depth cues
-  if (art.hasPlinth && rules.plinthHeight > 0) {
+    // Foundation zone — always-visible base with distinct hatching
+  const foundationH = 8; // px at base
+  const isPlinthActive = art.hasPlinth && rules.plinthHeight > 0;
+  if (isPlinthActive) {
     const plinthY = sz(0);
     const plinthH = rules.plinthHeight * SCALE;
     parts.push(...renderPlinthWithDepth(
@@ -134,6 +137,20 @@ function buildElevationFromOrientation(
       depthCfg.plinthThicknessPx, printMode, typology,
     ));
     parts.push(`<text x="${PAD.toFixed(1)}" y="${(plinthY - plinthH - 4).toFixed(1)}" fill="${textSub}" font-size="6" font-family="Arial,Helvetica,sans-serif">PLINTH · ${(rules.plinthHeight * 100).toFixed(0)}mm</text>`);
+  }
+  // Foundation overlay — darker zone at base with ground hatching
+  {
+    const fndTopY = groundY - (isPlinthActive ? Math.max(rules.plinthHeight * SCALE, foundationH) : foundationH);
+    parts.push(`<rect x="${PAD.toFixed(1)}" y="${fndTopY.toFixed(1)}" width="${(bWidth * SCALE).toFixed(1)}" height="${(groundY - fndTopY).toFixed(1)}" fill="${printMode ? '#e2e8f0' : '#0f172a'}" stroke="none" opacity="0.7"/>`);
+    parts.push(`<rect x="${PAD.toFixed(1)}" y="${fndTopY.toFixed(1)}" width="${(bWidth * SCALE).toFixed(1)}" height="${(groundY - fndTopY).toFixed(1)}" fill="url(#hardcore-hatch)" opacity="${printMode ? 0.15 : 0.25}"/>`);
+    // Separate the foundation zone from wall with a line
+    const sepCol = printMode ? '#475569' : '#475569';
+    parts.push(`<line x1="${PAD.toFixed(1)}" y1="${fndTopY.toFixed(1)}" x2="${(PAD + bWidth * SCALE).toFixed(1)}" y2="${fndTopY.toFixed(1)}" stroke="${sepCol}" stroke-width="${LW.PARTITION}" opacity="0.4"/>`);
+  }
+  if (!isPlinthActive) {
+    // Universal ground-support base line — always present for visual grounding
+    const baseCol = printMode ? '#64748b' : '#78716c';
+    parts.push(`<line x1="${PAD.toFixed(1)}" y1="${groundY.toFixed(1)}" x2="${(PAD + bWidth * SCALE).toFixed(1)}" y2="${groundY.toFixed(1)}" stroke="${baseCol}" stroke-width="${LW.PARTITION}" opacity="0.5"/>`);
   }
 
   const totalFloors = cad.floors.length;
@@ -161,11 +178,11 @@ function buildElevationFromOrientation(
 
     // Render wall with opacity based on floor role
     const wallOpacity = floorRole === 'podium' || floorRole === 'ground' ? 0.9 : 0.8;
-    parts.push(renderWallElevation(leftX, rightX, topZ, baseZ, sz, wallH, printMode, isFront, isRear, isSide, typology, wallOpacity));
+    parts.push(renderWallElevation(leftX, rightX, topZ, baseZ, sz, wallH, printMode, isFront, isRear, isSide, typology, wallOpacity, baseZ, fi));
 
     // Course lines — vary by floor role
-    const courseSpacing = isFront ? 8 : (isSide ? 12 : 10);
-    const courseOpacity = isFront ? 1 : (isSide ? 0.5 : 0.7);
+    const courseSpacing = isFront ? 8 : (isSide ? 10 : 10);
+    const courseOpacity = isFront ? 1 : (isSide ? 0.75 : 0.7);
     const floorCourseMod = floorRole === 'podium' ? 1.3 : (floorRole === 'top' ? 0.7 : 1);
     for (let cy = sz(topZ + 0.1); cy < sz(baseZ) - 2; cy += courseSpacing * floorCourseMod) {
       parts.push(`<line x1="${leftX.toFixed(1)}" y1="${cy.toFixed(1)}" x2="${rightX.toFixed(1)}" y2="${cy.toFixed(1)}" stroke="${projColor}" stroke-width="${LW.HATCH}" opacity="${printMode ? 0.5 * courseOpacity : 0.3 * courseOpacity}"/>`);
@@ -262,7 +279,8 @@ function buildElevationFromOrientation(
       ));
     }
 
-    // Openings with elevation profiles and depth cues
+    // Collect visible openings on this facade for this floor
+    const visibleOpeningsOnFloor: { kind: string; xPx: number; wPx: number }[] = [];
     for (const o of cad.openings.filter((o) => o.floorId === floor.id)) {
       const host = cad.walls.find((wl) => wl.id === o.wallId);
       if (!host) continue;
@@ -302,6 +320,8 @@ function buildElevationFromOrientation(
       const sillY = sz(baseZ + sill + (head - sill));
       const headY = sz(baseZ + head);
 
+      visibleOpeningsOnFloor.push({ kind: o.kind, xPx: opX, wPx: opW });
+
       if (profile && isOnThisView) {
         parts.push(...renderOpeningElevation(profile, opX, opY, opW, opH, sillY, headY, printMode));
       } else {
@@ -321,6 +341,31 @@ function buildElevationFromOrientation(
           depthCfg, printMode,
           fType === 'public' ? 'public' : undefined,
         ));
+      }
+    }
+
+    // Blank facade mitigation: if this floor has 1 or fewer windows visible on this facade,
+    // add decorative panel/louver texture to avoid empty wall expanses
+    const windowCount = visibleOpeningsOnFloor.filter(o => o.kind === 'window').length;
+    if (windowCount <= 1 && (isFront || isRear)) {
+      const panelColor = printMode ? '#e2e8f0' : '#1e293b';
+      const panelOpacity = printMode ? 0.25 : 0.2;
+      const panelW = 28;
+      const panelGap = 16;
+      const totalWallPx = rightX - leftX;
+      if (totalWallPx > panelW * 2) {
+        const existingWindows = visibleOpeningsOnFloor.filter(o => o.kind === 'window');
+        const conflictZones = existingWindows.map(w => ({ from: w.xPx - 8, to: w.xPx + w.wPx + 8 }));
+        const isInConflict = (cx: number) => conflictZones.some(z => cx >= z.from && cx <= z.to);
+        for (let px = leftX + panelGap; px < rightX - panelW; px += panelW + panelGap) {
+          if (isInConflict(px)) continue;
+          parts.push(`<rect x="${px.toFixed(1)}" y="${(sz(baseZ) + 4).toFixed(1)}" width="${panelW.toFixed(1)}" height="${(wallH - 8).toFixed(1)}" fill="${panelColor}" stroke="${projColor}" stroke-width="0.5" opacity="${panelOpacity}" rx="2"/>`);
+          // Vertical center-line for louver suggestion
+          const cx = px + panelW / 2;
+          const louverH = wallH - 16;
+          const louverY = sz(baseZ) + 10;
+          parts.push(`<line x1="${cx.toFixed(1)}" y1="${louverY.toFixed(1)}" x2="${cx.toFixed(1)}" y2="${(louverY + louverH).toFixed(1)}" stroke="${projColor}" stroke-width="1" opacity="${panelOpacity * 0.7}" stroke-dasharray="2 4"/>`);
+        }
       }
     }
   }
@@ -354,6 +399,10 @@ function buildElevationFromOrientation(
       depthCfg.corniceDepthPx, depthCfg.copingDepthPx,
       printMode, art.parapetType,
     ));
+  } else {
+    // Wall-to-roof transition line for pitched roofs — always visible
+    const roofCol = printMode ? '#64748b' : '#78716c';
+    parts.push(`<line x1="${PAD.toFixed(1)}" y1="${sz(roofZ).toFixed(1)}" x2="${(PAD + bWidth * SCALE).toFixed(1)}" y2="${sz(roofZ).toFixed(1)}" stroke="${roofCol}" stroke-width="${LW.REFERENCE}" opacity="0.3"/>`);
   }
 
   // Column/pilaster rhythm
@@ -386,7 +435,7 @@ function buildElevationFromOrientation(
 
   // Entrance marker & canopy on front elevation
   if (isFront && entrance) {
-    const ex = sx(entrance.x);
+    const ex = sx(entrance.pos.x);
     parts.push(...renderEntranceCanopy(ex, groundY, rules.entranceEmphasis, printMode));
     parts.push(...renderLevelDatum(0, 'THRESHOLD', ex + 30, groundY + 2, false, printMode));
     const walkColor = printMode ? '#cbd5e1' : '#334155';
@@ -405,79 +454,20 @@ function buildElevationFromOrientation(
     }
   }
 
-  // Side elevation — orientation-differentiated (left vs right)
+  // Side elevation — compact annotation
   if (isSide) {
     const isLeft = orientation === 'left';
     const sideLabel = isLeft ? 'LEFT SIDE' : 'RIGHT SIDE';
     const utilY = h - 60;
 
     const depth = comp.width;
-    const totalServiceRooms = frontageOnThisView.filter(f =>
-      ['Kitchen', 'Laundry', 'Bathroom', 'Store Room', 'Garage', 'Utility Room'].includes(f.programme)
-    ).length;
-    const totalPublicRooms = frontageOnThisView.filter(f =>
-      ['Living Room', 'Reception', 'Lobby', 'Family Room', 'Lounge', 'Open Plan', 'Dining Room'].includes(f.programme)
-    ).length;
-    const serviceSide: 'left' | 'right' = totalServiceRooms > totalPublicRooms ? 'right' : 'left';
-    const isServiceSide = (isLeft && serviceSide === 'left') || (!isLeft && serviceSide === 'right');
-
-    // Orientation-aware side differentiation note
-    const sideOrient: 'left' | 'right' = orientation === 'left' ? 'left' : 'right';
-    parts.push(...renderSideDifferentiation(
-      PAD, PAD + bWidth * SCALE,
-      groundY - 30, utilY,
-      sideOrient, printMode, serviceSide,
-    ));
-
-    parts.push(`<text x="${(w / 2).toFixed(1)}" y="${(utilY - 10).toFixed(1)}" fill="${projColor}" font-size="7" font-style="italic" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">BUILDING DEPTH: ${depth.toFixed(1)}m</text>`);
-    parts.push(`<text x="${(w / 2).toFixed(1)}" y="${utilY.toFixed(1)}" fill="${projColor}" font-size="7" font-style="italic" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">${sideLabel} ELEVATION — ${isServiceSide ? 'SERVICE / ACCESS SIDE' : 'GARDEN / PRIVATE SIDE'}</text>`);
-
-    if (totalFloors > 1) {
-      parts.push(`<text x="${(w / 2).toFixed(1)}" y="${(utilY + 12).toFixed(1)}" fill="${projColor}" font-size="6" font-style="italic" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">${totalFloors} STOREYS · FLOOR-TO-FLOOR ${(totalHeight / totalFloors).toFixed(1)}m</text>`);
-    }
-
-    // Opening count differentiation per side
     const openingsOnThisSide = cad.openings.filter(o => {
       const host = cad.walls.find(w => w.id === o.wallId);
       if (!host) return false;
       const wallOrient = orientWall(host);
       return wallOrient === orientation;
     });
-    const openingCountInfo = openingsOnThisSide.length > 0
-      ? `${openingsOnThisSide.length} OPENINGS · ${openingsOnThisSide.filter(o => o.kind === 'window').length} WINDOWS · ${openingsOnThisSide.filter(o => o.kind === 'door').length} DOORS`
-      : '';
-    if (openingCountInfo) {
-      parts.push(`<text x="${(w / 2).toFixed(1)}" y="${(utilY + 24).toFixed(1)}" fill="${projColor}" font-size="5" font-style="italic" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">${openingCountInfo}</text>`);
-    }
 
-    // Different wall texture for service vs garden side
-    if (isServiceSide) {
-      const markerXLeft = PAD + 10;
-      const markerY = groundY - 15;
-      parts.push(`<rect x="${markerXLeft.toFixed(1)}" y="${markerY.toFixed(1)}" width="6" height="6" fill="${printMode ? '#cbd5e1' : '#334155'}" stroke="${projColor}" stroke-width="${LW.HATCH}" opacity="0.5"/>`);
-      parts.push(`<text x="${(markerXLeft + 10).toFixed(1)}" y="${(markerY + 5).toFixed(1)}" fill="${projColor}" font-size="5" font-family="Arial,Helvetica,sans-serif">SV</text>`);
-      // Service side has fewer openings — show solid wall panel marker
-      if (openingsOnThisSide.length <= 1) {
-        parts.push(`<rect x="${(PAD + bWidth * SCALE * 0.1).toFixed(1)}" y="${(groundY - 12).toFixed(1)}" width="${(bWidth * SCALE * 0.15).toFixed(1)}" height="6" fill="${printMode ? '#e2e8f0' : '#334155'}" stroke="${projColor}" stroke-width="0.5" opacity="0.3"/>`);
-        parts.push(`<text x="${(PAD + bWidth * SCALE * 0.18).toFixed(1)}" y="${(groundY - 8).toFixed(1)}" fill="${projColor}" font-size="4" font-family="Arial,Helvetica,sans-serif">BLIND WALL</text>`);
-      }
-    } else {
-      const markerXLeft = PAD + 10;
-      const markerY = groundY - 15;
-      parts.push(`<rect x="${markerXLeft.toFixed(1)}" y="${markerY.toFixed(1)}" width="6" height="6" fill="none" stroke="${projColor}" stroke-width="${LW.HATCH}" opacity="0.5"/>`);
-      parts.push(`<text x="${(markerXLeft + 10).toFixed(1)}" y="${(markerY + 5).toFixed(1)}" fill="${projColor}" font-size="5" font-family="Arial,Helvetica,sans-serif">GV</text>`);
-    }
-
-    // Room-specific side annotation
-    if (frontageOnThisView.length > 0) {
-      const uniqueRooms = [...new Set(frontageOnThisView.map(f => f.roomName))];
-      const roomAnnotation = uniqueRooms.length > 3
-        ? uniqueRooms.slice(0, 3).join(' · ') + ' ...'
-        : uniqueRooms.join(' · ');
-      parts.push(`<text x="${(w / 2).toFixed(1)}" y="${(utilY + 36).toFixed(1)}" fill="${projColor}" font-size="5" font-style="italic" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">ROOMS: ${roomAnnotation}</text>`);
-    }
-
-    // Shaft/stair marker if stair block exists on this side
     const stairOnSide = cad.blocks.find(b => {
       if (b.kind !== 'stair') return false;
       const stairWalls = cad.walls.filter(w => {
@@ -487,43 +477,57 @@ function buildElevationFromOrientation(
       });
       return stairWalls.length > 0;
     });
-    if (stairOnSide) {
-      const stairX = PAD + bWidth * SCALE * 0.5;
-      const stairY = groundY - 40;
-      parts.push(`<rect x="${(stairX - 6).toFixed(1)}" y="${stairY.toFixed(1)}" width="12" height="8" fill="none" stroke="${projColor}" stroke-width="${LW.REFERENCE}" stroke-dasharray="3 2" opacity="0.5"/>`);
-      parts.push(`<text x="${stairX.toFixed(1)}" y="${(stairY - 3).toFixed(1)}" fill="${projColor}" font-size="5" font-style="italic" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">SHAFT</text>`);
+
+    // Compact annotation block — one line for orientation/depth, one for openings
+    const openingSummary = openingsOnThisSide.length > 0
+      ? ` · ${openingsOnThisSide.length} openings (${openingsOnThisSide.filter(o => o.kind === 'window').length}W / ${openingsOnThisSide.filter(o => o.kind === 'door').length}D)`
+      : '';
+    const storeyInfo = totalFloors > 1 ? ` · ${totalFloors} storeys` : '';
+    const shaftInfo = stairOnSide ? ' · stair shaft' : '';
+    parts.push(`<text x="${(w / 2).toFixed(1)}" y="${utilY.toFixed(1)}" fill="${projColor}" font-size="7" font-style="italic" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">${sideLabel} · ${depth.toFixed(1)}m deep${openingSummary}${storeyInfo}${shaftInfo}</text>`);
+
+    // Room annotation on one line
+    if (frontageOnThisView.length > 0) {
+      const uniqueRooms = [...new Set(frontageOnThisView.map(f => f.roomName))];
+      const roomShort = uniqueRooms.slice(0, 4).join(' · ');
+      parts.push(`<text x="${(w / 2).toFixed(1)}" y="${(utilY + 12).toFixed(1)}" fill="${projColor}" font-size="5" font-style="italic" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">${uniqueRooms.length > 4 ? roomShort + ' …' : roomShort}</text>`);
     }
 
+    // Entrance canopy on side if present
     if (entranceForSide) {
-      const ex = sx(entranceForSide.x);
+      const ex = sx(entranceForSide.pos.y);
       parts.push(...renderEntranceCanopy(ex, groundY, 'moderate', printMode));
     }
 
-    const bwColor = printMode ? '#cbd5e1' : '#334155';
-    parts.push(`<line x1="0" y1="${groundY.toFixed(1)}" x2="${PAD.toFixed(1)}" y2="${groundY.toFixed(1)}" stroke="${bwColor}" stroke-width="${LW.HATCH}" stroke-dasharray="8 4" opacity="0.3"/>`);
-
-    if (buildingClass !== 'residential-house') {
-      parts.push(`<rect x="${(PAD - 5).toFixed(1)}" y="${(groundY - 20).toFixed(1)}" width="5" height="20" fill="none" stroke="${bwColor}" stroke-width="${LW.REFERENCE}" stroke-dasharray="2 2" opacity="0.3"/>`);
+    // Blank wall panel on side with few openings (using same mitigation pattern)
+    const sideWindows = openingsOnThisSide.filter(o => o.kind === 'window');
+    if (sideWindows.length <= 1) {
+      const panelColor = printMode ? '#e2e8f0' : '#1e293b';
+      const panelOpacity = printMode ? 0.2 : 0.15;
+      const totalWallPx = bWidth * SCALE;
+      if (totalWallPx > 56) {
+        const conflictZones = sideWindows.map(w => {
+          const host = cad.walls.find(h => h.id === w.wallId);
+          if (!host) return { from: -100, to: -100 };
+          const oh = host.start.y;
+          const wx = sx(oh) - w.width * SCALE / 2;
+          return { from: wx - 8, to: wx + w.width * SCALE + 8 };
+        });
+        const isInConflict = (cx: number) => conflictZones.some(z => cx >= z.from && cx <= z.to);
+        for (let px = PAD + 16; px < PAD + totalWallPx - 28; px += 44) {
+          if (isInConflict(px)) continue;
+          const sideWallHpx = (totalHeight * SCALE);
+          parts.push(`<rect x="${px.toFixed(1)}" y="${(sz(totalHeight) + 4).toFixed(1)}" width="28" height="${(sideWallHpx - 8).toFixed(1)}" fill="${panelColor}" stroke="${projColor}" stroke-width="0.5" opacity="${panelOpacity}" rx="2"/>`);
+        }
+      }
     }
-
-    parts.push(`<line x1="${PAD.toFixed(1)}" y1="${groundY.toFixed(1)}" x2="${PAD.toFixed(1)}" y2="${(groundY + 20).toFixed(1)}" stroke="${projColor}" stroke-width="${LW.REFERENCE}" opacity="0.3"/>`);
-    parts.push(`<line x1="${(PAD + bWidth * SCALE).toFixed(1)}" y1="${groundY.toFixed(1)}" x2="${(PAD + bWidth * SCALE).toFixed(1)}" y2="${(groundY + 20).toFixed(1)}" stroke="${projColor}" stroke-width="${LW.REFERENCE}" opacity="0.3"/>`);
   }
 
-  // Room-to-façade annotations
-  if (frontageOnThisView.length > 0) {
+  // Room-to-façade annotations — one line only
+  if (frontageOnThisView.length > 0 && !isSide) {
     const uniqueRooms = [...new Set(frontageOnThisView.map(f => f.roomName))];
     const roomLabelY = h - 10;
     parts.push(`<text x="${PAD.toFixed(1)}" y="${roomLabelY.toFixed(1)}" fill="${textSub}" font-size="6" font-family="Arial,Helvetica,sans-serif">Rooms: ${uniqueRooms.join(' · ')}</text>`);
-
-    const frontageTypes = [...new Set(frontageOnThisView.map(f => {
-      if (['Living Room', 'Reception', 'Lobby', 'Family Room', 'Lounge', 'Open Plan', 'Dining Room'].includes(f.programme)) return 'PUBLIC';
-      if (['Kitchen', 'Laundry', 'Bathroom', 'Store Room', 'Garage'].includes(f.programme)) return 'SERVICE';
-      return 'PRIVATE';
-    }))];
-    if (frontageTypes.length > 0) {
-      parts.push(`<text x="${PAD.toFixed(1)}" y="${(roomLabelY + 10).toFixed(1)}" fill="${projColor}" font-size="5" font-style="italic" font-family="Arial,Helvetica,sans-serif">Frontage: ${frontageTypes.join(' / ')}</text>`);
-    }
   }
 
   // Title
@@ -641,9 +645,24 @@ function buildElevationFromOrientation(
     parts.push(renderEntouragePerson(250, sz(0), 1.2, printMode));
   }
 
-  // Height reference line
-  parts.push(`<line x1="40" y1="${sz(roofZ).toFixed(1)}" x2="40" y2="${(groundY - 10).toFixed(1)}" stroke="${projColor}" stroke-width="${LW.REFERENCE}" stroke-dasharray="4 4"/>`);
-  parts.push(`<text x="38" y="${(groundY - 14).toFixed(1)}" fill="${textSub}" font-size="7" text-anchor="end" font-family="Arial,Helvetica,sans-serif">HT ${totalHeight.toFixed(2)}m</text>`);
+  // Height reference line — architectural dimension chain with floor-to-floor callouts
+  const refCol = printMode ? '#64748b' : '#94a3b8';
+  const hRefX = 40;
+  parts.push(`<line x1="${hRefX}" y1="${sz(roofZ).toFixed(1)}" x2="${hRefX}" y2="${(groundY - 10).toFixed(1)}" stroke="${refCol}" stroke-width="${LW.REFERENCE}" stroke-dasharray="4 4"/>`);
+  parts.push(`<line x1="${(hRefX - 4)}" y1="${sz(roofZ).toFixed(1)}" x2="${(hRefX + 4)}" y2="${sz(roofZ).toFixed(1)}" stroke="${refCol}" stroke-width="${LW.REFERENCE}"/>`);
+  parts.push(`<line x1="${(hRefX - 4)}" y1="${(groundY - 10).toFixed(1)}" x2="${(hRefX + 4)}" y2="${(groundY - 10).toFixed(1)}" stroke="${refCol}" stroke-width="${LW.REFERENCE}"/>`);
+  parts.push(`<text x="${(hRefX - 4)}" y="${(groundY - 18).toFixed(1)}" fill="${textSub}" font-size="7" text-anchor="end" font-family="Arial,Helvetica,sans-serif">HT ${totalHeight.toFixed(2)}m</text>`);
+  parts.push(`<text x="${(hRefX - 4)}" y="${(sz(roofZ) + 12).toFixed(1)}" fill="${textSub}" font-size="5" text-anchor="end" font-family="Arial,Helvetica,sans-serif">${(totalFloors > 1 ? totalFloors + ' STOREYS · ' : '')}EAVE ${roofZ.toFixed(2)}m</text>`);
+  // Floor-to-floor dimension callouts on the height reference chain
+  if (cad.floors.length > 1) {
+    for (let fi = 1; fi < cad.floors.length; fi++) {
+      const fl = cad.floors[fi];
+      const flPrev = cad.floors[fi - 1];
+      const flMidY = (sz(fl.elevation + fl.height) + sz(flPrev.elevation + flPrev.height)) / 2;
+      const ftf = (fl.elevation + fl.height) - (flPrev.elevation + flPrev.height);
+      parts.push(`<text x="${(hRefX + 6).toFixed(1)}" y="${flMidY.toFixed(1)}" fill="${textSub}" font-size="5" font-family="Arial,Helvetica,sans-serif">F→F ${ftf.toFixed(2)}m</text>`);
+    }
+  }
 
   parts.push(renderProvenanceNote(ELEVATION_DERIVED_PROVENANCE, 8, h - 14));
 
@@ -659,53 +678,138 @@ function renderWallElevation(
   sz: (z: number) => number,
   wallH: number,
   printMode: boolean,
-  isFront: boolean,
+  _isFront: boolean,
   _isRear: boolean,
-  isSide: boolean,
+  _isSide: boolean,
   _typology: string,
   opacityOverride?: number,
+  storeyMidY?: number,
+  storeyIndex?: number,
 ): string {
   const wallFill = printMode ? '#e2e8f0' : '#0f172a';
   const wallStroke = printMode ? '#0f172a' : '#334155';
-  const opacity = opacityOverride ?? (isFront ? 0.9 : 0.85);
-  const hatchOpacity = printMode ? 0.12 : (isFront ? 0.22 : 0.16);
+  const opacity = opacityOverride ?? (_isFront ? 0.9 : 0.85);
+  const hatchOpacity = printMode ? 0.12 : (_isFront ? 0.22 : 0.16);
 
   const parts: string[] = [];
 
-  parts.push(`<rect x="${leftX.toFixed(1)}" y="${sz(topZ).toFixed(1)}" width="${(rightX - leftX).toFixed(1)}" height="${wallH.toFixed(1)}" fill="${wallFill}" stroke="${wallStroke}" stroke-width="${LW.PROFILE}" opacity="${opacity}"/>`);
-  parts.push(`<rect x="${leftX.toFixed(1)}" y="${sz(topZ).toFixed(1)}" width="${(rightX - leftX).toFixed(1)}" height="${wallH.toFixed(1)}" fill="url(#brick-hatch)" opacity="${hatchOpacity}"/>`);
+  const faceTopY = sz(topZ);
+  const faceBotY = sz(baseZ);
 
-  // Wall thickness depth cue at edges
-  if (isFront || isSide) {
-    const edgeColor = printMode ? '#475569' : '#1e293b';
-    parts.push(`<line x1="${leftX.toFixed(1)}" y1="${sz(topZ).toFixed(1)}" x2="${leftX.toFixed(1)}" y2="${sz(topZ - (topZ - baseZ) * 0.95).toFixed(1)}" stroke="${edgeColor}" stroke-width="1.5" opacity="0.3"/>`);
-    parts.push(`<line x1="${rightX.toFixed(1)}" y1="${sz(topZ).toFixed(1)}" x2="${rightX.toFixed(1)}" y2="${sz(topZ - (topZ - baseZ) * 0.95).toFixed(1)}" stroke="${edgeColor}" stroke-width="1.5" opacity="0.3"/>`);
+  parts.push(`<rect x="${leftX.toFixed(1)}" y="${faceTopY.toFixed(1)}" width="${(rightX - leftX).toFixed(1)}" height="${wallH.toFixed(1)}" fill="${wallFill}" stroke="${wallStroke}" stroke-width="${LW.PROFILE}" opacity="${opacity}"/>`);
+  parts.push(`<rect x="${leftX.toFixed(1)}" y="${faceTopY.toFixed(1)}" width="${(rightX - leftX).toFixed(1)}" height="${wallH.toFixed(1)}" fill="url(#brick-hatch)" opacity="${hatchOpacity}"/>`);
+
+  // Subtle wall surface gradient for 3D depth
+  parts.push(...renderWallSurfaceGradient(leftX, rightX, faceTopY, wallH));
+
+  // Storey band between floors (slab shadow emphasis)
+  if (storeyMidY != null && storeyIndex != null && storeyIndex > 0) {
+    const bandY = sz(storeyMidY);
+    parts.push(...renderStoreyBand(leftX, rightX, bandY, printMode));
   }
+
+  // Wall edge vertical shadows for depth
+  parts.push(...renderWallEdgeShadow(leftX, rightX, faceTopY, faceBotY, printMode));
 
   return parts.join('');
 }
 
 function renderBasicOpening(
   opX: number, opY: number, opW: number, opH: number,
-  isWindow: boolean, _sill: number, _head: number,
+  isWindow: boolean, sill: number, head: number,
   printMode: boolean,
 ): string {
   const openingFill = printMode ? '#0b1220' : '#0b1220';
   const wallStroke = printMode ? '#0f172a' : '#334155';
   const projColor = printMode ? '#94a3b8' : '#475569';
   const glassFill = printMode ? '#f1f5f9' : '#1e293b';
+  const trimColor = printMode ? '#64748b' : '#cbd5e1';
+  const textSub = printMode ? '#475569' : '#94a3b8';
+  const sillY = opY + opH;
+  const headY = opY;
 
   const parts: string[] = [];
   parts.push(`<rect x="${opX.toFixed(1)}" y="${opY.toFixed(1)}" width="${opW.toFixed(1)}" height="${opH.toFixed(1)}" fill="${openingFill}" stroke="${wallStroke}" stroke-width="${LW.PROJECTION}"/>`);
+
+  // Inner shadow for opening depth
+  const shadowCol = printMode ? '#475569' : '#0a0f1a';
+  parts.push(`<line x1="${opX.toFixed(1)}" y1="${opY.toFixed(1)}" x2="${(opX + opW).toFixed(1)}" y2="${opY.toFixed(1)}" stroke="${shadowCol}" stroke-width="1.5" opacity="0.3"/>`);
+  parts.push(`<line x1="${opX.toFixed(1)}" y1="${opY.toFixed(1)}" x2="${opX.toFixed(1)}" y2="${(opY + opH).toFixed(1)}" stroke="${shadowCol}" stroke-width="1.5" opacity="0.3"/>`);
+  parts.push(`<line x1="${(opX + opW).toFixed(1)}" y1="${opY.toFixed(1)}" x2="${(opX + opW).toFixed(1)}" y2="${(opY + opH).toFixed(1)}" stroke="${shadowCol}" stroke-width="0.75" opacity="0.2"/>`);
 
   if (isWindow) {
     const frameD = 4;
     const innerW = opW - frameD * 2;
     const innerH = opH - frameD * 2;
     parts.push(`<rect x="${(opX + frameD).toFixed(1)}" y="${(opY + frameD).toFixed(1)}" width="${innerW.toFixed(1)}" height="${innerH.toFixed(1)}" fill="${glassFill}" stroke="${projColor}" stroke-width="${LW.HATCH}"/>`);
+    // Glass gradient overlay
+    if (!printMode) {
+      parts.push(`<rect x="${(opX + frameD).toFixed(1)}" y="${(opY + frameD).toFixed(1)}" width="${innerW.toFixed(1)}" height="${innerH.toFixed(1)}" fill="url(#glass-gradient)" opacity="0.5"/>`);
+    }
+
+    // Sash lines — horizontal divider for sliding / double-hung windows
+    if (innerH > 30) {
+      const sashY1 = opY + opH * 0.45;
+      const sashY2 = opY + opH * 0.9;
+      parts.push(`<line x1="${(opX + frameD + 2).toFixed(1)}" y1="${sashY1.toFixed(1)}" x2="${(opX + opW - frameD - 2).toFixed(1)}" y2="${sashY1.toFixed(1)}" stroke="${projColor}" stroke-width="0.75" opacity="0.5"/>`);
+      parts.push(`<line x1="${(opX + frameD + 2).toFixed(1)}" y1="${sashY2.toFixed(1)}" x2="${(opX + opW - frameD - 2).toFixed(1)}" y2="${sashY2.toFixed(1)}" stroke="${projColor}" stroke-width="0.75" opacity="0.5"/>`);
+    }
+
+    if (innerH > 40) {
+      const transomY = opY + opH * 0.33;
+      parts.push(`<line x1="${(opX + frameD).toFixed(1)}" y1="${transomY.toFixed(1)}" x2="${(opX + opW - frameD).toFixed(1)}" y2="${transomY.toFixed(1)}" stroke="${projColor}" stroke-width="0.75"/>`);
+    }
+
+    // Frame reveal on sides with shadow
+    const reveal = 3;
+    const revealFill = printMode ? '#f1f5f9' : '#0f172a';
+    parts.push(`<rect x="${(opX - reveal).toFixed(1)}" y="${opY.toFixed(1)}" width="${reveal.toFixed(1)}" height="${opH.toFixed(1)}" fill="${revealFill}" stroke="${projColor}" stroke-width="${LW.HATCH}"/>`);
+    parts.push(`<rect x="${(opX + opW).toFixed(1)}" y="${opY.toFixed(1)}" width="${reveal.toFixed(1)}" height="${opH.toFixed(1)}" fill="${revealFill}" stroke="${projColor}" stroke-width="${LW.HATCH}"/>`);
+
+    // Sill projection with drip
+    const sillProj = 4;
+    parts.push(`<rect x="${(opX - 2).toFixed(1)}" y="${sillY.toFixed(1)}" width="${(opW + 4).toFixed(1)}" height="${sillProj.toFixed(1)}" fill="${printMode ? '#e2e8f0' : '#1e293b'}" stroke="${trimColor}" stroke-width="${LW.HATCH}"/>`);
+    parts.push(`<line x1="${(opX - 2).toFixed(1)}" y1="${(sillY + 1).toFixed(1)}" x2="${(opX + opW + 2).toFixed(1)}" y2="${(sillY + 1).toFixed(1)}" stroke="${shadowCol}" stroke-width="0.5" opacity="0.4"/>`);
+    // Drip groove
+    const dripX = opX + opW / 2;
+    parts.push(`<line x1="${dripX.toFixed(1)}" y1="${(sillY + sillProj).toFixed(1)}" x2="${dripX.toFixed(1)}" y2="${(sillY + sillProj + 1).toFixed(1)}" stroke="${trimColor}" stroke-width="0.5" opacity="0.4"/>`);
+
+    // Head / lintel line
+    parts.push(`<rect x="${opX.toFixed(1)}" y="${(headY - 4).toFixed(1)}" width="${opW.toFixed(1)}" height="4" fill="${trimColor}" stroke="none" opacity="0.6"/>`);
+    parts.push(`<line x1="${opX.toFixed(1)}" y1="${(headY - 3).toFixed(1)}" x2="${(opX + opW).toFixed(1)}" y2="${(headY - 3).toFixed(1)}" stroke="${shadowCol}" stroke-width="0.5" opacity="0.3"/>`);
+
+    // Sill annotation
+    parts.push(`<text x="${(opX + opW + 5).toFixed(1)}" y="${(sillY + 8).toFixed(1)}" fill="${textSub}" font-size="6" font-family="Arial,Helvetica,sans-serif">SILL +${sill.toFixed(2)}</text>`);
+    parts.push(`<text x="${(opX + opW + 5).toFixed(1)}" y="${(headY - 6).toFixed(1)}" fill="${textSub}" font-size="6" font-family="Arial,Helvetica,sans-serif">HD +${head.toFixed(2)}</text>`);
   } else {
-    const frameD = 3;
-    parts.push(`<rect x="${(opX + frameD).toFixed(1)}" y="${(opY + frameD).toFixed(1)}" width="${(opW - frameD * 2).toFixed(1)}" height="${(opH - frameD).toFixed(1)}" fill="${printMode ? '#e2e8f0' : '#1e293b'}" stroke="${projColor}" stroke-width="${LW.PROJECTION}"/>`);
+    const frameD = 4;
+    const panelFill = printMode ? '#e2e8f0' : '#1e293b';
+    parts.push(`<rect x="${(opX + frameD).toFixed(1)}" y="${(opY + frameD).toFixed(1)}" width="${(opW - frameD * 2).toFixed(1)}" height="${(opH - frameD).toFixed(1)}" fill="${panelFill}" stroke="${projColor}" stroke-width="${LW.PROJECTION}"/>`);
+
+    // Door panel graphic — stile-and-rail pattern
+    if (opW > 20 && opH > 30) {
+      const panelInsetX = 6;
+      const panelInsetY = 8;
+      const panelW = opW - panelInsetX * 2 - frameD * 2;
+      const panelH = opH * 0.35;
+      parts.push(`<rect x="${(opX + frameD + panelInsetX).toFixed(1)}" y="${(opY + frameD + panelInsetY).toFixed(1)}" width="${panelW.toFixed(1)}" height="${panelH.toFixed(1)}" fill="none" stroke="${projColor}" stroke-width="0.75"/>`);
+      // Bottom panel
+      const botPanelY = opY + frameD + (opH - frameD) * 0.55;
+      parts.push(`<rect x="${(opX + frameD + panelInsetX).toFixed(1)}" y="${botPanelY.toFixed(1)}" width="${panelW.toFixed(1)}" height="${((opH - frameD) * 0.35).toFixed(1)}" fill="none" stroke="${projColor}" stroke-width="0.75"/>`);
+      // Mid rail
+      parts.push(`<line x1="${(opX + frameD + panelInsetX).toFixed(1)}" y1="${(opY + frameD + panelInsetY + panelH + 4).toFixed(1)}" x2="${(opX + opW - frameD - panelInsetX).toFixed(1)}" y2="${(opY + frameD + panelInsetY + panelH + 4).toFixed(1)}" stroke="${projColor}" stroke-width="0.5" opacity="0.5"/>`);
+      // Handle — lever on latch side
+      const handleX = opX + opW * 0.82;
+      const handleY = opY + opH * 0.5;
+      parts.push(`<rect x="${(handleX - 1).toFixed(1)}" y="${(handleY - 6).toFixed(1)}" width="2" height="12" fill="${trimColor}" rx="1" opacity="0.8"/>`);
+      parts.push(`<rect x="${(handleX + 1).toFixed(1)}" y="${(handleY - 2).toFixed(1)}" width="6" height="3" fill="${trimColor}" rx="1" opacity="0.8"/>`);
+    }
+
+    // Head / lintel line for door
+    parts.push(`<rect x="${opX.toFixed(1)}" y="${(headY - 4).toFixed(1)}" width="${opW.toFixed(1)}" height="4" fill="${trimColor}" stroke="none" opacity="0.6"/>`);
+    parts.push(`<line x1="${opX.toFixed(1)}" y1="${(headY - 3).toFixed(1)}" x2="${(opX + opW).toFixed(1)}" y2="${(headY - 3).toFixed(1)}" stroke="${shadowCol}" stroke-width="0.5" opacity="0.3"/>`);
+
+    parts.push(`<text x="${(opX + opW + 5).toFixed(1)}" y="${(headY + 10).toFixed(1)}" fill="${textSub}" font-size="6" font-family="Arial,Helvetica,sans-serif">HD +${head.toFixed(2)}</text>`);
   }
 
   return parts.join('');
@@ -740,7 +844,7 @@ function inferTypology(programme: Record<string, string>): string {
   if (Object.keys(programme).length >= 8) return 'apartment block';
 
   const hasBedrooms = roomSet.has('bedroom 1') || roomSet.has('bedroom 2') || roomSet.has('bedroom 3');
-  const hasLiving = roomSet.has('living room');
+  const hasLiving = roomSet.has('living room') || roomSet.has('lounge / dining') || roomSet.has('living / kitchen / dining') || roomSet.has('lounge') || roomSet.has('family room');
   const hasKitchen = roomSet.has('kitchen');
 
   if (hasBedrooms && hasLiving && hasKitchen) {

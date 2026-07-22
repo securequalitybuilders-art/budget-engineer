@@ -3,7 +3,7 @@ import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
-import { Plus, Home, Settings, Folder, Sofa, Monitor, Globe, BookOpen, Bug, ShieldCheck, FileSpreadsheet, FolderOpen, ShoppingCart, BarChart3, Eye, FileText } from 'lucide-react';
+import { Plus, Home, Settings, Folder, Sofa, Monitor, Globe, BookOpen, Bug, ShieldCheck, FileSpreadsheet, FolderOpen, ShoppingCart, BarChart3, Eye, FileText, Rocket } from 'lucide-react';
 import { DisciplineSwitcher } from '@/components/studio/DisciplineSwitcher';
 import { RoleSwitcher } from '@/components/auth/RoleSwitcher';
 import { LocaleSwitcher } from '@/components/common/LocaleSwitcher';
@@ -182,6 +182,13 @@ export function Sidebar() {
       <RoleSwitcher />
       <LocaleSwitcher />
 
+      <Link
+        to="/showcase"
+        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+      >
+        <Rocket size={16} />
+        Showcase
+      </Link>
       <Link
         to="/academy"
         className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"

@@ -1,7 +1,7 @@
 import type { RoomRect } from '../../domain/plan'
 
 const SNAP_GRID = 0.05
-const OVERLAP_EPS = 0.01
+const OVERLAP_EPS = 0.03
 
 export function snap(v: number, grid: number = SNAP_GRID): number {
   return Math.round(v / grid) * grid

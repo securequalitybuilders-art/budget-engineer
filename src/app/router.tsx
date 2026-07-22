@@ -32,6 +32,7 @@ const HandoverStudio = lazy(() => import('@/pages/studio/HandoverStudio').then((
 const ProcurementStudio = lazy(() => import('@/pages/studio/ProcurementStudio').then((m) => ({ default: m.ProcurementStudio })));
 const ProjectControlsStudio = lazy(() => import('@/pages/studio/ProjectControlsStudio').then((m) => ({ default: m.ProjectControlsStudio })));
 const PilotReviewPage = lazy(() => import('@/pages/pilot/PilotReviewPage').then((m) => ({ default: m.PilotReviewPage })));
+const Showcase = lazy(() => import('@/pages/Showcase').then((m) => ({ default: m.Showcase })));
 
 function SafeRoute({ children }: { children: React.ReactNode }) {
   return <ErrorBoundary><Suspense fallback={<PageLoader />}>{children}</Suspense></ErrorBoundary>;
@@ -163,6 +164,10 @@ const router = createBrowserRouter([
       {
         path: '/pilot-review',
         element: <SafeRoute><PilotReviewPage /></SafeRoute>,
+      },
+      {
+        path: '/showcase',
+        element: <SafeRoute><Showcase /></SafeRoute>,
       },
       {
         path: '/academy',

@@ -176,6 +176,17 @@ After every deployment (preview or production), verify:
 - [ ] Route transitions are smooth
 - [ ] No memory leaks on prolonged use (optional spot-check)
 
+### Known Ops Notes
+
+> **PWA Cache Stale State**
+> After major front-end drawing or runtime changes, production may still serve an older cached bundle due to the Service Worker.
+> Always verify production in a **fresh incognito session**.
+> If production output remains stale despite a successful deploy, manually unregister the service worker and clear site data:
+> 1. Press `F12` > Application > Service Workers > **Unregister**
+> 2. Storage > **Clear site data**
+> 3. Hard refresh (`Ctrl+Shift+R`)
+
+
 ---
 
 ## Environment Configuration

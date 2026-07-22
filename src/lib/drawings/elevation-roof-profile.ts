@@ -112,10 +112,24 @@ function renderPitchedRoof(
   // Ridge tile underlayment
   parts.push(`<polyline points="${(apexX - 6).toFixed(1)},${(apexY - 8).toFixed(1)} ${(apexX + 6).toFixed(1)},${(apexY - 8).toFixed(1)} ${(apexX + 6).toFixed(1)},${(apexY - 4).toFixed(1)} ${(apexX - 6).toFixed(1)},${(apexY - 4).toFixed(1)}" fill="none" stroke="${trimColor}" stroke-width="${LW.PARTITION}"/>`);
 
+  // Gutter profile at both eaves
+  const gutterH = 4;
+  const gutterW = 3;
+  parts.push(`<rect x="${(lEave - 1).toFixed(1)}" y="${(eavesY - gutterH).toFixed(1)}" width="${gutterW.toFixed(1)}" height="${gutterH.toFixed(1)}" fill="${roofFill}" stroke="${trimColor}" stroke-width="0.75"/>`);
+  parts.push(`<rect x="${(rEave - 2).toFixed(1)}" y="${(eavesY - gutterH).toFixed(1)}" width="${gutterW.toFixed(1)}" height="${gutterH.toFixed(1)}" fill="${roofFill}" stroke="${trimColor}" stroke-width="0.75"/>`);
+  // Gutter outlet/downpipe hint
+  const downpipeX = lEave + 30;
+  parts.push(`<line x1="${downpipeX.toFixed(1)}" y1="${(eavesY - gutterH).toFixed(1)}" x2="${downpipeX.toFixed(1)}" y2="${(eavesY + 4).toFixed(1)}" stroke="${trimColor}" stroke-width="1" opacity="0.5"/>`);
+
+  // Barge board / fly rafter at gable ends
+  const bargeCol = printMode ? '#64748b' : '#cbd5e1';
+  parts.push(`<line x1="${(lEave - 2).toFixed(1)}" y1="${(eavesY - fasciaH + 2).toFixed(1)}" x2="${(apexX - 2).toFixed(1)}" y2="${(apexY - fasciaH + 2).toFixed(1)}" stroke="${bargeCol}" stroke-width="1.5" opacity="0.7"/>`);
+  parts.push(`<line x1="${(rEave + 2).toFixed(1)}" y1="${(eavesY - fasciaH + 2).toFixed(1)}" x2="${(apexX + 2).toFixed(1)}" y2="${(apexY - fasciaH + 2).toFixed(1)}" stroke="${bargeCol}" stroke-width="1.5" opacity="0.7"/>`);
+
   // Roof annotation
   const textCol = printMode ? '#475569' : '#94a3b8';
   parts.push(`<text x="${apexX.toFixed(1)}" y="${(apexY - 20).toFixed(1)}" fill="${textCol}" font-size="7" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">PITCHED ROOF · CHROMADEK ON TIMBER TRUSSES</text>`);
-  parts.push(`<text x="${apexX.toFixed(1)}" y="${(apexY - 14).toFixed(1)}" fill="${textCol}" font-size="5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">FASCIA ${fasciaDepthPx}mm · EAVE ${eavesDepthPx}mm</text>`);
+  parts.push(`<text x="${apexX.toFixed(1)}" y="${(apexY - 14).toFixed(1)}" fill="${textCol}" font-size="5" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">FASCIA ${fasciaDepthPx}mm · EAVE ${eavesDepthPx}mm · GUTTER 100mm</text>`);
 
   return parts;
 }

@@ -289,17 +289,18 @@ describe('P13.9 — Multi-Storey Façade Expression', () => {
     expect(svg).toContain('GROUND');
   });
 
-  it('rear elevation for multi-storey shows service core annotation', () => {
+  it('rear elevation for multi-storey shows room and storey annotation', () => {
     const cad = makeMultiStoreyCad(4);
     const svg = buildElevationSvg(cad, 'rear');
-    expect(svg).toContain('SERVICE');
+    expect(svg).toContain('Rooms:');
     expect(svg).toContain('STOREY');
   });
 
   it('side elevation for multi-storey shows floor-to-floor info', () => {
     const cad = makeMultiStoreyCad(3);
     const svg = buildElevationSvg(cad, 'left');
-    expect(svg).toContain('STOREYS');
+    expect(svg).toContain('storeys');
+    expect(svg).toContain('F→F');
   });
 
   it('top floor annotations appear for apartment typology', () => {
@@ -410,10 +411,10 @@ describe('P13.9 — No Regression in P13.8 View Quality', () => {
     expect(svg).toContain('REAR');
   });
 
-  it('side elevation still has BUILDING DEPTH', () => {
+  it('side elevation still has depth annotation', () => {
     const cad = makeMinimalCad();
     const svg = buildElevationSvg(cad, 'left');
-    expect(svg).toContain('BUILDING DEPTH');
+    expect(svg).toMatch(/m deep/);
   });
 
   it('datum levels still present', () => {
