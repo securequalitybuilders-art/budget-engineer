@@ -6,6 +6,11 @@ import { renderRoofPlan } from '@/components/drawings/roofPlanModel'
 import { renderCeilingPlan } from '@/components/drawings/ceilingPlanModel'
 import { renderFloorPlanSheet } from '@/components/drawings/planSheetModel'
 import { computeFrontElevation, computeSideElevation, computeSection, type ElevationDrawing } from '@/adapters/planToElevations'
+import {
+  computeEnhancedFrontElevation,
+  computeEnhancedSideElevation,
+  computeEnhancedSection,
+} from '@/adapters/elevationEngine'
 import { renderSectionSheet } from '@/components/drawings/sectionModel'
 import {
   CAD_THIN, CAD_HAIR, CAD_MEDIUM, INK, PAPER,
@@ -34,7 +39,8 @@ interface PresentationSheetViewProps {
   pitchHeight: number
 }
 
-export function PresentationSheetView({ activePlan, design: _design, floors, storeyHeight, pitchHeight }: PresentationSheetViewProps) {
+export function PresentationSheetView({ activePlan, design, floors, storeyHeight, pitchHeight }: PresentationSheetViewProps) {
+  const buildingType = design?.buildingType
   const svgRef = useRef<SVGSVGElement>(null)
   const [exportError, setExportError] = useState<string | null>(null)
   const [exporting, setExporting] = useState<'pdf' | 'png' | null>(null)
@@ -43,11 +49,11 @@ export function PresentationSheetView({ activePlan, design: _design, floors, sto
 
   const rendered = useMemo(() => {
     try {
-      return renderAllCells(activePlan, floors, storeyHeight, pitchHeight, layout)
+      return renderAllCells(activePlan, floors, storeyHeight, pitchHeight, layout, buildingType)
     } catch {
       return null
     }
-  }, [activePlan, floors, storeyHeight, pitchHeight, layout])
+  }, [activePlan, floors, storeyHeight, pitchHeight, layout, buildingType])
 
   const handleExportPng = useCallback(async () => {
     setExportError(null)
@@ -136,6 +142,7 @@ function renderAllCells(
   storeyHeight: number,
   pitchHeight: number,
   layout: { sheetW: number; sheetH: number; cells: CellRect[] },
+  buildingType?: string,
 ): ReactNode {
   if (!plan || plan.width <= 0 || plan.height <= 0 || floors < 1) return null
 
@@ -146,7 +153,7 @@ function renderAllCells(
   )
 
   for (const cell of layout.cells) {
-    const cellEls = renderCellContent(cell, plan, floors, storeyHeight, pitchHeight)
+    const cellEls = renderCellContent(cell, plan, floors, storeyHeight, pitchHeight, buildingType)
     if (cellEls) {
       elements.push(...cellEls)
     } else {
@@ -169,6 +176,7 @@ function renderCellContent(
   floors: number,
   storeyHeight: number,
   pitchHeight: number,
+  buildingType?: string,
 ): ReactNode[] | null {
   const pad = 8
   const innerW = cell.w - pad * 2
@@ -176,17 +184,17 @@ function renderCellContent(
 
   switch (cell.id) {
     case 'front-elevation': {
-      const drawing = computeFrontElevation(plan, floors, storeyHeight, pitchHeight)
+      const drawing = computeEnhancedFrontElevation(plan, floors, storeyHeight, pitchHeight, undefined, buildingType) ?? computeFrontElevation(plan, floors, storeyHeight, pitchHeight)
       if (!drawing) return null
       return embedElevationDrawing(drawing, cell, innerW, innerH, pad, 'FRONT ELEVATION')
     }
     case 'side-elevation': {
-      const drawing = computeSideElevation(plan, floors, storeyHeight, pitchHeight)
+      const drawing = computeEnhancedSideElevation(plan, floors, storeyHeight, pitchHeight, undefined, buildingType) ?? computeSideElevation(plan, floors, storeyHeight, pitchHeight)
       if (!drawing) return null
       return embedElevationDrawing(drawing, cell, innerW, innerH, pad, 'SIDE ELEVATION')
     }
     case 'section': {
-      const drawing = computeSection(plan, floors, storeyHeight, pitchHeight)
+      const drawing = computeEnhancedSection(plan, floors, storeyHeight, pitchHeight, undefined, buildingType) ?? computeSection(plan, floors, storeyHeight, pitchHeight)
       if (!drawing) return null
       return embedSectionDrawing(drawing, plan, floors, storeyHeight, pitchHeight, cell, innerW, innerH, pad)
     }
