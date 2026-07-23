@@ -1,6 +1,7 @@
 import { roomArea } from '@/lib/geometry/plan-geometry'
 import type { ComplianceRuleDef, ComplianceInput, ComplianceResult, ComplianceStatus } from './types'
 import { evaluateFireSafetyRules } from './fireSafety'
+import { evaluateAccessibilityRules } from './accessibility'
 
 const HABITABLE_KEYWORDS = ['bedroom', 'living', 'dining', 'lounge', 'kitchen', 'classroom', 'office', 'consultation', 'ward', 'patient']
 
@@ -202,5 +203,6 @@ export function evaluateZambiaRules(input: ComplianceInput): ComplianceResult[] 
     }
   })
   const fire = evaluateFireSafetyRules(input, 'zambia', 'CAP 295 Part VIII')
-  return [...base, ...fire]
+  const access = evaluateAccessibilityRules(input, 'zambia', 'CAP 295 Part VI')
+  return [...base, ...fire, ...access]
 }
