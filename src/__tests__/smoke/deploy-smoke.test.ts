@@ -26,16 +26,16 @@ test.describe('Deploy smoke tests', () => {
 
   test('SPA fallback works on sub-route refresh', async ({ page }) => {
     await page.goto(BASE_URL, { waitUntil: 'networkidle' })
-    await page.goto(`${BASE_URL}/dashboard`, { waitUntil: 'networkidle' })
+    await page.goto(`${BASE_URL}/portfolio`, { waitUntil: 'networkidle' })
 
     await expect(page.locator('#root')).not.toBeEmpty()
-    expect(page.url()).toContain('/dashboard')
+    expect(page.url()).toContain('/portfolio')
   })
 
   test('known routes return app shell, not 404', async ({ page }) => {
     const routes = [
       '/',
-      '/dashboard',
+      '/portfolio',
     ]
 
     for (const route of routes) {
