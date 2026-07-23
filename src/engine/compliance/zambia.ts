@@ -1,5 +1,6 @@
 import { roomArea } from '@/lib/geometry/plan-geometry'
 import type { ComplianceRuleDef, ComplianceInput, ComplianceResult, ComplianceStatus } from './types'
+import { evaluateFireSafetyRules } from './fireSafety'
 
 const HABITABLE_KEYWORDS = ['bedroom', 'living', 'dining', 'lounge', 'kitchen', 'classroom', 'office', 'consultation', 'ward', 'patient']
 
@@ -185,7 +186,7 @@ export const ZAMBIA_RULES: ComplianceRuleDef[] = [
 ]
 
 export function evaluateZambiaRules(input: ComplianceInput): ComplianceResult[] {
-  return ZAMBIA_RULES.map((rule) => {
+  const base: ComplianceResult[] = ZAMBIA_RULES.map((rule) => {
     try {
       return rule.evaluate(input)
     } catch {
@@ -200,4 +201,6 @@ export function evaluateZambiaRules(input: ComplianceInput): ComplianceResult[] 
       }
     }
   })
+  const fire = evaluateFireSafetyRules(input, 'zambia', 'CAP 295 Part VIII')
+  return [...base, ...fire]
 }

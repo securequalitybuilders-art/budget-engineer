@@ -1,5 +1,6 @@
 import { roomArea } from '@/lib/geometry/plan-geometry'
 import type { ComplianceRuleDef, ComplianceInput, ComplianceResult, ComplianceStatus } from './types'
+import { evaluateFireSafetyRules } from './fireSafety'
 
 const HABITABLE_KEYWORDS = ['bedroom', 'living', 'dining', 'lounge', 'kitchen', 'classroom', 'office', 'consultation', 'ward', 'patient']
 
@@ -185,7 +186,7 @@ export const BOTSWANA_RULES: ComplianceRuleDef[] = [
 ]
 
 export function evaluateBotswanaRules(input: ComplianceInput): ComplianceResult[] {
-  return BOTSWANA_RULES.map((rule) => {
+  const base: ComplianceResult[] = BOTSWANA_RULES.map((rule) => {
     try {
       return rule.evaluate(input)
     } catch {
@@ -200,4 +201,6 @@ export function evaluateBotswanaRules(input: ComplianceInput): ComplianceResult[
       }
     }
   })
+  const fire = evaluateFireSafetyRules(input, 'bw', 'Botswana Building Control Regs Part 6')
+  return [...base, ...fire]
 }

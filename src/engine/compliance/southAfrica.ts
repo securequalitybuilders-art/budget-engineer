@@ -1,5 +1,6 @@
 import { roomArea } from '@/lib/geometry/plan-geometry'
 import type { ComplianceRuleDef, ComplianceInput, ComplianceResult, ComplianceStatus } from './types'
+import { evaluateFireSafetyRules } from './fireSafety'
 
 const HABITABLE_KEYWORDS = ['bedroom', 'living', 'dining', 'lounge', 'kitchen', 'classroom', 'office', 'consultation', 'ward', 'patient']
 
@@ -212,7 +213,7 @@ export const SANS_RULES: ComplianceRuleDef[] = [
 ]
 
 export function evaluateSouthAfricaRules(input: ComplianceInput): ComplianceResult[] {
-  return SANS_RULES.map((rule) => {
+  const base: ComplianceResult[] = SANS_RULES.map((rule) => {
     try {
       return rule.evaluate(input)
     } catch {
@@ -227,4 +228,6 @@ export function evaluateSouthAfricaRules(input: ComplianceInput): ComplianceResu
       }
     }
   })
+  const fire = evaluateFireSafetyRules(input, 'sans', 'SANS 10400 Part T')
+  return [...base, ...fire]
 }

@@ -1,5 +1,6 @@
 import { roomArea } from '@/lib/geometry/plan-geometry'
 import type { ComplianceRuleDef, ComplianceInput, ComplianceResult, ComplianceStatus } from './types'
+import { evaluateFireSafetyRules } from './fireSafety'
 
 const HABITABLE_KEYWORDS = ['bedroom', 'living', 'dining', 'lounge', 'kitchen', 'classroom', 'office', 'consultation', 'ward', 'patient']
 
@@ -185,7 +186,7 @@ export const ZBC_RULES: ComplianceRuleDef[] = [
 ]
 
 export function evaluateZbcRules(input: ComplianceInput): ComplianceResult[] {
-  return ZBC_RULES.map((rule) => {
+  const base: ComplianceResult[] = ZBC_RULES.map((rule) => {
     try {
       return rule.evaluate(input)
     } catch {
@@ -200,4 +201,6 @@ export function evaluateZbcRules(input: ComplianceInput): ComplianceResult[] {
       }
     }
   })
+  const fire = evaluateFireSafetyRules(input, 'zbc', 'ZBC Part 10')
+  return [...base, ...fire]
 }
