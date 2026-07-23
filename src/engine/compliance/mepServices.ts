@@ -1,11 +1,8 @@
 import type { ComplianceInput, ComplianceResult, ComplianceStatus } from './types'
+import { getIsNonResidential, countStoreys } from './helpers'
 
 function r(ruleId: string, title: string, status: ComplianceStatus, actual: string, required: string, note: string): ComplianceResult {
   return { ruleId, category: 'MEP Services', title, status, actual, required, note }
-}
-
-function getIsNonResidential(bt: string): boolean {
-  return !['house', 'apartment', 'townhouse', 'dwelling'].includes(bt)
 }
 
 function getWetRooms(input: ComplianceInput): { name: string; width: number; height: number }[] {
@@ -18,10 +15,6 @@ function getHabitableRooms(input: ComplianceInput): { name: string }[] {
   const kw = ['bedroom', 'living', 'dining', 'lounge', 'study', 'office', 'kitchen', 'classroom', 'ward', 'patient']
   if (!input.plan?.rooms) return []
   return input.plan.rooms.filter((r) => kw.some((k) => r.name.toLowerCase().includes(k)))
-}
-
-function countStoreys(_input: ComplianceInput): number {
-  return 1
 }
 
 function hasCommercialKitchen(plan: ComplianceInput['plan']): boolean {

@@ -1,11 +1,8 @@
 import type { ComplianceInput, ComplianceResult, ComplianceStatus } from './types'
+import { getIsNonResidential, countStoreys } from './helpers'
 
 function r(ruleId: string, title: string, status: ComplianceStatus, actual: string, required: string, note: string): ComplianceResult {
   return { ruleId, category: 'Fire Safety', title, status, actual, required, note }
-}
-
-function getIsNonResidential(bt: string): boolean {
-  return !['house', 'apartment', 'townhouse', 'dwelling'].includes(bt)
 }
 
 function getOccupantLoad(input: ComplianceInput): number {
@@ -23,10 +20,6 @@ function getGfa(input: ComplianceInput): number {
 function getHasGarage(input: ComplianceInput): boolean {
   if (!input.plan?.rooms) return false
   return input.plan.rooms.some((r) => r.name.toLowerCase().includes('garage'))
-}
-
-function countStoreys(_input: ComplianceInput): number {
-  return 1
 }
 
 export function evaluateFireSafetyRules(input: ComplianceInput, jurisdictionPrefix: string, jurisdictionLabel: string): ComplianceResult[] {

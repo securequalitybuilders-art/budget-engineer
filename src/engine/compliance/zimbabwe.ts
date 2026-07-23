@@ -1,4 +1,3 @@
-import { roomArea } from '@/lib/geometry/plan-geometry'
 import type { ComplianceRuleDef, ComplianceInput, ComplianceResult, ComplianceStatus } from './types'
 import { evaluateFireSafetyRules } from './fireSafety'
 import { evaluateAccessibilityRules } from './accessibility'
@@ -7,24 +6,7 @@ import { evaluateMepRules } from './mepServices'
 import { evaluateTypologyRules } from './typologyRules'
 import { evaluateEnvironmentalRules } from './environmental'
 import { evaluateDrainageRules } from './drainage'
-
-const HABITABLE_KEYWORDS = ['bedroom', 'living', 'dining', 'lounge', 'kitchen', 'classroom', 'office', 'consultation', 'ward', 'patient']
-
-function isHabitable(name: string): boolean {
-  const lower = name.toLowerCase()
-  return HABITABLE_KEYWORDS.some((kw) => lower.includes(kw))
-}
-
-function getHabitableRooms(input: ComplianceInput): { name: string; width: number; height: number; area: number }[] {
-  if (!input.plan?.rooms) return []
-  return input.plan.rooms
-    .filter((r) => isHabitable(r.name))
-    .map((r) => ({ name: r.name, width: r.width, height: r.height, area: roomArea(r) }))
-}
-
-function r(ruleId: string, category: string, title: string, status: ComplianceStatus, actual: string, required: string, note: string): ComplianceResult {
-  return { ruleId, category, title, status, actual, required, note }
-}
+import { r, getHabitableRooms } from './helpers'
 
 export const ZBC_RULES: ComplianceRuleDef[] = [
 
