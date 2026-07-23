@@ -4,6 +4,7 @@ import { evaluateFireSafetyRules } from './fireSafety'
 import { evaluateAccessibilityRules } from './accessibility'
 import { evaluateStructuralRules } from './structural'
 import { evaluateMepRules } from './mepServices'
+import { evaluateTypologyRules } from './typologyRules'
 
 const HABITABLE_KEYWORDS = ['bedroom', 'living', 'dining', 'lounge', 'kitchen', 'classroom', 'office', 'consultation', 'ward', 'patient']
 
@@ -235,5 +236,6 @@ export function evaluateSouthAfricaRules(input: ComplianceInput): ComplianceResu
   const access = evaluateAccessibilityRules(input, 'sans', 'SANS 10400 Part S')
   const struct = evaluateStructuralRules(input, 'sans', 'SANS 10400 Part B')
   const mep = evaluateMepRules(input, 'sans', 'SANS 10400 Part N / Part O / Part P')
-  return [...base, ...fire, ...access, ...struct, ...mep]
+  const typo = evaluateTypologyRules(input, 'sans', 'SANS 10400')
+  return [...base, ...fire, ...access, ...struct, ...mep, ...typo]
 }

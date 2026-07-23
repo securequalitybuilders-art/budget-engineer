@@ -4,6 +4,7 @@ import { evaluateFireSafetyRules } from './fireSafety'
 import { evaluateAccessibilityRules } from './accessibility'
 import { evaluateStructuralRules } from './structural'
 import { evaluateMepRules } from './mepServices'
+import { evaluateTypologyRules } from './typologyRules'
 
 const HABITABLE_KEYWORDS = ['bedroom', 'living', 'dining', 'lounge', 'kitchen', 'classroom', 'office', 'consultation', 'ward', 'patient']
 
@@ -208,5 +209,6 @@ export function evaluateZambiaRules(input: ComplianceInput): ComplianceResult[] 
   const access = evaluateAccessibilityRules(input, 'zambia', 'CAP 295 Part VI')
   const struct = evaluateStructuralRules(input, 'zambia', 'CAP 295 Part IV')
   const mep = evaluateMepRules(input, 'zambia', 'CAP 295 Part VII / Part IX')
-  return [...base, ...fire, ...access, ...struct, ...mep]
+  const typo = evaluateTypologyRules(input, 'zambia', 'CAP 295')
+  return [...base, ...fire, ...access, ...struct, ...mep, ...typo]
 }

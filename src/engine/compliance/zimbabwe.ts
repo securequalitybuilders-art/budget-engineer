@@ -4,6 +4,7 @@ import { evaluateFireSafetyRules } from './fireSafety'
 import { evaluateAccessibilityRules } from './accessibility'
 import { evaluateStructuralRules } from './structural'
 import { evaluateMepRules } from './mepServices'
+import { evaluateTypologyRules } from './typologyRules'
 
 const HABITABLE_KEYWORDS = ['bedroom', 'living', 'dining', 'lounge', 'kitchen', 'classroom', 'office', 'consultation', 'ward', 'patient']
 
@@ -208,5 +209,6 @@ export function evaluateZbcRules(input: ComplianceInput): ComplianceResult[] {
   const access = evaluateAccessibilityRules(input, 'zbc', 'ZBC Part 1 / Part 6')
   const struct = evaluateStructuralRules(input, 'zbc', 'ZBC Part 6')
   const mep = evaluateMepRules(input, 'zbc', 'ZBC Part 7 / Part 12')
-  return [...base, ...fire, ...access, ...struct, ...mep]
+  const typo = evaluateTypologyRules(input, 'zbc', 'ZBC')
+  return [...base, ...fire, ...access, ...struct, ...mep, ...typo]
 }
