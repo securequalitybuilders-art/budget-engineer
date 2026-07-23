@@ -209,7 +209,7 @@ function opSill(op: Opening): number {
 }
 
 const WALL_WIDTH = 0.06
-const DIM_COLOR = '#67e8f9'
+const DIM_COLOR = '#cc0000'
 const GROUND_STROKE = '#cbd5e1'
 const PADDING = 2
 const DPC_COLOR = '#dc2626'
@@ -256,6 +256,8 @@ export function computeEnhancedFrontElevation(
 
   const style = styleFor(buildingType)
   const frontWalls = getFrontWalls(plan)
+  let windowTagCounter = 0
+  let doorTagCounter = 0
 
   lines.push({ x1: 0, y1: groundY, x2: svgW, y2: groundY, stroke: GROUND_STROKE, strokeWidth: 0.08 })
 
@@ -413,6 +415,22 @@ export function computeEnhancedFrontElevation(
         polygons.push(...hoodTex.polygons)
         lines.push(...hoodTex.lines)
       }
+
+      if (isDoor) {
+        doorTagCounter++
+        texts.push({
+          x: (x1 + x2) / 2, y: topY - 0.08,
+          text: `D${String(doorTagCounter).padStart(2, '0')}`,
+          fontSize: 0.14, fill: DIM_COLOR, anchor: 'middle',
+        })
+      } else {
+        windowTagCounter++
+        texts.push({
+          x: (x1 + x2) / 2, y: botY + 0.12,
+          text: `W${String(windowTagCounter).padStart(2, '0')}`,
+          fontSize: 0.14, fill: DIM_COLOR, anchor: 'middle',
+        })
+      }
     }
   }
 
@@ -512,6 +530,32 @@ export function computeEnhancedFrontElevation(
     text: formatDimMm(bw),
     fontSize: 0.4, fill: DIM_COLOR, anchor: 'middle',
   })
+
+  // Per-storey vertical dimensions (left side)
+  for (let si = 0; si < floors; si++) {
+    const topY = groundY - (si + 1) * storeyHeight
+    const botY = groundY - si * storeyHeight
+    const midY = (topY + botY) / 2
+    const dimLabel = formatDimMm(storeyHeight)
+    const dimX = PADDING - 0.4
+    lines.push({
+      x1: dimX, y1: topY + 0.05, x2: dimX, y2: botY - 0.05,
+      stroke: DIM_COLOR, strokeWidth: 0.015,
+    })
+    lines.push({
+      x1: dimX - 0.08, y1: topY + 0.05, x2: dimX + 0.08, y2: topY + 0.05,
+      stroke: DIM_COLOR, strokeWidth: 0.015,
+    })
+    lines.push({
+      x1: dimX - 0.08, y1: botY - 0.05, x2: dimX + 0.08, y2: botY - 0.05,
+      stroke: DIM_COLOR, strokeWidth: 0.015,
+    })
+    texts.push({
+      x: dimX - 0.12, y: midY + 0.05,
+      text: dimLabel,
+      fontSize: 0.2, fill: DIM_COLOR, anchor: 'end',
+    })
+  }
 
   texts.push({
     x: PADDING - 0.7, y: (groundY + eaveY) / 2 + 0.15,

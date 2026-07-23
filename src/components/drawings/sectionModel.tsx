@@ -5,6 +5,7 @@ import type { CanopyParams } from '@/engine/canopy/canopyGeometry'
 import { canopySectionProfile, computeSupports } from '@/engine/canopy/canopyGeometry'
 import { FALLBACK_WALL_THICKNESS } from '@/adapters/planTo3d'
 import { CAD_HAIR, CAD_HEAVY, CAD_THIN, CAD_MEDIUM, INK, PAPER, metresToMm } from '@/components/drawings/cadConstants'
+import { getDimensionStyle } from '@/lib/drawings/dimensionStyles'
 import {
   SheetBorder, TitleBlock, DimensionLineH, DimensionLineV,
   GridBubble, LevelMarker, DrawingTitle,
@@ -57,6 +58,7 @@ export function renderSectionSheet(
   const ridgeY = oy - s(totalH)
   const ridgeCx = ox + s(bw) / 2
 
+  const RED_DIM = getDimensionStyle('Structural')
   const elements: ReactNode[] = []
 
   // White background
@@ -517,27 +519,69 @@ export function renderSectionSheet(
     )
   }
 
-  // ── Horizontal dimension ──
-  const dimY = MARGIN_TOP - 15
+  // ── Tiered horizontal dimensions ──
+  const dimY1 = MARGIN_TOP - 15
+  const dimY2 = MARGIN_TOP - 30
   elements.push(
     <DimensionLineH
-      key="dim-h"
+      key="dim-h-total"
       x1={ox}
       x2={ox + s(bw)}
-      y={dimY}
+      y={dimY2}
       label={metresToMm(bw)}
+      style={RED_DIM}
     />,
   )
+  const cutBays = [...new Set(
+    plan.walls
+      .filter(w => w.start.y <= cutY && w.end.y >= cutY)
+      .flatMap(w => [w.start.x, w.end.x]),
+  )].sort((a, b) => a - b).filter(x => x >= 0 && x <= bw)
+  if (cutBays.length >= 3) {
+    const uniqueBays = [0, ...cutBays, bw].filter((v, i, a) => a.indexOf(v) === i)
+    for (let i = 1; i < uniqueBays.length; i++) {
+      const bx1 = ox + s(uniqueBays[i - 1])
+      const bx2 = ox + s(uniqueBays[i])
+      const bayW = uniqueBays[i] - uniqueBays[i - 1]
+      if (bayW > 0.01) {
+        elements.push(
+          <DimensionLineH
+            key={`dim-bay-${i}`}
+            x1={bx1}
+            x2={bx2}
+            y={dimY1}
+            label={metresToMm(bayW)}
+            style={RED_DIM}
+          />,
+        )
+      }
+    }
+  }
 
-  // ── Vertical dimension ──
-  const dimX = MARGIN_LEFT - 15
+  // ── Tiered vertical dimensions (per-storey + total) ──
+  const dimVX = MARGIN_LEFT - 15
+  for (let si = 0; si < floors; si++) {
+    const vy1 = groundY - si * s(storeyHeight)
+    const vy2 = groundY - (si + 1) * s(storeyHeight)
+    elements.push(
+      <DimensionLineV
+        key={`dim-v-${si}`}
+        y1={vy1}
+        y2={vy2}
+        x={dimVX}
+        label={metresToMm(storeyHeight)}
+        style={RED_DIM}
+      />,
+    )
+  }
   elements.push(
     <DimensionLineV
-      key="dim-v"
+      key="dim-v-total"
       y1={groundY}
       y2={ridgeY}
-      x={dimX}
+      x={dimVX - 12}
       label={metresToMm(totalH)}
+      style={RED_DIM}
     />,
   )
 
@@ -563,15 +607,16 @@ export function renderSectionSheet(
     )
   }
 
-  // ── Level markers ──
+  // ── Level markers with labels ──
   for (let si = 0; si <= floors; si++) {
     const l = si === 0 ? '+0.000' : `+${(si * storeyHeight).toFixed(3)}`
+    const label = si === 0 ? 'FFL' : si === floors ? 'Wall Plate' : undefined
     elements.push(
       <LevelMarker
         key={`lvl-${si}`}
         x={ox + s(bw) + 8}
         y={groundY - si * s(storeyHeight)}
-        label={`${l} m`}
+        label={`${l} m${label ? ` (${label})` : ''}`}
       />,
     )
   }
@@ -582,9 +627,77 @@ export function renderSectionSheet(
       key="lvl-ridge"
       x={ridgeCx}
       y={ridgeY - 6}
-      label={`+${totalH.toFixed(3)} m`}
+      label={`+${totalH.toFixed(3)} m (Apex)`}
     />,
   )
+
+  // ── Material build-up callouts ──
+  const calloutFontSize = 4.5
+  const calloutColor = INK
+  const calloutX = ox + s(bw) + 50
+  const calloutLineH = 9
+
+  const roofCallout = [
+    'ROOF ASSEMBLY:',
+    '• Chromadeck roofing sheets',
+    '• 38×38mm battens @ 350mm c/c',
+    '• 114×38mm trusses @ 800mm c/c',
+    '• 6mm plasterboard ceiling',
+  ]
+  const wallCallout = [
+    'WALL ASSEMBLY:',
+    '• 19mm cement plaster (ext)',
+    '• 225mm brick/block wall',
+    '• 19mm cement plaster (int)',
+  ]
+  const fdnCallout = [
+    'FOUNDATION:',
+    '• 150mm hardcore filling',
+    '• DPM (polyethylene sheet)',
+    '• 100mm concrete slab (25 MPa)',
+    '• Strip footing (Grade C35/30)',
+  ]
+
+  elements.push(
+    <text key="callout-roof-title" x={calloutX} y={ridgeY + calloutLineH * 0} fontSize={calloutFontSize + 0.5} fontWeight="bold" fill={calloutColor} fontFamily="system-ui, sans-serif">
+      {roofCallout[0]}
+    </text>,
+  )
+  for (let i = 1; i < roofCallout.length; i++) {
+    elements.push(
+      <text key={`callout-roof-${i}`} x={calloutX + 4} y={ridgeY + calloutLineH * i} fontSize={calloutFontSize} fill={calloutColor} fontFamily="system-ui, sans-serif" opacity={0.8}>
+        {roofCallout[i]}
+      </text>,
+    )
+  }
+
+  const wallCalloutY = ridgeY + calloutLineH * (roofCallout.length + 1)
+  elements.push(
+    <text key="callout-wall-title" x={calloutX} y={wallCalloutY} fontSize={calloutFontSize + 0.5} fontWeight="bold" fill={calloutColor} fontFamily="system-ui, sans-serif">
+      {wallCallout[0]}
+    </text>,
+  )
+  for (let i = 1; i < wallCallout.length; i++) {
+    elements.push(
+      <text key={`callout-wall-${i}`} x={calloutX + 4} y={wallCalloutY + calloutLineH * i} fontSize={calloutFontSize} fill={calloutColor} fontFamily="system-ui, sans-serif" opacity={0.8}>
+        {wallCallout[i]}
+      </text>,
+    )
+  }
+
+  const fdnCalloutY = wallCalloutY + calloutLineH * (wallCallout.length + 1)
+  elements.push(
+    <text key="callout-fdn-title" x={calloutX} y={fdnCalloutY} fontSize={calloutFontSize + 0.5} fontWeight="bold" fill={calloutColor} fontFamily="system-ui, sans-serif">
+      {fdnCallout[0]}
+    </text>,
+  )
+  for (let i = 1; i < fdnCallout.length; i++) {
+    elements.push(
+      <text key={`callout-fdn-${i}`} x={calloutX + 4} y={fdnCalloutY + calloutLineH * i} fontSize={calloutFontSize} fill={calloutColor} fontFamily="system-ui, sans-serif" opacity={0.8}>
+        {fdnCallout[i]}
+      </text>,
+    )
+  }
 
   // ── Scaled entourage ──
   const personH = s(1.7)
