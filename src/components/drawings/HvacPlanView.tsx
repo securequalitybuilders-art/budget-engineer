@@ -7,7 +7,8 @@ import {
 } from '@/components/drawings/cadPrimitives'
 import { NorthArrow, ScaleBar } from '@/components/drawings/entourage'
 import { SupplyDiffuser, ReturnGrille, FanCoilUnit } from '@/components/drawings/mepSymbols'
-import { ZoomableDrawing } from '@/components/drawings/ZoomableDrawing'
+import { DrawingSheetLayout } from '@/components/drawings/DrawingSheetLayout'
+import { DrawingEmptyState } from '@/components/drawings/DrawingEmptyState'
 import { placeHvac } from '@/components/drawings/mepPlacement'
 import { renderMepWalls } from '@/components/drawings/wallRenderer'
 
@@ -38,27 +39,12 @@ export function HvacPlanView({ activePlan }: HvacPlanViewProps): ReactNode {
     }
   }, [activePlan])
 
-  if (!rendered) {
-    return (
-      <div className="flex items-center justify-center rounded-lg border border-stone-700/60 bg-stone-950/80 p-8">
-        <p className="text-sm text-stone-400">Drawing unavailable — no active plan</p>
-      </div>
-    )
-  }
+  if (!rendered) return <DrawingEmptyState />
 
   return (
-    <ZoomableDrawing>
-      <svg
-        viewBox={`0 0 ${rendered.sheetW} ${rendered.sheetH}`}
-        className="block h-auto w-full"
-        role="img"
-        aria-label="HVAC LAYOUT"
-        style={{ maxHeight: '80vh', minHeight: 300 }}
-        preserveAspectRatio="xMidYMid meet"
-      >
-        {rendered.elements}
-      </svg>
-    </ZoomableDrawing>
+    <DrawingSheetLayout viewBox={`0 0 ${rendered.sheetW} ${rendered.sheetH}`} title="HVAC LAYOUT">
+      {rendered.elements}
+    </DrawingSheetLayout>
   )
 }
 

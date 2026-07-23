@@ -7,7 +7,7 @@ import { Calculator, FileDown, FileText, FilePieChart, Printer, Info, Shield } f
 import { makeMoney } from '@/lib/utils/currency'
 import { captureSnapshot, isValidPngDataUrl } from '@/lib/3d-snapshot'
 import type { PlanModel } from '@/domain/plan'
-import { runCompliance, summarizeCompliance } from '@/engine/compliance'
+import { runCompliance, summarizeCompliance, SUPPORTED_JURISDICTIONS, getJurisdictionLabel } from '@/engine/compliance'
 import { assembleAnalysis, emptyAnalysis } from '@/engine/calculators/analysisAssembly'
 
 interface BoqExportPanelProps {
@@ -149,7 +149,7 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, act
       const report = runCompliance(jurisdiction, { plan, design: selectedDesign, analysis, buildingType: bt })
       const summary = summarizeCompliance(report)
       if (summary.hasCompliance) {
-        const label = ({ 'zimbabwe': 'ZBC', 'south-africa': 'SANS 10400', 'zambia': 'Public Health Act CAP 295', 'botswana': 'Building Control Regs' } as Record<string, string>)[jurisdiction] ?? jurisdiction
+        const label = getJurisdictionLabel(jurisdiction)
         complianceSummary = `${label}: ${summary.passCount} pass, ${summary.warnCount} warn, ${summary.failCount} fail (${report.score}% score)`
         complianceHasData = true
       }
@@ -234,10 +234,9 @@ export function BoqExportPanel({ selectedDesign, boq: externalBoq, onExport, act
             onChange={(e) => setJurisdiction(e.target.value)}
             className="w-full rounded border border-stone-700 bg-stone-800 p-2 text-sm text-stone-200"
           >
-            <option value="zimbabwe">Zimbabwe (ZBC)</option>
-            <option value="south-africa">South Africa (SANS 10400)</option>
-            <option value="zambia">Zambia (Public Health Act CAP 295)</option>
-            <option value="botswana">Botswana (Building Control Regs)</option>
+            {SUPPORTED_JURISDICTIONS.map((j) => (
+              <option key={j.value} value={j.value}>{j.label}</option>
+            ))}
           </select>
           <p className="mt-1 text-[8px] italic text-amber-500/60">Non-authoritative — verify with local authority.</p>
         </div>

@@ -5,12 +5,12 @@ import { computePresentationLayout, type CellRect } from '@/components/drawings/
 import { renderRoofPlan } from '@/components/drawings/roofPlanModel'
 import { renderCeilingPlan } from '@/components/drawings/ceilingPlanModel'
 import { renderFloorPlanSheet } from '@/components/drawings/planSheetModel'
-import { computeFrontElevation, computeSideElevation, computeSection, type ElevationDrawing } from '@/adapters/planToElevations'
 import {
-  computeEnhancedFrontElevation,
-  computeEnhancedSideElevation,
-  computeEnhancedSection,
-} from '@/adapters/elevationEngine'
+  resolveFrontElevation,
+  resolveSideElevation,
+  resolveSection,
+} from '@/lib/drawings/elevationResolver'
+import type { ElevationDrawing } from '@/adapters/planToElevations'
 import { renderSectionSheet } from '@/components/drawings/sectionModel'
 import {
   CAD_THIN, CAD_HAIR, CAD_MEDIUM, INK, PAPER,
@@ -19,6 +19,7 @@ import { DISCIPLINE } from '@/components/drawings/drawingColors'
 import { SheetBorder } from '@/components/drawings/cadPrimitives'
 import { ProfessionalTitleBlock } from '@/components/drawings/ProfessionalTitleBlock'
 import { ZoomableDrawing } from '@/components/drawings/ZoomableDrawing'
+import { DrawingEmptyState } from '@/components/drawings/DrawingEmptyState'
 import { placeElectrical, placePlumbing, placeHvac } from '@/components/drawings/mepPlacement'
 import { LightFixture, Socket, Switch, DistributionBoard } from '@/components/drawings/mepSymbols'
 import { WaterCloset, Basin, Shower, Sink, FloorDrain, StackRiser } from '@/components/drawings/mepSymbols'
@@ -83,13 +84,7 @@ export function PresentationSheetView({ activePlan, design, floors, storeyHeight
     }
   }, [])
 
-  if (!activePlan || floors < 1) {
-    return (
-      <div className="flex items-center justify-center rounded-lg border border-stone-700/60 bg-stone-950/80 p-8">
-        <p className="text-sm text-stone-400">Drawing unavailable — no active plan</p>
-      </div>
-    )
-  }
+  if (!activePlan || floors < 1) return <DrawingEmptyState />
 
   return (
     <div className="flex flex-col gap-3">
@@ -184,17 +179,17 @@ function renderCellContent(
 
   switch (cell.id) {
     case 'front-elevation': {
-      const drawing = computeEnhancedFrontElevation(plan, floors, storeyHeight, pitchHeight, undefined, buildingType) ?? computeFrontElevation(plan, floors, storeyHeight, pitchHeight)
+      const drawing = resolveFrontElevation(plan, floors, storeyHeight, pitchHeight, buildingType)
       if (!drawing) return null
       return embedElevationDrawing(drawing, cell, innerW, innerH, pad, 'FRONT ELEVATION')
     }
     case 'side-elevation': {
-      const drawing = computeEnhancedSideElevation(plan, floors, storeyHeight, pitchHeight, undefined, buildingType) ?? computeSideElevation(plan, floors, storeyHeight, pitchHeight)
+      const drawing = resolveSideElevation(plan, floors, storeyHeight, pitchHeight, buildingType)
       if (!drawing) return null
       return embedElevationDrawing(drawing, cell, innerW, innerH, pad, 'SIDE ELEVATION')
     }
     case 'section': {
-      const drawing = computeEnhancedSection(plan, floors, storeyHeight, pitchHeight, undefined, buildingType) ?? computeSection(plan, floors, storeyHeight, pitchHeight)
+      const drawing = resolveSection(plan, floors, storeyHeight, pitchHeight, buildingType)
       if (!drawing) return null
       return embedSectionDrawing(drawing, plan, floors, storeyHeight, pitchHeight, cell, innerW, innerH, pad)
     }

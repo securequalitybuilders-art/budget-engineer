@@ -1,5 +1,16 @@
 import type { ComplianceInput, ComplianceReport, ComplianceResult } from './types'
 import { evaluateZbcRules } from './zimbabwe'
+
+export const SUPPORTED_JURISDICTIONS = [
+  { value: 'zimbabwe', label: 'Zimbabwe (ZBC)' },
+  { value: 'south-africa', label: 'South Africa (SANS 10400)' },
+  { value: 'zambia', label: 'Zambia (Public Health Act CAP 295)' },
+  { value: 'botswana', label: 'Botswana (Building Control Regs)' },
+] as const
+
+export function getJurisdictionLabel(value: string): string {
+  return SUPPORTED_JURISDICTIONS.find((j) => j.value === value)?.label ?? value
+}
 import { evaluateSouthAfricaRules } from './southAfrica'
 import { evaluateZambiaRules } from './zambia'
 import { evaluateBotswanaRules } from './botswana'

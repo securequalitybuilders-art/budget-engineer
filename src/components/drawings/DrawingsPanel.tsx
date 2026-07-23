@@ -19,15 +19,10 @@ import { PresentationSheetView } from '@/components/drawings/PresentationSheetVi
 import { ScheduleView } from '@/components/drawings/ScheduleView'
 import { DrawingRegisterPanel } from '@/components/drawings/DrawingRegisterPanel'
 import {
-  computeEnhancedFrontElevation,
-  computeEnhancedSideElevation,
-  computeEnhancedSection,
-} from '@/adapters/elevationEngine'
-import {
-  computeFrontElevation,
-  computeSideElevation,
-  computeSection,
-} from '@/adapters/planToElevations'
+  resolveFrontElevation,
+  resolveSideElevation,
+  resolveSection,
+} from '@/lib/drawings/elevationResolver'
 import {
   DEFAULT_STOREY_HEIGHT,
   ROOF_PITCH_HEIGHT,
@@ -128,11 +123,11 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
   }, [])
 
   const frontDrawing = useMemo(() => {
-    try { return computeEnhancedFrontElevation(activePlan!, floors, storeyHeight, pitchHeight, undefined, design?.buildingType) ?? computeFrontElevation(activePlan!, floors, storeyHeight, pitchHeight) } catch { return null }
+    return resolveFrontElevation(activePlan!, floors, storeyHeight, pitchHeight, design?.buildingType)
   }, [activePlan, floors, storeyHeight, pitchHeight, design?.buildingType])
 
   const sideDrawing = useMemo(() => {
-    try { return computeEnhancedSideElevation(activePlan!, floors, storeyHeight, pitchHeight, undefined, design?.buildingType) ?? computeSideElevation(activePlan!, floors, storeyHeight, pitchHeight) } catch { return null }
+    return resolveSideElevation(activePlan!, floors, storeyHeight, pitchHeight, design?.buildingType)
   }, [activePlan, floors, storeyHeight, pitchHeight, design?.buildingType])
 
   const ws6CadDoc = useMemo(() => {
@@ -159,7 +154,7 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
   }, [ws6CadDoc, design?.name])
 
   const sectionDrawing = useMemo(() => {
-    try { return computeEnhancedSection(activePlan!, floors, storeyHeight, pitchHeight, undefined, design?.buildingType) ?? computeSection(activePlan!, floors, storeyHeight, pitchHeight) } catch { return null }
+    return resolveSection(activePlan!, floors, storeyHeight, pitchHeight, design?.buildingType)
   }, [activePlan, floors, storeyHeight, pitchHeight, design?.buildingType])
 
   // ── Runtime diagnostics ──

@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react'
 import { ZoomableDrawing } from '@/components/drawings/ZoomableDrawing'
+import { DrawingEmptyState } from '@/components/drawings/DrawingEmptyState'
 
 interface SvgElevationViewProps {
   svgContent: string | null
@@ -24,13 +25,7 @@ export function SvgElevationView({ svgContent, title }: SvgElevationViewProps) {
     }
   }, [svgContent, title])
 
-  if (!svgContent) {
-    return (
-      <div className="flex items-center justify-center rounded-lg border border-stone-700/60 bg-stone-950/80 p-8">
-        <p className="text-sm text-stone-400">Elevation unavailable — no active plan</p>
-      </div>
-    )
-  }
+  if (!svgContent) return <DrawingEmptyState message="Elevation unavailable — no active plan" />
 
   return (
     <ZoomableDrawing>

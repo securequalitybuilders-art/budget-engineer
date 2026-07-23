@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
-import { runCompliance, summarizeCompliance } from '@/engine/compliance'
+import { runCompliance, summarizeCompliance, SUPPORTED_JURISDICTIONS } from '@/engine/compliance'
 import type { ComplianceReport } from '@/engine/compliance/types'
 import { runCodeReview } from '@/engine/compliance/codeReviewEngine'
 import type { CodeCheck } from '@/engine/compliance/codeReviewEngine'
@@ -11,13 +11,6 @@ interface CodeReviewPanelProps {
   design: DesignOption | null
   buildingType: string
 }
-
-const JURISDICTIONS = [
-  { value: 'zimbabwe', label: 'Zimbabwe (ZBC)' },
-  { value: 'south-africa', label: 'South Africa (SANS 10400)' },
-  { value: 'zambia', label: 'Zambia (Public Health Act CAP 295)' },
-  { value: 'botswana', label: 'Botswana (Building Control Regs)' },
-]
 
 function StatusDot({ state }: { state: string }) {
   const colors: Record<string, string> = {
@@ -125,7 +118,7 @@ export function CodeReviewPanel({ plan, design, buildingType }: CodeReviewPanelP
           onChange={(e) => setJurisdiction(e.target.value)}
           className="rounded border border-stone-700 bg-stone-800 px-2 py-1 text-[11px] text-stone-200"
         >
-          {JURISDICTIONS.map((j) => (
+          {SUPPORTED_JURISDICTIONS.map((j) => (
             <option key={j.value} value={j.value}>{j.label}</option>
           ))}
         </select>

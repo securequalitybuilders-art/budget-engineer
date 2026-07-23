@@ -3,7 +3,8 @@ import type { DesignOption } from '@/domain/boq'
 import type { PlanModel } from '@/domain/plan'
 import { CAD_HAIR, CAD_MEDIUM, CAD_THIN, INK, PAPER, metresToMm } from '@/components/drawings/cadConstants'
 import { MATERIAL } from '@/components/drawings/drawingColors'
-import { ZoomableDrawing } from '@/components/drawings/ZoomableDrawing'
+import { DrawingSheetLayout } from '@/components/drawings/DrawingSheetLayout'
+import { DrawingEmptyState } from '@/components/drawings/DrawingEmptyState'
 import {
   SheetBorder, TitleBlock, DimensionLineH,
 } from '@/components/drawings/cadPrimitives'
@@ -26,27 +27,12 @@ export function SitePlanView({ activePlan, design }: SitePlanViewProps): ReactNo
     }
   }, [activePlan, design])
 
-  if (!rendered) {
-    return (
-      <div className="flex items-center justify-center rounded-lg border border-stone-700/60 bg-stone-950/80 p-8">
-        <p className="text-sm text-stone-400">Drawing unavailable — no active plan</p>
-      </div>
-    )
-  }
+  if (!rendered) return <DrawingEmptyState />
 
   return (
-    <ZoomableDrawing>
-      <svg
-        viewBox={`0 0 ${rendered.sheetW} ${rendered.sheetH}`}
-        className="block h-auto w-full"
-        role="img"
-        aria-label="SITE PLAN"
-        style={{ maxHeight: '80vh', minHeight: 300 }}
-        preserveAspectRatio="xMidYMid meet"
-      >
-        {rendered.elements}
-      </svg>
-    </ZoomableDrawing>
+    <DrawingSheetLayout viewBox={`0 0 ${rendered.sheetW} ${rendered.sheetH}`} title="SITE PLAN">
+      {rendered.elements}
+    </DrawingSheetLayout>
   )
 }
 
