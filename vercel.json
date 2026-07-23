@@ -4,5 +4,7 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "buildCommand": "NODE_OPTIONS=--max-old-space-size=4096 npm run build:only",
+  "framework": "vite"
 }
