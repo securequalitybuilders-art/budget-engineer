@@ -2,6 +2,7 @@ import { roomArea } from '@/lib/geometry/plan-geometry'
 import type { ComplianceRuleDef, ComplianceInput, ComplianceResult, ComplianceStatus } from './types'
 import { evaluateFireSafetyRules } from './fireSafety'
 import { evaluateAccessibilityRules } from './accessibility'
+import { evaluateStructuralRules } from './structural'
 
 const HABITABLE_KEYWORDS = ['bedroom', 'living', 'dining', 'lounge', 'kitchen', 'classroom', 'office', 'consultation', 'ward', 'patient']
 
@@ -204,5 +205,6 @@ export function evaluateZbcRules(input: ComplianceInput): ComplianceResult[] {
   })
   const fire = evaluateFireSafetyRules(input, 'zbc', 'ZBC Part 10')
   const access = evaluateAccessibilityRules(input, 'zbc', 'ZBC Part 1 / Part 6')
-  return [...base, ...fire, ...access]
+  const struct = evaluateStructuralRules(input, 'zbc', 'ZBC Part 6')
+  return [...base, ...fire, ...access, ...struct]
 }
