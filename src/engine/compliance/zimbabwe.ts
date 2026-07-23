@@ -5,6 +5,8 @@ import { evaluateAccessibilityRules } from './accessibility'
 import { evaluateStructuralRules } from './structural'
 import { evaluateMepRules } from './mepServices'
 import { evaluateTypologyRules } from './typologyRules'
+import { evaluateEnvironmentalRules } from './environmental'
+import { evaluateDrainageRules } from './drainage'
 
 const HABITABLE_KEYWORDS = ['bedroom', 'living', 'dining', 'lounge', 'kitchen', 'classroom', 'office', 'consultation', 'ward', 'patient']
 
@@ -210,5 +212,7 @@ export function evaluateZbcRules(input: ComplianceInput): ComplianceResult[] {
   const struct = evaluateStructuralRules(input, 'zbc', 'ZBC Part 6')
   const mep = evaluateMepRules(input, 'zbc', 'ZBC Part 7 / Part 12')
   const typo = evaluateTypologyRules(input, 'zbc', 'ZBC')
-  return [...base, ...fire, ...access, ...struct, ...mep, ...typo]
+  const env = evaluateEnvironmentalRules(input, 'zbc', 'ZBC Part 1 / Part 11')
+  const drainage = evaluateDrainageRules(input, 'zbc', 'ZBC Part 3 / Part 12')
+  return [...base, ...fire, ...access, ...struct, ...mep, ...typo, ...env, ...drainage]
 }

@@ -5,6 +5,8 @@ import { evaluateAccessibilityRules } from './accessibility'
 import { evaluateStructuralRules } from './structural'
 import { evaluateMepRules } from './mepServices'
 import { evaluateTypologyRules } from './typologyRules'
+import { evaluateEnvironmentalRules } from './environmental'
+import { evaluateDrainageRules } from './drainage'
 
 const HABITABLE_KEYWORDS = ['bedroom', 'living', 'dining', 'lounge', 'kitchen', 'classroom', 'office', 'consultation', 'ward', 'patient']
 
@@ -237,5 +239,7 @@ export function evaluateSouthAfricaRules(input: ComplianceInput): ComplianceResu
   const struct = evaluateStructuralRules(input, 'sans', 'SANS 10400 Part B')
   const mep = evaluateMepRules(input, 'sans', 'SANS 10400 Part N / Part O / Part P')
   const typo = evaluateTypologyRules(input, 'sans', 'SANS 10400')
-  return [...base, ...fire, ...access, ...struct, ...mep, ...typo]
+  const env = evaluateEnvironmentalRules(input, 'sans', 'SANS 10400 Part XA / Part X')
+  const drainage = evaluateDrainageRules(input, 'sans', 'SANS 10400 Part P / Part L')
+  return [...base, ...fire, ...access, ...struct, ...mep, ...typo, ...env, ...drainage]
 }

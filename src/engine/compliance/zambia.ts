@@ -5,6 +5,8 @@ import { evaluateAccessibilityRules } from './accessibility'
 import { evaluateStructuralRules } from './structural'
 import { evaluateMepRules } from './mepServices'
 import { evaluateTypologyRules } from './typologyRules'
+import { evaluateEnvironmentalRules } from './environmental'
+import { evaluateDrainageRules } from './drainage'
 
 const HABITABLE_KEYWORDS = ['bedroom', 'living', 'dining', 'lounge', 'kitchen', 'classroom', 'office', 'consultation', 'ward', 'patient']
 
@@ -210,5 +212,7 @@ export function evaluateZambiaRules(input: ComplianceInput): ComplianceResult[] 
   const struct = evaluateStructuralRules(input, 'zambia', 'CAP 295 Part IV')
   const mep = evaluateMepRules(input, 'zambia', 'CAP 295 Part VII / Part IX')
   const typo = evaluateTypologyRules(input, 'zambia', 'CAP 295')
-  return [...base, ...fire, ...access, ...struct, ...mep, ...typo]
+  const env = evaluateEnvironmentalRules(input, 'zambia', 'CAP 295 Part V')
+  const drainage = evaluateDrainageRules(input, 'zambia', 'CAP 295 Part X')
+  return [...base, ...fire, ...access, ...struct, ...mep, ...typo, ...env, ...drainage]
 }
