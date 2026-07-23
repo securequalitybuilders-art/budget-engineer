@@ -51,7 +51,7 @@ function makePlan(overrides?: Partial<PlanModel>): PlanModel {
 
 describe('metresToMm', () => {
   it('converts 3.0m to "3000"', () => {
-    expect(metresToMm(3)).toBe('3000')
+    expect(metresToMm(3)).toBe('3 000')
   })
 
   it('converts 0m to "0"', () => {
@@ -59,7 +59,7 @@ describe('metresToMm', () => {
   })
 
   it('converts 1.5m to "1500"', () => {
-    expect(metresToMm(1.5)).toBe('1500')
+    expect(metresToMm(1.5)).toBe('1 500')
   })
 
   it('converts 0.23m to "230"', () => {

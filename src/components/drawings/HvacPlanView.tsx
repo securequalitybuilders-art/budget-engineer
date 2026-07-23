@@ -9,6 +9,7 @@ import { NorthArrow, ScaleBar } from '@/components/drawings/entourage'
 import { SupplyDiffuser, ReturnGrille, FanCoilUnit } from '@/components/drawings/mepSymbols'
 import { ZoomableDrawing } from '@/components/drawings/ZoomableDrawing'
 import { placeHvac } from '@/components/drawings/mepPlacement'
+import { renderMepWalls } from '@/components/drawings/wallRenderer'
 
 const MARGIN = 15
 
@@ -85,30 +86,7 @@ function renderHvacPlan(plan: PlanModel | null): MepSheet | null {
 
   elements.push(<rect key="bg" x={0} y={0} width={sheetW} height={sheetH} fill={PAPER} />)
 
-  // Wall outlines
-  for (const wall of plan.walls) {
-    const wl = Math.hypot(wall.end.x - wall.start.x, wall.end.y - wall.start.y)
-    if (wl < 0.01) continue
-    const angle = Math.atan2(wall.end.y - wall.start.y, wall.end.x - wall.start.x)
-    const cx = (wall.start.x + wall.end.x) / 2
-    const cy = (wall.start.y + wall.end.y) / 2
-    const wallThk = wall.thickness || plan.wallThickness || 0.23
-    const ww = s(wl)
-    const wh = Math.max(s(wallThk), 2)
-    elements.push(
-      <rect
-        key={`wall-${wall.id}`}
-        x={ox + s(cx) - ww / 2}
-        y={oy - s(cy) - wh / 2}
-        width={ww}
-        height={wh}
-        fill={PAPER}
-        stroke={INK}
-        strokeWidth={CAD_THIN}
-        transform={`rotate(${-angle * (180 / Math.PI)}, ${ox + s(cx)}, ${oy - s(cy)})`}
-      />,
-    )
-  }
+  elements.push(...renderMepWalls(plan, s, ox, oy))
 
   // HVAC placement
   const { symbols, runs } = placeHvac(plan)

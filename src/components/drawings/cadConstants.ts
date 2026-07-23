@@ -63,7 +63,14 @@ export const FILL_PAPER = PAPER
 
 // ── Helpers ──
 export function metresToMm(m: number): string {
-  return Math.round(m * 1000).toString()
+  const mm = Math.round(m * 1000)
+  if (mm === 0) return '0'
+  const parts: string[] = []
+  const str = mm.toString()
+  for (let i = str.length; i > 0; i -= 3) {
+    parts.unshift(str.slice(Math.max(0, i - 3), i))
+  }
+  return parts.join(' ')
 }
 
 export function matchesPen(pen: PenWeight, legacy: number): boolean {
