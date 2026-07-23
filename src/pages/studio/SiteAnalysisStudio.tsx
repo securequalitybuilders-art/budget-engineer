@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { HeliodonView } from '@/components/analysis/HeliodonView';
 import { SiteAnalysisPanel } from '@/components/analysis/SiteAnalysisPanel';
@@ -15,11 +15,35 @@ const DIAGRAM_TABS: { type: DiagramType; label: string; icon: React.ReactNode }[
   { type: 'concept-urban-context', label: 'Concept', icon: <Map size={14} /> },
 ];
 
+const STORAGE_KEY = (pid: string) => `site-analysis-${pid}`;
+
+function loadPersistedSite(projectId: string): SiteContext | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY(projectId));
+    if (raw) return JSON.parse(raw) as SiteContext;
+  } catch { /* ignore corrupt data */ }
+  return null;
+}
+
+function persistSite(projectId: string, site: SiteContext): void {
+  try {
+    localStorage.setItem(STORAGE_KEY(projectId), JSON.stringify(site));
+  } catch { /* storage full — ignore */ }
+}
+
 export function SiteAnalysisStudio() {
   const { id: projectId } = useParams<{ id: string }>();
-  const [site, setSite] = useState<SiteContext>(() => ({
-    ...createDefaultSiteContext(projectId ?? 'demo'),
-  }));
+  const [site, setSite] = useState<SiteContext>(() => {
+    if (projectId) {
+      const saved = loadPersistedSite(projectId);
+      if (saved) return saved;
+    }
+    return { ...createDefaultSiteContext(projectId ?? 'demo') };
+  });
+
+  useEffect(() => {
+    if (projectId) persistSite(projectId, site);
+  }, [projectId, site]);
   const [selectedTab, setSelectedTab] = useState<DiagramType>('sun-wind-path');
   const [showHeliodon, setShowHeliodon] = useState(true);
 

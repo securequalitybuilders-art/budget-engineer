@@ -6,27 +6,22 @@ import { motion } from 'framer-motion'
 import type { DesignOption } from '@/domain/boq'
 import type { BOQ } from '@/lib/boq/boq-types'
 import type { PlanModel } from '@/domain/plan'
-import type { ParseResult } from '@/lib/ai/ai-provider'
-import type { FloorPlan } from '@/engine/tier3/layoutEngine'
 
 interface EngineeringStageProps {
   selectedDesign: DesignOption | null
   activePlan: PlanModel | null
   boq: BOQ | null
-  onDesignOptionsGenerated: (options: DesignOption[]) => void
-  onParsed: (result: ParseResult) => void
-  onTier3Plans: (plans: FloorPlan[]) => void
-  onBuildingTypeChange: (bt: string) => void
+  onDesignOptionsGenerated?: (options: DesignOption[]) => void
+  onParsed?: (result: any) => void
+  onTier3Plans?: (plans: any[]) => void
+  onBuildingTypeChange?: (bt: string) => void
 }
 
 export function EngineeringStage({
   selectedDesign,
   activePlan,
   boq,
-  onDesignOptionsGenerated,
-  onParsed,
-  onTier3Plans,
-  onBuildingTypeChange,
+  ...callbacks
 }: EngineeringStageProps) {
   const { id: projectId } = useParams<{ id: string }>();
   if (!selectedDesign) {
@@ -56,10 +51,7 @@ export function EngineeringStage({
           selectedDesign={selectedDesign}
           activePlan={activePlan}
           boq={boq}
-          onDesignOptionsGenerated={onDesignOptionsGenerated}
-          onParsed={onParsed}
-          onTier3Plans={onTier3Plans}
-          onBuildingTypeChange={onBuildingTypeChange}
+          {...callbacks}
         />
       </div>
       <div className="w-80 shrink-0">
