@@ -3,6 +3,7 @@ import type { ComplianceRuleDef, ComplianceInput, ComplianceResult, ComplianceSt
 import { evaluateFireSafetyRules } from './fireSafety'
 import { evaluateAccessibilityRules } from './accessibility'
 import { evaluateStructuralRules } from './structural'
+import { evaluateMepRules } from './mepServices'
 
 const HABITABLE_KEYWORDS = ['bedroom', 'living', 'dining', 'lounge', 'kitchen', 'classroom', 'office', 'consultation', 'ward', 'patient']
 
@@ -206,5 +207,6 @@ export function evaluateZbcRules(input: ComplianceInput): ComplianceResult[] {
   const fire = evaluateFireSafetyRules(input, 'zbc', 'ZBC Part 10')
   const access = evaluateAccessibilityRules(input, 'zbc', 'ZBC Part 1 / Part 6')
   const struct = evaluateStructuralRules(input, 'zbc', 'ZBC Part 6')
-  return [...base, ...fire, ...access, ...struct]
+  const mep = evaluateMepRules(input, 'zbc', 'ZBC Part 7 / Part 12')
+  return [...base, ...fire, ...access, ...struct, ...mep]
 }

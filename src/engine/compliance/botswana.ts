@@ -3,6 +3,7 @@ import type { ComplianceRuleDef, ComplianceInput, ComplianceResult, ComplianceSt
 import { evaluateFireSafetyRules } from './fireSafety'
 import { evaluateAccessibilityRules } from './accessibility'
 import { evaluateStructuralRules } from './structural'
+import { evaluateMepRules } from './mepServices'
 
 const HABITABLE_KEYWORDS = ['bedroom', 'living', 'dining', 'lounge', 'kitchen', 'classroom', 'office', 'consultation', 'ward', 'patient']
 
@@ -206,5 +207,6 @@ export function evaluateBotswanaRules(input: ComplianceInput): ComplianceResult[
   const fire = evaluateFireSafetyRules(input, 'bw', 'Botswana Building Control Regs Part 6')
   const access = evaluateAccessibilityRules(input, 'bw', 'Botswana Building Control Regs Part 5')
   const struct = evaluateStructuralRules(input, 'bw', 'Botswana Building Control Regs Part 4')
-  return [...base, ...fire, ...access, ...struct]
+  const mep = evaluateMepRules(input, 'bw', 'Botswana Building Control Regs Part 7 / Part 8')
+  return [...base, ...fire, ...access, ...struct, ...mep]
 }
