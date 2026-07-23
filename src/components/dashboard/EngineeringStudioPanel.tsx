@@ -9,6 +9,7 @@ import { StructuralGeneratorPanel } from '@/components/structural/StructuralGene
 import { MaterialSwitchPanel } from '@/components/structural/MaterialSwitchPanel';
 import { ClashHealerPanel } from '@/components/structural/ClashHealerPanel';
 import { StructuralPreDesignPanel } from '@/components/structural/StructuralPreDesignPanel';
+import { MepPreDesignPanel } from '@/components/structural/MepPreDesignPanel';
 import { RATE_CARDS } from '@/lib/rates/rate-card';
 import type { DesignOption } from '@/domain/boq';
 import type { BOQ } from '@/lib/boq/boq-types';
@@ -25,10 +26,11 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
-type TabId = 'structural' | 'ai' | 'rates' | 'rebar' | 'footings' | 'loads' | 'section' | 'analysis' | 'columns' | 'materials' | 'clashes';
+type TabId = 'structural' | 'mep' | 'ai' | 'rates' | 'rebar' | 'footings' | 'loads' | 'section' | 'analysis' | 'columns' | 'materials' | 'clashes';
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'structural', label: 'Structural' },
+  { id: 'mep', label: 'MEP' },
   { id: 'ai', label: 'AI Brief' },
   { id: 'rates', label: 'Rates' },
   { id: 'rebar', label: 'Rebar' },
@@ -151,6 +153,10 @@ export function EngineeringStudioPanel({ selectedDesign, activePlan, boq, onDesi
       <div className="flex-1 overflow-y-auto p-3">
         <div id="structural-panel" role="tabpanel" aria-labelledby="structural-tab" hidden={activeTab !== 'structural'}>{activeTab === 'structural' && (
           sampleBuildingGraph ? <StructuralPreDesignPanel graph={sampleBuildingGraph} /> : <EmptyState message="Start with the AI Brief tab to describe your project. Once a design is generated, structural pre-design runs automatically." />
+        )}</div>
+
+        <div id="mep-panel" role="tabpanel" aria-labelledby="mep-tab" hidden={activeTab !== 'mep'}>{activeTab === 'mep' && (
+          sampleBuildingGraph ? <MepPreDesignPanel graph={sampleBuildingGraph} /> : <EmptyState message="Start with the AI Brief tab to describe your project. Once a design is generated, MEP pre-design runs automatically." />
         )}</div>
 
         <div id="ai-panel" role="tabpanel" aria-labelledby="ai-tab" hidden={activeTab !== 'ai'}>{activeTab === 'ai' && <AiBriefPanel onParsed={onParsed} onDesignOptionsGenerated={onDesignOptionsGenerated} onTier3Plans={onTier3Plans} onBuildingTypeChange={onBuildingTypeChange} />}</div>
