@@ -7,6 +7,7 @@ import type { VerticalChassis } from './vertical-chassis'
 import { classifyRoom } from './roomClassifier'
 import { analyzeCirculation, findEntryAdjacentRoom } from './circulationEngine'
 import type { EgressPoint, AdjacencyWarning } from './circulationEngine'
+import { solveConstraintPlacement } from './constraintPlacer'
 
 export type Topology = 'rectangle' | 'l-shape' | 'split-wing' | 'courtyard'
 
@@ -106,7 +107,7 @@ function gatherMinDims(typology: Typology | null): Record<string, { minWidth: nu
   return merged
 }
 
-function dimForRoom(name: string, minDims: Record<string, { minWidth: number; minDepth: number }>): { minWidth: number; minDepth: number } {
+export function dimForRoom(name: string, minDims: Record<string, { minWidth: number; minDepth: number }>): { minWidth: number; minDepth: number } {
   if (minDims[name]) return minDims[name]
   for (const [key, dim] of Object.entries(minDims)) {
     if (name.startsWith(key) || key.startsWith(name)) return dim
@@ -249,6 +250,30 @@ function generateRectangle(program: ProgramItem[], siteW: number, siteD: number,
         : availDepth * (publicItems.length / Math.max(1, nonCorridors.length)))
       : 3)
     backD = Math.max(privateMinDepth, bldgD - frontD - usedH)
+  }
+
+  // ── Try constraint-first solver ──
+  const solverCorridorY = chassis?.rectangle ? chassis.rectangle.corridorY : frontD
+  const constraintRooms = solveConstraintPlacement(items, bldgW, bldgD, solverCorridorY, corridorH, frontD, backD)
+  if (constraintRooms) {
+    const planW = chassis ? chassis.buildingW : computePlanBounds(constraintRooms).w
+    const planD = chassis ? chassis.buildingD : computePlanBounds(constraintRooms).d
+    const circulation = analyzeCirculation(constraintRooms, planW, planD)
+    const entryAdjacent = findEntryAdjacentRoom(constraintRooms)
+    if (!entryAdjacent && publicItems.length > 0) {
+      circulation.adjacencyWarnings.push({
+        roomA: 'Entrance', roomB: publicItems[0].name, distance: 0,
+        message: `No reception/living room near entry — consider placing ${publicItems[0].name} at front`,
+      })
+    }
+    return {
+      id: uid(), name: 'Rectangle — Constraint-Placed', topology: 'rectangle',
+      width: planW, height: planD, rooms: constraintRooms,
+      egressPoints: circulation.egressPoints,
+      adjacencyWarnings: circulation.adjacencyWarnings,
+      maxTravelDistance: circulation.maxTravelDistance,
+      egressCompliant: circulation.compliant,
+    }
   }
 
   const rooms: PlacedRoom[] = []
