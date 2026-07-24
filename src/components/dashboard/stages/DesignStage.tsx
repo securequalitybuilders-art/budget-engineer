@@ -15,6 +15,14 @@ import { generateDxf, downloadDxf } from '@/lib/export/dxfWriter'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
 import type { BackdropState } from '@/lib/import/backdropUtils'
+import type { ComplianceReport } from '@/engine/compliance/types'
+
+interface BackgroundIntel {
+  compliance: ComplianceReport | null
+  structural: { beams: number; columns: number; footings: number }
+  mep: { fixtures: number; points: number; hvacUnits: number }
+  loading: boolean
+}
 
 interface DesignStageProps {
   projectId: string | null
@@ -38,6 +46,7 @@ interface DesignStageProps {
   onImportFile: (file: File) => void
   onDesignCreated: (projectId: string, plan: PlanModel) => void
   onOpenImportWorkflow?: () => void
+  backgroundIntel?: BackgroundIntel
 }
 
 export function DesignStage({
@@ -62,6 +71,7 @@ export function DesignStage({
   onImportFile,
   onDesignCreated,
   onOpenImportWorkflow,
+  backgroundIntel,
 }: DesignStageProps) {
   const [canvasView, setCanvasView] = useState<'plan' | 'bim' | 'drawings'>('plan')
   const [detecting, setDetecting] = useState(false)
@@ -349,6 +359,25 @@ export function DesignStage({
             : 'border border-[rgba(6,182,212,0.3)] bg-[rgba(6,182,212,0.1)] text-[#06B6D4]'
         }`}>
           {detectMessage}
+        </div>
+      )}
+
+      {/* Background Intelligence bar */}
+      {backgroundIntel && !backgroundIntel.loading && (
+        <div className="absolute left-4 right-4 z-10 mt-2 rounded-lg border border-[rgba(99,102,241,0.2)] bg-[rgba(99,102,241,0.08)] px-3 py-1.5 text-[11px] text-[var(--text-secondary)]">
+          <span className="mr-2 font-semibold text-[var(--brand-accent)]">Background Intel</span>
+          {backgroundIntel.compliance && (
+            <span className="mr-3">
+              Compliance: {backgroundIntel.compliance.score}% ({backgroundIntel.compliance.passedRules}✓{' '}
+              {backgroundIntel.compliance.warnings.length > 0 && <span className="text-[#f59e0b]">{backgroundIntel.compliance.warnings.length}⚠ </span>})
+            </span>
+          )}
+          <span className="mr-3">
+            Structural: {backgroundIntel.structural.beams}B {backgroundIntel.structural.columns}C {backgroundIntel.structural.footings}F
+          </span>
+          <span className="mr-3">
+            MEP: {backgroundIntel.mep.fixtures}P {backgroundIntel.mep.points}E {backgroundIntel.mep.hvacUnits}H
+          </span>
         </div>
       )}
 

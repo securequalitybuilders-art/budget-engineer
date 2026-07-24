@@ -46,6 +46,11 @@ import { routeImportFile } from '@/lib/import/importRouter';
 import type { BackdropState } from '@/lib/import/backdropUtils';
 import { createInitialBackdropState, computeScaleCalibration } from '@/lib/import/backdropUtils';
 import { ImportWorkflow } from '@/components/import/ImportWorkflow';
+import { runCompliance } from '@/engine/compliance';
+import { computeStructuralPreDesign } from '@/engine/structural/structuralPreDesignEngine';
+import { computeMepPreDesign } from '@/engine/mep/mepPreDesignEngine';
+import { planModelToBuildingGraph } from '@/adapters/canonical';
+import type { ComplianceReport } from '@/engine/compliance/types';
 
 export function Dashboard() {
   const { id } = useParams<{ id: string }>();
@@ -84,6 +89,12 @@ export function Dashboard() {
   const [isManualSaving, setIsManualSaving] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [backdrop, setBackdrop] = useState<BackdropState>(createInitialBackdropState());
+  const [backgroundIntel, setBackgroundIntel] = useState<{
+    compliance: ComplianceReport | null
+    structural: { beams: number; columns: number; footings: number }
+    mep: { fixtures: number; points: number; hvacUnits: number }
+    loading: boolean
+  }>({ compliance: null, structural: { beams: 0, columns: 0, footings: 0 }, mep: { fixtures: 0, points: 0, hvacUnits: 0 }, loading: false })
   const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadedPersistenceRef = useRef(false);
   const loadedCadRef = useRef<string | null>(null);
@@ -164,6 +175,32 @@ export function Dashboard() {
     }
     return buildBoqFromDesignOption(selectedDesign)
   }, [selectedDesign, persistedPlan, cadSyncSource, id])
+
+  // ── Background Intelligence: compliance + structural + MEP ──
+  useEffect(() => {
+    if (!activePlan || !selectedDesign) {
+      setBackgroundIntel({ compliance: null, structural: { beams: 0, columns: 0, footings: 0 }, mep: { fixtures: 0, points: 0, hvacUnits: 0 }, loading: false })
+      return
+    }
+    setBackgroundIntel(prev => ({ ...prev, loading: true }))
+    const run = async () => {
+      try {
+        const graph = planModelToBuildingGraph(activePlan).graph
+        const compliance = runCompliance(currentProject?.region ?? 'zimbabwe', { plan: activePlan, design: selectedDesign, analysis: null, buildingType: latestBuildingType ?? 'residential' })
+        const structural = computeStructuralPreDesign(graph)
+        const mep = computeMepPreDesign(graph)
+        setBackgroundIntel({
+          compliance,
+          structural: { beams: structural.beams.length, columns: structural.columns.length, footings: structural.footings.length },
+          mep: { fixtures: mep.plumbing.fixtures.length, points: mep.electrical.points.length, hvacUnits: mep.hvac.units.length },
+          loading: false,
+        })
+      } catch {
+        setBackgroundIntel(prev => ({ ...prev, loading: false }))
+      }
+    }
+    run()
+  }, [activePlan, selectedDesign, currentProject?.region, latestBuildingType])
 
   const loadAssurance = useAssuranceStore((s) => s.loadForProject);
   const loadMilestones = useMilestoneStore((s) => s.loadForProject);
@@ -691,6 +728,7 @@ export function Dashboard() {
                     onImportFile={handleImportFile}
                     onDesignCreated={handleDesignCreated}
                     onOpenImportWorkflow={() => setImportWorkflowOpen(true)}
+                    backgroundIntel={backgroundIntel}
                   />
                 )}
                 {activeStageId === 'docs-bim' && (
