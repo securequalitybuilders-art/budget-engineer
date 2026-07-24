@@ -1,11 +1,13 @@
-import { useRef, useEffect, useCallback, useState } from 'react'
+import { useRef, useEffect, useCallback, useMemo, useState } from 'react'
 import { useProjectStore } from '@/stores/projectStore'
 import { PlanCanvas } from '@/components/cad/PlanCanvas'
+import { MiniFloorPlanPreview } from '@/components/cad/MiniFloorPlanPreview'
 import { PlanComparison } from '@/components/cad/PlanComparison'
 import { Button } from '@/components/ui/Button'
 import { LayoutGrid, Wand2, Loader2, Upload, PenTool, Eye } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { generatePlanModel } from '@/engine/plan-generator'
 import type { DesignOption } from '@/domain/boq'
 import type { PlanModel } from '@/domain/plan'
 
@@ -130,29 +132,34 @@ export function ConceptStage({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visibleDesignOptions.map((option) => {
             const isSelected = selectedDesignId === option.id
+            let previewPlan: PlanModel | null = null
+            try { previewPlan = generatePlanModel(option) } catch { /* skip */ }
+            const roomCount = previewPlan?.rooms.length ?? 0
             return (
               <button
                 key={option.id}
                 onClick={() => { setSelectedDesignId(option.id); setShowCanvas(false) }}
                 className={cn(
-                  'flex flex-col gap-1 rounded-xl border-2 p-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98]',
+                  'flex flex-col gap-2 rounded-xl border-2 p-3 text-left transition-all hover:scale-[1.02] active:scale-[0.98]',
                   isSelected
                     ? 'border-cyan-400/60 bg-cyan-500/15 shadow-md shadow-cyan-500/15'
                     : 'border-slate-700/60 bg-slate-800/80 hover:border-cyan-500/40 hover:bg-cyan-500/5'
                 )}
               >
+                {previewPlan && (
+                  <div className="overflow-hidden rounded-lg">
+                    <MiniFloorPlanPreview plan={previewPlan} width={200} height={140} />
+                  </div>
+                )}
                 <span className={cn('text-sm font-bold', isSelected ? 'text-cyan-200' : 'text-slate-200')}>
                   {option.name}
                 </span>
                 <span className="text-xs text-slate-400">
-                  {option.grossFloorArea.toFixed(0)} m² · {option.floors} floor{option.floors > 1 ? 's' : ''}
-                </span>
-                <span className="mt-1 text-[10px] leading-relaxed text-slate-400">
-                  {option.elements.length} element{option.elements.length > 1 ? 's' : ''}
+                  {option.grossFloorArea.toFixed(0)} m² · {option.floors} floor{option.floors > 1 ? 's' : ''} · {roomCount} room{roomCount !== 1 ? 's' : ''}
                 </span>
                 <span
                   className={cn(
-                    'mt-2 self-start rounded-md px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider',
+                    'mt-1 self-start rounded-md px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider',
                     isSelected ? 'bg-cyan-500/20 text-cyan-300' : 'bg-amber-500/10 text-amber-400'
                   )}
                 >
