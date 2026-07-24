@@ -124,8 +124,8 @@ describe('StageRail', () => {
 
   it('shows blocked status for stages that are blocked', () => {
     const stageStatus: Partial<Record<StageId, 'done' | 'active' | 'upcoming' | 'blocked'>> = {
-      brief: 'active', concept: 'blocked', 'site-analysis': 'blocked',
-      design: 'blocked', engineering: 'blocked', 'docs-bim': 'blocked', 'cost-deliver': 'blocked',
+      brief: 'active', concept: 'blocked',
+      design: 'blocked', 'docs-bim': 'blocked', 'cost-deliver': 'blocked',
     }
     render(<StageRail activeStageId={'brief' as StageId} onStageChange={vi.fn()} stageStatus={stageStatus} />)
     for (const stage of archStages) {
@@ -221,6 +221,21 @@ describe('ConceptStage', () => {
     )
     expect(screen.getByText('Choose your design')).toBeTruthy()
     expect(screen.getAllByText('Test Design').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('shows edit button when design selected', () => {
+    const mockDesign = { id: 'opt-1', name: 'Test', grossFloorArea: 100, floors: 1, buildingType: 'house', elements: [] }
+    render(
+      <ConceptStage
+        visibleDesignOptions={[mockDesign]}
+        selectedDesignId="opt-1"
+        setSelectedDesignId={vi.fn()}
+        selectedDesign={mockDesign}
+        handleGenerate={vi.fn()}
+        isGenerating={false}
+      />
+    )
+    expect(screen.getByText('Edit in Canvas')).toBeTruthy()
   })
 })
 

@@ -98,7 +98,7 @@ export function getDefaultStage(discipline: DisciplineId): StageId {
 }
 
 const STAGE_ORDER: Record<DisciplineId, StageId[]> = {
-  ARCH: ['brief', 'concept', 'site-analysis', 'design', 'engineering', 'docs-bim', 'cost-deliver'],
+  ARCH: ['brief', 'concept', 'design', 'docs-bim', 'cost-deliver'],
   STR: ['brief', 'concept', 'design', 'engineering', 'docs-bim', 'cost-deliver'],
   MEP: ['brief', 'design', 'engineering', 'docs-bim', 'cost-deliver'],
   ELEC: ['brief', 'design', 'engineering', 'docs-bim', 'cost-deliver'],

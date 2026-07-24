@@ -1,8 +1,9 @@
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect, useCallback, useState } from 'react'
 import { useProjectStore } from '@/stores/projectStore'
+import { PlanCanvas } from '@/components/cad/PlanCanvas'
 import { PlanComparison } from '@/components/cad/PlanComparison'
 import { Button } from '@/components/ui/Button'
-import { LayoutGrid, Wand2, Loader2, Upload } from 'lucide-react'
+import { LayoutGrid, Wand2, Loader2, Upload, PenTool, Eye } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import type { DesignOption } from '@/domain/boq'
@@ -17,6 +18,8 @@ interface ConceptStageProps {
   isGenerating: boolean
   onDxfImported?: (plan: PlanModel) => void
   onImportFile?: (file: File) => void
+  activePlan?: PlanModel | null
+  projectId?: string | null
 }
 
 export function ConceptStage({
@@ -28,8 +31,11 @@ export function ConceptStage({
   isGenerating,
   onDxfImported,
   onImportFile,
+  activePlan,
+  projectId,
 }: ConceptStageProps) {
   const importInputRef = useRef<HTMLInputElement>(null)
+  const [showCanvas, setShowCanvas] = useState(false)
 
   const handleImportChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -105,7 +111,7 @@ export function ConceptStage({
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
+    <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
       <div ref={designOptionsRef} className="rounded-2xl border-2 border-cyan-500/25 bg-slate-900/80 p-5 shadow-lg shadow-cyan-500/5 sm:p-6">
         <div className="mb-5 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20">
@@ -116,7 +122,7 @@ export function ConceptStage({
             <p className="text-xs text-slate-400">
               {selectedDesignId
                 ? 'Design selected — you can change anytime'
-                : 'Select a design option to unlock the Design stage'}
+                : 'Select a design option to unlock editing'}
             </p>
           </div>
         </div>
@@ -127,7 +133,7 @@ export function ConceptStage({
             return (
               <button
                 key={option.id}
-                onClick={() => setSelectedDesignId(option.id)}
+                onClick={() => { setSelectedDesignId(option.id); setShowCanvas(false) }}
                 className={cn(
                   'flex flex-col gap-1 rounded-xl border-2 p-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98]',
                   isSelected
@@ -157,24 +163,21 @@ export function ConceptStage({
           })}
         </div>
 
-        {selectedDesignId ? (
-          <div className="mt-5 flex flex-col items-start gap-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20">
-                <span className="text-[10px] text-emerald-400">✓</span>
-              </div>
-              <span className="text-sm text-cyan-200">
-                <span className="font-semibold text-white">{selectedDesign?.name}</span> selected
-              </span>
-            </div>
-          </div>
-        ) : (
-          <div className="mt-5 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-center text-sm font-medium text-cyan-300">
-            Select a design option to continue
+        {selectedDesignId && (
+          <div className="mt-4 flex justify-center sm:justify-end">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="gap-2"
+              onClick={() => setShowCanvas(v => !v)}
+            >
+              {showCanvas ? <Eye size={14} /> : <PenTool size={14} />}
+              {showCanvas ? 'Hide Editor' : 'Edit in Canvas'}
+            </Button>
           </div>
         )}
 
-        <div className="mt-4 flex justify-center sm:justify-end">
+        <div className="mt-3 flex justify-center sm:justify-end">
           <Button
             variant="secondary"
             size="sm"
@@ -187,6 +190,17 @@ export function ConceptStage({
           </Button>
         </div>
       </div>
+
+      {selectedDesignId && showCanvas && (
+        <div className="rounded-xl border border-stone-700/40 bg-stone-900/60 p-3">
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-cyan-400">Design Editor</h3>
+          <PlanCanvas
+            projectId={projectId ?? null}
+            design={selectedDesign}
+            persistedPlan={activePlan ?? null}
+          />
+        </div>
+      )}
 
       <PlanComparison designs={visibleDesignOptions} selectedDesignId={selectedDesign?.id} />
     </div>

@@ -638,7 +638,7 @@ export function Dashboard() {
 
           {/* Main content area */}
           <div className="relative flex flex-1 flex-col overflow-hidden bg-[var(--bg-primary)]">
-            {(['brief', 'concept', 'site-analysis', 'design', 'engineering', 'docs-bim', 'cost-deliver'] as StageId[]).includes(activeView as StageId) ? (
+            {(['brief', 'concept', 'design', 'docs-bim', 'cost-deliver'] as StageId[]).includes(activeView as StageId) ? (
               <>
                 {activeStageId === 'brief' && (
                   <BriefStage
@@ -664,25 +664,9 @@ export function Dashboard() {
                     isGenerating={isGenerating}
                     onDxfImported={handleDxfImport}
                     onImportFile={handleImportFile}
+                    activePlan={activePlan}
+                    projectId={id ?? null}
                   />
-                )}
-                {activeStageId === 'site-analysis' && (
-                  <Link
-                    to={`/project/${id}/studio/site-analysis`}
-                    className="flex flex-1 items-center justify-center"
-                  >
-                    <div className="flex flex-col items-center gap-3 text-center">
-                      <Globe size={40} className="text-[var(--brand-accent)]" />
-                      <h2 className="text-lg font-semibold text-[var(--text-primary)]">Site Analysis</h2>
-                      <p className="max-w-sm text-sm text-[var(--text-secondary)]">
-                        Open the Site Analysis Studio for heliodon, shadow casting, and environmental assessment.
-                      </p>
-                      <Button className="gap-2 mt-2">
-                        <Globe size={16} />
-                        Open Site Analysis Studio
-                      </Button>
-                    </div>
-                  </Link>
                 )}
                 {activeStageId === 'design' && (
                   <DesignStage
@@ -707,17 +691,6 @@ export function Dashboard() {
                     onImportFile={handleImportFile}
                     onDesignCreated={handleDesignCreated}
                     onOpenImportWorkflow={() => setImportWorkflowOpen(true)}
-                  />
-                )}
-                {activeStageId === 'engineering' && (
-                  <EngineeringStage
-                    selectedDesign={selectedDesign}
-                    activePlan={activePlan}
-                    boq={currentBoq}
-                    onDesignOptionsGenerated={handleAiDesignOptions}
-                    onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
-                    onTier3Plans={handleTier3Plans}
-                    onBuildingTypeChange={setSelectedBuildingType}
                   />
                 )}
                 {activeStageId === 'docs-bim' && (
