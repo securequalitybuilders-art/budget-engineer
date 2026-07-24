@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { HeliodonView } from '@/components/analysis/HeliodonView';
 import { SiteAnalysisPanel } from '@/components/analysis/SiteAnalysisPanel';
 import { computeFullSiteAnalysis, createDefaultSiteContext } from '@/engine/analysis/siteAnalysisEngine';
+import { detectClimateZone, generateSiteContext } from '@/engine/site/locationIntelligence';
 import type { SiteContext, DiagramType } from '@/domain/site';
-import { ArrowLeft, Sun, Wind, Map, Trees, Route, Building2, Download } from 'lucide-react';
+import { ArrowLeft, Sun, Wind, Map, Trees, Route, Building2, Download, Compass } from 'lucide-react';
 
 const DIAGRAM_TABS: { type: DiagramType; label: string; icon: React.ReactNode }[] = [
   { type: 'sun-wind-path', label: 'Sun & Wind', icon: <Sun size={14} /> },
@@ -46,6 +47,13 @@ export function SiteAnalysisStudio() {
   }, [projectId, site]);
   const [selectedTab, setSelectedTab] = useState<DiagramType>('sun-wind-path');
   const [showHeliodon, setShowHeliodon] = useState(true);
+  const [climateLabel, setClimateLabel] = useState<string | null>(null);
+
+  const handleAutoCalculate = useCallback(() => {
+    const climate = detectClimateZone(site.lat, site.lng)
+    setClimateLabel(`${climate.name} — ${climate.description}`)
+    setSite(prev => generateSiteContext(projectId ?? 'demo', site.lat, site.lng))
+  }, [site.lat, site.lng, projectId]);
 
   const fullAnalysis = computeFullSiteAnalysis(site);
   const selectedDiagram = fullAnalysis.diagrams.find(d => d.type === selectedTab);
@@ -123,6 +131,13 @@ export function SiteAnalysisStudio() {
             className="w-16 rounded-md border border-[var(--border-default)] bg-[var(--bg-secondary)] px-2 py-1 text-sm text-[var(--text-primary)]" />
         </label>
         <button
+          onClick={handleAutoCalculate}
+          className="flex items-center gap-1.5 rounded-md bg-emerald-700 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-emerald-600"
+        >
+          <Compass size={14} />
+          Auto-Calculate from Coordinates
+        </button>
+        <button
           onClick={() => setShowHeliodon(v => !v)}
           className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
             showHeliodon ? 'bg-[var(--brand-accent)] text-white' : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)]'
@@ -131,6 +146,12 @@ export function SiteAnalysisStudio() {
           Heliodon
         </button>
       </div>
+
+      {climateLabel && (
+        <div className="rounded-md border border-emerald-700/40 bg-emerald-900/30 px-3 py-2 text-xs text-emerald-300">
+          {climateLabel}
+        </div>
+      )}
 
       {showHeliodon && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
