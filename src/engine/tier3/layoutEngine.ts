@@ -5,6 +5,8 @@ import type { DesignConstraints } from '../../adapters/designConstraints'
 import { generateVerticalChassis, validateConstraintReport } from './vertical-chassis'
 import type { VerticalChassis } from './vertical-chassis'
 import { classifyRoom } from './roomClassifier'
+import { analyzeCirculation, findEntryAdjacentRoom } from './circulationEngine'
+import type { EgressPoint, AdjacencyWarning } from './circulationEngine'
 
 export type Topology = 'rectangle' | 'l-shape' | 'split-wing' | 'courtyard'
 
@@ -55,6 +57,10 @@ export interface FloorPlan {
   totalFloors?: number
   stairCalculations?: { risers: number; treads: number; run: number }
   verticalChassis?: VerticalChassis
+  egressPoints?: EgressPoint[]
+  adjacencyWarnings?: AdjacencyWarning[]
+  maxTravelDistance?: number
+  egressCompliant?: boolean
 }
 
 const uid = () => Math.random().toString(36).slice(2, 10)
@@ -371,7 +377,22 @@ function generateRectangle(program: ProgramItem[], siteW: number, siteD: number,
 
   const planW = chassis ? chassis.buildingW : computePlanBounds(rooms).w
   const planD = chassis ? chassis.buildingD : computePlanBounds(rooms).d
-  return { id: uid(), name: 'Rectangle ΓÇö Public Front / Corridor / Private Back', topology: 'rectangle', width: planW, height: planD, rooms }
+  const circulation = analyzeCirculation(rooms, planW, planD)
+  const entryAdjacent = findEntryAdjacentRoom(rooms)
+  if (!entryAdjacent && publicItems.length > 0) {
+    circulation.adjacencyWarnings.push({
+      roomA: 'Entrance', roomB: publicItems[0].name, distance: 0,
+      message: `No reception/living room near entry — consider placing ${publicItems[0].name} at front`,
+    })
+  }
+  return {
+    id: uid(), name: 'Rectangle ΓÇö Public Front / Corridor / Private Back', topology: 'rectangle',
+    width: planW, height: planD, rooms,
+    egressPoints: circulation.egressPoints,
+    adjacencyWarnings: circulation.adjacencyWarnings,
+    maxTravelDistance: circulation.maxTravelDistance,
+    egressCompliant: circulation.compliant,
+  }
 }
 
 function generateLShape(program: ProgramItem[], siteW: number, _siteD: number, minDims: Record<string, { minWidth: number; minDepth: number }>, chassis?: MasterChassis): FloorPlan {
