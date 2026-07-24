@@ -4,6 +4,7 @@ import type { DesignConcept } from '../tier2/conceptEngine'
 import type { DesignConstraints } from '../../adapters/designConstraints'
 import { generateVerticalChassis, validateConstraintReport } from './vertical-chassis'
 import type { VerticalChassis } from './vertical-chassis'
+import { classifyRoom } from './roomClassifier'
 
 export type Topology = 'rectangle' | 'l-shape' | 'split-wing' | 'courtyard'
 
@@ -104,7 +105,8 @@ function dimForRoom(name: string, minDims: Record<string, { minWidth: number; mi
   for (const [key, dim] of Object.entries(minDims)) {
     if (name.startsWith(key) || key.startsWith(name)) return dim
   }
-  return { minWidth: 2.0, minDepth: 2.0 }
+  const cls = classifyRoom(name)
+  return { minWidth: cls.minWidth, minDepth: cls.minDepth }
 }
 
 function roomsIntersect(a: PlacedRoom, b: PlacedRoom): boolean {
@@ -150,7 +152,13 @@ function expandProgram(program: ProgramItem[]): ExpandedProgramItem[] {
   for (const p of program) {
     for (let i = 0; i < p.count; i++) {
       const suffix = p.count > 1 ? ` ${i + 1}` : ''
-      items.push({ name: p.name + suffix, area: p.areaM2, zone: p.zone, isWetCore: p.isWetCore })
+      const cls = classifyRoom(p.name)
+      items.push({
+        name: p.name + suffix,
+        area: p.areaM2,
+        zone: p.zone ?? cls.zone,
+        isWetCore: p.isWetCore ?? cls.isWetCore,
+      })
     }
   }
   return items
@@ -186,7 +194,18 @@ function generateRectangle(program: ProgramItem[], siteW: number, siteD: number,
   const corridors = items.filter(r => r.zone === 'circulation' || r.name === 'Circulation' || r.name.startsWith('Circulation'))
   const nonCorridors = items.filter(r => !corridors.includes(r))
 
-  const PUBLIC_PREFIXES = ['Reception / Waiting', 'Reception / Lobby', 'Reception', 'Living Room', 'Lounge / Dining', 'Dining Area', 'Sales Floor', 'Retail Floor', 'Dining Area 1', 'Main Hall', 'Open Plan Office']
+  const PUBLIC_PREFIXES = [
+    'Reception / Waiting', 'Reception / Lobby', 'Reception', 'Waiting',
+    'Living Room', 'Living / Dining', 'Lounge / Dining',
+    'Dining Area', 'Dining Room', 'Sales Floor', 'Display Area',
+    'Main Hall', 'Main Hall / Sanctuary', 'Assembly Hall',
+    'Open Plan Office', 'Open-Plan Office',
+    'Restaurant', 'Bar', 'Conference Room',
+    'Ground Floor Shop', 'Shop / Convenience',
+    'Classroom', 'Library', 'Computer Lab', 'Science Lab',
+    'Warehouse Floor', 'Vendor Stall',
+    'Dining Area', 'Counter / Bar',
+  ]
   let publicItems = nonCorridors.filter(i => i.zone === 'public' || (!i.zone && PUBLIC_PREFIXES.some(p => i.name.startsWith(p))))
   let privateItems = nonCorridors.filter(i => !publicItems.includes(i))
 
