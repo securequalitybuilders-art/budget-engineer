@@ -23,6 +23,8 @@ import { CostDeliverStage } from '@/components/dashboard/stages/CostDeliverStage
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
 import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
+import { loadSiteContext } from '@/lib/site/siteContextReader';
+import { composeDesignConstraints } from '@/adapters/designConstraints';
 import { ProjectHealthSummaryCard } from '@/components/lifecycle/ProjectHealthSummaryCard';
 import { useAssuranceStore } from '@/stores/assuranceStore';
 import { useMilestoneStore } from '@/stores/milestoneStore';
@@ -440,8 +442,12 @@ export function Dashboard() {
           const parsed = parseBrief(brief.rawText, { buildingType: selectedBuildingType })
           const { generateDesignConcept } = await import('@/engine/tier2/conceptEngine')
           const concept = generateDesignConcept(parsed)
+          const siteContext = loadSiteContext(id)
+          const constraints = composeDesignConstraints(siteContext, {
+            maxStructuralSpan: parsed.typology?.maxStructuralSpan,
+          })
           const { generateLayoutParameters, generateFloorPlans } = await import('@/engine/tier3/layoutEngine')
-          const params = generateLayoutParameters(concept, parsed)
+          const params = generateLayoutParameters(concept, parsed, constraints)
           const plans = generateFloorPlans(params, parsed)
           if (plans.length > 0) {
             setTier3Plans(plans)
@@ -636,6 +642,7 @@ export function Dashboard() {
               <>
                 {activeStageId === 'brief' && (
                   <BriefStage
+                    projectId={id}
                     onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
                     onDesignOptionsGenerated={handleAiDesignOptions}
                     onTier3Plans={handleTier3Plans}

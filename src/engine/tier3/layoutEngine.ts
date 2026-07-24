@@ -1,6 +1,7 @@
 import type { Tier1ParsedBrief, Typology, ProgramItem } from '../tier1-types'
 import type { ConstraintReport } from '../../domain/building'
 import type { DesignConcept } from '../tier2/conceptEngine'
+import type { DesignConstraints } from '../../adapters/designConstraints'
 import { generateVerticalChassis, validateConstraintReport } from './vertical-chassis'
 import type { VerticalChassis } from './vertical-chassis'
 
@@ -29,6 +30,7 @@ export interface LayoutParameters {
   floorCount: number
   floorHeight: number
   maxStructuralSpan?: number
+  constraints?: DesignConstraints
 }
 
 export interface PlacedRoom {
@@ -1043,6 +1045,7 @@ export function generateMultiFloorPlans(
 export function generateLayoutParameters(
   _concept: DesignConcept,
   brief: Tier1ParsedBrief,
+  constraints?: DesignConstraints,
 ): LayoutParameters {
   const { w, d } = pickSiteDims(brief)
   const minDims = gatherMinDims(brief.typology)
@@ -1057,16 +1060,42 @@ export function generateLayoutParameters(
 
   const floorCount = Math.max(1, brief.typology?.defaultStoreys ?? 1)
 
+  let siteWidth = w
+  let siteDepth = d
+  let corridorWidth = 1.5
+  let maxStructuralSpan = brief.typology?.maxStructuralSpan ?? 6.0
+
+  if (constraints) {
+    const s = constraints.setbacks
+    if (s) {
+      siteWidth = Math.max(1, siteWidth - s.sides[0] - s.sides[1])
+      siteDepth = Math.max(1, siteDepth - s.front - s.rear)
+    }
+    if (constraints.maxBuildingDepth) {
+      siteDepth = Math.min(siteDepth, constraints.maxBuildingDepth)
+    }
+    if (constraints.singleLoaded) {
+      corridorWidth = 1.2
+    }
+    if (constraints.prioritizeVentilation) {
+      siteDepth = Math.min(siteDepth, 10)
+    }
+    if (constraints.maxStructuralSpan != null) {
+      maxStructuralSpan = constraints.maxStructuralSpan
+    }
+  }
+
   return {
     topologies,
-    siteWidth: w,
-    siteDepth: d,
+    siteWidth,
+    siteDepth,
     wallThickness: 0.2,
-    corridorWidth: 1.5,
+    corridorWidth,
     minRoomDimensions: minDims,
     floorCount,
     floorHeight: 3.0,
-    maxStructuralSpan: brief.typology?.maxStructuralSpan ?? 6.0,
+    maxStructuralSpan,
+    constraints,
   }
 }
 
@@ -1075,8 +1104,20 @@ export function generateFloorPlans(
   params: LayoutParameters,
   brief: Tier1ParsedBrief,
 ): FloorPlan[] {
-  const { topologies, siteWidth, siteDepth, minRoomDimensions } = params
-  const program = brief.program.length > 0 ? brief.program : (brief.typology?.defaultProgram ?? [])
+  const { topologies, siteWidth, siteDepth, minRoomDimensions, constraints } = params
+  let program = brief.program.length > 0 ? brief.program : (brief.typology?.defaultProgram ?? [])
+
+  if (constraints?.groupWetRooms) {
+    const wetItems = program.filter(p => p.isWetCore)
+    const nonWet = program.filter(p => !p.isWetCore)
+    if (wetItems.length > 0) {
+      const totalWetArea = wetItems.reduce((s, p) => s + p.areaM2 * p.count, 0)
+      program = [
+        ...nonWet,
+        { name: 'Wet Core', count: 1, areaM2: totalWetArea, zone: 'service' as const, isWetCore: true },
+      ]
+    }
+  }
 
   const plans: FloorPlan[] = []
 

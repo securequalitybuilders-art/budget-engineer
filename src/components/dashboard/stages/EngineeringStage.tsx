@@ -51,6 +51,7 @@ export function EngineeringStage({
           selectedDesign={selectedDesign}
           activePlan={activePlan}
           boq={boq}
+          projectId={projectId}
           {...callbacks}
         />
       </div>

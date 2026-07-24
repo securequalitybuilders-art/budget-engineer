@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { AiEngine, ParseResult, parseWithEngine } from '@/lib/ai/ai-provider';
 import { generateDesignOptionsFromBriefText } from '@/adapters/aiDesignAdapter';
+import { composeDesignConstraints } from '@/adapters/designConstraints';
+import { loadSiteContext } from '@/lib/site/siteContextReader';
 import type { DesignOption } from '@/domain/boq';
 import type { Tier1ParsedBrief } from '@/engine/tier1-types';
 import type { DesignConcept } from '@/engine/tier2/conceptEngine';
@@ -32,13 +34,14 @@ const ENGINES: { id: AiEngine; label: string; disabled?: boolean; hint?: string 
 ];
 
 interface AiBriefPanelProps {
+  projectId?: string;
   onParsed?: (result: ParseResult) => void;
   onDesignOptionsGenerated?: (options: DesignOption[]) => void;
   onTier3Plans?: (plans: FloorPlan[]) => void;
   onBuildingTypeChange?: (bt: string) => void;
 }
 
-export function AiBriefPanel({ onParsed, onDesignOptionsGenerated, onTier3Plans, onBuildingTypeChange }: AiBriefPanelProps) {
+export function AiBriefPanel({ projectId, onParsed, onDesignOptionsGenerated, onTier3Plans, onBuildingTypeChange }: AiBriefPanelProps) {
   const [briefText, setBriefText] = useState('');
   const [aiEngine, setAiEngine] = useState<AiEngine>('local-rules');
   const [buildingType, setBuildingType] = useState('auto');
@@ -79,8 +82,12 @@ export function AiBriefPanel({ onParsed, onDesignOptionsGenerated, onTier3Plans,
         // Tier 3 layout engine (layered on Tier 1+2 — fallback protected)
         try {
           if (concept) {
+            const siteContext = projectId ? loadSiteContext(projectId) : null
+            const constraints = composeDesignConstraints(siteContext, {
+              maxStructuralSpan: parsed.typology?.maxStructuralSpan,
+            })
             const { generateLayoutParameters, generateFloorPlans } = await import('@/engine/tier3/layoutEngine')
-            const params = generateLayoutParameters(concept, parsed)
+            const params = generateLayoutParameters(concept, parsed, constraints)
             const plans = generateFloorPlans(params, parsed)
             onTier3Plans?.(plans)
           }

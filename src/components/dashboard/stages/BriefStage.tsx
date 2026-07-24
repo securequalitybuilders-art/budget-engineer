@@ -7,6 +7,7 @@ import type { DesignOption } from '@/domain/boq'
 import type { FloorPlan } from '@/engine/tier3/layoutEngine'
 
 interface BriefStageProps {
+  projectId?: string
   onParsed: (result: ParseResult) => void
   onDesignOptionsGenerated: (options: DesignOption[]) => void
   onTier3Plans: (plans: FloorPlan[]) => void
@@ -19,6 +20,7 @@ interface BriefStageProps {
 }
 
 export function BriefStage({
+  projectId,
   onParsed,
   onDesignOptionsGenerated,
   onTier3Plans,
@@ -57,6 +59,7 @@ export function BriefStage({
       </div>
 
       <AiBriefPanel
+        projectId={projectId}
         onParsed={onParsed}
         onDesignOptionsGenerated={onDesignOptionsGenerated}
         onTier3Plans={onTier3Plans}

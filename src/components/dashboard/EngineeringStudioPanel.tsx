@@ -112,13 +112,14 @@ interface EngineeringStudioPanelProps {
   selectedDesign: DesignOption | null;
   activePlan?: PlanModel | null;
   boq?: BOQ | null;
+  projectId?: string;
   onDesignOptionsGenerated?: (options: DesignOption[]) => void;
   onParsed?: (result: ParseResult) => void;
   onTier3Plans?: (plans: FloorPlan[]) => void;
   onBuildingTypeChange?: (bt: string) => void;
 }
 
-export function EngineeringStudioPanel({ selectedDesign, activePlan, boq, onDesignOptionsGenerated, onParsed, onTier3Plans, onBuildingTypeChange }: EngineeringStudioPanelProps) {
+export function EngineeringStudioPanel({ selectedDesign, activePlan, boq, projectId, onDesignOptionsGenerated, onParsed, onTier3Plans, onBuildingTypeChange }: EngineeringStudioPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('ai');
 
   const sampleBim = useMemo(() => buildSampleBim(selectedDesign), [selectedDesign]);
@@ -171,7 +172,7 @@ export function EngineeringStudioPanel({ selectedDesign, activePlan, boq, onDesi
           <SignoffGatePanel plan={activePlan ?? null} design={selectedDesign} />
         )}</div>
 
-        <div id="ai-panel" role="tabpanel" aria-labelledby="ai-tab" hidden={activeTab !== 'ai'}>{activeTab === 'ai' && <AiBriefPanel onParsed={onParsed} onDesignOptionsGenerated={onDesignOptionsGenerated} onTier3Plans={onTier3Plans} onBuildingTypeChange={onBuildingTypeChange} />}</div>
+        <div id="ai-panel" role="tabpanel" aria-labelledby="ai-tab" hidden={activeTab !== 'ai'}>{activeTab === 'ai' && <AiBriefPanel projectId={projectId} onParsed={onParsed} onDesignOptionsGenerated={onDesignOptionsGenerated} onTier3Plans={onTier3Plans} onBuildingTypeChange={onBuildingTypeChange} />}</div>
 
         <div id="rates-panel" role="tabpanel" aria-labelledby="rates-tab" hidden={activeTab !== 'rates'}>{activeTab === 'rates' && <RateCardPanel card={RATE_CARDS.zimbabwe} />}</div>
 
