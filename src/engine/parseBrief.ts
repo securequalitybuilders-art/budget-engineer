@@ -56,24 +56,126 @@ function extractConstraints(text: string): Constraints {
 
 function extractProgramFromText(text: string): ProgramItem[] {
   const items: ProgramItem[] = []
+  const seen = new Set<string>()
+  const tryAdd = (name: string, count: number) => {
+    if (!seen.has(name)) { seen.add(name); items.push({ name, count, areaM2: 0 }) }
+  }
   const roomPatterns: [RegExp, string, number][] = [
+    // ── Residential ──
+    [/(\d+)?\s*master\s*bed(?:room)?/i, 'Master Bedroom', 1],
+    [/(\d+)?\s*guest\s*bed(?:room)?/i, 'Guest Bedroom', 1],
     [/(\d+)?\s*bed(?:room)?/i, 'Bedroom', 2],
     [/(\d+)?\s*bath(?:room)?/i, 'Bathroom', 1],
-    [/(\d+)?\s*kitchen/i, 'Kitchen', 1],
-    [/(\d+)?\s*living\s*room/i, 'Living Room', 1],
+    [/(\d+)?\s*en.?suite/i, 'En-suite', 1],
+    [/(\d+)?\s*guest\s*wc/i, 'Guest WC', 1],
+    [/(\d+)?\s*living\s*(?:area|room|dining)?/i, 'Living Room', 1],
+    [/\bliving\s*\/\s*dining\b/i, 'Living / Dining', 2],
     [/(\d+)?\s*dining/i, 'Dining Room', 1],
     [/(\d+)?\s*lounge/i, 'Lounge', 1],
-    [/(\d+)?\s*classroom/i, 'Classroom', 4],
-    [/(\d+)?\s*consultation/i, 'Consultation Room', 2],
-    [/(\d+)?\s*office/i, 'Office', 2],
-    [/(\d+)?\s*store(?: room)?/i, 'Store', 1],
+    [/(\d+)?\s*kitchen(?!.*commercial)/i, 'Kitchen', 1],
+    [/(\d+)?\s*laundry/i, 'Laundry', 1],
+    [/(\d+)?\s*pantry/i, 'Pantry', 1],
+    [/(\d+)?\s*verandah/i, 'Verandah', 1],
+    [/(\d+)?\s*porch/i, 'Porch', 1],
     [/(\d+)?\s*garage/i, 'Garage', 1],
+    [/(\d+)?\s*study/i, 'Study', 1],
+    [/(\d+)?\s*playroom/i, 'Playroom', 1],
+
+    // ── Apartment / Multi-Unit ──
+    [/(\d+)?\s*studio/i, 'Studio Unit', 6],
+    [/(\d+)?\s*one.?bed(?:room)?/i, 'One-Bedroom Unit', 4],
+    [/(\d+)?\s*two.?bed(?:room)?/i, 'Two-Bedroom Unit', 4],
+    [/\bstair(?:\s*case)?\s*\/?\s*(?:lift\s*)?core/i, 'Staircase / Lift Core', 1],
+    [/(\d+)?\s*common\s*corridor/i, 'Common Corridor', 1],
+
+    // ── Clinic / Health ──
+    [/(\d+)?\s*consultation/i, 'Consultation Room', 2],
+    [/(\d+)?\s*treatment/i, 'Treatment Room', 1],
+    [/\breception/i, 'Reception', 1],
+    [/\bwaiting/i, 'Reception / Waiting', 1],
+    [/(\d+)?\s*pharmacy/i, 'Pharmacy / Dispensary', 1],
+    [/(\d+)?\s*dispensary/i, 'Pharmacy / Dispensary', 1],
+    [/(\d+)?\s*ward/i, 'Ward', 2],
+    [/\boperating\s*theatre/i, 'Operating Theatre', 1],
+    [/\bnurse\s*station/i, 'Nurse Station', 1],
+    [/(\d+)?\s*laboratory/i, 'Laboratory', 1],
+
+    // ── School / Education ──
+    [/(\d+)?\s*classroom/i, 'Classroom', 4],
+    [/\bstaff\s*room/i, 'Staff Room', 1],
+    [/\bhead(?:'s)?\s*office/i, "Head's Office", 1],
+    [/(\d+)?\s*library/i, 'Library', 1],
+    [/\bcomputer\s*lab/i, 'Computer Lab', 1],
+    [/\bscience\s*lab/i, 'Science Lab', 1],
+    [/\bassembly\s*hall/i, 'Assembly Hall', 1],
+
+    // ── Hotel / Hospitality ──
+    [/(\d+)?\s*guest\s*room/i, 'Guest Room', 20],
+    [/\blobby/i, 'Reception / Lobby', 1],
+    [/(\d+)?\s*restaurant/i, 'Restaurant', 1],
+    [/\bbar/i, 'Bar', 1],
+    [/\bswimming\s*pool/i, 'Swimming Pool', 1],
+    [/\bconference\s*room/i, 'Conference Room', 1],
+    [/\bcommercial\s*kitchen/i, 'Kitchen (Commercial)', 1],
+
+    // ── Office / Commercial ──
+    [/\bopen.?plan/i, 'Open-Plan Office', 2],
+    [/\bprivate\s*office/i, 'Private Office', 3],
+    [/(\d+)?\s*meeting\s*room/i, 'Meeting Room', 2],
+    [/(\d+)?\s*office(?!\s*staff|head)/i, 'Office', 2],
+    [/\bkitchenette/i, 'Kitchenette', 1],
+
+    // ── Retail / Shop ──
+    [/\bsales\s*floor/i, 'Sales Floor', 1],
+    [/\bstock\s*room/i, 'Stock Room', 1],
+    [/\bdisplay\s*area/i, 'Display Area', 1],
+
+    // ── Restaurant ──
+    [/\bdining\s*area/i, 'Dining Area', 1],
+    [/\bcounter/i, 'Counter / Bar', 1],
+
+    // ── Church / Worship ──
+    [/\bsanctuary/i, 'Main Hall / Sanctuary', 1],
+    [/\bmain\s*hall/i, 'Main Hall', 1],
+    [/\bsunday\s*school/i, 'Sunday School Room', 2],
+    [/\bpastor(?:'s)?\s*office/i, "Pastor's Office", 1],
+
+    // ── Warehouse / Industrial ──
+    [/\bwarehouse\s*floor/i, 'Warehouse Floor', 1],
+    [/\bloading\s*bay/i, 'Loading Bay', 1],
+    [/\badmin/i, 'Admin Office', 1],
+
+    // ── Community Hall ──
+    [/\bstage/i, 'Stage / Platform', 1],
+
+    // ── Market ──
+    [/\bvendor\s*stall/i, 'Vendor Stall', 20],
+    [/\baisle/i, 'Aisle / Corridor', 1],
+
+    // ── Petrol Station ──
+    [/\bshop\s*\/?\s*convenience/i, 'Shop / Convenience', 1],
+    [/\bfuel\s*bay/i, 'Fuel Bay (canopy)', 1],
+    [/\bcar\s*wash/i, 'Car Wash', 1],
+
+    // ── Mixed-Use ──
+    [/\bground\s*floor\s*shop/i, 'Ground Floor Shop', 1],
+    [/\bupper\s*apartment/i, 'Upper Apartment', 2],
+
+    // ── Duplex ──
+    [/\bstair\s*hall/i, 'Stair Hall', 2],
+
+    // ── General ──
+    [/(\d+)?\s*store(?: room)?/i, 'Store', 1],
+    [/(\d+)?\s*toilet(?!\s*(?:block|public))/i, 'Toilet', 1],
+    [/\btoilet\s*block/i, 'Toilet Block', 2],
+    [/\bcorridor/i, 'Corridor', 1],
+    [/\bstaircase/i, 'Staircase', 1],
   ]
   for (const [regex, name, defaultCount] of roomPatterns) {
     const m = text.match(regex)
     if (m) {
       const count = m[1] ? parseInt(m[1], 10) : defaultCount
-      items.push({ name, count, areaM2: 0 })
+      tryAdd(name, count)
     }
   }
   return items
