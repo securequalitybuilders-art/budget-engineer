@@ -17,6 +17,8 @@ interface SolverState {
   corridorH: number
   frontD: number
   backD: number
+  boundaryCheck?: (room: PlacedRoom) => boolean
+  skipZoneBand?: boolean
 }
 
 // ── 7 Constraints ──
@@ -86,7 +88,14 @@ function constraintEntryAccess(room: PlacedRoom, state: SolverState): Constraint
 }
 
 function checkAllConstraints(room: PlacedRoom, state: SolverState): ConstraintResult {
-  for (const check of [constraintMinDim, constraintNoOverlap, constraintZoneBand, constraintWetCoreAdjacent, constraintMaxCorridorTravel, constraintStructuralSpan, constraintEntryAccess]) {
+  if (state.boundaryCheck) {
+    const bc = state.boundaryCheck(room)
+    if (!bc) return { valid: false, reason: `"${room.name}" outside topology boundary` }
+  }
+  for (const check of state.skipZoneBand
+    ? [constraintMinDim, constraintNoOverlap, constraintWetCoreAdjacent, constraintMaxCorridorTravel, constraintStructuralSpan, constraintEntryAccess]
+    : [constraintMinDim, constraintNoOverlap, constraintZoneBand, constraintWetCoreAdjacent, constraintMaxCorridorTravel, constraintStructuralSpan, constraintEntryAccess]
+  ) {
     const r = check === constraintNoOverlap
       ? constraintNoOverlap(room, state.placed)
       : check === constraintMinDim
@@ -186,6 +195,12 @@ function* roomCandidates(
       const h = Math.max(minD, bandHeight)
       if (w < minW || x + w > state.buildingW) continue
 
+      // Quick boundary pre-check: skip positions clearly outside topology
+      if (state.boundaryCheck) {
+        const testRoom: PlacedRoom = { name: item.name, x, y, width: w, height: h, zone: cls.zone, isWetCore: cls.isWetCore }
+        if (!state.boundaryCheck(testRoom)) continue
+      }
+
       // Priority: prefer x-alignment with existing wet cores for wet rooms
       let priority = 0
       if (item.isWetCore) {
@@ -259,6 +274,9 @@ function tryPlace(
       isWetCore: cls.isWetCore,
     }
 
+    // Quick boundary pre-check before full constraint evaluation
+    if (state.boundaryCheck && !state.boundaryCheck(room)) continue
+
     const result = checkAllConstraints(room, state)
     if (!result.valid) continue
 
@@ -278,8 +296,10 @@ export function solveConstraintPlacement(
   corridorH: number,
   frontD: number,
   backD: number,
+  boundaryCheck?: (room: PlacedRoom) => boolean,
+  skipZoneBand?: boolean,
 ): PlacedRoom[] | null {
-  const state: SolverState = { placed: [], buildingW, buildingD, corridorY, corridorH, frontD, backD }
+  const state: SolverState = { placed: [], buildingW, buildingD, corridorY, corridorH, frontD, backD, boundaryCheck, skipZoneBand }
 
   // Separate circulation items first
   const circItems = items.filter(i => classifyRoom(i.name).zone === 'circulation' || i.name === 'Circulation' || i.name.startsWith('Circulation'))
@@ -296,10 +316,15 @@ export function solveConstraintPlacement(
     }),
   ]
 
-  // Place corridor first
-  const existingCorridor = state.placed.find(r => r.zone === 'circulation' || r.name === 'Circulation')
-  if (!existingCorridor) {
-    state.placed.push({ name: 'Circulation', x: 0, y: corridorY, width: buildingW, height: corridorH, zone: 'circulation' })
+  // Place corridor first (skip for non-rectangular topologies or if boundary rejects it)
+  if (!skipZoneBand) {
+    const existingCorridor = state.placed.find(r => r.zone === 'circulation' || r.name === 'Circulation')
+    if (!existingCorridor) {
+      const defaultCorridor: PlacedRoom = { name: 'Circulation', x: 0, y: corridorY, width: buildingW, height: corridorH, zone: 'circulation' }
+      if (!boundaryCheck || boundaryCheck(defaultCorridor)) {
+        state.placed.push(defaultCorridor)
+      }
+    }
   }
 
   const best: { score: number; rooms: PlacedRoom[] | null } = { score: -1, rooms: null }

@@ -8,6 +8,8 @@ import { classifyRoom } from './roomClassifier'
 import { analyzeCirculation, findEntryAdjacentRoom } from './circulationEngine'
 import type { EgressPoint, AdjacencyWarning } from './circulationEngine'
 import { solveConstraintPlacement } from './constraintPlacer'
+import { solveTopologyPlacement } from './topologySolver'
+import type { TopologyBoundaryParams } from './topologySolver'
 
 export type Topology = 'rectangle' | 'l-shape' | 'split-wing' | 'courtyard'
 
@@ -255,7 +257,7 @@ function generateRectangle(program: ProgramItem[], siteW: number, siteD: number,
   // ── Try constraint-first solver ──
   const solverCorridorY = chassis?.rectangle ? chassis.rectangle.corridorY : frontD
   const constraintRooms = solveConstraintPlacement(items, bldgW, bldgD, solverCorridorY, corridorH, frontD, backD)
-  if (constraintRooms) {
+  if (constraintRooms && constraintRooms.length > 0) {
     const planW = chassis ? chassis.buildingW : computePlanBounds(constraintRooms).w
     const planD = chassis ? chassis.buildingD : computePlanBounds(constraintRooms).d
     const circulation = analyzeCirculation(constraintRooms, planW, planD)
@@ -427,11 +429,34 @@ function generateLShape(program: ProgramItem[], siteW: number, _siteD: number, m
   const bldgW = chassis ? chassis.buildingW : Math.max(6, Math.min(siteW * 0.75, Math.sqrt(progArea) * 0.8))
   const wingW = bldgW
 
+  const corridorW = chassis?.lShape ? chassis.lShape.corridorW : 2.0
+  const vertW = chassis?.lShape ? chassis.lShape.vertW : Math.max(3, bldgW * 0.45)
+  const vertH = chassis?.lShape ? chassis.lShape.vertH : Math.max(items.length * 3 + 3, 6)
+  const horizD = chassis?.lShape ? chassis.lShape.horizD : Math.max(2, vertH * 0.4)
+  const bldgD = vertH
+  const corridorY = 0
+  const corridorH = 0.1
+  const frontD = vertH - horizD
+  const backD = horizD
+
+  const boundaryParams: TopologyBoundaryParams = {
+    buildingW: bldgW,
+    buildingD: bldgD,
+    lShape: { vertW, vertH, horizD, corridorW },
+  }
+  const constraintRooms = solveTopologyPlacement(items, bldgW, bldgD, corridorY, corridorH, frontD, backD, 'l-shape', boundaryParams)
+  if (constraintRooms && constraintRooms.length > 0) {
+    return {
+      id: uid(), name: 'L-Shape — Constraint-Placed', topology: 'l-shape',
+      width: bldgW, height: bldgD, rooms: constraintRooms,
+    }
+  }
+
   const midIdx = Math.max(1, Math.ceil(items.length / 2))
   const vertItems = items.slice(0, midIdx).sort((a, b) => (a.isWetCore === b.isWetCore ? 0 : a.isWetCore ? -1 : 1))
   const horizItems = items.slice(midIdx).sort((a, b) => (a.isWetCore === b.isWetCore ? 0 : a.isWetCore ? -1 : 1))
 
-  const corridorW = chassis?.lShape ? chassis.lShape.corridorW : 2.0
+  
   const rooms: PlacedRoom[] = []
 
   let stairH = 0
@@ -448,7 +473,6 @@ function generateLShape(program: ProgramItem[], siteW: number, _siteD: number, m
   }
 
   // Vertical wing: rooms stacked on the left
-  const vertW = chassis?.lShape ? chassis.lShape.vertW : Math.max(3, wingW * 0.45)
   let y = 0
   for (const item of vertItems) {
     if (item.name === 'Stairwell') continue
@@ -463,7 +487,13 @@ function generateLShape(program: ProgramItem[], siteW: number, _siteD: number, m
   }
   
   if (chassis?.lShape && y < chassis.lShape.vertH) {
-    rooms.push({ name: 'Roof Terrace', x: 0, y, width: vertW, height: chassis.lShape.vertH - y, zone: 'public' })
+    const terraceH = chassis.lShape.vertH - y
+    if (terraceH >= 2) {
+      rooms.push({ name: 'Roof Terrace', x: 0, y, width: vertW, height: terraceH, zone: 'public' })
+    } else if (rooms.length > 0) {
+      const last = rooms[rooms.length - 1]
+      last.height += terraceH
+    }
   }
   const actualVertH = chassis?.lShape ? chassis.lShape.vertH : Math.max(y, 3)
 
@@ -482,29 +512,29 @@ function generateLShape(program: ProgramItem[], siteW: number, _siteD: number, m
 
   // Horizontal wing: places at the BOTTOM of the vertical wing, extending right
   const horizX = vertW + corridorW
-  const horizD = chassis?.lShape ? chassis.lShape.horizD : Math.max(2, actualVertH * 0.4)
+  const horizDepth = chassis?.lShape ? chassis.lShape.horizD : Math.max(2, actualVertH * 0.4)
   let horizRight = horizX
   for (const item of horizItems) {
     if (item.name === 'Stairwell') continue
     const minW = dimForRoom(item.name, minDims).minWidth
-    const reqW = Math.max(minW, item.area / horizD)
+    const reqW = Math.max(minW, item.area / horizDepth)
     const w = chassis ? Math.min(reqW, chassis.buildingW - horizRight) : reqW
     if (w <= 0) break
-    const room: PlacedRoom = zbcEnforce({ name: item.name, x: horizRight, y: actualVertH - horizD, width: w, height: horizD, zone: item.zone, isWetCore: item.isWetCore }, minDims)
-    room.height = Math.min(room.height, horizD)
+    const room: PlacedRoom = zbcEnforce({ name: item.name, x: horizRight, y: actualVertH - horizDepth, width: w, height: horizDepth, zone: item.zone, isWetCore: item.isWetCore }, minDims)
+    room.height = Math.min(room.height, horizDepth)
     rooms.push(room)
     horizRight += room.width
   }
   
   if (chassis && horizRight < chassis.buildingW) {
-    rooms.push({ name: 'Roof Terrace', x: horizRight, y: actualVertH - horizD, width: chassis.buildingW - horizRight, height: horizD, zone: 'public' })
+    rooms.push({ name: 'Roof Terrace', x: horizRight, y: actualVertH - horizDepth, width: chassis.buildingW - horizRight, height: horizDepth, zone: 'public' })
   }
 
   // Courtyard in the corner formed by vertical wing and horizontal wing
   const courtyardX = horizX
   const courtyardY = 0
   const courtyardW = Math.max(2, (chassis ? chassis.buildingW : horizRight) - horizX)
-  const courtyardH = Math.max(2, actualVertH - horizD)
+  const courtyardH = Math.max(2, actualVertH - horizDepth)
   if (courtyardW > 2 && courtyardH > 2) {
     rooms.push({ name: 'Courtyard', x: courtyardX, y: courtyardY, width: courtyardW, height: courtyardH })
   }
@@ -521,6 +551,22 @@ function generateSplitWing(program: ProgramItem[], siteW: number, minDims: Recor
   const bldgW = chassis ? chassis.buildingW : Math.max(6, Math.min(siteW * 0.4 * 2 + 2, Math.sqrt(progArea) * 1.0))
   const pavW = chassis?.splitWing ? chassis.splitWing.pavW : Math.max(3, bldgW * 0.4)
   const galleryW = chassis?.splitWing ? chassis.splitWing.galleryW : 2.0
+  const leftH = chassis?.splitWing ? chassis.splitWing.leftH : Math.max(items.length * 3, 6)
+  const rightH = chassis?.splitWing ? chassis.splitWing.rightH : Math.max(items.length * 3, 6)
+  const bldgD = Math.max(leftH, rightH)
+
+  const boundaryParams: TopologyBoundaryParams = {
+    buildingW: bldgW,
+    buildingD: bldgD,
+    splitWing: { pavW, leftH, rightH, galleryW },
+  }
+  const constraintRooms = solveTopologyPlacement(items, bldgW, bldgD, 0, 0.1, bldgD, 0.1, 'split-wing', boundaryParams)
+  if (constraintRooms && constraintRooms.length > 0) {
+    return {
+      id: uid(), name: 'Split-Wing — Constraint-Placed', topology: 'split-wing',
+      width: bldgW, height: bldgD, rooms: constraintRooms,
+    }
+  }
 
   const midIdx = Math.max(1, Math.ceil(items.length / 2))
   const leftItems = items.slice(0, midIdx).sort((a, b) => (a.isWetCore === b.isWetCore ? 0 : a.isWetCore ? -1 : 1))
@@ -554,20 +600,26 @@ function generateSplitWing(program: ProgramItem[], siteW: number, minDims: Recor
   }
   
   if (chassis?.splitWing && y < chassis.splitWing.leftH) {
-    rooms.push({ name: 'Roof Terrace', x: 0, y, width: pavW, height: chassis.splitWing.leftH - y, zone: 'public' })
+    const terraceH = chassis.splitWing.leftH - y
+    if (terraceH >= 2) {
+      rooms.push({ name: 'Roof Terrace', x: 0, y, width: pavW, height: terraceH, zone: 'public' })
+    } else if (rooms.length > 0) {
+      const last = rooms[rooms.length - 1]
+      last.height += terraceH
+    }
   }
-  const leftH = chassis?.splitWing ? chassis.splitWing.leftH : Math.max(y, 3)
+  const actualLeftH = chassis?.splitWing ? chassis.splitWing.leftH : Math.max(y, 3)
 
-  const circY = chassis?.stairwell && chassis.stairwell.y === 0 ? Math.min(stairH, leftH) : 0
-  const circH = Math.max(0, chassis?.stairwell ? leftH - stairH : leftH)
+  const circY = chassis?.stairwell && chassis.stairwell.y === 0 ? Math.min(stairH, actualLeftH) : 0
+  const circH = Math.max(0, chassis?.stairwell ? actualLeftH - stairH : actualLeftH)
   if (!chassis?.stairwell && stairH > 0) {
-    rooms.push({ name: 'Stairwell', x: pavW, y: 0, width: galleryW, height: Math.min(stairH, leftH), zone: 'circulation' })
-    const galleryH = Math.max(0, leftH - stairH)
+    rooms.push({ name: 'Stairwell', x: pavW, y: 0, width: galleryW, height: Math.min(stairH, actualLeftH), zone: 'circulation' })
+    const galleryH = Math.max(2.0, actualLeftH - stairH)
     if (galleryH > 0) {
-      rooms.push({ name: 'Gallery', x: pavW, y: Math.min(stairH, leftH), width: galleryW, height: galleryH, zone: 'circulation' })
+      rooms.push({ name: 'Gallery', x: pavW, y: Math.min(stairH, actualLeftH), width: galleryW, height: galleryH, zone: 'circulation' })
     }
   } else if (circH > 0) {
-    rooms.push({ name: 'Gallery', x: pavW, y: circY, width: galleryW, height: circH, zone: 'circulation' })
+    rooms.push({ name: 'Gallery', x: pavW, y: circY, width: galleryW, height: Math.max(2.0, circH), zone: 'circulation' })
   }
 
   const rightX = pavW + galleryW
@@ -585,12 +637,18 @@ function generateSplitWing(program: ProgramItem[], siteW: number, minDims: Recor
   }
   
   if (chassis?.splitWing && y < chassis.splitWing.rightH) {
-    rooms.push({ name: 'Roof Terrace', x: rightX, y, width: pavW, height: chassis.splitWing.rightH - y, zone: 'public' })
+    const terraceH = chassis.splitWing.rightH - y
+    if (terraceH >= 2) {
+      rooms.push({ name: 'Roof Terrace', x: rightX, y, width: pavW, height: terraceH, zone: 'public' })
+    } else if (rooms.length > 0) {
+      const last = rooms[rooms.length - 1]
+      last.height += terraceH
+    }
   }
 
   const planW = chassis ? chassis.buildingW : computePlanBounds(rooms).w
   const planD = chassis ? chassis.buildingD : computePlanBounds(rooms).d
-  return { id: uid(), name: 'Split-Wing ΓÇö Two Pavilions + Central Gallery', topology: 'split-wing', width: planW, height: planD, rooms }
+  return { id: uid(), name: 'Split-Wing — Two Pavilions + Central Gallery', topology: 'split-wing', width: planW, height: planD, rooms }
 }
 
 function generateCourtyard(program: ProgramItem[], siteW: number, siteD: number, minDims: Record<string, { minWidth: number; minDepth: number }>, chassis?: MasterChassis): FloorPlan {
@@ -600,6 +658,24 @@ function generateCourtyard(program: ProgramItem[], siteW: number, siteD: number,
     const planW = chassis ? chassis.buildingW : 10
     const planD = chassis ? chassis.buildingD : 10
     return { id: uid(), name: 'Courtyard ΓÇö Rooms Around Central Space', topology: 'courtyard', width: planW, height: planD, rooms: [] }
+  }
+
+  const wingDepth = chassis?.courtyard ? chassis.courtyard.wingDepth : Math.max(4, ...items.map(r => dimForRoom(r.name, minDims).minWidth), ...items.map(r => dimForRoom(r.name, minDims).minDepth))
+  const avgSpan = items.filter(r => r.name !== 'Stairwell').length * 3 + 3
+  const outerW = chassis?.courtyard ? chassis.courtyard.outerW : Math.max(siteW * 0.9, wingDepth * 2 + avgSpan)
+  const outerD = chassis?.courtyard ? chassis.courtyard.outerD : Math.max(siteD * 0.9, wingDepth * 2 + avgSpan)
+
+  const boundaryParams: TopologyBoundaryParams = {
+    buildingW: outerW,
+    buildingD: outerD,
+    courtyard: { wingDepth, outerW, outerD },
+  }
+    const constraintRooms = solveTopologyPlacement(items, outerW, outerD, 0, 0.1, outerD, 0.1, 'courtyard', boundaryParams)
+  if (constraintRooms && constraintRooms.length > 0) {
+    return {
+      id: uid(), name: 'Courtyard — Constraint-Placed', topology: 'courtyard',
+      width: outerW, height: outerD, rooms: constraintRooms,
+    }
   }
 
   const gutter = 0.3
@@ -617,16 +693,6 @@ function generateCourtyard(program: ProgramItem[], siteW: number, siteD: number,
     const d = dimForRoom(item.name, minDims)
     return { name: item.name, area: item.area, minW: d.minWidth, minD: d.minDepth, zone: item.zone, isWetCore: item.isWetCore }
   })
-
-  // Choose wingDepth so that NO room's minDepth or minWidth exceeds it.
-  // This guarantees zbcEnforce never changes planned dimensions.
-  let maxDim = 4.0
-  for (const r of sized) {
-    if (r.name !== 'Stairwell') {
-      maxDim = Math.max(maxDim, r.minW, r.minD)
-    }
-  }
-  const wingDepth = chassis?.courtyard ? chassis.courtyard.wingDepth : maxDim
 
   // Distribute rooms evenly across wings (handle <4 by using fewer wings)
   function distributeEven(arr: SizedRoom[], wings: number): SizedRoom[][] {
@@ -670,12 +736,6 @@ function generateCourtyard(program: ProgramItem[], siteW: number, siteD: number,
   const vSpan3 = verticalSpan(wings[3] || [])    // west
 
   // For N-wing layouts, pad missing wings with 0 span
-  const reqW = Math.max(hSpan0, hSpan2) + (wings.length > 1 ? wingDepth * 2 : 0)
-  const reqD = Math.max(vSpan1, vSpan3) + (wings.length > 1 ? wingDepth * 2 : 0)
-
-  const outerW = chassis?.courtyard ? chassis.courtyard.outerW : Math.min(Math.max(siteW * 0.9, reqW), Math.max(siteW, reqW))
-  const outerD = chassis?.courtyard ? chassis.courtyard.outerD : Math.min(Math.max(siteD * 0.9, reqD), Math.max(siteD, reqD))
-
   const rooms: PlacedRoom[] = []
   
   if (chassis?.stairwell) {
