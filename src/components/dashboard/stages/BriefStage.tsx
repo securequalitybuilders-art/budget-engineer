@@ -1,7 +1,8 @@
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useState } from 'react'
+import { EnhancedBriefPanel, type BriefQuestionnaire } from '@/components/ai/EnhancedBriefPanel'
 import { AiBriefPanel } from '@/components/ai/AiBriefPanel'
 import { Button } from '@/components/ui/Button'
-import { Upload } from 'lucide-react'
+import { Upload, FileText, ClipboardList } from 'lucide-react'
 import type { ParseResult } from '@/lib/ai/ai-provider'
 import type { DesignOption } from '@/domain/boq'
 import type { FloorPlan } from '@/engine/tier3/layoutEngine'
@@ -31,6 +32,7 @@ export function BriefStage({
   onImportFile,
 }: BriefStageProps) {
   const importInputRef = useRef<HTMLInputElement>(null)
+  const [mode, setMode] = useState<'structured' | 'free-text'>('structured')
 
   const handleImportChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -39,9 +41,67 @@ export function BriefStage({
     if (e.target) e.target.value = ''
   }, [onImportFile])
 
+  const handleQuestionnaireGenerate = useCallback((q: BriefQuestionnaire) => {
+    const text = [
+      `${q.bedrooms} bedroom ${q.buildingType.replace('-', ' ')}`,
+      `${q.bathrooms} bathrooms`,
+      `${q.livingAreas} living areas`,
+      q.kitchen ? 'with kitchen' : '',
+      q.garage ? 'garage' : '',
+      q.verandah ? 'verandah' : '',
+      q.store ? 'store room' : '',
+      `${q.siteWidth}×${q.siteDepth} m site`,
+      `${q.floors} storey`,
+      q.style,
+      q.roof ? `${q.roof} roof` : '',
+      q.solar ? 'solar ready' : '',
+      q.rainwater ? 'rainwater harvesting' : '',
+      q.borehole ? 'borehole' : '',
+      `budget $${q.budgetUsd}`,
+      q.notes || '',
+    ].filter(Boolean).join(', ')
+
+    onBuildingTypeChange(q.buildingType)
+
+    const fakeResult: ParseResult = {
+      briefText: text,
+      buildingType: q.buildingType,
+      floors: q.floors,
+    }
+    onParsed(fakeResult)
+
+    const options: DesignOption[] = [
+      {
+        id: `opt-1-${Date.now()}`,
+        name: `${q.style} ${q.buildingType.replace('-residential', '').replace('-', ' ')} — Option A`,
+        grossFloorArea: q.siteWidth * q.siteDepth * 0.6,
+        floors: q.floors,
+        buildingType: q.buildingType,
+        elements: [],
+      },
+      {
+        id: `opt-2-${Date.now()}`,
+        name: `${q.style} ${q.buildingType.replace('-residential', '').replace('-', ' ')} — Option B`,
+        grossFloorArea: q.siteWidth * q.siteDepth * 0.55,
+        floors: q.floors,
+        buildingType: q.buildingType,
+        elements: [],
+      },
+      {
+        id: `opt-3-${Date.now()}`,
+        name: `${q.style} ${q.buildingType.replace('-residential', '').replace('-', ' ')} — Option C`,
+        grossFloorArea: q.siteWidth * q.siteDepth * 0.65,
+        floors: q.floors,
+        buildingType: q.buildingType,
+        elements: [],
+      },
+    ]
+    onDesignOptionsGenerated(options)
+  }, [onParsed, onDesignOptionsGenerated, onBuildingTypeChange])
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 overflow-y-auto">
-      {/* Import bar — full-width, above the Brief panel */}
+      {/* Import bar */}
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-stone-700/40 bg-stone-900/60 px-4 py-2">
         <p className="text-[10px] text-stone-400">Supported: DXF, images, PDF. For AutoCAD/ArchiCAD, export to DXF first.</p>
         <Button variant="secondary" size="sm" className="gap-2 shrink-0" onClick={() => importInputRef.current?.click()}>
@@ -58,13 +118,46 @@ export function BriefStage({
         />
       </div>
 
-      <AiBriefPanel
-        projectId={projectId}
-        onParsed={onParsed}
-        onDesignOptionsGenerated={onDesignOptionsGenerated}
-        onTier3Plans={onTier3Plans}
-        onBuildingTypeChange={onBuildingTypeChange}
-      />
+      {/* Mode toggle */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setMode('structured')}
+          className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            mode === 'structured'
+              ? 'bg-cyan-700 text-white'
+              : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
+          }`}
+        >
+          <ClipboardList size={14} />
+          Structured Questionnaire
+        </button>
+        <button
+          onClick={() => setMode('free-text')}
+          className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            mode === 'free-text'
+              ? 'bg-cyan-700 text-white'
+              : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
+          }`}
+        >
+          <FileText size={14} />
+          Free-Text Brief
+        </button>
+      </div>
+
+      {mode === 'structured' ? (
+        <EnhancedBriefPanel
+          projectId={projectId}
+          onGenerate={handleQuestionnaireGenerate}
+        />
+      ) : (
+        <AiBriefPanel
+          projectId={projectId}
+          onParsed={onParsed}
+          onDesignOptionsGenerated={onDesignOptionsGenerated}
+          onTier3Plans={onTier3Plans}
+          onBuildingTypeChange={onBuildingTypeChange}
+        />
+      )}
 
       {visibleDesignOptions.length > 0 && (
         <div className="rounded-2xl border-2 border-cyan-500/25 bg-slate-900/80 p-5 shadow-lg shadow-cyan-500/5">
