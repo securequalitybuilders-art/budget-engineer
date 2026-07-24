@@ -3,6 +3,33 @@ import { detectClimateZone, generateSiteContext, generateWindRose } from '@/engi
 import { Compass, Sun, Wind, MapPin, DollarSign, Layers, Palette } from 'lucide-react';
 import type { SiteContext } from '@/domain/site';
 
+export function generateBriefText(q: {
+  buildingType: string; siteWidth: number; siteDepth: number;
+  bedrooms: number; bathrooms: number; livingAreas: number;
+  kitchen: boolean; garage: boolean; verandah: boolean; store: boolean;
+  style: string; roof: string; floors: number;
+  solar: boolean; rainwater: boolean; borehole: boolean; notes: string;
+  budgetUsd: number; lat?: number; lng?: number;
+}): string {
+  return [
+    `${q.floors}-storey ${q.buildingType.replace('-', ' ')}`,
+    `site ${q.siteWidth}×${q.siteDepth} m`,
+    `${q.bedrooms} bedrooms, ${q.bathrooms} bathrooms`,
+    `${q.livingAreas} living area${q.livingAreas !== 1 ? 's' : ''}`,
+    q.kitchen ? 'kitchen' : '',
+    q.garage ? 'garage' : '',
+    q.verandah ? 'verandah' : '',
+    q.store ? 'store room' : '',
+    q.style,
+    q.roof ? `${q.roof} roof` : '',
+    q.solar ? 'solar ready' : '',
+    q.rainwater ? 'rainwater harvesting' : '',
+    q.borehole ? 'borehole' : '',
+    `budget $${q.budgetUsd}`,
+    q.notes || '',
+  ].filter(Boolean).join(', ')
+}
+
 export interface BriefQuestionnaire {
   buildingType: string
   lat: number

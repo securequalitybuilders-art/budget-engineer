@@ -1,5 +1,5 @@
 import { useRef, useCallback, useState } from 'react'
-import { EnhancedBriefPanel, type BriefQuestionnaire } from '@/components/ai/EnhancedBriefPanel'
+import { EnhancedBriefPanel, generateBriefText, type BriefQuestionnaire } from '@/components/ai/EnhancedBriefPanel'
 import { AiBriefPanel } from '@/components/ai/AiBriefPanel'
 import { Button } from '@/components/ui/Button'
 import { Upload, FileText, ClipboardList } from 'lucide-react'
@@ -42,24 +42,7 @@ export function BriefStage({
   }, [onImportFile])
 
   const handleQuestionnaireGenerate = useCallback((q: BriefQuestionnaire) => {
-    const text = [
-      `${q.bedrooms} bedroom ${q.buildingType.replace('-', ' ')}`,
-      `${q.bathrooms} bathrooms`,
-      `${q.livingAreas} living areas`,
-      q.kitchen ? 'with kitchen' : '',
-      q.garage ? 'garage' : '',
-      q.verandah ? 'verandah' : '',
-      q.store ? 'store room' : '',
-      `${q.siteWidth}×${q.siteDepth} m site`,
-      `${q.floors} storey`,
-      q.style,
-      q.roof ? `${q.roof} roof` : '',
-      q.solar ? 'solar ready' : '',
-      q.rainwater ? 'rainwater harvesting' : '',
-      q.borehole ? 'borehole' : '',
-      `budget $${q.budgetUsd}`,
-      q.notes || '',
-    ].filter(Boolean).join(', ')
+    const text = generateBriefText(q)
 
     onBuildingTypeChange(q.buildingType)
 
