@@ -10,6 +10,8 @@ import type { EgressPoint, AdjacencyWarning } from './circulationEngine'
 import { solveConstraintPlacement } from './constraintPlacer'
 import { solveTopologyPlacement } from './topologySolver'
 import type { TopologyBoundaryParams } from './topologySolver'
+import { computeStairwellDesign, computeStairArea, enforceVerticalStacking, partitionProgramForStoreys } from './multiStoreySolver'
+import type { MultiStoreyWarnings } from './multiStoreySolver'
 
 export type Topology = 'rectangle' | 'l-shape' | 'split-wing' | 'courtyard'
 
@@ -1062,19 +1064,16 @@ export function generateMultiFloorPlans(
     program = [{ name: 'Default Room', count: Math.max(1, floorCount), areaM2: 20 }]
   }
 
-  const { groundFloor, upperFloors } = partitionProgram(program, floorCount, brief.typology?.id)
+  const { groundFloor, upperFloors } = partitionProgramForStoreys(program, floorCount, brief.typology?.id)
 
   const perFloorPrograms = [groundFloor, ...upperFloors]
 
   let stairCalculations: { risers: number; treads: number; run: number } | undefined = undefined
   if (floorCount > 1) {
-    const risers = Math.ceil(params.floorHeight / 0.17)
-    const treads = risers - 1
-    const runLength = treads * 0.28
-    stairCalculations = { risers, treads, run: runLength }
+    const stairDesign = computeStairwellDesign(params.floorHeight)
+    stairCalculations = { risers: stairDesign.risers, treads: stairDesign.treads, run: stairDesign.run }
     
-    const uShapeDepth = (runLength / 2) + 1.2
-    const stairArea = Math.ceil(2.5 * Math.max(uShapeDepth, 2.5))
+    const stairArea = computeStairArea(stairDesign)
     const stairProgramItem: ProgramItem = { name: 'Stairwell', count: 1, areaM2: stairArea, zone: 'circulation', isWetCore: false }
     for (const floorProg of perFloorPrograms) {
       floorProg.push(stairProgramItem)
@@ -1150,8 +1149,19 @@ export function generateMultiFloorPlans(
     result.push(floorPlans)
   }
 
+  // Enforce vertical stacking consistency across floors
+  const { plans: stackedPlans, warnings: stackingWarnings } = enforceVerticalStacking(result, verticalChassis)
+
   // Use real validation instead of hardcoded values
-  const validation = validateConstraintReport(verticalChassis, result)
+  const validation = validateConstraintReport(verticalChassis, stackedPlans)
+
+  const allWarnings = [
+    ...validation.warnings,
+    ...stackingWarnings.wetCoreMisalignments,
+    ...stackingWarnings.stairMisalignments,
+    ...stackingWarnings.structuralWarnings,
+    ...stackingWarnings.programWarnings,
+  ]
 
   const constraintReport: ConstraintReport = {
     timestamp: new Date().toISOString(),
@@ -1159,10 +1169,10 @@ export function generateMultiFloorPlans(
     shaftContinuityPass: validation.shaftContinuityPass,
     circulationEgressPass: validation.circulationEgressPass,
     partyWallContinuous: validation.partyWallContinuous,
-    warnings: validation.warnings,
+    warnings: allWarnings,
   }
 
-  return { plans: result, constraintReport }
+  return { plans: stackedPlans, constraintReport }
 }
 
 // ΓöÇΓöÇ Public API ΓöÇΓöÇ
