@@ -1,10 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import taxonomy from '@/data/skills/taxonomy.json'
+import { QUIZ_DATA } from '@/data/skills/quiz-data'
 import { useAcademyStore } from '@/stores/academyStore'
 import { SkillPathView } from '@/components/academy/SkillPath'
+import { QuizViewer } from '@/components/academy/QuizViewer'
+import { LessonNavigator } from '@/components/academy/LessonNavigator'
 import { findLesson, getPathProgress, renderLessonToHtml } from '@/lib/learning/lessonEngine'
-import type { Taxonomy } from '@/lib/learning/lessonEngine'
+import type { Taxonomy, QuizResult } from '@/lib/learning/lessonEngine'
 
 const tax = taxonomy as Taxonomy
 
@@ -16,6 +19,7 @@ export function AcademyHome() {
   const completeLesson = useAcademyStore((s) => s.completeLesson)
   const isCompleted = useAcademyStore((s) => s.isCompleted)
   const resetProgress = useAcademyStore((s) => s.resetProgress)
+  const certifications = useAcademyStore((s) => s.certifications)
 
   const progress = useMemo(() => getPathProgress(tax, completedLessons), [completedLessons])
   const totalLessons = tax.paths.reduce((s, p) => s + p.lessons.length, 0)
@@ -49,6 +53,32 @@ export function AcademyHome() {
           <div style={{ width: `${totalLessons > 0 ? (totalCompleted / totalLessons) * 100 : 0}%`, height: '100%', background: '#2c3e50', borderRadius: 3, transition: 'width 0.3s' }} />
         </div>
       </div>
+
+      {certifications.length > 0 && (
+        <div style={{ marginBottom: 24 }}>
+          <h3 style={{ margin: '0 0 10px', fontSize: 14, fontWeight: 600, color: '#555' }}>Certifications Earned</h3>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            {certifications.map((cert) => (
+              <div key={cert.pathId} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '8px 14px',
+                background: '#f0f8f0',
+                border: '1px solid #c8e6c9',
+                borderRadius: 6,
+                fontSize: 12,
+                color: '#2e7d32',
+                fontWeight: 500,
+              }}>
+                <span style={{ fontSize: 16 }}>🏆</span>
+                <span>{cert.title}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {totalCompleted > 0 && (
         <div style={{ marginBottom: 16 }}>
           <button
@@ -82,6 +112,11 @@ export function AcademyLesson() {
   const completeLesson = useAcademyStore((s) => s.completeLesson)
   const setCurrentLesson = useAcademyStore((s) => s.setCurrentLesson)
   const isCompleted = useAcademyStore((s) => s.isCompleted)
+  const recordQuizResult = useAcademyStore((s) => s.recordQuizResult)
+  const getQuizResult = useAcademyStore((s) => s.getQuizResult)
+  const completedLessons = useAcademyStore((s) => s.completedLessons)
+  const addCertification = useAcademyStore((s) => s.addCertification)
+  const hasCertification = useAcademyStore((s) => s.hasCertification)
   const [renderError, setRenderError] = useState<string | null>(null)
 
   const result = useMemo(() => {
@@ -99,11 +134,50 @@ export function AcademyLesson() {
     }
   }, [result])
 
+  const quizQuestions = useMemo(() => {
+    if (!lessonId) return []
+    return QUIZ_DATA[lessonId] ?? []
+  }, [lessonId])
+
+  const existingQuizResult = useMemo(() => {
+    if (!lessonId) return undefined
+    return getQuizResult(lessonId)
+  }, [lessonId, getQuizResult])
+
+  const handleNavigate = useCallback((newLessonId: string) => {
+    if (pathId) {
+      navigate(`/academy/${pathId}/${newLessonId}`)
+    }
+  }, [pathId, navigate])
+
+  const handleBack = useCallback(() => {
+    navigate('/academy')
+  }, [navigate])
+
+  const handleQuizComplete = useCallback((quizResult: QuizResult) => {
+    recordQuizResult(quizResult)
+
+    if (pathId && lessonId && quizResult.passed) {
+      const path = tax.paths.find((p) => p.id === pathId)
+      if (path) {
+        const otherLessonsInPath = path.lessons.filter((l) => l.id !== lessonId)
+        const allOtherDone = otherLessonsInPath.every((l) => isCompleted(l.id))
+        if (allOtherDone && quizResult.passed && !hasCertification(pathId)) {
+          addCertification({
+            pathId,
+            earnedAt: new Date().toISOString(),
+            title: `${path.title} — Completed`,
+          })
+        }
+      }
+    }
+  }, [pathId, lessonId, recordQuizResult, addCertification, hasCertification, isCompleted])
+
   if (!result) {
     return (
       <div style={{ maxWidth: 720, margin: '0 auto', padding: 40, textAlign: 'center', color: '#888' }}>
         <h2>Lesson not found</h2>
-        <button onClick={() => navigate('/academy')} style={{ padding: '8px 20px', fontSize: 13, border: '1px solid #ccc', borderRadius: 4, background: '#f5f5f5', cursor: 'pointer' }}>
+        <button onClick={handleBack} style={{ padding: '8px 20px', fontSize: 13, border: '1px solid #ccc', borderRadius: 4, background: '#f5f5f5', cursor: 'pointer' }}>
           Back to Academy
         </button>
       </div>
@@ -116,10 +190,6 @@ export function AcademyLesson() {
   const handleComplete = () => {
     completeLesson(lesson.id)
     setCurrentLesson(path.id, lesson.id)
-  }
-
-  const handleBack = () => {
-    navigate('/academy')
   }
 
   if (renderError) {
@@ -135,40 +205,65 @@ export function AcademyLesson() {
   }
 
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 16px' }}>
+    <div style={{ maxWidth: 960, margin: '0 auto', padding: '24px 16px' }}>
       <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
         <button onClick={handleBack} style={{ padding: '6px 14px', fontSize: 13, border: '1px solid #ccc', borderRadius: 4, background: '#f5f5f5', cursor: 'pointer' }}>
           ← Back
         </button>
         <span style={{ fontSize: 12, color: '#888' }}>{path.title} / {lesson.title}</span>
       </div>
-      <div style={{
-        background: '#fff',
-        border: '1px solid #e0e0e0',
-        borderRadius: 8,
-        padding: '24px 28px',
-        lineHeight: 1.7,
-        fontSize: 14,
-        color: '#1a1a1a',
-      }}>
-        <div dangerouslySetInnerHTML={{ __html: html }} />
-      </div>
-      <div style={{ marginTop: 20, display: 'flex', gap: 12, alignItems: 'center' }}>
-        <button
-          onClick={handleComplete}
-          style={{
-            padding: '8px 24px',
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 240px', gap: 20, alignItems: 'start' }}>
+        <div>
+          <div style={{
+            background: '#fff',
+            border: '1px solid #e0e0e0',
+            borderRadius: 8,
+            padding: '24px 28px',
+            lineHeight: 1.7,
             fontSize: 14,
-            background: done ? '#e0e0e0' : path.color,
-            color: done ? '#888' : '#fff',
-            border: 'none',
-            borderRadius: 6,
-            cursor: done ? 'default' : 'pointer',
-            fontWeight: 600,
-          }}
-        >
-          {done ? '✓ Completed' : 'Mark as Complete'}
-        </button>
+            color: '#1a1a1a',
+          }}>
+            <div dangerouslySetInnerHTML={{ __html: html }} />
+          </div>
+
+          <div style={{ marginTop: 20, display: 'flex', gap: 12, alignItems: 'center' }}>
+            <button
+              onClick={handleComplete}
+              style={{
+                padding: '8px 24px',
+                fontSize: 14,
+                background: done ? '#e0e0e0' : path.color,
+                color: done ? '#888' : '#fff',
+                border: 'none',
+                borderRadius: 6,
+                cursor: done ? 'default' : 'pointer',
+                fontWeight: 600,
+              }}
+            >
+              {done ? '✓ Completed' : 'Mark as Complete'}
+            </button>
+          </div>
+
+          {quizQuestions.length > 0 && (
+            <QuizViewer
+              lessonId={lesson.id}
+              questions={quizQuestions}
+              existingResult={existingQuizResult}
+              onComplete={handleQuizComplete}
+            />
+          )}
+        </div>
+
+        <div>
+          <LessonNavigator
+            path={path}
+            currentLessonId={lesson.id}
+            onNavigate={handleNavigate}
+            onBack={handleBack}
+            completedLessons={completedLessons}
+          />
+        </div>
       </div>
     </div>
   )

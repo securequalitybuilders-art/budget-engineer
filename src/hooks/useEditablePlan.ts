@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Opening, PlanModel, RoomRect } from '../domain/plan'
-import { moveRoom, resizeRoom } from '../lib/geometry/plan-transforms'
+import { moveRoom, parametricResize } from '../lib/geometry/plan-transforms'
+import { findClosestDoor, findClosestWindow } from '@/engine/parametric/componentRegistry'
 import { rebuildWallsFromRooms } from '../lib/geometry/plan-topology'
 import { constrainRoom, hasCollision } from '../lib/geometry/plan-constraints'
 import { snapToGrid } from '../lib/geometry/snap'
@@ -108,7 +109,7 @@ export function useEditablePlan(baseModel: PlanModel | null, persistedModel: Pla
     const { dx, dy } = pointerAccum.current
     const drafted = s.mode === 'move'
       ? moveRoom(s.originPlan, s.targetId, dx, dy)
-      : resizeRoom(s.originPlan, s.targetId, dx, dy)
+      : parametricResize(s.originPlan, s.targetId, dx, dy)
 
     const nextRooms = drafted.rooms.map((room) => {
       if (room.id !== s.targetId) return room
@@ -194,12 +195,16 @@ export function useEditablePlan(baseModel: PlanModel | null, persistedModel: Pla
       const wall = plan.walls.find((w) => w.id === targetWallId)
       if (!wall) return
       const id = crypto.randomUUID()
-      const width = kind === 'door' ? 0.9 : 1.2
+      const targetWidthMm = kind === 'door' ? 900 : 1200
+      const spec = kind === 'door' ? findClosestDoor(targetWidthMm) : findClosestWindow(targetWidthMm)
+      const width = spec ? spec.widthMm / 1000 : (kind === 'door' ? 0.9 : 1.2)
+      const height = spec ? spec.heightMm / 1000 : undefined
+      const sillHeight = kind === 'window' ? (spec && 'sillHeightMm' in spec ? spec.sillHeightMm / 1000 : 0.9) : undefined
       const wallLen = wallLength(wall)
       if (wallLen < 0.01) return
       const halfWidthRatio = width / (2 * wallLen)
       const offset = halfWidthRatio < 0.5 ? 0.5 : halfWidthRatio
-      const opening: Opening = { id, wallId: targetWallId, kind, offset, width }
+      const opening: Opening = { id, wallId: targetWallId, kind, offset, width, height, sillHeight }
       const nextPlan: PlanModel = { ...plan, openings: [...plan.openings, opening] }
       history.set(nextPlan)
       clearSelection()

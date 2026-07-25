@@ -6,7 +6,7 @@ import { MATERIAL } from '@/components/drawings/drawingColors'
 import { DrawingSheetLayout } from '@/components/drawings/DrawingSheetLayout'
 import { DrawingEmptyState } from '@/components/drawings/DrawingEmptyState'
 import {
-  SheetBorder, TitleBlock, DimensionLineH,
+  SheetBorder, TitleBlock, DimensionLineH, LevelMarker,
 } from '@/components/drawings/cadPrimitives'
 import { NorthArrow, ScaleBar, CarSilhouette } from '@/components/drawings/entourage'
 
@@ -18,14 +18,14 @@ interface SitePlanViewProps {
   floors: number
 }
 
-export function SitePlanView({ activePlan, design }: SitePlanViewProps): ReactNode {
+export function SitePlanView({ activePlan, design, floors }: SitePlanViewProps): ReactNode {
   const rendered = useMemo(() => {
     try {
-      return renderSitePlan(activePlan, design)
+      return renderSitePlan(activePlan, design, floors)
     } catch {
       return null
     }
-  }, [activePlan, design])
+  }, [activePlan, design, floors])
 
   if (!rendered) return <DrawingEmptyState />
 
@@ -36,13 +36,13 @@ export function SitePlanView({ activePlan, design }: SitePlanViewProps): ReactNo
   )
 }
 
-interface SitePlanSheet {
+export interface SitePlanSheet {
   sheetW: number
   sheetH: number
   elements: ReactNode
 }
 
-function renderSitePlan(plan: PlanModel | null, _design: DesignOption | null): SitePlanSheet | null {
+export function renderSitePlan(plan: PlanModel | null, _design: DesignOption | null, floors: number = 1): SitePlanSheet | null {
   if (!plan || plan.width <= 0 || plan.height <= 0) return null
 
   // Assume a schematic plot: building inset from plot boundary
@@ -194,6 +194,13 @@ function renderSitePlan(plan: PlanModel | null, _design: DesignOption | null): S
     <CarSilhouette key="car" x={plotLeft + s(plotW) * 0.35} groundY={roadTop + roadH - 2} length={18} />,
   )
 
+  // ── Road name ──
+  elements.push(
+    <text key="road-name" x={plotLeft + s(plotW) / 2} y={roadTop + roadH / 2} fontSize={5.5} fill={INK} fontFamily="system-ui, sans-serif" textAnchor="middle" dominantBaseline="central" fontStyle="italic">
+      MAIN ROAD
+    </text>,
+  )
+
   // ── Setback dimensions ──
   const dimY = plotTop - 12
   elements.push(
@@ -213,6 +220,39 @@ function renderSitePlan(plan: PlanModel | null, _design: DesignOption | null): S
       y={dimY - 10}
       label={`${metresToMm(setback)} (schematic)`}
     />,
+  )
+
+  // ── Side setback annotations ──
+  elements.push(
+    <text key="setback-left" x={plotLeft - 10} y={plotTop + s(plotH) / 2} fontSize={4.5} fill={INK} fontFamily="system-ui, sans-serif" textAnchor="middle" transform={`rotate(-90, ${plotLeft - 10}, ${plotTop + s(plotH) / 2})`}>
+      {metresToMm(setback)} SIDE SETBACK
+    </text>,
+  )
+  elements.push(
+    <text key="setback-right" x={plotRight + 10} y={plotTop + s(plotH) / 2} fontSize={4.5} fill={INK} fontFamily="system-ui, sans-serif" textAnchor="middle" transform={`rotate(90, ${plotRight + 10}, ${plotTop + s(plotH) / 2})`}>
+      {metresToMm(setback)} SIDE SETBACK
+    </text>,
+  )
+
+  // ── Level markers ──
+  elements.push(
+    <LevelMarker key="ffl" x={bldgLeft} y={bldgTop - 14} label="FFL ±0.000" />,
+  )
+  elements.push(
+    <LevelMarker key="egl" x={bldgLeft + bldgWidth / 2} y={plotBottom + roadH + 10} label="EGL -0.450" />,
+  )
+
+  // ── Site statistics ──
+  const footprintArea = bw * bh
+  const plotArea = plotW * plotH
+  const coveragePct = ((footprintArea / plotArea) * 100).toFixed(1)
+  elements.push(
+    <g key="site-stats">
+      <text x={plotRight + 30} y={plotTop + 80} fontSize={5} fontWeight="bold" fill={INK} fontFamily="system-ui, sans-serif">SITE DATA</text>
+      <text x={plotRight + 30} y={plotTop + 92} fontSize={4.5} fill={INK} fontFamily="system-ui, sans-serif">Site area: {metresToMm(plotW)} × {metresToMm(plotH)}</text>
+      <text x={plotRight + 30} y={plotTop + 100} fontSize={4.5} fill={INK} fontFamily="system-ui, sans-serif">Coverage: {coveragePct}%</text>
+      <text x={plotRight + 30} y={plotTop + 108} fontSize={4.5} fill={INK} fontFamily="system-ui, sans-serif">Floors: {floors}</text>
+    </g>,
   )
 
   // ── North arrow ──
@@ -236,16 +276,6 @@ function renderSitePlan(plan: PlanModel | null, _design: DesignOption | null): S
   elements.push(
     <text key="title" x={plotLeft + s(plotW) / 2} y={plotBottom + roadH + 40} fontSize={9} fontWeight="bold" fill={INK} fontFamily="system-ui, sans-serif" textAnchor="middle">
       SITE PLAN
-    </text>,
-  )
-
-  // ── Coverage note ──
-  const footprintArea = bw * bh
-  const plotArea = plotW * plotH
-  const coveragePct = ((footprintArea / plotArea) * 100).toFixed(1)
-  elements.push(
-    <text key="coverage" x={plotLeft + s(plotW) / 2} y={plotBottom + roadH + 50} fontSize={5} fill={INK} fontFamily="system-ui, sans-serif" textAnchor="middle" opacity={0.6}>
-      Site coverage {coveragePct}% (indicative — verify with local authority)
     </text>,
   )
 

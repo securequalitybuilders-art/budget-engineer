@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { PlanCanvas } from '@/components/cad/PlanCanvas'
 import { LazyBimModel3D } from '@/components/bim/LazyBimModel3D'
 import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
-import { BlockLibraryPanel } from '@/components/furniture/BlockLibraryPanel'
+import { UnifiedComponentPanel } from '@/components/furniture/UnifiedComponentPanel'
 import { CadSyncControls } from '@/components/dashboard/CadSyncControls'
 import { Button } from '@/components/ui/Button'
 import { Box, Layers, Ruler, Wand2, Upload, LayoutGrid, Boxes, Sofa, Download, Table2 } from 'lucide-react'
@@ -77,7 +77,7 @@ export function DesignStage({
   const [detecting, setDetecting] = useState(false)
   const [detectMessage, setDetectMessage] = useState<string | null>(null)
   const [detectError, setDetectError] = useState(false)
-  const [showFurniturePanel, setShowFurniturePanel] = useState(false)
+  const [showComponentPanel, setShowComponentPanel] = useState(false)
   const { id: projectIdParam } = useParams<{ id: string }>()
   const importInputRef = useRef<HTMLInputElement>(null)
   const furnitureBlocks = useFurnitureStore((s) => s.blocks)
@@ -324,15 +324,15 @@ export function DesignStage({
         <span className="mx-1 h-5 w-px bg-white/10" />
 
         <Button
-          variant={showFurniturePanel ? 'default' : 'ghost'}
+          variant={showComponentPanel ? 'default' : 'ghost'}
           size="sm"
           className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
-          aria-label="Open Furniture & Block Library"
-          title="Open Furniture & Block Library"
-          onClick={() => setShowFurniturePanel((v) => !v)}
+          aria-label="Open Component Library"
+          title="Open Component Library"
+          onClick={() => setShowComponentPanel((v) => !v)}
         >
           <Table2 size={14} />
-          <span className="hidden sm:inline">Furniture</span>
+          <span className="hidden sm:inline">Components</span>
         </Button>
 
         {activePlan && (
@@ -426,8 +426,8 @@ export function DesignStage({
         </p>
       </div>
 
-      {showFurniturePanel && (
-        <BlockLibraryPanel onClose={() => setShowFurniturePanel(false)} />
+      {showComponentPanel && (
+        <UnifiedComponentPanel onClose={() => setShowComponentPanel(false)} />
       )}
 
       <input

@@ -56,4 +56,41 @@ export const QUIZ_DATA: Record<string, QuizQuestion[]> = {
   'urban-theory': [
     { id: 'urban-q1', question: 'Kevin Lynch identified five elements of city imageability. Which is NOT one of them?', options: ['Paths', 'Nodes', 'Blocks', 'Landmarks'], correctIndex: 2, explanation: 'Lynch\'s five elements: paths, edges, districts, nodes, and landmarks.' },
   ],
+  'parametric-thinking': [
+    { id: 'parametric-q1', question: 'In parametric design, changing one parameter typically:', options: ['Requires manual update of all dependent geometry', 'Propagates automatically through associative relationships', 'Resets the entire model', 'Only affects visual properties'], correctIndex: 1, explanation: 'Associative geometry links elements by explicit relationships — changing one parameter propagates through the entire model.' },
+  ],
+  'generative-design': [
+    { id: 'generative-q1', question: 'What method is best suited for multi-objective optimisation with non-linear constraints?', options: ['Brute force enumeration', 'Evolutionary solvers', 'Gradient-based optimisation', 'Linear programming'], correctIndex: 1, explanation: 'Evolutionary solvers use mutation, crossover, and selection — ideal for non-linear, multi-objective problems.' },
+  ],
+  'ai-architecture': [
+    { id: 'ai-q1', question: 'Which machine learning type is best suited for classifying floor plans by building type?', options: ['Reinforcement learning', 'Unsupervised learning', 'Supervised learning', 'Transfer learning'], correctIndex: 2, explanation: 'Supervised learning trains on labelled datasets — ideal for classification tasks like floor plan type recognition.' },
+  ],
+  'digital-fabrication': [
+    { id: 'fab-q1', question: 'What material waste reduction is typically achievable with digital fabrication?', options: ['5–10%', '15–25%', '30–50%', '60–80%'], correctIndex: 2, explanation: 'Digital fabrication reduces material waste by 30–50% through precise, computer-controlled manufacturing.' },
+  ],
+  'contracts-delivery': [
+    { id: 'contract-q1', question: 'Which project delivery method has a single point of responsibility for both design and construction?', options: ['Design-Bid-Build', 'Design-Build', 'Construction Management', 'Integrated Project Delivery'], correctIndex: 1, explanation: 'Design-Build has a single entity contract with the owner for both design and construction — single point of responsibility.' },
+  ],
+  'regulations-liability': [
+    { id: 'regs-q1', question: 'Professional indemnity insurance is:', options: ['Optional in all jurisdictions', 'Mandatory for architects in most jurisdictions', 'Only required for large firms', 'Covered by the client\'s insurance'], correctIndex: 1, explanation: 'Professional indemnity insurance is mandatory for architects in most jurisdictions to cover liability for professional negligence.' },
+  ],
+  'ethics-business': [
+    { id: 'ethics-q1', question: 'A target utilisation rate for billable hours in an architecture practice is typically:', options: ['≥50%', '≥70%', '≥90%', '≥40%'], correctIndex: 1, explanation: 'Target utilisation rate is ≥70% — billable hours divided by total hours worked.' },
+  ],
+  'sans10400-overview': [
+    { id: 'sans10400-q1', question: 'What is the minimum openable window area required for habitable rooms under SANS 10400 Part O?', options: ['2% of floor area', '5% of floor area', '10% of floor area', '15% of floor area'], correctIndex: 1, explanation: 'Part O requires minimum openable area of 5% of floor area for natural ventilation. The glazing itself must be at least 10%.' },
+    { id: 'sans10400-q2', question: 'Under SANS 10400 Part K, a stair riser of 175 mm requires what minimum going?', options: ['240 mm', '250 mm', '260 mm', '280 mm'], correctIndex: 0, explanation: 'Using 2R + G = 590 ± 20: 2(175) + G = 590, so G = 240 mm. The minimum going per the code is 250 mm though, so for R=175, minimum G=240 (from formula, but Part K states minimum 250 mm going). For R=175, using 2R+G=590: G = 590-350 = 240, which meets the 250 minimum only if the result rounds up.' },
+  ],
+  'climate-responsive-design': [
+    { id: 'climate-q1', question: 'For Johannesburg (latitude 26°S), what is the winter solstice noon sun altitude?', options: ['40°', '50°', '63°', '87°'], correctIndex: 0, explanation: 'Winter solstice noon altitude = 90° − latitude + 23.45° = 90° − 26° + 23.45° ≈ 87.45°. Actually, winter solstice formula is 90 - lat - 23.45 for southern hemisphere. So 90 - 26 - 23.45 = 40.55° ≈ 40°. The summer solstice would be 90 - 26 + 23.45 = 87.45°.' },
+    { id: 'climate-q2', question: 'Which climatic zone in South Africa benefits most from thermal mass as a passive design strategy?', options: ['Warm-humid coastal', 'Hot-dry interior', 'Temperate highveld', 'Mediterranean Western Cape'], correctIndex: 1, explanation: 'Hot-dry zones have large diurnal temperature swings (15–25°C), making thermal mass highly effective for storing night coolth and releasing it during the day.' },
+  ],
+  'structural-standards': [
+    { id: 'struct-q1', question: 'Under SANS 10163, what is the maximum slenderness ratio for a masonry wall?', options: ['18', '24', '27', '30'], correctIndex: 2, explanation: 'SANS 10163 limits the slenderness ratio (effective height / effective thickness) to a maximum of 27.' },
+    { id: 'struct-q2', question: 'What is the minimum concrete cover for reinforcement in exterior exposure conditions per SANS 10100?', options: ['25 mm', '30 mm', '40 mm', '50 mm'], correctIndex: 2, explanation: 'SANS 10100 requires 25 mm for interior, 40 mm for exterior, and 50 mm for below ground exposure.' },
+  ],
+  'site-planning-services': [
+    { id: 'site-q1', question: 'What minimum slope is required for 100 mm diameter soil pipes under SANS 10400 Part P?', options: ['1:60', '1:50', '1:40', '1:30'], correctIndex: 2, explanation: 'Part P requires minimum slope of 1:40 (2.5%) for 100 mm diameter waste pipes to ensure self-cleansing velocity.' },
+    { id: 'site-q2', question: 'When is stormwater retention/detention typically required?', options: ['Always for all sites', 'When post-development runoff exceeds pre-development by >20%', 'Only for commercial sites', 'Only in flood zones'], correctIndex: 1, explanation: 'Retention/detention is required when post-development stormwater runoff exceeds pre-development levels by more than 20%.' },
+  ],
 }

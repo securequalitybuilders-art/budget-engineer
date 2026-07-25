@@ -3,7 +3,7 @@ import type { PlanModel } from '@/domain/plan'
 import { ROOF_OVERHANG } from '@/adapters/planTo3d'
 import { CAD_HAIR, CAD_MEDIUM, CAD_THIN, INK, PAPER, metresToMm } from '@/components/drawings/cadConstants'
 import {
-  SheetBorder, TitleBlock, DimensionLineH, DimensionLineV, GridBubble, DrawingTitle,
+  SheetBorder, TitleBlock, DimensionLineH, DimensionLineV, GridBubble, DrawingTitle, LevelMarker,
 } from '@/components/drawings/cadPrimitives'
 import { NorthArrow, ScaleBar } from '@/components/drawings/entourage'
 
@@ -167,6 +167,26 @@ export function renderRoofPlan(plan: PlanModel | null): RoofSheet | null {
       </g>,
     )
   }
+
+  // ── Level markers ──
+  elements.push(
+    <LevelMarker key="ridge-lvl" x={ridgeX1 + s(bw) * 0.25} y={ridgeY - 8} label="RL +6.000" />,
+  )
+  elements.push(
+    <LevelMarker key="gutter-lvl" x={roofRight - s(bw) * 0.25} y={gutterY + 8} label="RL +5.700" />,
+  )
+
+  // ── Secondary slope arrow (south side) ──
+  const arrowY2 = roofBottom - bldgInset - s(bh) * 0.15
+  elements.push(
+    <g key="slope-arrow-2">
+      <line x1={ridgeX1 + s(bw) * 0.3} y1={ridgeY} x2={ridgeX1 + s(bw) * 0.3} y2={arrowY2} stroke={INK} strokeWidth={CAD_HAIR} />
+      <polygon points={`${ridgeX1 + s(bw) * 0.3 - 3},${arrowY2 - 3} ${ridgeX1 + s(bw) * 0.3 + 3},${arrowY2 - 3} ${ridgeX1 + s(bw) * 0.3},${arrowY2}`} fill={INK} />
+      <text x={ridgeX1 + s(bw) * 0.3 + 6} y={arrowY2 + 2} fontSize={5} fill={INK} fontFamily="system-ui, sans-serif">
+        FALL ~1:4
+      </text>
+    </g>,
+  )
 
   // ── Overall dimensions (including overhang) ──
   const dimY = MARGIN + 15

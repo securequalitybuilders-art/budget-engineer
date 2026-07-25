@@ -6,7 +6,7 @@ import { MATERIAL_LEGEND } from '@/components/drawings/drawingColors'
 import { DrawingSheetLayout } from '@/components/drawings/DrawingSheetLayout'
 import { DrawingEmptyState } from '@/components/drawings/DrawingEmptyState'
 import {
-  SheetBorder, TitleBlock, DimensionLineH, DimensionLineV, GridBubble,
+  SheetBorder, TitleBlock, DimensionLineH, DimensionLineV, GridBubble, LevelMarker,
 } from '@/components/drawings/cadPrimitives'
 import { MaterialHatchDefs, LegendBox } from '@/components/drawings/drawingLegend'
 import { NorthArrow, ScaleBar } from '@/components/drawings/entourage'
@@ -36,13 +36,13 @@ export function FoundationPlanView({ activePlan }: FoundationPlanViewProps): Rea
   )
 }
 
-interface FoundationSheet {
+export interface FoundationSheet {
   sheetW: number
   sheetH: number
   elements: ReactNode
 }
 
-function renderFoundationPlan(plan: PlanModel | null): FoundationSheet | null {
+export function renderFoundationPlan(plan: PlanModel | null): FoundationSheet | null {
   if (!plan || plan.width <= 0 || plan.height <= 0) return null
 
   const bw = plan.width
@@ -154,6 +154,35 @@ function renderFoundationPlan(plan: PlanModel | null): FoundationSheet | null {
     />,
   )
 
+  // ── Room labels (name + area) ──
+  for (const room of plan.rooms) {
+    const rx = ox + s(room.x)
+    const ry = oy - s(room.y) - s(room.height)
+    elements.push(
+      <text key={`room-name-${room.id}`} x={rx + s(room.width) / 2} y={ry + s(room.height) / 2 - 4} fontSize={6} fontWeight="bold" fill={INK} fontFamily="system-ui, sans-serif" textAnchor="middle">
+        {room.name.toUpperCase()}
+      </text>,
+    )
+    elements.push(
+      <text key={`room-area-${room.id}`} x={rx + s(room.width) / 2} y={ry + s(room.height) / 2 + 6} fontSize={5} fill={INK} fontFamily="system-ui, sans-serif" textAnchor="middle" opacity={0.7}>
+        {(room.width * room.height).toFixed(1)} m²
+      </text>,
+    )
+  }
+
+  // ── Level marker ──
+  elements.push(
+    <LevelMarker key="ffl" x={ox + s(bw) + 45} y={oy - s(bh) - 10} label="FFL ±0.000" />,
+  )
+
+  // ── Footing spec annotation ──
+  const specNote = `STRIP FOOTING: 600mm WIDE × 250mm DEEP · 25 MPa · Y12 @ 200 c/c`
+  elements.push(
+    <text key="spec" x={ox + s(bw) / 2} y={oy + 54} fontSize={4.5} fill={INK} fontFamily="system-ui, sans-serif" textAnchor="middle">
+      {specNote}
+    </text>,
+  )
+
   // ── Material legend ──
   elements.push(
     <LegendBox
@@ -161,7 +190,7 @@ function renderFoundationPlan(plan: PlanModel | null): FoundationSheet | null {
       items={MATERIAL_LEGEND.slice(0, 2)}
       title="MATERIALS"
       x={ox + s(bw) + 5}
-      y={oy - s(bh) + 60}
+      y={oy - s(bh) + 80}
     />,
   )
 

@@ -675,7 +675,7 @@ export function Dashboard() {
 
           {/* Main content area */}
           <div className="relative flex flex-1 flex-col overflow-hidden bg-[var(--bg-primary)]">
-            {(['brief', 'concept', 'design', 'docs-bim', 'cost-deliver'] as StageId[]).includes(activeView as StageId) ? (
+            {(['brief', 'concept', 'design', 'engineering', 'docs-bim', 'cost-deliver'] as StageId[]).includes(activeView as StageId) ? (
               <>
                 {activeStageId === 'brief' && (
                   <BriefStage
@@ -729,6 +729,13 @@ export function Dashboard() {
                     onDesignCreated={handleDesignCreated}
                     onOpenImportWorkflow={() => setImportWorkflowOpen(true)}
                     backgroundIntel={backgroundIntel}
+                  />
+                )}
+                {activeStageId === 'engineering' && (
+                  <EngineeringStage
+                    selectedDesign={selectedDesign}
+                    activePlan={activePlan}
+                    boq={currentBoq}
                   />
                 )}
                 {activeStageId === 'docs-bim' && (

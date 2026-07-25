@@ -85,7 +85,7 @@ interface DimHProps {
   x2: number
   y: number
   label: string
-  style?: DimensionStyle
+  style?: Partial<DimensionStyle>
 }
 
 export function DimensionLineH({ x1, x2, y, label, style }: DimHProps): ReactNode {
@@ -95,13 +95,11 @@ export function DimensionLineH({ x1, x2, y, label, style }: DimHProps): ReactNod
   const fontSize = style?.textHeight ?? 6
   const ext = style?.extensionLineExtend ?? 2.5
   const off = style?.offsetFromOrigin ?? 2
-  const arrowPath = style ? dimArrowPath(style) : null
+  const arrowPath = style ? dimArrowPath(style as DimensionStyle) : null
 
   return (
     <g>
       <line x1={x1} y1={y} x2={x2} y2={y} stroke={col} strokeWidth={CAD_HAIR} />
-      <line x1={x1} y1={y - ext} x2={x1} y2={y + ext} stroke={col} strokeWidth={CAD_HAIR} />
-      <line x1={x2} y1={y - ext} x2={x2} y2={y + ext} stroke={col} strokeWidth={CAD_HAIR} />
       {arrowPath ? (
         <>
           <path d={arrowPath} fill={col} transform={`translate(${x1}, ${y}) rotate(0)`} />
@@ -109,7 +107,8 @@ export function DimensionLineH({ x1, x2, y, label, style }: DimHProps): ReactNod
         </>
       ) : (
         <>
-          <line x1={mid} y1={y - 1.5} x2={mid} y2={y} stroke={col} strokeWidth={CAD_HAIR} />
+          <line x1={x1} y1={y - ext} x2={x1} y2={y + ext} stroke={col} strokeWidth={CAD_HAIR} />
+          <line x1={x2} y1={y - ext} x2={x2} y2={y + ext} stroke={col} strokeWidth={CAD_HAIR} />
         </>
       )}
       <text x={mid} y={y - off - 1} fontSize={fontSize} fill={txtCol} fontFamily="Arial, Helvetica, sans-serif" textAnchor="middle" style={{ fontVariantNumeric: 'tabular-nums' }}>
@@ -125,7 +124,7 @@ interface DimVProps {
   y2: number
   x: number
   label: string
-  style?: DimensionStyle
+  style?: Partial<DimensionStyle>
 }
 
 export function DimensionLineV({ y1, y2, x, label, style }: DimVProps): ReactNode {

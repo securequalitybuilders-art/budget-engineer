@@ -2,6 +2,7 @@ import type { CadDocument } from '@/domain/ws6-types';
 import { TitleBlockMeta, buildTitleBlock, TITLE_BLOCK_H } from '../title-block';
 import { SCHEDULE_DERIVED_PROVENANCE } from '@/domain/drawing-provenance';
 import { renderProvenanceNote } from './svg-shared';
+import { findDoorByCode, findClosestDoor, findWindowByCode, findClosestWindow } from '@/engine/parametric/componentRegistry';
 
 export type ScheduleType = 'door' | 'window' | 'structural' | 'equipment' | 'room';
 
@@ -57,12 +58,20 @@ export function buildScheduleSvg(
       for (const d of doors) {
         const floor = cad?.floors.find((f) => f.id === d.floorId);
         const floorName = floor ? floor.name : 'Unknown';
-        const mat = d.metadata?.material || (d.metadata?.properties?.material as string) || 'Timber';
-        const fr = d.metadata?.fireRating || '-';
-        const hMm = d.height || 2100;
-        const wMm = Math.round(d.width * 1000);
+        
+        const specCode = d.metadata?.code as string | undefined;
+        let spec = specCode ? findDoorByCode(specCode) : undefined;
+        if (!spec) {
+          spec = findClosestDoor(d.width * 1000);
+        }
 
-        parts.push(`<text x="${cols[0].x}" y="${cursorY}" fill="#e2e8f0" font-size="10" font-family="Arial,Helvetica,sans-serif">D-${d.id.slice(0, 3).toUpperCase()}</text>`);
+        const mark = spec.code || `D-${d.id.slice(0, 3).toUpperCase()}`;
+        const wMm = spec.widthMm;
+        const hMm = spec.heightMm;
+        const mat = spec.core === 'solid' ? 'Solid Core' : spec.core === 'fire-rated' ? 'Fire Rated' : spec.core === 'glazed' ? 'Glazed' : spec.core === 'flush' ? 'Flush' : 'Hollow Core';
+        const fr = spec.fireRatingMinHr ? `FD${spec.fireRatingMinHr * 60}` : '-';
+
+        parts.push(`<text x="${cols[0].x}" y="${cursorY}" fill="#e2e8f0" font-size="10" font-family="Arial,Helvetica,sans-serif">${mark}</text>`);
         parts.push(`<text x="${cols[1].x}" y="${cursorY}" fill="#94a3b8" font-size="10" font-family="Arial,Helvetica,sans-serif">${wMm}</text>`);
         parts.push(`<text x="${cols[2].x}" y="${cursorY}" fill="#94a3b8" font-size="10" font-family="Arial,Helvetica,sans-serif">${hMm}</text>`);
         parts.push(`<text x="${cols[3].x}" y="${cursorY}" fill="#94a3b8" font-size="10" font-family="Arial,Helvetica,sans-serif">${esc(mat)}</text>`);
@@ -94,12 +103,20 @@ export function buildScheduleSvg(
     } else {
       for (const w_ of windows) {
         const floor = cad?.floors.find((f) => f.id === w_.floorId);
-        const wMm = Math.round(w_.width * 1000);
-        const hMm = w_.height || 1200;
-        const sMm = w_.sillHeight || 900;
-        const typeStr = w_.metadata?.typeName || (w_.metadata?.properties?.typeName as string) || 'Aluminium Casement';
+        
+        const specCode = w_.metadata?.code as string | undefined;
+        let spec = specCode ? findWindowByCode(specCode) : undefined;
+        if (!spec) {
+          spec = findClosestWindow(w_.width * 1000);
+        }
 
-        parts.push(`<text x="${cols[0].x}" y="${cursorY}" fill="#e2e8f0" font-size="10" font-family="Arial,Helvetica,sans-serif">W-${w_.id.slice(0, 3).toUpperCase()}</text>`);
+        const mark = spec.code || `W-${w_.id.slice(0, 3).toUpperCase()}`;
+        const wMm = spec.widthMm;
+        const hMm = spec.heightMm;
+        const sMm = spec.sillHeightMm;
+        const typeStr = spec.label;
+
+        parts.push(`<text x="${cols[0].x}" y="${cursorY}" fill="#e2e8f0" font-size="10" font-family="Arial,Helvetica,sans-serif">${mark}</text>`);
         parts.push(`<text x="${cols[1].x}" y="${cursorY}" fill="#94a3b8" font-size="10" font-family="Arial,Helvetica,sans-serif">${wMm}</text>`);
         parts.push(`<text x="${cols[2].x}" y="${cursorY}" fill="#94a3b8" font-size="10" font-family="Arial,Helvetica,sans-serif">${hMm}</text>`);
         parts.push(`<text x="${cols[3].x}" y="${cursorY}" fill="#94a3b8" font-size="10" font-family="Arial,Helvetica,sans-serif">${sMm}</text>`);

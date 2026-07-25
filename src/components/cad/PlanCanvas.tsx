@@ -14,6 +14,7 @@ import { TraceBackdrop, BackdropControls } from './TraceBackdrop'
 import type { BackdropState } from '@/lib/import/backdropUtils'
 import { FurnitureLayer } from '../furniture/FurnitureLayer'
 import { getFurnitureDef } from '@/lib/furniture/furniture-library'
+import { FALLBACK_WALL_THICKNESS } from '@/adapters/planTo3d'
 
 interface PlanCanvasProps {
   projectId: string | null
@@ -686,18 +687,34 @@ function renderHandle(cx: number, cy: number, cursor: string, roomId: string) {
 }
 
 function renderWall(wall: WallSegment) {
+  const dx = wall.end.x - wall.start.x
+  const dy = wall.end.y - wall.start.y
+  const wl = Math.hypot(dx, dy)
+  if (wl < 0.001) return null
+  const angle = Math.atan2(dy, dx)
+  const thk = wall.thickness || FALLBACK_WALL_THICKNESS
+  const isExt = wall.type === 'external'
+  const fillCol = isExt ? '#000000' : '#ffffff'
+  const strokeCol = isExt ? '#1e293b' : '#94a3b8'
   return (
-    <line
-      key={wall.id}
-      x1={wall.start.x}
-      y1={wall.start.y}
-      x2={wall.end.x}
-      y2={wall.end.y}
-      stroke={wall.type === 'external' ? '#f8fafc' : '#cbd5e1'}
-      strokeWidth={wall.thickness}
-      strokeLinecap="square"
-      pointerEvents="none"
-    />
+    <g key={wall.id}>
+      <defs>
+        <pattern id={`hatch-ext-${wall.id}`} width="0.12" height="0.12" patternUnits="userSpaceOnUse" patternTransform={`rotate(${-angle * (180 / Math.PI)})`}>
+          <line x1="0" y1="0" x2="0.12" y2="0.12" stroke="#b0a090" strokeWidth={0.02} />
+        </pattern>
+      </defs>
+      <rect
+        x={wall.start.x}
+        y={wall.start.y - thk / 2}
+        width={wl}
+        height={thk}
+        fill={isExt ? `url(#hatch-ext-${wall.id})` : fillCol}
+        stroke={strokeCol}
+        strokeWidth={isExt ? 0.04 : 0.03}
+        transform={`rotate(${angle * (180 / Math.PI)}, ${wall.start.x}, ${wall.start.y})`}
+        pointerEvents="none"
+      />
+    </g>
   )
 }
 
@@ -710,45 +727,66 @@ function EditableOpening({
   wall: WallSegment
   selected: boolean
 }) {
-  const horizontal = wall.start.y === wall.end.y
+  const dx = wall.end.x - wall.start.x
+  const dy = wall.end.y - wall.start.y
+  const wl = Math.hypot(dx, dy)
+  if (wl < 0.001) return null
+  const horizontal = Math.abs(dy) < Math.abs(dx)
   const cx = horizontal
-    ? wall.start.x + (wall.end.x - wall.start.x) * opening.offset
-    : wall.start.x
+    ? wall.start.x + dx * opening.offset
+    : wall.start.x + dy * opening.offset
   const cy = horizontal
-    ? wall.start.y
-    : wall.start.y + (wall.end.y - wall.start.y) * opening.offset
+    ? wall.start.y + dy * opening.offset
+    : wall.start.y + dx * opening.offset
 
   const half = opening.width / 2
   const strokeColor = opening.kind === 'door' ? '#f59e0b' : '#38bdf8'
   const selectedColor = '#67e8f9'
+
+  const gap = 0.04
 
   return (
     <g data-opening-id={opening.id} style={{ cursor: 'pointer' }}>
       {selected && (
         <circle cx={cx} cy={cy} r={0.3} fill="none" stroke={selectedColor} strokeWidth={0.06} strokeDasharray="0.12 0.1" pointerEvents="none" />
       )}
+      {/* Opening gap in wall */}
       {horizontal ? (
-        <line
-          x1={cx - half}
-          y1={cy}
-          x2={cx + half}
-          y2={cy}
-          stroke={selected ? selectedColor : strokeColor}
-          strokeWidth={selected ? 0.22 : 0.16}
-          strokeLinecap="round"
-          pointerEvents="none"
-        />
+        <>
+          <line x1={cx - half} y1={cy} x2={cx + half} y2={cy} stroke={selected ? selectedColor : strokeColor} strokeWidth={selected ? 0.22 : 0.16} strokeLinecap="round" pointerEvents="none" />
+          {opening.kind === 'door' && (
+            <>
+              {/* Door leaf (swing line) */}
+              <line x1={cx} y1={cy} x2={cx} y2={cy + (half > 0.5 ? half : opening.width * 0.6)} stroke={strokeColor} strokeWidth={0.05} strokeLinecap="round" pointerEvents="none" />
+              {/* Swing arc */}
+              <path d={`M ${cx} ${cy + gap} A ${half} ${half} 0 0 1 ${cx + half - gap * 2} ${cy + gap}`} fill="none" stroke={strokeColor} strokeWidth={0.03} strokeDasharray="0.06 0.04" pointerEvents="none" />
+            </>
+          )}
+          {opening.kind === 'window' && (
+            <>
+              {/* Glazing bar - middle horizontal */}
+              <line x1={cx - half + gap} y1={cy} x2={cx + half - gap} y2={cy} stroke={strokeColor} strokeWidth={0.025} pointerEvents="none" />
+              {/* Glazing bar - vertical center */}
+              <line x1={cx} y1={cy - gap} x2={cx} y2={cy + gap} stroke={strokeColor} strokeWidth={0.025} pointerEvents="none" />
+            </>
+          )}
+        </>
       ) : (
-        <line
-          x1={cx}
-          y1={cy - half}
-          x2={cx}
-          y2={cy + half}
-          stroke={selected ? selectedColor : strokeColor}
-          strokeWidth={selected ? 0.22 : 0.16}
-          strokeLinecap="round"
-          pointerEvents="none"
-        />
+        <>
+          <line x1={cx} y1={cy - half} x2={cx} y2={cy + half} stroke={selected ? selectedColor : strokeColor} strokeWidth={selected ? 0.22 : 0.16} strokeLinecap="round" pointerEvents="none" />
+          {opening.kind === 'door' && (
+            <>
+              <line x1={cx} y1={cy} x2={cx + (half > 0.5 ? half : opening.width * 0.6)} y2={cy} stroke={strokeColor} strokeWidth={0.05} strokeLinecap="round" pointerEvents="none" />
+              <path d={`M ${cx + gap} ${cy} A ${half} ${half} 0 0 0 ${cx + gap} ${cy + half - gap * 2}`} fill="none" stroke={strokeColor} strokeWidth={0.03} strokeDasharray="0.06 0.04" pointerEvents="none" />
+            </>
+          )}
+          {opening.kind === 'window' && (
+            <>
+              <line x1={cx} y1={cy - half + gap} x2={cx} y2={cy + half - gap} stroke={strokeColor} strokeWidth={0.025} pointerEvents="none" />
+              <line x1={cx - gap} y1={cy} x2={cx + gap} y2={cy} stroke={strokeColor} strokeWidth={0.025} pointerEvents="none" />
+            </>
+          )}
+        </>
       )}
       {selected && (
         <circle cx={cx} cy={cy} r={0.08} fill={selectedColor} pointerEvents="none" />

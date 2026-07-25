@@ -3,7 +3,7 @@ import type { PlanModel } from '@/domain/plan'
 import { CAD_HAIR, CAD_THIN, INK, PAPER, metresToMm } from '@/components/drawings/cadConstants'
 import { DISCIPLINE } from '@/components/drawings/drawingColors'
 import {
-  SheetBorder, TitleBlock, DimensionLineH, DimensionLineV, GridBubble, DrawingTitle,
+  SheetBorder, TitleBlock, DimensionLineH, DimensionLineV, GridBubble, DrawingTitle, LevelMarker,
 } from '@/components/drawings/cadPrimitives'
 import { NorthArrow, ScaleBar } from '@/components/drawings/entourage'
 
@@ -131,7 +131,19 @@ export function renderCeilingPlan(plan: PlanModel | null): CeilingSheet | null {
         <line x1={lcx} y1={lcy - lr * 0.6} x2={lcx} y2={lcy + lr * 0.6} stroke={electricalColor} strokeWidth={CAD_HAIR} />
       </g>,
     )
+
+    // Room name label (small, above centre)
+    elements.push(
+      <text key={`room-label-${room.id}`} x={lcx} y={lcy - lr - 4} fontSize={5} fill={INK} fontFamily="system-ui, sans-serif" textAnchor="middle" opacity={0.7}>
+        {room.name}
+      </text>,
+    )
   }
+
+  // ── Ceiling level marker ──
+  elements.push(
+    <LevelMarker key="ceil-lvl" x={planLeft + s(bw) * 0.25} y={planTop - 8} label="FFL ±0.000 / CEILING RL +2.700" />,
+  )
 
   // ── Overall dimensions ──
   const dimY = MARGIN + 15

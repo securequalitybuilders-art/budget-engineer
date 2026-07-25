@@ -370,11 +370,11 @@ describe('RoofPlanView', () => {
     expect(renderRoofPlan(plan)).toBeNull()
   })
 
-  it('renderRoofPlan contains roof plan title and ridge line', () => {
+  it('renderRoofPlan contains ridge line and level marker', () => {
     const sheet = renderRoofPlan(makePlan())
     expect(sheet).not.toBeNull()
     const ridgeCount = sheet!.elements ? countByPrefix(sheet!.elements, 'ridge') : 0
-    expect(ridgeCount).toBe(1)
+    expect(ridgeCount).toBe(2)
   })
 
   it('renderRoofPlan contains eaves outline, gutter, downpipe, and legend', () => {
@@ -382,8 +382,10 @@ describe('RoofPlanView', () => {
     expect(sheet).not.toBeNull()
     const eavesCount = sheet!.elements ? countByPrefix(sheet!.elements, 'eaves') : 0
     expect(eavesCount).toBe(1)
-    const gutterCount = sheet!.elements ? countByPrefix(sheet!.elements, 'gutter') : 0
-    expect(gutterCount).toBe(1)
+    const gutterLineCount = sheet!.elements ? countByPrefix(sheet!.elements, 'gutter') - countByPrefix(sheet!.elements, 'gutter-') : 0
+    expect(gutterLineCount).toBe(1)
+    const gutterLvlCount = sheet!.elements ? countByPrefix(sheet!.elements, 'gutter-') : 0
+    expect(gutterLvlCount).toBe(1)
     const dpCount = sheet!.elements ? countByPrefix(sheet!.elements, 'downpipe-') : 0
     expect(dpCount).toBeGreaterThanOrEqual(1)
     const legendCount = sheet!.elements ? countByPrefix(sheet!.elements, 'legend') : 0

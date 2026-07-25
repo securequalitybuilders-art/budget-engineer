@@ -72,7 +72,7 @@ export function buildDrawingLayers(
     { id: 'grid', name: 'Grid', category: 'grid', style: { fill: 'none', stroke: '#888', strokeWidth: 0.13, strokeDasharray: '3 2' }, zIndex: 0 },
     { id: 'terrain', name: 'Terrain', category: 'terrain', style: { fill: colors ? '#f0ecd8' : 'none', stroke: '#666', strokeWidth: 0.25 }, zIndex: 1 },
     { id: 'hatch-poche', name: 'Poché Hatch', category: 'hatch-boundary', style: { fill: colors ? '#e8e0d0' : '#f0f0f0', stroke: 'none', strokeWidth: 0.13 }, zIndex: 2 },
-    { id: 'cut-wall', name: 'Cut Walls', category: 'cut-wall', style: { fill: colors ? '#d4c9b8' : '#333', stroke: '#000', strokeWidth: 0.7 }, zIndex: 3 },
+    { id: 'cut-wall', name: 'Cut Walls', category: 'cut-wall', style: { fill: colors ? '#000000' : '#333', stroke: '#000', strokeWidth: 0.7 }, zIndex: 3 },
     { id: 'cut-slab', name: 'Cut Slab', category: 'cut-slab', style: { fill: colors ? '#c8bdb0' : '#444', stroke: '#000', strokeWidth: 0.5 }, zIndex: 4 },
     { id: 'cut-structure', name: 'Cut Structure', category: 'cut-structure', style: { fill: colors ? '#b0a898' : '#555', stroke: '#000', strokeWidth: 0.5 }, zIndex: 5 },
     { id: 'external-wall', name: 'External Walls', category: 'external-outline', style: { fill: 'none', stroke: '#000', strokeWidth: 0.35 }, zIndex: 6 },

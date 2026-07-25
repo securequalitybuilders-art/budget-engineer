@@ -15,6 +15,9 @@ const ICONS: Record<string, string> = {
   leaf: '☘',
   'file-text': '📄',
   book: '📖',
+  cpu: '⚙',
+  briefcase: '💼',
+  shield: '🛡',
 }
 
 export function SkillPathView({ path, progress, currentLessonId, onSelectLesson, onCompleteLesson, isCompleted }: SkillPathProps) {

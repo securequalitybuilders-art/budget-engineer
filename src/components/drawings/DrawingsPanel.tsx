@@ -37,8 +37,10 @@ import type { TitleBlockMeta } from '@/lib/drawings/title-block'
 import { generateDxf, downloadDxf } from '@/lib/export/dxfWriter'
 import type { DrawingTabId } from '@/lib/drawings/drawing-register'
 import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
+import { DetailsBrowser } from '@/components/drawings/DetailsBrowser'
+import { RoomScheduleView } from '@/components/drawings/RoomScheduleView'
 
-type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'side' | 'section' | 'schedule-door' | 'schedule-window' | 'schedule-structural' | 'presentation' | 'register'
+type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'side' | 'section' | 'schedule-door' | 'schedule-window' | 'schedule-structural' | 'presentation' | 'register' | 'details' | 'schedule-room'
 
 const TABS: { id: DrawingTab; label: string }[] = [
   { id: 'plan', label: 'Plan' },
@@ -57,6 +59,8 @@ const TABS: { id: DrawingTab; label: string }[] = [
   { id: 'schedule-structural', label: 'Struct. Sch.' },
   { id: 'presentation', label: 'Presentation Sheet' },
   { id: 'register', label: 'Register' },
+  { id: 'details', label: 'Details' },
+  { id: 'schedule-room', label: 'Room Sch.' },
 ] as { id: DrawingTab; label: string }[]
 
 interface DrawingsPanelProps {
@@ -385,6 +389,12 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
           activeSheetId={activeSheetId}
           onSelectSheet={(id) => handleSelectSheet(id, null)}
         />
+      )}
+      {activeTab === 'details' && (
+        <DetailsBrowser />
+      )}
+      {activeTab === 'schedule-room' && (
+        <RoomScheduleView activePlan={activePlan} />
       )}
 
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-stone-700/60 bg-stone-900/50 px-3 py-2">

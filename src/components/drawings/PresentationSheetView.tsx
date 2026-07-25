@@ -5,6 +5,8 @@ import { computePresentationLayout, type CellRect } from '@/components/drawings/
 import { renderRoofPlan } from '@/components/drawings/roofPlanModel'
 import { renderCeilingPlan } from '@/components/drawings/ceilingPlanModel'
 import { renderFloorPlanSheet } from '@/components/drawings/planSheetModel'
+import { renderSitePlan } from '@/components/drawings/SitePlanView'
+import { renderFoundationPlan } from '@/components/drawings/FoundationPlanView'
 import {
   resolveFrontElevation,
   resolveSideElevation,
@@ -199,12 +201,12 @@ function renderCellContent(
       return embedSheetDrawing(rendered.elements, rendered.sheetW, rendered.sheetH, cell, innerW, innerH, pad, 'FLOOR PLAN')
     }
     case 'site-plan': {
-      const rendered = renderSimpleDrawing(plan, 'Site Plan')
+      const rendered = renderSitePlan(plan, null)
       if (!rendered) return null
       return embedSheetDrawing(rendered.elements, rendered.sheetW, rendered.sheetH, cell, innerW, innerH, pad, 'SITE PLAN')
     }
     case 'foundation': {
-      const rendered = renderFoundationDrawing(plan)
+      const rendered = renderFoundationPlan(plan)
       if (!rendered) return null
       return embedSheetDrawing(rendered.elements, rendered.sheetW, rendered.sheetH, cell, innerW, innerH, pad, 'FOUNDATION PLAN')
     }
@@ -306,86 +308,7 @@ function embedSectionDrawing(
   return embedSheetDrawing(rendered.elements, rendered.sheetW, rendered.sheetH, cell, innerW, innerH, pad, 'SECTION A-A')
 }
 
-function renderSimpleDrawing(plan: PlanModel, _title: string): { sheetW: number; sheetH: number; elements: ReactNode } | null {
-  const bw = plan.width
-  const bh = plan.height
-  if (bw <= 0 || bh <= 0) return null
 
-  const drawW = 400
-  const drawH = 300
-  const scale = Math.min(drawW / bw, drawH / bh)
-  const s = (v: number) => v * scale
-  const ox = 30
-  const oy = 30 + s(bh)
-  const sheetW = ox + s(bw) + 30
-  const sheetH = oy + 30
-
-  const elements: ReactNode[] = []
-  elements.push(<rect key="bg" x={0} y={0} width={sheetW} height={sheetH} fill={PAPER} />)
-  for (const wall of plan.walls) {
-    const wl = Math.hypot(wall.end.x - wall.start.x, wall.end.y - wall.start.y)
-    if (wl < 0.01) continue
-    const cx = (wall.start.x + wall.end.x) / 2
-    const cy = (wall.start.y + wall.end.y) / 2
-    const wallThk = wall.thickness || plan.wallThickness || 0.23
-    const angle = Math.atan2(wall.end.y - wall.start.y, wall.end.x - wall.start.x)
-    const ww = s(wl)
-    const wh = Math.max(s(wallThk), 2)
-    elements.push(
-      <rect key={`w-${wall.id}`} x={ox + s(cx) - ww / 2} y={oy - s(cy) - wh / 2} width={ww} height={wh} fill={PAPER} stroke={INK} strokeWidth={CAD_THIN} transform={`rotate(${-angle * (180 / Math.PI)}, ${ox + s(cx)}, ${oy - s(cy)})`} />,
-    )
-  }
-
-  for (const opening of plan.openings) {
-    const wall = plan.walls.find(w => w.id === opening.wallId)
-    if (!wall) continue
-    const wl = Math.hypot(wall.end.x - wall.start.x, wall.end.y - wall.start.y)
-    if (wl < 0.01) continue
-    const angle = Math.atan2(wall.end.y - wall.start.y, wall.end.x - wall.start.x)
-    const opOff = opening.offset * wl
-    const halfW = opening.width / 2
-    const opCx = wall.start.x + (opOff / wl) * (wall.end.x - wall.start.x)
-    const opCy = wall.start.y + (opOff / wl) * (wall.end.y - wall.start.y)
-
-    elements.push(
-      <rect key={`op-${opening.id}`} x={ox + s(opCx - halfW)} y={oy - s(opCy) - s(0.23) / 2} width={s(opening.width)} height={Math.max(s(0.23), 2)} fill="rgba(245,158,11,0.18)" stroke={INK} strokeWidth={CAD_HAIR} transform={`rotate(${-angle * (180 / Math.PI)}, ${ox + s(opCx)}, ${oy - s(opCy)})`} />,
-    )
-  }
-
-  return { sheetW, sheetH, elements }
-}
-
-function renderFoundationDrawing(plan: PlanModel): { sheetW: number; sheetH: number; elements: ReactNode } | null {
-  if (!plan || plan.width <= 0 || plan.height <= 0) return null
-  const bw = plan.width
-  const bh = plan.height
-  const drawW = 400
-  const drawH = 300
-  const scale = Math.min(drawW / bw, drawH / bh)
-  const s = (v: number) => v * scale
-  const ox = 30
-  const oy = 30 + s(bh)
-  const sheetW = ox + s(bw) + 30
-  const sheetH = oy + 30
-
-  const elements: ReactNode[] = []
-  elements.push(<rect key="bg" x={0} y={0} width={sheetW} height={sheetH} fill={PAPER} />)
-  const fdnInset = 0.15
-  for (const wall of plan.walls) {
-    const wl = Math.hypot(wall.end.x - wall.start.x, wall.end.y - wall.start.y)
-    if (wl < 0.01) continue
-    const cx = (wall.start.x + wall.end.x) / 2
-    const cy = (wall.start.y + wall.end.y) / 2
-    const fdnWidth = (wall.thickness || plan.wallThickness || 0.23) + fdnInset * 2
-    const angle = Math.atan2(wall.end.y - wall.start.y, wall.end.x - wall.start.x)
-    const ww = s(wl)
-    const wh = Math.max(s(fdnWidth), 3)
-    elements.push(
-      <rect key={`f-${wall.id}`} x={ox + s(cx) - ww / 2} y={oy - s(cy) - wh / 2} width={ww} height={wh} fill="rgba(60,60,60,0.15)" stroke={INK} strokeWidth={CAD_MEDIUM} transform={`rotate(${-angle * (180 / Math.PI)}, ${ox + s(cx)}, ${oy - s(cy)})`} />,
-    )
-  }
-  return { sheetW, sheetH, elements }
-}
 
 function embedSheetDrawing(
   elements: ReactNode,

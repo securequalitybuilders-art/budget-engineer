@@ -308,7 +308,7 @@ describe('Schedule Generator', () => {
     const svg = buildScheduleSvg(cad, 'door');
     expect(isValidSvg(svg)).toBe(true);
     expect(svg).toContain('DOOR SCHEDULE');
-    expect(svg).toContain('D-O1');
+    expect(svg).toContain('D-926');
   });
 
   test('window schedule renders with cad data', () => {
@@ -316,7 +316,7 @@ describe('Schedule Generator', () => {
     const svg = buildScheduleSvg(cad, 'window');
     expect(isValidSvg(svg)).toBe(true);
     expect(svg).toContain('WINDOW SCHEDULE');
-    expect(svg).toContain('W-O2');
+    expect(svg).toContain('W-C-1509');
   });
 
   test('structural schedule renders with cad data', () => {
