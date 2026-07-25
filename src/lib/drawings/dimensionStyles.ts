@@ -71,6 +71,19 @@ const ARCH_STYLES: Record<string, DimensionStyle> = {
     arrowSize: 2.5,
     precision: 0,
   },
+  'MEP': {
+    name: 'MEP',
+    textHeight: 6,
+    arrowSize: 4,
+    extensionLineExtend: 2.5,
+    offsetFromOrigin: 2,
+    precision: 0,
+    units: 'mm',
+    color: '#2563eb',
+    arrowType: 'arrow',
+    textColor: '#2563eb',
+    lineColor: '#2563eb',
+  },
 };
 
 export function getDimensionStyle(name: string): DimensionStyle {
