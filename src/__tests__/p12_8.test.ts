@@ -127,9 +127,8 @@ describe('P12.8 — Variation differentiation', () => {
   })
 
   it('variation is visible in circulation type, not just area', () => {
-    // Generate plans with 4 different seeds covering all 4 circulation types
-    // (seed step must avoid 16807 × step ≡ 0 mod 4)
-    const design = makeDesign({ id: 'opt-var', grossFloorArea: 120, buildingType: 'house' })
+    // Use area 100 so the program includes a Circulation room
+    const design = makeDesign({ id: 'opt-var', grossFloorArea: 100, buildingType: 'house' })
     const corridorYPositions = new Set<number>()
     for (let seed = 1; seed <= 4; seed++) {
       const plan = generateVariedPlanModel(design, seed)

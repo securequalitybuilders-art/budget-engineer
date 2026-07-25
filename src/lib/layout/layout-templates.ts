@@ -60,7 +60,7 @@ const L_PLAN: LayoutTemplate = {
   id: 'l-plan',
   name: 'L-Plan House',
   typology: 'house',
-  minArea: 100,
+  minArea: 95,
   maxArea: 9999,
   cols: 4,
   rows: 4,
@@ -348,8 +348,8 @@ export function isRequiredRoom(name: string): boolean {
   return true
 }
 
-export function pickHouseTemplate(area: number, _seed = 0): LayoutTemplate {
-  if (area <= 65) return COMPACT_GRID
-  if (area <= 100) return SIDE_CORRIDOR
-  return L_PLAN
+export function pickHouseTemplate(area: number, seed = 0): LayoutTemplate {
+  const valid = HOUSE_TEMPLATES.filter(t => area >= t.minArea && area <= t.maxArea)
+  if (valid.length === 0) return L_PLAN
+  return valid[seed % valid.length]
 }

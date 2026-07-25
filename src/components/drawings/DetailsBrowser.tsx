@@ -57,7 +57,7 @@ export function DetailsBrowser() {
 
       <div className="flex gap-4">
         <div className="flex w-64 shrink-0 flex-col gap-1">
-          <h3 className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
+          <h3 className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-stone-400">
             {DETAIL_CATEGORIES.find((c) => c.key === activeCategory)?.label ?? activeCategory}
           </h3>
           {categoryDetails.map((detail) => (
@@ -71,11 +71,11 @@ export function DetailsBrowser() {
               }`}
             >
               <span className="block font-medium">{detail.title}</span>
-              <span className="mt-0.5 block text-[10px] text-stone-500">{detail.scale}</span>
+              <span className="mt-0.5 block text-[10px] text-stone-400">{detail.scale}</span>
             </button>
           ))}
           {categoryDetails.length === 0 && (
-            <p className="px-2 text-[11px] text-stone-500">No details in this category.</p>
+            <p className="px-2 text-[11px] text-stone-400">No details in this category.</p>
           )}
         </div>
 
@@ -95,7 +95,7 @@ export function DetailsBrowser() {
               </div>
 
               <div>
-                <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
+                <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-stone-400">
                   Key Dimensions
                 </h3>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
@@ -109,7 +109,7 @@ export function DetailsBrowser() {
               </div>
 
               <div>
-                <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
+                <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-stone-400">
                   Construction Notes
                 </h3>
                 <ul className="flex flex-col gap-1.5">
@@ -123,7 +123,7 @@ export function DetailsBrowser() {
               </div>
             </div>
           ) : (
-            <p className="text-sm text-stone-500">Select a detail to preview.</p>
+            <p className="text-sm text-stone-400">Select a detail to preview.</p>
           )}
         </div>
       </div>

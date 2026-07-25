@@ -96,7 +96,7 @@ export function StructuralPreDesignPanel({ graph }: StructuralPreDesignPanelProp
       {/* Beam Candidates */}
       <SectionCard title={`Beam Candidates (${output.beams.length})`} estimate>
         {output.beams.length === 0 ? (
-          <p className="text-[11px] text-stone-500">No beam candidates generated.</p>
+          <p className="text-[11px] text-stone-400">No beam candidates generated.</p>
         ) : (
           <div className="space-y-1">
             {output.beams.map((b) => (
@@ -120,7 +120,7 @@ export function StructuralPreDesignPanel({ graph }: StructuralPreDesignPanelProp
       {/* Column Candidates */}
       <SectionCard title={`Column Candidates (${output.columns.length})`} estimate>
         {output.columns.length === 0 ? (
-          <p className="text-[11px] text-stone-500">No column candidates generated.</p>
+          <p className="text-[11px] text-stone-400">No column candidates generated.</p>
         ) : (
           <div className="space-y-1">
             {output.columns.map((c) => (
@@ -134,7 +134,7 @@ export function StructuralPreDesignPanel({ graph }: StructuralPreDesignPanelProp
                   <span>H: {c.heightM} m</span>
                   <span>Load: {c.loadEstimateKn} kN</span>
                 </div>
-                <div className="text-[10px] text-stone-500">Reo: {c.reinforcement}</div>
+                <div className="text-[10px] text-stone-400">Reo: {c.reinforcement}</div>
                 <AssumptionTag tag={c.assumptionTag} />
               </div>
             ))}
@@ -145,7 +145,7 @@ export function StructuralPreDesignPanel({ graph }: StructuralPreDesignPanelProp
       {/* Footing Candidates */}
       <SectionCard title={`Footing Candidates (${output.footings.length})`} estimate>
         {output.footings.length === 0 ? (
-          <p className="text-[11px] text-stone-500">No footing candidates generated.</p>
+          <p className="text-[11px] text-stone-400">No footing candidates generated.</p>
         ) : (
           <div className="space-y-1">
             {output.footings.map((f) => (
@@ -159,7 +159,7 @@ export function StructuralPreDesignPanel({ graph }: StructuralPreDesignPanelProp
                   <span>T: {f.thicknessMm} mm</span>
                   <span>Load: {f.loadKn} kN</span>
                 </div>
-                <div className="text-[10px] text-stone-500">Bearing: {f.bearingKpa} kPa</div>
+                <div className="text-[10px] text-stone-400">Bearing: {f.bearingKpa} kPa</div>
                 <AssumptionTag tag={f.assumptionTag} />
               </div>
             ))}
@@ -175,7 +175,7 @@ export function StructuralPreDesignPanel({ graph }: StructuralPreDesignPanelProp
           <StatCard label="Formwork" value={String(output.boq.formworkM2)} unit="m²" />
         </div>
         {output.boq.notes.map((note, i) => (
-          <p key={i} className="mt-1 text-[10px] text-stone-500">{note}</p>
+          <p key={i} className="mt-1 text-[10px] text-stone-400">{note}</p>
         ))}
       </SectionCard>
 

@@ -143,7 +143,7 @@ function RangeInput({ label, value, onChange, min, max, step, unit }: {
 }) {
   return (
     <label className="flex flex-col gap-0.5">
-      <span className="text-[10px] text-stone-500">{label}</span>
+      <span className="text-[10px] text-stone-400">{label}</span>
       <div className="flex items-center gap-1">
         <input type="range" min={min} max={max} step={step ?? 1} value={value} onChange={e => onChange(parseFloat(e.target.value))}
           className="w-20 accent-cyan-600" />
@@ -237,7 +237,7 @@ export function EnhancedBriefPanel({ projectId, onGenerate }: {
       <SectionBox title="2. Location" icon={<MapPin size={12} />}>
         <div className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-0.5">
-            <span className="text-[10px] text-stone-500">City preset</span>
+            <span className="text-[10px] text-stone-400">City preset</span>
             <select value={cityPreset} onChange={e => handleCitySelect(e.target.value)}
               className="rounded border border-stone-700 bg-stone-800 px-2 py-1 text-xs text-stone-200">
               <option value="">— Select —</option>
@@ -245,13 +245,13 @@ export function EnhancedBriefPanel({ projectId, onGenerate }: {
             </select>
           </label>
           <label className="flex flex-col gap-0.5">
-            <span className="text-[10px] text-stone-500">Latitude</span>
+            <span className="text-[10px] text-stone-400">Latitude</span>
             <input type="number" min={-90} max={90} step={0.01} value={q.lat}
               onChange={e => set('lat', parseFloat(e.target.value) || 0)}
               className="w-20 rounded border border-stone-700 bg-stone-800 px-2 py-1 text-xs text-stone-200" />
           </label>
           <label className="flex flex-col gap-0.5">
-            <span className="text-[10px] text-stone-500">Longitude</span>
+            <span className="text-[10px] text-stone-400">Longitude</span>
             <input type="number" min={-180} max={180} step={0.01} value={q.lng}
               onChange={e => set('lng', parseFloat(e.target.value) || 0)}
               className="w-20 rounded border border-stone-700 bg-stone-800 px-2 py-1 text-xs text-stone-200" />
@@ -264,14 +264,14 @@ export function EnhancedBriefPanel({ projectId, onGenerate }: {
         <div className="flex flex-wrap gap-4">
           <RangeInput label="Width (m)" value={q.siteWidth} onChange={v => set('siteWidth', v)} min={10} max={60} />
           <RangeInput label="Depth (m)" value={q.siteDepth} onChange={v => set('siteDepth', v)} min={10} max={60} />
-          <div className="self-end text-xs text-stone-500">Area: <span className="text-stone-300">{q.siteWidth * q.siteDepth} m²</span></div>
+          <div className="self-end text-xs text-stone-400">Area: <span className="text-stone-300">{q.siteWidth * q.siteDepth} m²</span></div>
         </div>
       </SectionBox>
 
       {/* 4. BUDGET */}
       <SectionBox title="4. Budget" icon={<DollarSign size={12} />}>
         <RangeInput label="USD" value={q.budgetUsd} onChange={v => set('budgetUsd', v)} min={5000} max={500000} step={5000} unit="$" />
-        <div className="mt-1 text-[10px] text-stone-500">
+        <div className="mt-1 text-[10px] text-stone-400">
           Budget grade: {q.budgetUsd < 30000 ? 'Economy' : q.budgetUsd < 100000 ? 'Standard' : q.budgetUsd < 250000 ? 'Premium' : 'Luxury'}
           {' · '}Rate: ${(q.budgetUsd / (q.siteWidth * q.siteDepth)).toFixed(0)}/m²
         </div>
@@ -306,7 +306,7 @@ export function EnhancedBriefPanel({ projectId, onGenerate }: {
       {/* 6. STYLE & PREFERENCES */}
       <SectionBox title="6. Style & Preferences" icon={<Palette size={12} />}>
         <div className="mb-2 flex flex-wrap gap-1.5">
-          <span className="w-full text-[10px] text-stone-500">Style</span>
+          <span className="w-full text-[10px] text-stone-400">Style</span>
           {STYLES.map(s => (
             <button key={s}
               onClick={() => set('style', s)}
@@ -317,7 +317,7 @@ export function EnhancedBriefPanel({ projectId, onGenerate }: {
           ))}
         </div>
         <div className="mb-2 flex flex-wrap gap-1.5">
-          <span className="w-full text-[10px] text-stone-500">Roof</span>
+          <span className="w-full text-[10px] text-stone-400">Roof</span>
           {ROOFS.map(r => (
             <button key={r}
               onClick={() => set('roof', r)}
@@ -366,17 +366,17 @@ export function EnhancedBriefPanel({ projectId, onGenerate }: {
             Site Analysis (auto-calculated)
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
-            <span className="text-stone-500">Climate:</span>
+            <span className="text-stone-400">Climate:</span>
             <span className="text-stone-200">{climate.name}</span>
-            <span className="text-stone-500">Wind:</span>
+            <span className="text-stone-400">Wind:</span>
             <span className="text-stone-200">{windDesc}</span>
-            <span className="text-stone-500">Optimal orientation:</span>
+            <span className="text-stone-400">Optimal orientation:</span>
             <span className="text-stone-200">{siteContext.orientation}° (E-W long axis)</span>
-            <span className="text-stone-500">Setbacks:</span>
+            <span className="text-stone-400">Setbacks:</span>
             <span className="text-stone-200">
               {siteContext.setbacks ? `${siteContext.setbacks.front}m front, ${siteContext.setbacks.rear}m rear` : '—'}
             </span>
-            <span className="text-stone-500">Effective area:</span>
+            <span className="text-stone-400">Effective area:</span>
             <span className="text-stone-200">
               {siteContext.setbacks
                 ? `${Math.max(0, q.siteWidth - siteContext.setbacks.sides[0] - siteContext.setbacks.sides[1])} × ${Math.max(0, q.siteDepth - siteContext.setbacks.front - siteContext.setbacks.rear)} m`
@@ -393,13 +393,13 @@ export function EnhancedBriefPanel({ projectId, onGenerate }: {
           Engineering Intel (auto-calculated)
         </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
-          <span className="text-stone-500">Floors:</span>
+          <span className="text-stone-400">Floors:</span>
           <span className="text-stone-200">{q.floors}-storey {BUILDING_TYPES.find(bt => bt.value === q.buildingType)?.label ?? q.buildingType}</span>
-          <span className="text-stone-500">Structure:</span>
+          <span className="text-stone-400">Structure:</span>
           <span className="text-stone-200">{q.floors <= 2 ? 'Load-bearing masonry' : 'Reinforced concrete frame'}</span>
-          <span className="text-stone-500">Fire exits:</span>
+          <span className="text-stone-400">Fire exits:</span>
           <span className="text-stone-200">{q.floors <= 2 ? '1 exit sufficient' : '2 exits required'}</span>
-          <span className="text-stone-500">Wet core:</span>
+          <span className="text-stone-400">Wet core:</span>
           <span className="text-stone-200">{q.bathrooms >= 2 ? 'Grouped recommended' : 'Single stack'}</span>
         </div>
       </div>
@@ -412,7 +412,7 @@ export function EnhancedBriefPanel({ projectId, onGenerate }: {
         Generate 3 Design Concepts →
       </button>
 
-      <p className="text-[10px] text-stone-500">
+      <p className="text-[10px] text-stone-400">
         Site analysis is for early-stage reference. Always consult a registered professional for final assessment.
       </p>
     </div>

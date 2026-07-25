@@ -171,7 +171,7 @@ export function UnifiedComponentPanel({ onClose }: UnifiedComponentPanelProps) {
                   }`}
                 >
                   <span className="text-[11px] font-medium text-stone-800">{d.label}</span>
-                  <span className="text-[10px] text-stone-500">{d.code} — {d.widthMm}×{d.heightMm}mm · {d.type} · {d.core}</span>
+                  <span className="text-[10px] text-stone-400">{d.code} — {d.widthMm}×{d.heightMm}mm · {d.type} · {d.core}</span>
                   {d.fireRatingMinHr && (
                     <span className="text-[9px] text-amber-600">Fire rated: {d.fireRatingMinHr}h</span>
                   )}
@@ -199,7 +199,7 @@ export function UnifiedComponentPanel({ onClose }: UnifiedComponentPanelProps) {
                   }`}
                 >
                   <span className="text-[11px] font-medium text-stone-800">{w.label}</span>
-                  <span className="text-[10px] text-stone-500">{w.code} — {w.widthMm}×{w.heightMm}mm · {w.type} · {w.liteCount} lites</span>
+                  <span className="text-[10px] text-stone-400">{w.code} — {w.widthMm}×{w.heightMm}mm · {w.type} · {w.liteCount} lites</span>
                 </button>
               )
             })}

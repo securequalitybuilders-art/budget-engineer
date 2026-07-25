@@ -164,7 +164,7 @@ export function CodeReviewPanel({ plan, design, buildingType }: CodeReviewPanelP
             <span className="text-emerald-400">{reviewResult.summary.pass} pass</span>
             <span className="text-amber-400">{reviewResult.summary.warn} warn</span>
             {reviewResult.summary.fail > 0 && <span className="text-red-400">{reviewResult.summary.fail} fail</span>}
-            <span className="text-stone-500">{reviewResult.summary.info} info</span>
+            <span className="text-stone-400">{reviewResult.summary.info} info</span>
           </div>
 
           <div className="space-y-2">
@@ -192,12 +192,12 @@ export function CodeReviewPanel({ plan, design, buildingType }: CodeReviewPanelP
                             <SeverityBadge severity={check.severity} />
                           </div>
                           <p className="text-[8px] text-stone-400">
-                            <span className="text-stone-500">Req:</span> {check.requirement}
+                            <span className="text-stone-400">Req:</span> {check.requirement}
                             {' · '}
-                            <span className="text-stone-500">Act:</span> {check.actual}
+                            <span className="text-stone-400">Act:</span> {check.actual}
                           </p>
                           {check.location && (
-                            <p className="text-[7px] text-stone-500">Location: {check.location}</p>
+                            <p className="text-[7px] text-stone-400">Location: {check.location}</p>
                           )}
                           <p className="mt-0.5 text-[7px] italic text-stone-400">{check.note}</p>
                         </div>
@@ -223,8 +223,8 @@ export function CodeReviewPanel({ plan, design, buildingType }: CodeReviewPanelP
                   <span className="mt-0.5 text-red-400">✗</span>
                   <div>
                     <span className="text-stone-300">{check.title}</span>
-                    <span className="ml-1 text-stone-500">— {check.requirement} (actual: {check.actual})</span>
-                    {check.location && <span className="ml-1 text-stone-600">@{check.location}</span>}
+                    <span className="ml-1 text-stone-400">— {check.requirement} (actual: {check.actual})</span>
+                    {check.location && <span className="ml-1 text-stone-400">@{check.location}</span>}
                   </div>
                 </div>
               ))}

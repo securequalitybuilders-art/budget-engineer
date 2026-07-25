@@ -94,7 +94,7 @@ export function MepPreDesignPanel({ graph }: MepPreDesignPanelProps) {
       {/* Plumbing */}
       <SectionCard title={`Plumbing (${output.plumbing.fixtures.length} fixtures, ${output.plumbing.zones.length} zones)`} estimate>
         {output.plumbing.zones.length === 0 ? (
-          <p className="text-[11px] text-stone-500">No wet rooms detected.</p>
+          <p className="text-[11px] text-stone-400">No wet rooms detected.</p>
         ) : (
           <div className="space-y-1.5">
             {output.plumbing.zones.map((z) => (
@@ -113,7 +113,7 @@ export function MepPreDesignPanel({ graph }: MepPreDesignPanelProps) {
               </div>
             ))}
             {output.plumbing.stacks.length > 0 && (
-              <div className="text-[10px] text-stone-500">
+              <div className="text-[10px] text-stone-400">
                 {output.plumbing.stacks.length} waste stack{output.plumbing.stacks.length !== 1 ? 's' : ''} · {output.plumbing.stacks.reduce((s, st) => s + st.levelsServed.length, 0)} levels served
               </div>
             )}
@@ -127,7 +127,7 @@ export function MepPreDesignPanel({ graph }: MepPreDesignPanelProps) {
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-[10px]">
               <thead>
-                <tr className="text-left text-stone-500">
+                <tr className="text-left text-stone-400">
                   <th className="px-1.5 py-1 font-medium">Circuit</th>
                   <th className="px-1.5 py-1 font-medium">Type</th>
                   <th className="px-1.5 py-1 text-right font-medium">Points</th>
@@ -161,13 +161,13 @@ export function MepPreDesignPanel({ graph }: MepPreDesignPanelProps) {
       {/* HVAC */}
       <SectionCard title={`HVAC (${output.hvac.units.length} units)`} estimate>
         {output.hvac.units.length === 0 ? (
-          <p className="text-[11px] text-stone-500">No habitable or wet rooms detected for HVAC.</p>
+          <p className="text-[11px] text-stone-400">No habitable or wet rooms detected for HVAC.</p>
         ) : (
           <div className="space-y-1">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-[10px]">
                 <thead>
-                  <tr className="text-left text-stone-500">
+                  <tr className="text-left text-stone-400">
                     <th className="px-1.5 py-1 font-medium">Unit</th>
                     <th className="px-1.5 py-1 font-medium">Type</th>
                     <th className="px-1.5 py-1 text-right font-medium">Area m²</th>
@@ -191,7 +191,7 @@ export function MepPreDesignPanel({ graph }: MepPreDesignPanelProps) {
               </table>
             </div>
             {output.hvac.shafts.length > 0 && (
-              <div className="text-[10px] text-stone-500">
+              <div className="text-[10px] text-stone-400">
                 {output.hvac.shafts.length} shaft{output.hvac.shafts.length !== 1 ? 's' : ''}: {output.hvac.shafts.map((s) => s.label).join(', ')}
               </div>
             )}
@@ -229,7 +229,7 @@ export function MepPreDesignPanel({ graph }: MepPreDesignPanelProps) {
           <StatCard label="Estimated Cost" value={`$${(output.boq.estimatedCostCents / 100).toLocaleString()}`} />
         </div>
         {output.boq.notes.map((note, i) => (
-          <p key={i} className="mt-1 text-[10px] text-stone-500">{note}</p>
+          <p key={i} className="mt-1 text-[10px] text-stone-400">{note}</p>
         ))}
       </SectionCard>
 

@@ -21,13 +21,13 @@ function GateRow({ gate }: { gate: SignoffGate }) {
         ? 'border-emerald-700/40 bg-emerald-950/20'
         : 'border-stone-700/40 bg-stone-900/40'
     }`}>
-      <span className={`text-sm ${gate.passed ? 'text-emerald-400' : 'text-stone-500'}`}>
+      <span className={`text-sm ${gate.passed ? 'text-emerald-400' : 'text-stone-400'}`}>
         {gate.passed ? '✓' : '○'}
       </span>
       <div className="flex-1">
         <span className="font-medium text-stone-200">{gate.label}</span>
-        {!gate.required && <span className="ml-1 text-[9px] text-stone-500">optional</span>}
-        <p className="text-[9px] text-stone-500">{gate.description}</p>
+        {!gate.required && <span className="ml-1 text-[9px] text-stone-400">optional</span>}
+        <p className="text-[9px] text-stone-400">{gate.description}</p>
       </div>
     </div>
   )
@@ -78,7 +78,7 @@ export function SignoffGatePanel({ plan, design, complianceScore, criticalIssues
       {/* Disclaimer */}
       <div className="rounded-lg border border-amber-700/50 bg-amber-950/30 p-2.5">
         <div className="flex items-start gap-2">
-          <span className="mt-px text-sm text-stone-500">⚖</span>
+          <span className="mt-px text-sm text-stone-400">⚖</span>
           <div>
             <p className="text-xs font-medium text-amber-400">Project Governance — Not a Legal Signoff</p>
             <p className="mt-0.5 text-[10px] leading-tight text-amber-300/60">
@@ -157,7 +157,7 @@ export function SignoffGatePanel({ plan, design, complianceScore, criticalIssues
               className={`rounded px-2.5 py-1 text-[10px] font-medium transition-colors ${
                 submitAllowed
                   ? 'bg-cyan-600/20 text-cyan-300 hover:bg-cyan-600/30'
-                  : 'cursor-not-allowed bg-stone-800 text-stone-600'
+                  : 'cursor-not-allowed bg-stone-800 text-stone-400'
               }`}
             >
               Submit for Review
@@ -171,7 +171,7 @@ export function SignoffGatePanel({ plan, design, complianceScore, criticalIssues
                 className={`rounded px-2.5 py-1 text-[10px] font-medium transition-colors ${
                   approveAllowed
                     ? 'bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30'
-                    : 'cursor-not-allowed bg-stone-800 text-stone-600'
+                    : 'cursor-not-allowed bg-stone-800 text-stone-400'
                 }`}
               >
                 Approve
@@ -182,7 +182,7 @@ export function SignoffGatePanel({ plan, design, complianceScore, criticalIssues
                 className={`rounded px-2.5 py-1 text-[10px] font-medium transition-colors ${
                   requestChangesAllowed
                     ? 'bg-amber-600/20 text-amber-300 hover:bg-amber-600/30'
-                    : 'cursor-not-allowed bg-stone-800 text-stone-600'
+                    : 'cursor-not-allowed bg-stone-800 text-stone-400'
                 }`}
               >
                 Request Changes
@@ -196,7 +196,7 @@ export function SignoffGatePanel({ plan, design, complianceScore, criticalIssues
               className={`rounded px-2.5 py-1 text-[10px] font-medium transition-colors ${
                 resetAllowed
                   ? 'bg-red-600/20 text-red-300 hover:bg-red-600/30'
-                  : 'cursor-not-allowed bg-stone-800 text-stone-600'
+                  : 'cursor-not-allowed bg-stone-800 text-stone-400'
               }`}
             >
               Reset to Draft
@@ -234,7 +234,7 @@ export function SignoffGatePanel({ plan, design, complianceScore, criticalIssues
             </div>
           )}
           {governance.comment && (
-            <div className="mt-1 rounded bg-stone-800/40 p-1.5 text-[9px] italic text-stone-500">
+            <div className="mt-1 rounded bg-stone-800/40 p-1.5 text-[9px] italic text-stone-400">
               "{governance.comment}"
             </div>
           )}

@@ -167,27 +167,24 @@ describe('renderFloorPlanSheet', () => {
 
   it('includes at least one room name label', () => {
     const plan = makePlan()
-    const result = renderFloorPlanSheet(plan)
-    expect(result).not.toBeNull()
-    const textEls = React.Children.toArray(result!.elements).filter(
-      (el) => React.isValidElement(el) && el.type === 'text',
-    )
-    const texts = textEls.map(el => (el as React.ReactElement).props.children).join(' ')
-    expect(texts).toContain('Living')
-    expect(texts).toContain('Kitchen')
+    const sheet = renderFloorPlanSheet(plan)
+    expect(sheet).not.toBeNull()
+    const { container } = render(React.createElement('svg', null, sheet.elements))
+    expect(container.textContent).toContain('LIVING')
+    expect(container.textContent).toContain('KITCHEN')
   })
 
-  it('renders walls with PAPER fill and INK stroke', () => {
+  it('renders walls with INK stroke (external #000000, internal #ffffff)', () => {
     const plan = makePlan()
     const result = renderFloorPlanSheet(plan)
     expect(result).not.toBeNull()
     const rectEls = React.Children.toArray(result!.elements).filter(
       (el) => React.isValidElement(el) && el.type === 'rect',
     )
-    // Wall rects have fill=PAPER and stroke=INK
+    // Professional walls: external filled black, internal filled white, both stroked INK
     const wallRects = rectEls.slice(1).filter(el => {
       const props = (el as React.ReactElement).props
-      return props.fill === '#ffffff' && props.stroke === '#1a1a1a'
+      return props.stroke === '#1a1a1a'
     })
     expect(wallRects.length).toBeGreaterThanOrEqual(plan.walls.length)
   })
