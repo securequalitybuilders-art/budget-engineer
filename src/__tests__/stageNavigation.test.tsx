@@ -125,7 +125,7 @@ describe('StageRail', () => {
   it('shows blocked status for stages that are blocked', () => {
     const stageStatus: Partial<Record<StageId, 'done' | 'active' | 'upcoming' | 'blocked'>> = {
       brief: 'active', concept: 'blocked',
-      design: 'blocked', 'docs-bim': 'blocked', 'cost-deliver': 'blocked',
+      design: 'blocked', bim: 'blocked', budget: 'blocked',
     }
     render(<StageRail activeStageId={'brief' as StageId} onStageChange={vi.fn()} stageStatus={stageStatus} />)
     for (const stage of archStages) {

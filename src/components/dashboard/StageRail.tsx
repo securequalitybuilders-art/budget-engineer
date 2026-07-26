@@ -2,14 +2,14 @@ import { useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { useDisciplineStore } from '@/stores/disciplineStore'
 import { getStagesForDiscipline, type StageId } from '@/lib/studio/stageRegistry'
-import { Check, History, Shield, Camera, FileText } from 'lucide-react'
+import { Check, History, Shield, Camera, FileText, Play } from 'lucide-react'
 
 interface StageRailProps {
   activeStageId: StageId
   onStageChange: (stageId: StageId) => void
   stageStatus?: Partial<Record<StageId, 'done' | 'active' | 'upcoming' | 'blocked'>>
   activeTool?: string | null
-  onToolChange?: (tool: 'history' | 'governance' | 'snapshots' | 'properties') => void
+  onToolChange?: (tool: 'history' | 'governance' | 'snapshots' | 'properties' | 'execution') => void
 }
 
 const STATUS_DOT: Record<string, string> = {
@@ -20,6 +20,7 @@ const STATUS_DOT: Record<string, string> = {
 }
 
 const PROJECT_TOOLS = [
+  { key: 'execution' as const, label: 'Execution', icon: Play },
   { key: 'history' as const, label: 'History', icon: History },
   { key: 'governance' as const, label: 'Governance', icon: Shield },
   { key: 'snapshots' as const, label: 'Snapshots', icon: Camera },

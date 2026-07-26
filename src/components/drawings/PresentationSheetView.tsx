@@ -239,6 +239,8 @@ function embedElevationDrawing(
   const vbParts = drawing.viewBox.split(' ').map(Number)
   const [vbX, vbY, vbW, vbH] = vbParts
 
+  if (!isFinite(vbW) || !isFinite(vbH) || !isFinite(vbX) || !isFinite(vbY)) return [renderFallbackCell(cell)]
+
   const scaleX = innerW / vbW
   const scaleY = innerH / vbH
   const scale = Math.min(scaleX, scaleY) * 0.85
@@ -255,15 +257,19 @@ function embedElevationDrawing(
     <rect key="bg" x={vbX} y={vbY} width={vbW} height={vbH} fill={PAPER} />,
   )
 
-  for (const line of drawing.lines) {
+  for (let li = 0; li < drawing.lines.length; li++) {
+    const line = drawing.lines[li]
     groupEls.push(
-      <line key={`l-${line.x1}-${line.y1}-${line.x2}-${line.y2}`} x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke={line.stroke || INK} strokeWidth={line.strokeWidth || CAD_THIN} />,
+      <line key={`${cell.id}-l-${li}`} x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke={line.stroke || INK} strokeWidth={line.strokeWidth || CAD_THIN} />,
     )
   }
 
   for (const rect of drawing.rects) {
+    const rw = rect.w || 0
+    const rh = rect.h || 0
+    if (!rw || !rh || !isFinite(rw) || !isFinite(rh)) continue
     groupEls.push(
-      <rect key={`r-${rect.x}-${rect.y}`} x={rect.x} y={rect.y} width={rect.w} height={rect.h} fill={rect.fill || 'none'} stroke={rect.stroke || INK} strokeWidth={CAD_THIN} />,
+      <rect key={`r-${rect.x}-${rect.y}`} x={rect.x || 0} y={rect.y || 0} width={rw} height={rh} fill={rect.fill || 'none'} stroke={rect.stroke || INK} strokeWidth={CAD_THIN} />,
     )
   }
 
@@ -431,12 +437,16 @@ function renderCaption(cell: CellRect, label: string): ReactNode {
 }
 
 function renderFallbackCell(cell: CellRect): ReactNode {
+  const fx = isFinite(cell.x) ? cell.x : 0
+  const fy = isFinite(cell.y) ? cell.y : 0
+  const fw = isFinite(cell.w) && cell.w > 0 ? cell.w : 100
+  const fh = isFinite(cell.h) && cell.h > 0 ? cell.h : 100
   return (
     <g key={`fallback-${cell.id}`}>
-      <rect x={cell.x} y={cell.y} width={cell.w} height={cell.h} fill={PAPER} stroke={INK} strokeWidth={CAD_THIN} opacity={0.3} />
+      <rect x={fx} y={fy} width={fw} height={fh} fill={PAPER} stroke={INK} strokeWidth={CAD_THIN} opacity={0.3} />
       <text
-        x={cell.x + cell.w / 2}
-        y={cell.y + cell.h / 2}
+        x={fx + fw / 2}
+        y={fy + fh / 2}
         fontSize={10}
         fill={INK}
         fontFamily="system-ui, sans-serif"
@@ -447,8 +457,8 @@ function renderFallbackCell(cell: CellRect): ReactNode {
         N/A
       </text>
       <text
-        x={cell.x + cell.w / 2}
-        y={cell.y + cell.h - 4}
+        x={fx + fw / 2}
+        y={fy + fh - 4}
         fontSize={7}
         fill={INK}
         fontFamily="system-ui, sans-serif"

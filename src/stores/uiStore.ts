@@ -6,8 +6,8 @@ import type { StageId } from '@/lib/studio/stageRegistry';
 
 export type ActiveView = number | StageId | 'history' | 'governance' | 'snapshots' | 'properties';
 
-/** Converts numeric stage (1-6) to semantic StageId for the ARCH discipline order */
-const NUM_TO_STAGE_ID: StageId[] = ['brief', 'concept', 'design', 'engineering', 'docs-bim', 'cost-deliver'];
+/** Converts numeric stage (1-11) to semantic StageId for the ARCH discipline order */
+const NUM_TO_STAGE_ID: StageId[] = ['brief', 'concept', 'design', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'];
 
 function numericToStageId(n: number): StageId {
   return NUM_TO_STAGE_ID[n - 1] ?? 'brief';

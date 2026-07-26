@@ -18,7 +18,7 @@ export function CommandBar() {
   const disciplineStages = getStagesForDiscipline(currentDiscipline);
 
   function isStageAccessible(stageId: StageId): { accessible: boolean; reason?: string } {
-    if ((stageId === 'design' || stageId === 'engineering' || stageId === 'docs-bim' || stageId === 'cost-deliver') && !selectedDesignId) {
+    if ((stageId === 'design' || stageId === 'bim' || stageId === 'budget' || stageId === 'budget-engineered') && !selectedDesignId) {
       return { accessible: false, reason: 'Select a design option first' };
     }
     return { accessible: true };

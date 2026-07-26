@@ -694,8 +694,8 @@ function renderWall(wall: WallSegment) {
   const angle = Math.atan2(dy, dx)
   const thk = wall.thickness || FALLBACK_WALL_THICKNESS
   const isExt = wall.type === 'external'
-  const fillCol = isExt ? '#000000' : '#ffffff'
-  const strokeCol = isExt ? '#1e293b' : '#94a3b8'
+  const fillCol = isExt ? '#334155' : '#ffffff'
+  const strokeCol = isExt ? '#475569' : '#94a3b8'
   return (
     <g key={wall.id}>
       <defs>

@@ -15,7 +15,7 @@ export interface WorkflowStage {
 }
 
 /** Map old numeric stages to StageId for backward compat */
-const NUM_TO_STAGE_ID: StageId[] = ['brief', 'concept', 'design', 'engineering', 'docs-bim', 'cost-deliver'];
+const NUM_TO_STAGE_ID: StageId[] = ['brief', 'concept', 'design', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'];
 
 /** Get stages for a discipline as the old WorkflowStage format */
 export function getStagesForDisciplineLegacy(discipline: DisciplineId): WorkflowStage[] {

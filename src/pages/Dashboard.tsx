@@ -9,6 +9,7 @@ import { PropertiesPanel } from '@/components/layout/PropertiesPanel';
 import { LazyBOQPanel } from '@/components/layout/LazyBOQPanel';
 import { TransactionPanel } from '@/components/layout/TransactionPanel';
 import { AIChatPanel } from '@/components/layout/AIChatPanel';
+import ExecutionPanel from '@/components/execution/ExecutionPanel';
 import { BuilderJourneyGuide } from '@/components/dashboard/BuilderJourneyGuide';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { getStageDef, getStagesForDiscipline, type StageId } from '@/lib/studio/stageRegistry';
@@ -17,9 +18,14 @@ import { MobileNavDrawer } from '@/components/dashboard/MobileNavDrawer';
 import { BriefStage } from '@/components/dashboard/stages/BriefStage';
 import { ConceptStage } from '@/components/dashboard/stages/ConceptStage';
 import { DesignStage } from '@/components/dashboard/stages/DesignStage';
-import { EngineeringStage } from '@/components/dashboard/stages/EngineeringStage';
-import { LazyDocsBimStage } from '@/components/dashboard/stages/LazyDocsBimStage';
+import { BimStage } from '@/components/dashboard/stages/BimStage';
+import { RoughInStage } from '@/components/dashboard/stages/RoughInStage';
+import { SubstratesStage } from '@/components/dashboard/stages/SubstratesStage';
+import { MillworkStage } from '@/components/dashboard/stages/MillworkStage';
+import { FinishesStage } from '@/components/dashboard/stages/FinishesStage';
+import { AppliancesStage } from '@/components/dashboard/stages/AppliancesStage';
 import { CostDeliverStage } from '@/components/dashboard/stages/CostDeliverStage';
+import { BudgetEngineeredStage } from '@/components/dashboard/stages/BudgetEngineeredStage';
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
 import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
@@ -231,9 +237,8 @@ export function Dashboard() {
         draft: 'brief',
         concept: 'concept',
         design: 'design',
-        engineering: 'engineering',
-        costing: 'docs-bim',
-        tender: 'cost-deliver',
+        costing: 'budget',
+        tender: 'budget-engineered',
       };
       setActiveStage(stageMap[currentProject.status] || 'brief');
     }
@@ -571,7 +576,7 @@ export function Dashboard() {
         status[id] = 'active'
       } else if (id === 'brief') {
         status[id] = 'done'
-      } else if ((id === 'design' || id === 'engineering' || id === 'docs-bim' || id === 'cost-deliver') && !hasSelection) {
+      } else if ((id === 'design' || id === 'bim' || id === 'budget' || id === 'budget-engineered') && !hasSelection) {
         status[id] = 'blocked'
       } else {
         status[id] = 'upcoming'
@@ -675,7 +680,7 @@ export function Dashboard() {
 
           {/* Main content area */}
           <div className="relative flex flex-1 flex-col overflow-hidden bg-[var(--bg-primary)]">
-            {(['brief', 'concept', 'design', 'engineering', 'docs-bim', 'cost-deliver'] as StageId[]).includes(activeView as StageId) ? (
+            {(['brief', 'concept', 'design', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'] as StageId[]).includes(activeView as StageId) ? (
               <>
                 {activeStageId === 'brief' && (
                   <BriefStage
@@ -731,20 +736,18 @@ export function Dashboard() {
                     backgroundIntel={backgroundIntel}
                   />
                 )}
-                {activeStageId === 'engineering' && (
-                  <EngineeringStage
-                    selectedDesign={selectedDesign}
-                    activePlan={activePlan}
-                    boq={currentBoq}
-                  />
-                )}
-                {activeStageId === 'docs-bim' && (
-                  <LazyDocsBimStage
+                {activeStageId === 'bim' && (
+                  <BimStage
                     activePlan={activePlan}
                     selectedDesign={selectedDesign}
                   />
                 )}
-                {activeStageId === 'cost-deliver' && (
+                {activeStageId === 'rough-in' && <RoughInStage />}
+                {activeStageId === 'substrates' && <SubstratesStage />}
+                {activeStageId === 'millwork' && <MillworkStage />}
+                {activeStageId === 'finishes' && <FinishesStage />}
+                {activeStageId === 'appliances' && <AppliancesStage />}
+                {activeStageId === 'budget' && (
                   <CostDeliverStage
                     selectedDesign={selectedDesign}
                     boq={currentBoq}
@@ -754,9 +757,19 @@ export function Dashboard() {
                     projectRegion={currentProject?.region}
                   />
                 )}
+                {activeStageId === 'budget-engineered' && (
+                  <BudgetEngineeredStage
+                    activePlan={activePlan}
+                    selectedDesign={selectedDesign}
+                    buildingType={buildingType}
+                    projectRegion={currentProject?.region}
+                  />
+                )}
 
                 <LazyBOQPanel />
               </>
+            ) : activeView === 'execution' ? (
+              <ExecutionPanel />
             ) : activeView === 'history' ? (
               <TransactionPanel variant="full" />
             ) : activeView === 'governance' ? (

@@ -33,6 +33,7 @@ const ProcurementStudio = lazy(() => import('@/pages/studio/ProcurementStudio').
 const ProjectControlsStudio = lazy(() => import('@/pages/studio/ProjectControlsStudio').then((m) => ({ default: m.ProjectControlsStudio })));
 const PilotReviewPage = lazy(() => import('@/pages/pilot/PilotReviewPage').then((m) => ({ default: m.PilotReviewPage })));
 const Showcase = lazy(() => import('@/pages/Showcase').then((m) => ({ default: m.Showcase })));
+const ClientPortal = lazy(() => import('@/pages/ClientPortal'));
 
 function SafeRoute({ children }: { children: React.ReactNode }) {
   return <ErrorBoundary><Suspense fallback={<PageLoader />}>{children}</Suspense></ErrorBoundary>;
@@ -176,6 +177,10 @@ const router = createBrowserRouter([
       {
         path: '/academy/:skillPath/:lessonId',
         element: <SafeRoute><AcademyLesson /></SafeRoute>,
+      },
+      {
+        path: '/portal',
+        element: <SafeRoute><ClientPortal /></SafeRoute>,
       },
       {
         path: '*',

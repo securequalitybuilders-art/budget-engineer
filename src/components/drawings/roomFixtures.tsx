@@ -81,17 +81,19 @@ const FIXTURE_SYMBOLS: FixtureSymbol[] = [
   { roomNamePattern: /(kitchen|pantry)/i, render: renderSink },
 ]
 
-export function renderRoomFixtures(room: RoomRect, scale: number, ox: number, oy: number): ReactNode[] {
+export function renderRoomFixtures(room: RoomRect, scale: number, ox: number, oy: number, keyPrefix?: string): ReactNode[] {
   const result: ReactNode[] = []
   const sx = (v: number) => ox + v * scale
   const sy = (v: number) => oy - v * scale
   const cx = sx(room.x + room.width / 2)
   const cy = sy(room.y + room.height / 2)
+  const base = keyPrefix ? `${keyPrefix}-fixture-${room.id}` : `fixture-${room.id}`
 
-  for (const fixture of FIXTURE_SYMBOLS) {
+  for (let fi = 0; fi < FIXTURE_SYMBOLS.length; fi++) {
+    const fixture = FIXTURE_SYMBOLS[fi]
     if (fixture.roomNamePattern.test(room.name)) {
       result.push(
-        <g key={`fixture-${room.id}`}>
+        <g key={`${base}-${fi}`}>
           {fixture.render(cx, cy, room.width, room.height, 1)}
         </g>,
       )

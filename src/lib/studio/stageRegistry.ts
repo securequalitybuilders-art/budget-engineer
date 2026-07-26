@@ -2,22 +2,30 @@ import type { LucideIcon } from 'lucide-react';
 import {
   MessageSquare,
   FileText,
-  Globe,
   PenTool,
-  Activity,
-  FileImage,
+  Box,
+  Wrench,
+  Layers,
+  LayoutPanelTop,
+  Palette,
+  Plug,
   DollarSign,
+  FileSpreadsheet,
 } from 'lucide-react';
 import type { DisciplineId } from '@/lib/studio/discipline';
 
 export type StageId =
   | 'brief'
   | 'concept'
-  | 'site-analysis'
   | 'design'
-  | 'engineering'
-  | 'docs-bim'
-  | 'cost-deliver';
+  | 'bim'
+  | 'rough-in'
+  | 'substrates'
+  | 'millwork'
+  | 'finishes'
+  | 'appliances'
+  | 'budget'
+  | 'budget-engineered';
 
 export interface StageDef {
   id: StageId;
@@ -39,43 +47,71 @@ export const ALL_STAGES: StageDef[] = [
     id: 'concept',
     label: 'Concept',
     shortLabel: 'Concept',
-    description: 'Review and compare design options.',
+    description: 'Review and compare design options. 3 site-aware concepts.',
     icon: FileText,
-  },
-  {
-    id: 'site-analysis',
-    label: 'Site Analysis',
-    shortLabel: 'Site',
-    description: 'Analyze site conditions, sun path, and context.',
-    icon: Globe,
   },
   {
     id: 'design',
     label: 'Design',
     shortLabel: 'Design',
-    description: 'View and edit 2D plans and 3D model.',
+    description: 'View all architectural elevations and edit 2D plans. Site analysis integrated.',
     icon: PenTool,
   },
   {
-    id: 'engineering',
-    label: 'Engineering',
-    shortLabel: 'Eng',
-    description: 'Run compliance checks and engineering analysis.',
-    icon: Activity,
+    id: 'bim',
+    label: 'BIM',
+    shortLabel: 'BIM',
+    description: '3D Model, 4D Construction Sequencing, Layered Visual Assembly.',
+    icon: Box,
   },
   {
-    id: 'docs-bim',
-    label: 'Docs & BIM',
-    shortLabel: 'Docs',
-    description: 'Generate drawings, elevations, and BIM exports.',
-    icon: FileImage,
+    id: 'rough-in',
+    label: 'Rough-in & Infrastructure',
+    shortLabel: 'Rough-in',
+    description: 'Laying out plumbing pipes, drains, and electrical conduits.',
+    icon: Wrench,
   },
   {
-    id: 'cost-deliver',
-    label: 'Cost & Deliver',
-    shortLabel: 'Cost',
-    description: 'View BOQ and export reports.',
+    id: 'substrates',
+    label: 'Substrates & Enclosures',
+    shortLabel: 'Substrates',
+    description: 'Wall plastering, waterproofing, and tile backing.',
+    icon: Layers,
+  },
+  {
+    id: 'millwork',
+    label: 'Primary Millwork & Fixtures',
+    shortLabel: 'Millwork',
+    description: 'Base and wall cabinet installation, sink fitting, backsplash.',
+    icon: LayoutPanelTop,
+  },
+  {
+    id: 'finishes',
+    label: 'Finishes',
+    shortLabel: 'Finishes',
+    description: 'Wooden floor laying (done after heavy cabinet installation).',
+    icon: Palette,
+  },
+  {
+    id: 'appliances',
+    label: 'Appliances & Staging',
+    shortLabel: 'Appliances',
+    description: 'Installing the oven, stovetop, and countertop accessories.',
+    icon: Plug,
+  },
+  {
+    id: 'budget',
+    label: 'Budget',
+    shortLabel: 'Budget',
+    description: 'BOQ Cost & Deliver.',
     icon: DollarSign,
+  },
+  {
+    id: 'budget-engineered',
+    label: 'Budget Engineered',
+    shortLabel: 'Engineered',
+    description: 'Complete documentation set, presentation sheet, export reports.',
+    icon: FileSpreadsheet,
   },
 ];
 
@@ -98,14 +134,14 @@ export function getDefaultStage(discipline: DisciplineId): StageId {
 }
 
 const STAGE_ORDER: Record<DisciplineId, StageId[]> = {
-  ARCH: ['brief', 'concept', 'site-analysis', 'design', 'engineering', 'docs-bim', 'cost-deliver'],
-  STR: ['brief', 'concept', 'design', 'engineering', 'docs-bim', 'cost-deliver'],
-  MEP: ['brief', 'design', 'engineering', 'docs-bim', 'cost-deliver'],
-  ELEC: ['brief', 'design', 'engineering', 'docs-bim', 'cost-deliver'],
-  PLUM: ['brief', 'design', 'engineering', 'docs-bim', 'cost-deliver'],
-  INT: ['brief', 'concept', 'design', 'docs-bim', 'cost-deliver'],
-  LAND: ['brief', 'concept', 'site-analysis', 'design', 'docs-bim', 'cost-deliver'],
-  CIVIL: ['brief', 'concept', 'site-analysis', 'design', 'docs-bim', 'cost-deliver'],
+  ARCH: ['brief', 'concept', 'design', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'],
+  STR: ['brief', 'concept', 'design', 'bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
+  MEP: ['brief', 'design', 'bim', 'rough-in', 'budget', 'budget-engineered'],
+  ELEC: ['brief', 'design', 'bim', 'rough-in', 'budget', 'budget-engineered'],
+  PLUM: ['brief', 'design', 'bim', 'rough-in', 'budget', 'budget-engineered'],
+  INT: ['brief', 'concept', 'design', 'bim', 'rough-in', 'millwork', 'finishes', 'budget', 'budget-engineered'],
+  LAND: ['brief', 'concept', 'design', 'bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
+  CIVIL: ['brief', 'concept', 'design', 'bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
 };
 
 export function isStageInDiscipline(stage: StageId, discipline: DisciplineId): boolean {
