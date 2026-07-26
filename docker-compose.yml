@@ -1,0 +1,7 @@
+version: "3.9"
+services:
+  budget-engineer:
+    build: .
+    ports:
+      - "8080:80"
+    restart: unless-stopped

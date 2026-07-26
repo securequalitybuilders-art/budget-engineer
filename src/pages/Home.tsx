@@ -1,0 +1,413 @@
+import { useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom';
+import { useProjectStore } from '@/stores/projectStore';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import {
+  Plus, Folder, ArrowRight, Cpu, HardHat, FileBarChart,
+  MessageSquare, LayoutGrid, Boxes, Activity, Calculator, BarChart3, Bug,
+  Sofa, Globe, Monitor, BookOpen, Rocket, Settings,
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05 },
+  },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
+};
+
+const JOURNEY_STEPS = [
+  { icon: MessageSquare, label: 'Describe your project', desc: 'Write what you want to build in plain English. The AI handles the details.' },
+  { icon: FileBarChart, label: 'Generate design options', desc: 'Get up to 3 design variations to compare and choose from.' },
+  { icon: LayoutGrid, label: 'View 2D floor plan', desc: 'See your design as a CAD drawing with rooms, doors, and windows.' },
+  { icon: Boxes, label: 'View 3D BIM model', desc: 'Switch to the 3D viewer for a realistic preview of your building.' },
+  { icon: Activity, label: 'Check engineering + services', desc: 'Run clash detection, solar analysis, and MEP takeoff.' },
+  { icon: Calculator, label: 'Get BOQ + export report', desc: 'See cost breakdown by region and export CSV or a PDF report.' },
+]
+
+export function Home() {
+  const { projects, isHydrated, createProject, loadProjects, loadProject } = useProjectStore();
+  const navigate = useNavigate();
+  const dxfInputRef = useRef<HTMLInputElement>(null);
+  const backupInputRef = useRef<HTMLInputElement>(null);
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [backupMsg, setBackupMsg] = useState<string | null>(null);
+
+  const handleExportAll = async () => {
+    try {
+      const { exportProjectPackage, downloadBlob } = await import('@/services/projectExportImportService')
+      if (projects.length === 0) {
+        setBackupMsg('No projects to export.')
+        return
+      }
+      for (const p of projects.slice(0, 10)) {
+        const blob = await exportProjectPackage(p.id)
+        if (blob) downloadBlob(blob, `${p.name.replace(/\s+/g, '_')}.beproj`)
+      }
+      setBackupMsg(`Exported ${Math.min(projects.length, 10)} project(s) as .beproj`)
+      setTimeout(() => setBackupMsg(null), 3000)
+    } catch { setBackupMsg('Export failed.'); setTimeout(() => setBackupMsg(null), 3000) }
+  }
+
+  const handleImportBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const { importProjectAsCopy } = await import('@/services/projectExportImportService')
+      const id = await importProjectAsCopy(file)
+      if (id) {
+        await loadProjects()
+        navigate(`/project/${id}`)
+      } else {
+        setBackupMsg('Invalid .beproj file.')
+        setTimeout(() => setBackupMsg(null), 3000)
+      }
+    } catch {
+      setBackupMsg('Import failed.')
+      setTimeout(() => setBackupMsg(null), 3000)
+    }
+    if (e.target) e.target.value = ''
+  }
+
+  const handleLoadDemo = async () => {
+    setDemoLoading(true)
+    try {
+      const { loadDemoProject, demoProjectExists } = await import('@/lib/demo/demo-project-pack')
+      const exists = await demoProjectExists()
+      if (exists) {
+        await loadProjects()
+        const existing = projects.find((p) => p.name === 'Demo Residence')
+        if (existing) {
+          navigate(`/project/${existing.id}`)
+          return
+        }
+      }
+      const projectId = await loadDemoProject()
+      await loadProjects()
+      await loadProject(projectId)
+      navigate(`/project/${projectId}`)
+    } catch (e) {
+      console.error('Failed to load demo project', e)
+    } finally {
+      setDemoLoading(false)
+    }
+  }
+
+  const handleDxfFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const text = await file.text()
+      const { parseDxfToPlan } = await import('@/lib/import/dxf-importer')
+      const plan = parseDxfToPlan(text)
+      if (plan) {
+        const project = await createProject({
+          name: file.name.replace(/\.dxf$/i, '') || 'Imported DXF',
+          profile: 'first-time',
+          region: 'zimbabwe',
+          currency: 'USD',
+        })
+        plan.designOptionId = `dxf-home-${Date.now()}`
+        const { savePlanModel } = await import('@/services/cadPersistenceService')
+        await savePlanModel(project.id, plan.designOptionId, plan)
+        const { logTransaction } = await import('@/services/projectPersistenceService')
+        await logTransaction(project.id, 'CREATE', 'design', plan.designOptionId, 'DXF imported from home — verify scale')
+        navigate(`/project/${project.id}`)
+      } else {
+        alert('Could not read this DXF file. The file may be empty, invalid, or use unsupported entities.')
+      }
+    } catch {
+      alert('Could not read this DXF file. The file may be empty, invalid, or use unsupported entities.')
+    }
+    if (e.target) e.target.value = ''
+  }
+
+  return (
+    <main className="relative min-h-[calc(100vh-3.5rem)] overflow-y-auto" aria-label="Home page">
+      <div className="absolute inset-0 aurora opacity-30 pointer-events-none" />
+
+      <div className="relative mx-auto max-w-7xl px-4 py-12 lg:px-8">
+        <div className="mb-10 text-center">
+          <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+            Design your building. <span className="text-[var(--brand-accent)]">See the cost.</span>
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-base text-[var(--text-secondary)] sm:text-lg">
+            AI-powered computational design → 2D CAD → 3D BIM → engineering quantities → BOQ. All in your browser, offline-first.
+          </p>
+          <p className="mx-auto mt-2 max-w-lg text-xs text-[var(--text-muted)] sm:text-sm">
+            Mobile is great for review and estimates. Tablet or desktop is best for detailed CAD editing.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link to="/new">
+              <Button size="lg" className="gap-2">
+                <Plus size={18} />
+                Start New Project
+              </Button>
+            </Link>
+            <Link to="/portfolio">
+              <Button variant="secondary" size="lg" className="gap-2">
+                <BarChart3 size={18} />
+                Portfolio Dashboard
+              </Button>
+            </Link>
+            <Button variant="secondary" size="lg" className="gap-2" onClick={() => dxfInputRef.current?.click()}>
+              <FileBarChart size={18} />
+              Import (DXF / image / PDF)
+            </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              className="gap-2"
+              onClick={handleLoadDemo}
+              disabled={demoLoading}
+            >
+              <Rocket size={18} className={demoLoading ? 'animate-pulse' : ''} />
+              {demoLoading ? 'Loading Demo...' : 'Load Demo Project'}
+            </Button>
+            <Button variant="ghost" size="lg" className="gap-2" onClick={handleExportAll}>
+              <Folder size={18} />
+              Export All
+            </Button>
+            <Button variant="ghost" size="lg" className="gap-2" onClick={() => backupInputRef.current?.click()}>
+              <Settings size={18} />
+              Import Backup
+            </Button>
+            <input
+              ref={dxfInputRef}
+              type="file"
+              accept=".dxf,image/*,application/pdf"
+              onChange={handleDxfFile}
+              className="hidden"
+              aria-label="Select a DXF, image, or PDF file to import"
+            />
+            <input
+              ref={backupInputRef}
+              type="file"
+              accept=".beproj"
+              onChange={handleImportBackup}
+              className="hidden"
+              aria-label="Select a .beproj file to import"
+            />
+            {backupMsg && (
+              <div className="w-full text-center text-sm text-[var(--brand-accent)]">{backupMsg}</div>
+            )}
+          </div>
+        </div>
+
+        <section aria-labelledby="features-heading">
+          <h2 id="features-heading" className="sr-only">Platform Features</h2>
+          <motion.div
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+          >
+          <motion.div variants={item} className="lg:col-span-2 lg:row-span-2">
+            <Card className="h-full border-beam">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Cpu className="text-[var(--accent-ai)]" size={24} />
+                  Computational Design OS
+                </CardTitle>
+                <CardDescription>
+                  Turn a plain-language brief into buildable 2D drawings, a 3D BIM model, and a tender-ready BOQ.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between rounded-lg bg-[var(--bg-tertiary)] p-3">
+                    <span className="text-sm text-[var(--text-secondary)]">Pipeline stages</span>
+                    <span className="font-mono font-semibold">6</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg bg-[var(--bg-tertiary)] p-3">
+                    <span className="text-sm text-[var(--text-secondary)]">Open-source skills</span>
+                    <span className="font-mono font-semibold">18+</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg bg-[var(--bg-tertiary)] p-3">
+                    <span className="text-sm text-[var(--text-secondary)]">Cost items</span>
+                    <span className="font-mono font-semibold">55,000+</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div variants={item}>
+            <Card className="h-full">
+              <CardHeader className="pb-2">
+                <HardHat className="mb-2 text-[var(--brand-accent)]" size={24} />
+                <CardTitle className="text-lg">First-Time Builder</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-[var(--text-secondary)]">Guided step-by-step journey in plain English.</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div variants={item}>
+            <Card className="h-full">
+              <CardHeader className="pb-2">
+                <Cpu className="mb-2 text-[var(--accent-ai)]" size={24} />
+                <CardTitle className="text-lg">Professional</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-[var(--text-secondary)]">Full design suite with BIM export and parametric editing.</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div variants={item}>
+            <Card className="h-full">
+              <CardHeader className="pb-2">
+                <FileBarChart className="mb-2 text-[var(--accent-bim)]" size={24} />
+                <CardTitle className="text-lg">Institution / NGO</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-[var(--text-secondary)]">Procurement compliance, tender-ready docs, audit trail.</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div variants={item}>
+            <Card className="h-full">
+              <CardHeader className="pb-2">
+                <Folder className="mb-2 text-[var(--text-secondary)]" size={24} />
+                <CardTitle className="text-lg">Your Projects</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-display font-bold">{isHydrated ? projects.length : '—'}</p>
+                <p className="text-xs text-[var(--text-muted)]">Local-first, synced when online</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+        </section>
+
+        {/* First-Time Builder Journey */}
+        <section className="mt-14" aria-labelledby="journey-heading">
+          <h2 id="journey-heading" className="mb-2 font-display text-2xl font-semibold">First-Time Builder Journey</h2>
+          <p className="mb-6 max-w-2xl text-sm text-[var(--text-secondary)]">
+            No CAD experience needed. Everything runs in your browser with no paid AI APIs.
+            The numbers you get are early estimates — always consult a registered professional for final construction.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {JOURNEY_STEPS.map((step) => {
+              const StepIcon = step.icon
+              return (
+                <Card key={step.label} className="h-full">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand-accent)]/10">
+                        <StepIcon size={16} className="text-[var(--brand-accent)]" />
+                      </div>
+                      <CardTitle className="text-base">{step.label}</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-[var(--text-secondary)]">{step.desc}</p>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <span className="rounded-full border border-[var(--border-default)] bg-[var(--bg-tertiary)] px-3 py-1 text-xs text-[var(--text-muted)]">
+              No CAD experience needed
+            </span>
+            <span className="rounded-full border border-[var(--border-default)] bg-[var(--bg-tertiary)] px-3 py-1 text-xs text-[var(--text-muted)]">
+              Works in your browser
+            </span>
+            <span className="rounded-full border border-[var(--border-default)] bg-[var(--bg-tertiary)] px-3 py-1 text-xs text-[var(--text-muted)]">
+              No paid AI API required
+            </span>
+            <span className="rounded-full border border-[var(--border-default)] bg-[var(--bg-tertiary)] px-3 py-1 text-xs text-[var(--text-muted)]">
+              Early estimate, not final professional sign-off
+            </span>
+          </div>
+        </section>
+
+        {projects.length > 0 && (
+          <div className="mt-14">
+            <h2 className="mb-4 font-display text-2xl font-semibold">Recent Projects</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {projects.slice(0, 6).map((project) => (
+                <Link key={project.id} to={`/project/${project.id}`}>
+                  <Card className="group transition-all hover:shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="text-lg group-hover:text-[var(--brand-accent)]">
+                        {project.name}
+                      </CardTitle>
+                      <CardDescription className="flex items-center gap-2">
+                        <Badge variant="brand">{project.status}</Badge>
+                        <span>{project.region}</span>
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between text-sm text-[var(--text-secondary)]">
+                        <span>{project.currency}</span>
+                        <ArrowRight size={16} className="text-[var(--brand-accent)]" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Premium Studio Modules */}
+        <section className="mt-14" aria-labelledby="studio-heading">
+          <h2 id="studio-heading" className="mb-2 font-display text-2xl font-semibold">Premium Studio Modules</h2>
+          <p className="mb-6 max-w-2xl text-sm text-[var(--text-secondary)]">
+            Specialised tools for interior design, site analysis, presentation boards, and skill-building — all available inside any project.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { icon: Sofa, label: 'Interior Design', desc: 'Place fixtures, choose materials, generate finish schedules.', to: projects.length > 0 ? `/project/${projects[0].id}/studio/interior` : '/new' },
+              { icon: Globe, label: 'Site Analysis', desc: 'Heliodon, shadow casting, wind rose, and environmental analysis.', to: projects.length > 0 ? `/project/${projects[0].id}/studio/site-analysis` : '/site-analysis' },
+              { icon: Monitor, label: 'Presentation Boards', desc: 'Create board layouts, annotate, export as SVG/PNG/PDF.', to: projects.length > 0 ? `/project/${projects[0].id}/studio/presentation` : '/new' },
+              { icon: BookOpen, label: 'Academy', desc: 'Guided lessons on design, engineering, and construction.', to: '/academy' },
+            ].map((studio) => {
+              const StudioIcon = studio.icon;
+              return (
+                <Link key={studio.label} to={studio.to}>
+                  <Card className="group h-full transition-all hover:shadow-lg">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-accent)]/10">
+                          <StudioIcon size={20} className="text-[var(--brand-accent)]" />
+                        </div>
+                        <CardTitle className="text-base group-hover:text-[var(--brand-accent)]">{studio.label}</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-[var(--text-secondary)]">{studio.desc}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Feedback link */}
+        <div className="mt-10 text-center">
+          <Link to="/feedback">
+            <Button variant="ghost" size="sm" className="gap-2 text-[var(--text-muted)]">
+              <Bug size={14} />
+              Send feedback
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
+}

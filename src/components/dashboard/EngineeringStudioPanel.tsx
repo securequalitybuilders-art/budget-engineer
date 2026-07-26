@@ -1,0 +1,222 @@
+import { useState, useMemo } from 'react';
+import { AiBriefPanel } from '@/components/ai/AiBriefPanel';
+import { RateCardPanel } from '@/components/rates/RateCardPanel';
+import { RebarSpecPanel } from '@/components/structural/RebarSpecPanel';
+import { FootingSizingPanel } from '@/components/structural/FootingSizingPanel';
+import { LoadAnalysisPanel } from '@/components/structural/LoadAnalysisPanel';
+import { AnalysisPanel } from '@/components/dashboard/AnalysisPanel';
+import { StructuralGeneratorPanel } from '@/components/structural/StructuralGeneratorPanel';
+import { MaterialSwitchPanel } from '@/components/structural/MaterialSwitchPanel';
+import { ClashHealerPanel } from '@/components/structural/ClashHealerPanel';
+import { StructuralPreDesignPanel } from '@/components/structural/StructuralPreDesignPanel';
+import { MepPreDesignPanel } from '@/components/structural/MepPreDesignPanel';
+import { CodeReviewPanel } from '@/components/structural/CodeReviewPanel';
+import { SignoffGatePanel } from '@/components/structural/SignoffGatePanel';
+import { RATE_CARDS } from '@/lib/rates/rate-card';
+import type { DesignOption } from '@/domain/boq';
+import type { BOQ } from '@/lib/boq/boq-types';
+import type { PlanModel } from '@/domain/plan';
+import type { BimModel, CadFloor } from '@/domain/ws6-types';
+import type { ParseResult } from '@/lib/ai/ai-provider';
+import type { BuildingGraph } from '@/domain/building';
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="rounded-lg border border-stone-700/60 bg-stone-900/80 p-6 text-center">
+      <p className="text-sm text-stone-400">{message}</p>
+    </div>
+  );
+}
+
+type TabId = 'structural' | 'mep' | 'review' | 'signoff' | 'ai' | 'rates' | 'rebar' | 'footings' | 'loads' | 'section' | 'analysis' | 'columns' | 'materials' | 'clashes';
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: 'structural', label: 'Structural' },
+  { id: 'mep', label: 'MEP' },
+  { id: 'review', label: 'Review' },
+  { id: 'signoff', label: 'Signoff' },
+  { id: 'ai', label: 'AI Brief' },
+  { id: 'rates', label: 'Rates' },
+  { id: 'rebar', label: 'Rebar' },
+  { id: 'footings', label: 'Footings' },
+  { id: 'loads', label: 'Loads' },
+  { id: 'columns', label: 'Columns' },
+  { id: 'materials', label: 'Materials' },
+  { id: 'clashes', label: 'Clashes' },
+  { id: 'section', label: 'Section' },
+  { id: 'analysis', label: 'Analysis' },
+];
+
+function safeSqrt(n: number): number {
+  return n > 0 ? Math.sqrt(n) : 0;
+}
+
+function sampleGraph(design: DesignOption | null): BuildingGraph | null {
+  if (!design || design.grossFloorArea <= 0) return null;
+  const dim = Math.sqrt(design.grossFloorArea);
+  const defaultFinish = { wallMaterialId: null, floorMaterialId: null, ceilingMaterialId: null, wallFinish: '', floorFinish: '', ceilingFinish: '' };
+  return {
+    meta: { id: '', projectId: '', name: design.name, category: (design.buildingType as any) ?? 'residential', description: '', createdAt: '', updatedAt: '' },
+    site: null,
+    levels: [
+      { id: 'l1', name: 'Ground', number: 0, elevation: 0, floorHeight: 3 },
+      { id: 'l2', name: 'First', number: 1, elevation: 3, floorHeight: 3 },
+    ],
+    spaces: [{
+      id: 'sp1', name: 'Main Area', programme: 'living', levelId: 'l1', areaM2: design.grossFloorArea,
+      bbox: { minX: 0, minY: 0, maxX: dim * 2, maxY: dim },
+      boundary: { vertices: [{ x: 0, y: 0 }, { x: dim * 2, y: 0 }, { x: dim * 2, y: dim }, { x: 0, y: dim }] },
+      finishSpec: defaultFinish, fixtures: [], notes: '',
+    }],
+    walls: [
+      { id: 'w-ext-1', levelId: 'l1', role: 'external', start: { x: 0, y: 0, z: 0 }, end: { x: dim * 2, y: 0, z: 0 }, thickness: 0.2, height: 3, material: 'brick', ifcClass: 'IfcWall', properties: {} },
+      { id: 'w-ext-2', levelId: 'l1', role: 'external', start: { x: dim * 2, y: 0, z: 0 }, end: { x: dim * 2, y: dim, z: 0 }, thickness: 0.2, height: 3, material: 'brick', ifcClass: 'IfcWall', properties: {} },
+      { id: 'w-ext-3', levelId: 'l1', role: 'external', start: { x: dim * 2, y: dim, z: 0 }, end: { x: 0, y: dim, z: 0 }, thickness: 0.2, height: 3, material: 'brick', ifcClass: 'IfcWall', properties: {} },
+      { id: 'w-ext-4', levelId: 'l1', role: 'external', start: { x: 0, y: dim, z: 0 }, end: { x: 0, y: 0, z: 0 }, thickness: 0.2, height: 3, material: 'brick', ifcClass: 'IfcWall', properties: {} },
+    ],
+    slabs: [],
+    openings: [
+      { id: 'o-w1', levelId: 'l1', wallId: 'w-ext-1', kind: 'window', offsetRatio: 0.5, width: 1.2, height: 1.5, sillHeight: 0.9, material: 'aluminium', ifcClass: 'IfcWindow', properties: {} },
+      { id: 'o-d1', levelId: 'l1', wallId: 'w-ext-1', kind: 'door', offsetRatio: 0.1, width: 0.9, height: 2.1, sillHeight: 0, material: 'timber', ifcClass: 'IfcDoor', properties: {} },
+    ],
+    columns: [], beams: [], stairs: [], roof: null,
+    structural: { grid: { id: 'g1', horizontal: [], vertical: [] }, spans: [], lateralSystem: 'shear-wall', floorSystem: 'two-way-slab' },
+    serviceZones: [],
+  };
+}
+
+function buildSampleBim(design: DesignOption | null): BimModel | null {
+  if (!design || design.grossFloorArea <= 0) return null;
+  const floor: CadFloor = { id: 'f1', name: 'Ground', elevation: 0, height: 3 };
+  return {
+    id: 'bim-sample',
+    projectId: '',
+    name: design.name,
+    floors: [floor],
+    elements: [
+      {
+        id: 'slab1', cadId: 'cad1', type: 'slab', floorId: 'f1',
+        name: 'Ground slab', x: 0, y: 0,
+        width: safeSqrt(design.grossFloorArea) * 2,
+        depth: safeSqrt(design.grossFloorArea),
+        height: 0.15, area: design.grossFloorArea,
+        metadata: { ifcClass: 'IfcSlab', category: 'slab', properties: {} },
+      },
+    ],
+  };
+}
+
+import type { FloorPlan } from '@/engine/tier3/layoutEngine';
+
+interface EngineeringStudioPanelProps {
+  selectedDesign: DesignOption | null;
+  activePlan?: PlanModel | null;
+  boq?: BOQ | null;
+  projectId?: string;
+  onDesignOptionsGenerated?: (options: DesignOption[]) => void;
+  onParsed?: (result: ParseResult) => void;
+  onTier3Plans?: (plans: FloorPlan[]) => void;
+  onBuildingTypeChange?: (bt: string) => void;
+}
+
+export function EngineeringStudioPanel({ selectedDesign, activePlan, boq, projectId, onDesignOptionsGenerated, onParsed, onTier3Plans, onBuildingTypeChange }: EngineeringStudioPanelProps) {
+  const [activeTab, setActiveTab] = useState<TabId>('ai');
+
+  const sampleBim = useMemo(() => buildSampleBim(selectedDesign), [selectedDesign]);
+
+  const sampleBuildingGraph = useMemo(() => sampleGraph(selectedDesign), [selectedDesign]);
+
+  const slabArea = selectedDesign?.grossFloorArea ?? 0;
+  const buildingType = selectedDesign?.buildingType ?? 'house';
+
+  return (
+    <div className="flex flex-col border-l border-stone-700/60 bg-stone-950/80">
+      <div className="flex items-center gap-1 border-b border-stone-700/60 px-2 py-1.5">
+        <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400">Engineering Studio</span>
+      </div>
+
+      <div className="flex flex-wrap gap-1 border-b border-stone-700/60 px-2 py-1.5" role="tablist">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            id={tab.id + '-tab'}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            aria-controls={tab.id + '-panel'}
+            onClick={() => setActiveTab(tab.id)}
+            className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
+              activeTab === tab.id
+                ? 'bg-cyan-600/20 text-cyan-300'
+                : 'text-stone-400 hover:bg-stone-800 hover:text-stone-300'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-3">
+        <div id="structural-panel" role="tabpanel" aria-labelledby="structural-tab" hidden={activeTab !== 'structural'}>{activeTab === 'structural' && (
+          sampleBuildingGraph ? <StructuralPreDesignPanel graph={sampleBuildingGraph} /> : <EmptyState message="Start with the AI Brief tab to describe your project. Once a design is generated, structural pre-design runs automatically." />
+        )}</div>
+
+        <div id="mep-panel" role="tabpanel" aria-labelledby="mep-tab" hidden={activeTab !== 'mep'}>{activeTab === 'mep' && (
+          sampleBuildingGraph ? <MepPreDesignPanel graph={sampleBuildingGraph} /> : <EmptyState message="Start with the AI Brief tab to describe your project. Once a design is generated, MEP pre-design runs automatically." />
+        )}</div>
+
+        <div id="review-panel" role="tabpanel" aria-labelledby="review-tab" hidden={activeTab !== 'review'}>{activeTab === 'review' && (
+          <CodeReviewPanel plan={activePlan ?? null} design={selectedDesign} buildingType={buildingType} />
+        )}</div>
+
+        <div id="signoff-panel" role="tabpanel" aria-labelledby="signoff-tab" hidden={activeTab !== 'signoff'}>{activeTab === 'signoff' && (
+          <SignoffGatePanel plan={activePlan ?? null} design={selectedDesign} />
+        )}</div>
+
+        <div id="ai-panel" role="tabpanel" aria-labelledby="ai-tab" hidden={activeTab !== 'ai'}>{activeTab === 'ai' && <AiBriefPanel projectId={projectId} onParsed={onParsed} onDesignOptionsGenerated={onDesignOptionsGenerated} onTier3Plans={onTier3Plans} onBuildingTypeChange={onBuildingTypeChange} />}</div>
+
+        <div id="rates-panel" role="tabpanel" aria-labelledby="rates-tab" hidden={activeTab !== 'rates'}>{activeTab === 'rates' && <RateCardPanel card={RATE_CARDS.zimbabwe} />}</div>
+
+        <div id="rebar-panel" role="tabpanel" aria-labelledby="rebar-tab" hidden={activeTab !== 'rebar'}>{activeTab === 'rebar' && <RebarSpecPanel slabArea={slabArea} />}</div>
+
+        <div id="footings-panel" role="tabpanel" aria-labelledby="footings-tab" hidden={activeTab !== 'footings'}>{activeTab === 'footings' && (
+          sampleBim ? <FootingSizingPanel bim={sampleBim} /> : <EmptyState message="Start with the AI Brief tab to describe your project. Once a design is generated, footings can be sized here." />
+        )}</div>
+
+        <div id="loads-panel" role="tabpanel" aria-labelledby="loads-tab" hidden={activeTab !== 'loads'}>{activeTab === 'loads' && (
+          sampleBim ? <LoadAnalysisPanel bim={sampleBim} /> : <EmptyState message="Start with the AI Brief tab to describe your project. Load analysis runs once a design is ready." />
+        )}</div>
+
+        <div id="columns-panel" role="tabpanel" aria-labelledby="columns-tab" hidden={activeTab !== 'columns'}>{activeTab === 'columns' && (
+          sampleBuildingGraph ? <StructuralGeneratorPanel graph={sampleBuildingGraph} /> : <EmptyState message="Start with the AI Brief tab to generate a design." />
+        )}</div>
+
+        <div id="materials-panel" role="tabpanel" aria-labelledby="materials-tab" hidden={activeTab !== 'materials'}>{activeTab === 'materials' && (
+          <MaterialSwitchPanel slabAreaM2={slabArea} />
+        )}</div>
+
+        <div id="clashes-panel" role="tabpanel" aria-labelledby="clashes-tab" hidden={activeTab !== 'clashes'}>{activeTab === 'clashes' && (
+          sampleBuildingGraph ? <ClashHealerPanel graph={sampleBuildingGraph} /> : <EmptyState message="Start with the AI Brief tab to generate a design." />
+        )}</div>
+
+        <div id="section-panel" role="tabpanel" aria-labelledby="section-tab" hidden={activeTab !== 'section'}>{activeTab === 'section' && (
+          <div className="rounded-lg border border-stone-700/60 bg-stone-900/80 p-6 text-center">
+            <p className="text-sm text-stone-400">Professional orthographic section drawings are now in the main Drawings view (toggle button in the canvas toolbar).</p>
+          </div>
+        )}</div>
+
+        <div id="analysis-panel" role="tabpanel" aria-labelledby="analysis-tab" hidden={activeTab !== 'analysis'}>{activeTab === 'analysis' && (
+          <AnalysisPanel plan={activePlan ?? null} design={selectedDesign} boq={boq ?? null} buildingType={buildingType} jurisdiction="zimbabwe" />
+        )}</div>
+      </div>
+
+      {selectedDesign && (
+        <div className="border-t border-stone-700/60 px-3 py-2">
+          <p className="text-xs text-stone-400">
+            Using <span className="text-stone-300">{selectedDesign.name}</span> —
+            {slabArea > 0 ? ` ${slabArea.toFixed(0)} m²` : ' sample data'}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}

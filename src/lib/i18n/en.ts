@@ -1,0 +1,56 @@
+export const en = {
+  app: {
+    name: 'Budget Engineer',
+    tagline: 'AI-powered computational design → 2D CAD → 3D BIM → engineering quantities → BOQ',
+    subtitle: 'All in your browser, offline-first.',
+  },
+  nav: {
+    home: 'Home',
+    portfolio: 'Portfolio Dashboard',
+    academy: 'Academy',
+    settings: 'Settings',
+    diagnostics: 'Diagnostics',
+    newProject: 'Start New Project',
+    importDxf: 'Import (DXF / image / PDF)',
+    loadDemo: 'Load Demo Project',
+    exportAll: 'Export All',
+    importBackup: 'Import Backup',
+  },
+  project: {
+    name: 'Project Name',
+    status: 'Status',
+    region: 'Region',
+    currency: 'Currency',
+    createdAt: 'Created',
+    updatedAt: 'Updated',
+  },
+  studio: {
+    interior: 'Interior Design',
+    presentation: 'Presentation Boards',
+    siteAnalysis: 'Site Analysis',
+  },
+  role: {
+    label: 'Role',
+    owner: 'Owner',
+    reviewer: 'Reviewer',
+    viewer: 'Viewer',
+    switchRole: 'Switch Role',
+  },
+  common: {
+    loading: 'Loading...',
+    error: 'Something went wrong.',
+    retry: 'Retry',
+    close: 'Close',
+    save: 'Save',
+    cancel: 'Cancel',
+    delete: 'Delete',
+    export: 'Export',
+    import: 'Import',
+    search: 'Search',
+    filter: 'Filter',
+    noResults: 'No results found.',
+    noProjects: 'No projects yet. Create one to start.',
+  },
+}
+
+export type TranslationKeys = typeof en

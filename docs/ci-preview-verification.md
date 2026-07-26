@@ -1,0 +1,25 @@
+# Deployment Verification Script
+
+Use this script to verify deployments during and after the release process.
+
+## 1. Preview Verification (Pre-Merge)
+When verifying a PR preview branch:
+1. Open the PR's specific preview URL (e.g., `https://pr-{number}--budget-engineer.vercel.app`).
+2. Generate a new project or navigate to the relevant new feature.
+3. Verify that the new code behavior is active (e.g., diagnostic panel shows "Rich SVG: Active").
+
+## 2. Production Incognito Verification (Post-Merge)
+Once the code is merged and deployed to production:
+1. Open a **Fresh Incognito Window**.
+2. Navigate to `https://budget-engineer.vercel.app/`.
+3. Create a brand-new project.
+4. Verify the new behavior is identically active in production.
+
+## 3. PWA Cache-Clear Fallback Procedure
+If production appears stale despite a successful deploy:
+1. Press `F12` to open DevTools.
+2. Go to **Application** > **Service Workers**.
+3. Click **Unregister**.
+4. Go to **Storage** and click **Clear site data**.
+5. Perform a hard refresh (`Ctrl+Shift+R` or `Cmd+Shift+R`).
+6. Generate a *fresh* project to ensure old data isn't driving legacy fallbacks.

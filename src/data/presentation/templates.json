@@ -1,0 +1,46 @@
+{
+  "concept": {
+    "id": "concept",
+    "name": "Concept Design",
+    "description": "Early-stage concept presentation with mood board and sketches",
+    "cells": [
+      { "id": "hero", "label": "CONCEPT RENDERING", "type": "snapshot" },
+      { "id": "mood", "label": "MATERIAL MOOD BOARD", "type": "snapshot" },
+      { "id": "sketch", "label": "DESIGN SKETCH", "type": "drawing" },
+      { "id": "notes", "label": "DESIGN NOTES", "type": "text" },
+      { "id": "legend", "label": "LEGEND", "type": "legend" },
+      { "id": "title", "label": "", "type": "title-block" }
+    ]
+  },
+  "design-development": {
+    "id": "design-development",
+    "name": "Design Development",
+    "description": "Detailed technical presentation with plans, sections, and schedules",
+    "cells": [
+      { "id": "floor-plan", "label": "FLOOR PLAN", "type": "drawing" },
+      { "id": "section", "label": "SECTION", "type": "drawing" },
+      { "id": "elevation", "label": "ELEVATION", "type": "drawing" },
+      { "id": "detail", "label": "KEY DETAIL", "type": "drawing" },
+      { "id": "schedule", "label": "SCHEDULE", "type": "text" },
+      { "id": "snapshot-3d", "label": "3D VIEW", "type": "snapshot" },
+      { "id": "callouts", "label": "CALLOUTS", "type": "text" },
+      { "id": "legend", "label": "LEGEND", "type": "legend" },
+      { "id": "title", "label": "", "type": "title-block" }
+    ]
+  },
+  "planning": {
+    "id": "planning",
+    "name": "Planning Application",
+    "description": "Statutory submission set with site plan, elevations, and notes",
+    "cells": [
+      { "id": "site-plan", "label": "SITE PLAN", "type": "drawing" },
+      { "id": "floor-plan", "label": "FLOOR PLAN", "type": "drawing" },
+      { "id": "elevations", "label": "ELEVATIONS", "type": "drawing" },
+      { "id": "sections", "label": "SECTIONS", "type": "drawing" },
+      { "id": "schedule", "label": "SCHEDULE", "type": "text" },
+      { "id": "notes", "label": "NOTES", "type": "text" },
+      { "id": "legend", "label": "LEGEND", "type": "legend" },
+      { "id": "title", "label": "", "type": "title-block" }
+    ]
+  }
+}
