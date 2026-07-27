@@ -1,8 +1,9 @@
 import { EscrowAgreement, EscrowMilestone, EscrowStatus, VerificationProof } from '../../domain/marketplace';
 
 export function createEscrow(params: {
-  projectId: string; providerId: string; clientId: string;
-  totalAmount: number; currency?: string; milestones: { title: string; description: string; amount: number; dueDate: string }[];
+  projectId: string; providerId: string; clientId: string; contractReference?: string;
+  totalAmount: number; currency?: string; terms?: string; disputeResolution?: string;
+  milestones: { title: string; description: string; amount: number; dueDate: string }[];
 }): EscrowAgreement {
   if (params.milestones.length === 0) throw new Error('Escrow requires at least one milestone');
   const totalMilestoneAmount = params.milestones.reduce((s, m) => s + m.amount, 0);
@@ -11,8 +12,10 @@ export function createEscrow(params: {
   const now = new Date().toISOString();
   return {
     id: crypto.randomUUID(), projectId: params.projectId, providerId: params.providerId,
-    clientId: params.clientId, totalAmount: params.totalAmount,
-    currency: params.currency ?? 'USD', status: 'locked', createdAt: now, updatedAt: now,
+    clientId: params.clientId, contractReference: params.contractReference,
+    totalAmount: params.totalAmount, currency: params.currency ?? 'USD',
+    terms: params.terms ?? 'Standard milestone-based release', disputeResolution: params.disputeResolution,
+    status: 'locked', createdAt: now, updatedAt: now,
     milestones: params.milestones.map(m => ({
       id: crypto.randomUUID(), escrowId: '', title: m.title, description: m.description,
       amount: m.amount, dueDate: m.dueDate, status: 'pending' as const, verificationProof: [],
@@ -33,28 +36,30 @@ export function completeMilestone(escrow: EscrowAgreement, milestoneId: string, 
   return { ...escrow, milestones: updatedMilestones, updatedAt: now };
 }
 
-export function verifyMilestone(escrow: EscrowAgreement, milestoneId: string, verified: boolean): EscrowAgreement {
+export function verifyMilestone(escrow: EscrowAgreement, milestoneId: string, verified: boolean, reason?: string): EscrowAgreement {
   const milestone = escrow.milestones.find(m => m.id === milestoneId);
   if (!milestone) throw new Error(`Milestone ${milestoneId} not found`);
   if (milestone.status !== 'completed') throw new Error('Cannot verify milestone that is not completed');
   const updatedMilestones = escrow.milestones.map(m =>
-    m.id === milestoneId ? { ...m, status: verified ? ('verified' as const) : ('disputed' as const) } : m
+    m.id === milestoneId ? { ...m, status: verified ? ('verified' as const) : ('disputed' as const), disputedReason: verified ? undefined : (reason ?? 'Disputed by client') } : m
   );
   const allReleased = updatedMilestones.every(m => m.status === 'verified' || m.status === 'released');
-  const updatedStatus: EscrowStatus = allReleased ? 'released' : escrow.status;
+  const hasDisputed = updatedMilestones.some(m => m.status === 'disputed');
+  const updatedStatus: EscrowStatus = allReleased ? 'released' : hasDisputed ? 'disputed' : escrow.status;
   return { ...escrow, milestones: updatedMilestones, status: updatedStatus, updatedAt: new Date().toISOString() };
 }
 
-export function releaseFunds(escrow: EscrowAgreement, milestoneId: string): EscrowAgreement {
+export function releaseFunds(escrow: EscrowAgreement, milestoneId: string, approvedBy?: string): EscrowAgreement {
   const milestone = escrow.milestones.find(m => m.id === milestoneId);
   if (!milestone) throw new Error(`Milestone ${milestoneId} not found`);
   if (milestone.status !== 'verified') throw new Error('Only verified milestones can be released');
+  const now = new Date().toISOString();
   const updatedMilestones = escrow.milestones.map(m =>
-    m.id === milestoneId ? { ...m, status: 'released' as const } : m
+    m.id === milestoneId ? { ...m, status: 'released' as const, releasedAt: now, approvedBy } : m
   );
   const allReleased = updatedMilestones.every(m => m.status === 'verified' || m.status === 'released');
   const updatedStatus: EscrowStatus = allReleased ? 'released' : escrow.status;
-  return { ...escrow, milestones: updatedMilestones, status: updatedStatus, updatedAt: new Date().toISOString() };
+  return { ...escrow, milestones: updatedMilestones, status: updatedStatus, updatedAt: now, completedAt: allReleased ? now : undefined };
 }
 
 export function getTotalReleased(escrow: EscrowAgreement): number {
@@ -65,8 +70,41 @@ export function getTotalLocked(escrow: EscrowAgreement): number {
   return escrow.milestones.filter(m => m.status === 'pending' || m.status === 'completed' || m.status === 'verified').reduce((s, m) => s + m.amount, 0);
 }
 
+export function getTotalDisputed(escrow: EscrowAgreement): number {
+  return escrow.milestones.filter(m => m.status === 'disputed').reduce((s, m) => s + m.amount, 0);
+}
+
 export function getEscrowProgress(escrow: EscrowAgreement): number {
-  if (escrow.milestones.length === 0) return 0;
+  if (escrow.milestones.length === 0 || escrow.totalAmount === 0) return 0;
   const released = getTotalReleased(escrow);
   return Math.round((released / escrow.totalAmount) * 100);
+}
+
+export function getNextMilestone(escrow: EscrowAgreement): EscrowMilestone | undefined {
+  return escrow.milestones.find(m => m.status === 'pending');
+}
+
+export function getOverdueMilestones(escrow: EscrowAgreement): EscrowMilestone[] {
+  const now = new Date();
+  return escrow.milestones.filter(m => (m.status === 'pending' || m.status === 'completed') && new Date(m.dueDate) < now);
+}
+
+export function getMilestoneTimeline(escrow: EscrowAgreement): { milestone: EscrowMilestone; durationDays: number; delayDays: number }[] {
+  return escrow.milestones.map(m => {
+    const completed = m.completedAt ? new Date(m.completedAt) : null;
+    const due = new Date(m.dueDate);
+    const planned = new Date(escrow.createdAt);
+    const durationDays = Math.ceil((due.getTime() - planned.getTime()) / 86400000);
+    const delayDays = completed && completed > due ? Math.ceil((completed.getTime() - due.getTime()) / 86400000) : 0;
+    return { milestone: m, durationDays, delayDays };
+  });
+}
+
+export function getEscrowSummary(escrow: EscrowAgreement): { total: number; released: number; locked: number; disputed: number; progress: number; nextMilestone: EscrowMilestone | undefined; overdueCount: number } {
+  return {
+    total: escrow.totalAmount, released: getTotalReleased(escrow),
+    locked: getTotalLocked(escrow), disputed: getTotalDisputed(escrow),
+    progress: getEscrowProgress(escrow),
+    nextMilestone: getNextMilestone(escrow), overdueCount: getOverdueMilestones(escrow).length,
+  };
 }
