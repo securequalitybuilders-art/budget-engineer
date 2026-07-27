@@ -62,7 +62,7 @@ export default function ClientPortal() {
         <aside className="w-full md:w-64 shrink-0 flex flex-col gap-2">
           <div className="mb-6 px-3">
             <h2 className="text-xl font-bold text-stone-100">My Project</h2>
-            <p className="text-sm text-stone-500 mt-1">Avondale Residential</p>
+            <p className="text-sm text-stone-400 mt-1">Avondale Residential</p>
           </div>
 
           <button 

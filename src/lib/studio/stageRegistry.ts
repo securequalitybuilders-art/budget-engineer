@@ -11,12 +11,14 @@ import {
   Plug,
   DollarSign,
   FileSpreadsheet,
+  Globe,
 } from 'lucide-react';
 import type { DisciplineId } from '@/lib/studio/discipline';
 
 export type StageId =
   | 'brief'
   | 'concept'
+  | 'site-analysis'
   | 'design'
   | 'bim'
   | 'rough-in'
@@ -49,6 +51,13 @@ export const ALL_STAGES: StageDef[] = [
     shortLabel: 'Concept',
     description: 'Review and compare design options. 3 site-aware concepts.',
     icon: FileText,
+  },
+  {
+    id: 'site-analysis',
+    label: 'Site Analysis',
+    shortLabel: 'Site',
+    description: 'Heliodon, shadow casting, wind rose, and environmental analysis.',
+    icon: Globe,
   },
   {
     id: 'design',
@@ -134,14 +143,14 @@ export function getDefaultStage(discipline: DisciplineId): StageId {
 }
 
 const STAGE_ORDER: Record<DisciplineId, StageId[]> = {
-  ARCH: ['brief', 'concept', 'design', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'],
+  ARCH: ['brief', 'concept', 'site-analysis', 'design', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'],
   STR: ['brief', 'concept', 'design', 'bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
   MEP: ['brief', 'design', 'bim', 'rough-in', 'budget', 'budget-engineered'],
   ELEC: ['brief', 'design', 'bim', 'rough-in', 'budget', 'budget-engineered'],
   PLUM: ['brief', 'design', 'bim', 'rough-in', 'budget', 'budget-engineered'],
   INT: ['brief', 'concept', 'design', 'bim', 'rough-in', 'millwork', 'finishes', 'budget', 'budget-engineered'],
-  LAND: ['brief', 'concept', 'design', 'bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
-  CIVIL: ['brief', 'concept', 'design', 'bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
+  LAND: ['brief', 'concept', 'site-analysis', 'design', 'bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
+  CIVIL: ['brief', 'concept', 'site-analysis', 'design', 'bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
 };
 
 export function isStageInDiscipline(stage: StageId, discipline: DisciplineId): boolean {

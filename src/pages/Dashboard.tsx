@@ -17,6 +17,7 @@ import { StageRail } from '@/components/dashboard/StageRail';
 import { MobileNavDrawer } from '@/components/dashboard/MobileNavDrawer';
 import { BriefStage } from '@/components/dashboard/stages/BriefStage';
 import { ConceptStage } from '@/components/dashboard/stages/ConceptStage';
+import { SiteAnalysisStage } from '@/components/dashboard/stages/SiteAnalysisStage';
 import { DesignStage } from '@/components/dashboard/stages/DesignStage';
 import { BimStage } from '@/components/dashboard/stages/BimStage';
 import { RoughInStage } from '@/components/dashboard/stages/RoughInStage';
@@ -734,6 +735,12 @@ export function Dashboard() {
                     onDesignCreated={handleDesignCreated}
                     onOpenImportWorkflow={() => setImportWorkflowOpen(true)}
                     backgroundIntel={backgroundIntel}
+                  />
+                )}
+                {activeStageId === 'site-analysis' && (
+                  <SiteAnalysisStage
+                    activePlan={activePlan}
+                    selectedDesign={selectedDesign}
                   />
                 )}
                 {activeStageId === 'bim' && (

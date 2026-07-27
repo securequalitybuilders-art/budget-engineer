@@ -196,3 +196,40 @@ Closed the remaining stage-pipeline gap (SiteAnalysisStage) and fixed 6 drawing-
 
 ### Skipped (intentional)
 - BOQ double-compute in `boq-engine` — kept as-is (data is consumed by two unrelated pipelines)
+
+## Phase 5 — Marketplace Engine Integration + P48 Shoulder Stabilization (Current)
+
+### What was done
+Fixed P48 shoulder stabilization test (6→0 failures, 14/14 passing), wired procurementEngine to consume BOQ from the Budget Engine, connected escrow releases to execution monitor milestones.
+
+### P48 shoulder stabilization fix
+- **Root cause**: Grid packer's vertical stacking path split rooms into rows shallower than minimum depth; scale-to-fit path shortchanged the last room; retry loop cycled between same 2 templates indefinitely.
+- **Fix strategy** (4 changes in 3 files):
+  1. `grid-packer.ts` — Vertical/horizontal overflow stacking now tries fewer rows/cols if individual row/col height/width would be below minimum; scale-to-fit path uses proportional deficit distribution so each room gets ≥ minWidth/minDepth.
+  2. `plan-generator.ts` — Added `postProcessRooms()` that expands undersized rooms (shrinking same-row/down neighbors), fixes extreme bedroom aspect ratios, resolves overlaps, and clamps to footprint. Post-processing runs after assembly; if rejected, re-assembles with fixed rooms.
+  3. `plan-generator.ts` — Retry loop now explicitly cycles through all available templates (retry 0 → template 0, retry 1 → template 1, etc.) instead of relying on seed arithmetic that could lock into the same 2 templates.
+  4. `plan-intelligence.ts` — Integrated `resolveOverlaps()` into `assemblePlan()` to fix minor inter-room overlaps before rejecting.
+
+### BOQ-to-Procurement integration (`procurementEngine.ts`)
+- `boqToProcurementItems()` — Converts BOQ line items to procurement order items
+- `boqToRFQItems()` — Converts BOQ line items to RFQ items with category context
+- `createProcurementPlan()` — Creates both an order and RFQ from a BOQ in one call
+- `matchBoQToCatalog()` — Finds best catalog matches for each BOQ line, computes potential savings
+
+### Escrow-to-Execution integration (`escrowEngine.ts`)
+- `createEscrowFromExecution()` — Creates escrow with milestones derived from execution monitor task data (budget split proportionally by planned days)
+- `autoReleaseCompletedMilestones()` — Detects completed tasks and auto-verifies/releases corresponding escrow milestones, returns release log
+
+### Files modified (5)
+- `plan-generator.ts` — Post-processing, explicit template cycling, 5 retries
+- `grid-packer.ts` — Improved overflow paths with deficit distribution and row/col height checks
+- `plan-intelligence.ts` — `resolveOverlaps` import and integration
+- `procurementEngine.ts` — 4 new BOQ integration functions
+- `escrowEngine.ts` — 2 new execution-to-escrow sync functions
+- `typology-router.ts` — Valid flag strengthened (checks belowMinimum warnings)
+- `layout-templates.ts` — `listHouseTemplates()` export; SIDE_CORRIDOR changed from 5→6 cols
+
+### Test results
+- `p48-shoulder-stabilization.test.ts`: 14/14 passing (was 8/14, 6 failures)
+- `marketplace.test.ts`: 33/33 passing (unchanged)
+- **Total**: 47/47 for both suites

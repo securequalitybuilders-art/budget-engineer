@@ -65,7 +65,8 @@ const STRATEGIES: Record<string, TypologyStrategy> = {
       const area = width * height
       const template = pickHouseTemplate(area, seed)
       const result = packTemplate(template, program, width, height, seed)
-      return { rooms: result.rooms, warnings: result.warnings.map(w => w.message), valid: result.valid }
+      const valid = result.valid && result.warnings.filter(w => w.roomName && w.message.includes('invalid')).length === 0
+      return { rooms: result.rooms, warnings: result.warnings.map(w => w.message), valid }
     },
   },
   'apartment': {

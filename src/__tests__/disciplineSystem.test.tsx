@@ -82,8 +82,8 @@ describe('discipline.ts', () => {
 // ── stageRegistry.ts ──
 
 describe('stageRegistry.ts', () => {
-  it('defines 11 stages', () => {
-    expect(ALL_STAGES.length).toBe(11)
+  it('defines 12 stages', () => {
+    expect(ALL_STAGES.length).toBe(12)
   })
 
   it('each StageDef has an id, label, shortLabel, description, icon', () => {
@@ -106,14 +106,14 @@ describe('stageRegistry.ts', () => {
   })
 
   it('getStagesForDiscipline returns discipline-specific stages', () => {
-    expect(getStagesForDiscipline('ARCH').length).toBe(11)
+    expect(getStagesForDiscipline('ARCH').length).toBe(12)
     expect(getStagesForDiscipline('STR').length).toBe(8)
     expect(getStagesForDiscipline('MEP').length).toBe(6)
     expect(getStagesForDiscipline('ELEC').length).toBe(6)
     expect(getStagesForDiscipline('PLUM').length).toBe(6)
     expect(getStagesForDiscipline('INT').length).toBe(9)
-    expect(getStagesForDiscipline('LAND').length).toBe(8)
-    expect(getStagesForDiscipline('CIVIL').length).toBe(8)
+    expect(getStagesForDiscipline('LAND').length).toBe(9)
+    expect(getStagesForDiscipline('CIVIL').length).toBe(9)
   })
 
   it('ARCH and INT have correct first stages', () => {
@@ -123,7 +123,7 @@ describe('stageRegistry.ts', () => {
 
   it('getStageIdsForDiscipline returns stage IDs', () => {
     const ids = getStageIdsForDiscipline('ARCH')
-    expect(ids).toEqual(['brief', 'concept', 'design', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'])
+    expect(ids).toEqual(['brief', 'concept', 'site-analysis', 'design', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'])
   })
 
   it('getDefaultStage returns the first stage', () => {
@@ -143,7 +143,8 @@ describe('stageRegistry.ts', () => {
 
   it('nextStage returns next stage or null', () => {
     expect(nextStage('brief', 'ARCH')).toBe('concept')
-    expect(nextStage('concept', 'ARCH')).toBe('design')
+    expect(nextStage('concept', 'ARCH')).toBe('site-analysis')
+    expect(nextStage('site-analysis', 'ARCH')).toBe('design')
     expect(nextStage('budget-engineered', 'ARCH')).toBeNull()
     expect(nextStage('substrates', 'MEP')).toBeNull()
   })

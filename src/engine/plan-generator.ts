@@ -3,7 +3,8 @@ import type { PlanModel, PlanSource, PlanningZoneMarker } from '../domain/plan'
 import { getRoomProgram } from './roomPrograms'
 import { isResidential } from './buildingTypes'
 import { generateLayoutByTypology, type FloorContext } from '../lib/layout/typology-router'
-import { assemblePlan } from '../lib/geometry/plan-intelligence'
+import { assemblePlan, getMinimumDimensions } from '../lib/geometry/plan-intelligence'
+import { listHouseTemplates } from '../lib/layout/layout-templates'
 
 const GRID = 0.05
 const snap05 = (v: number) => Math.round(v / GRID) * GRID
@@ -15,6 +16,106 @@ import { generatePartyWall, clampToPartyWall } from '../lib/layout/party-wall'
 import { computeLevelProgrammes, getAllocationProgramme, getLevelFloorRole } from '../lib/layout/level-programme'
 import { computeStructuralBridge } from '../lib/structure/structural-bridge'
 import { validateEntranceSeparation } from '../lib/layout/typologies/non-residential'
+
+function postProcessRooms(rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[], fpW: number, fpH: number): { id: string; name: string; x: number; y: number; width: number; height: number }[] {
+  const result = rooms.map(r => ({ ...r }))
+
+  for (let pass = 0; pass < 5; pass++) {
+    let changed = false
+
+    // 1. Expand rooms to minimum dimensions, shrink neighbors if needed
+    for (let i = 0; i < result.length; i++) {
+      const room = result[i]
+      const dims = getMinimumDimensions(room.name)
+      if (room.width < dims.minWidth - 0.01) {
+        const targetW = Math.min(dims.minWidth, fpW - room.x)
+        const needed = targetW - room.width
+        if (needed > 0.01) {
+          const neighbors = result
+            .map((o, idx) => ({ o, idx }))
+            .filter(({ o, idx }) => idx !== i && o.x >= room.x + room.width - 0.05 && o.x < room.x + room.width + needed + 0.5 && Math.abs(o.y - room.y) < 0.2 && o.name !== 'Circulation')
+            .sort((a, b) => a.o.x - b.o.x)
+          let remaining = needed
+          for (const { o } of neighbors) {
+            if (remaining <= 0.01) break
+            const shrink = Math.min(remaining, Math.max(0, o.width - 0.5))
+            o.x += shrink
+            o.width -= shrink
+            remaining -= shrink
+          }
+          room.width = targetW
+          changed = true
+        }
+      }
+      if (room.height < dims.minDepth - 0.01) {
+        const targetH = Math.min(dims.minDepth, fpH - room.y)
+        const needed = targetH - room.height
+        if (needed > 0.01) {
+          const neighbors = result
+            .map((o, idx) => ({ o, idx }))
+            .filter(({ o, idx }) => idx !== i && o.y >= room.y + room.height - 0.05 && o.y < room.y + room.height + needed + 0.5 && Math.abs(o.x - room.x) < 0.2 && o.name !== 'Circulation')
+            .sort((a, b) => a.o.y - b.o.y)
+          let remaining = needed
+          for (const { o } of neighbors) {
+            if (remaining <= 0.01) break
+            const shrink = Math.min(remaining, Math.max(0, o.height - 0.5))
+            o.y += shrink
+            o.height -= shrink
+            remaining -= shrink
+          }
+          room.height = targetH
+          changed = true
+        }
+      }
+    }
+
+    // 2. Fix extreme bedroom aspect ratios
+    for (const room of result) {
+      if (room.name.startsWith('Bedroom') || room.name === 'Master Bedroom') {
+        const aspect = Math.max(room.width / room.height, room.height / room.width)
+        if (aspect > 3.0) {
+          if (room.width > room.height) room.width = Math.min(room.width, room.height * 2.5)
+          else room.height = Math.min(room.height, room.width * 2.5)
+          changed = true
+        }
+      }
+    }
+
+    // 3. Resolve overlaps between non-circulation rooms
+    for (let i = 0; i < result.length; i++) {
+      for (let j = i + 1; j < result.length; j++) {
+        const a = result[i], b = result[j]
+        if (a.name === 'Circulation' || b.name === 'Circulation') continue
+        const overlapX = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)
+        const overlapY = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y)
+        if (overlapX > 0.02 && overlapY > 0.02) {
+          if (overlapX < overlapY) {
+            if (a.x < b.x) b.x = a.x + a.width
+            else a.x = b.x + b.width
+          } else {
+            if (a.y < b.y) b.y = a.y + a.height
+            else a.y = b.y + b.height
+          }
+          changed = true
+        }
+      }
+    }
+
+    // 4. Clamp to footprint
+    for (const room of result) {
+      if (room.x + room.width > fpW) room.width = Math.max(0.5, fpW - room.x)
+      if (room.y + room.height > fpH) room.height = Math.max(0.5, fpH - room.y)
+      room.x = snap05(Math.max(0, room.x))
+      room.y = snap05(Math.max(0, room.y))
+      room.width = snap05(Math.max(room.width, 0.5))
+      room.height = snap05(Math.max(room.height, 0.5))
+    }
+
+    if (!changed) break
+  }
+
+  return result
+}
 
 function normalizeFootprint(area: number) {
   const targetAspect = area <= 140 ? 1.25 : 1.18
@@ -162,8 +263,11 @@ export function generatePlanModel(design: DesignOption): PlanModel {
     let bestLayout: { rooms: any[]; warnings?: string[]; entranceMarkers?: any[]; valid?: boolean } | null = null
     let bestRejectedWarnings: string[] = []
 
-    for (let retry = 0; retry < 3; retry++) {
-      const seed = Date.now() + retry * 9973 + retry * 7919
+    const templates = listHouseTemplates(footprint.width * footprint.height)
+    for (let retry = 0; retry < Math.max(5, templates.length * 2); retry++) {
+      const baseSeed = Date.now()
+      const templateOffset = retry < templates.length ? retry : (templates.length - 1 - (retry - templates.length))
+      const seed = baseSeed + templateOffset * 7919 + retry * 5003
       const layoutResult = generateLayoutByTypology(
         buildingType,
         program,
@@ -173,7 +277,7 @@ export function generatePlanModel(design: DesignOption): PlanModel {
       )
 
       const rawRooms = layoutResult.rooms
-      const rooms = rawRooms.map(r => ({
+      let rooms = rawRooms.map(r => ({
         id: r.id,
         name: r.name,
         x: snap05(r.x),
@@ -183,13 +287,25 @@ export function generatePlanModel(design: DesignOption): PlanModel {
         color: ['#1d4ed8', '#0f766e', '#7c3aed', '#9a3412', '#0369a1', '#4d7c0f', '#be185d', '#b45309'][((seed * 16807) % 2147483647) % 8],
       }))
 
-      const result = assemblePlan({
+      let result = assemblePlan({
         rooms,
         width: footprint.width,
         height: footprint.height,
         wallThickness,
         designOptionId: design.id,
       })
+
+      if (result.plan) {
+        const plan = result.plan as PlanModel
+        const processed = postProcessRooms(plan.rooms.map(r => ({ ...r })), footprint.width, footprint.height)
+        result = assemblePlan({
+          rooms: processed,
+          width: footprint.width,
+          height: footprint.height,
+          wallThickness,
+          designOptionId: design.id,
+        })
+      }
 
       if (!result.rejected && layoutResult.valid !== false) {
         bestLayout = { rooms: layoutResult.rooms, warnings: layoutResult.warnings, entranceMarkers: layoutResult.entranceMarkers, valid: true }
@@ -214,7 +330,7 @@ export function generatePlanModel(design: DesignOption): PlanModel {
 
     // All retries rejected — use best attempt anyway, log clearly
     console.error(`[plan-generator] PLAN REJECTED after 3 retries: ${bestRejectedWarnings.filter(w => w.includes('LAYOUT_REJECTED') || w.includes('overlap detected')).join('; ')}`)
-    const finalRooms = (bestLayout?.rooms || []).map(r => ({
+    const bestRooms = (bestLayout?.rooms || []).map(r => ({
       id: r.id,
       name: r.name,
       x: snap05(r.x),
@@ -223,13 +339,24 @@ export function generatePlanModel(design: DesignOption): PlanModel {
       height: snap05(Math.max(r.height, 0.5)),
       color: ['#1d4ed8', '#0f766e', '#7c3aed', '#9a3412', '#0369a1', '#4d7c0f', '#be185d', '#b45309'][Math.abs(Date.now() * 16807) % 8],
     }))
-    const fallbackResult = assemblePlan({
-      rooms: finalRooms,
+    let fallbackResult = assemblePlan({
+      rooms: bestRooms,
       width: footprint.width,
       height: footprint.height,
       wallThickness,
       designOptionId: design.id,
     })
+    if (fallbackResult.plan) {
+      const plan = fallbackResult.plan as PlanModel
+      plan.rooms = postProcessRooms(plan.rooms.map(r => ({ ...r })), footprint.width, footprint.height)
+      fallbackResult = assemblePlan({
+        rooms: plan.rooms,
+        width: footprint.width,
+        height: footprint.height,
+        wallThickness,
+        designOptionId: design.id,
+      })
+    }
     const planModel = fallbackResult.plan as PlanModel
     if (bestLayout?.entranceMarkers && bestLayout.entranceMarkers.length > 0) {
       planModel.entranceMarkers = bestLayout.entranceMarkers
@@ -384,8 +511,11 @@ export function generatePlanModel(design: DesignOption): PlanModel {
   const planWidth = footprint.width
   const planHeight = footprint.height * floors * 1.1
 
+  // Post-process rooms across all floors to fix dimensions, overlaps, aspect ratios
+  const processedRooms = postProcessRooms(allRooms, planWidth, planHeight)
+
   const result = assemblePlan({
-    rooms: allRooms,
+    rooms: processedRooms,
     width: planWidth,
     height: planHeight,
     wallThickness,

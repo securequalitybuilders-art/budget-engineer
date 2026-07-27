@@ -1,4 +1,5 @@
 import { CatalogItem, ProcurementOrder, ProcurementLineItem, RFQ, RFQLineItem } from '../../domain/marketplace';
+import type { BOQ, BOQLineItem } from '../../lib/boq/boq-types';
 
 export interface MatchCriteria {
   items: { catalogItemId: string; quantity: number; maxUnitPrice?: number; preferredDeliveryDate?: string; required?: boolean }[];
@@ -153,4 +154,59 @@ export function getOrderTimeline(order: ProcurementOrder): { status: string; dat
     timeline.push({ status: 'in_delivery', date: order.deliveryDate ?? order.updatedAt, description: 'Items shipped' });
   if (order.status === 'completed') timeline.push({ status: 'completed', date: order.updatedAt, description: 'Order delivered' });
   return timeline;
+}
+
+export function boqToProcurementItems(boq: BOQ, providerId: string): { catalogItemId: string; name: string; quantity: number; unit: string; unitPrice: number }[] {
+  return boq.items.map(item => ({
+    catalogItemId: item.id,
+    name: item.description,
+    quantity: item.quantity,
+    unit: item.unit,
+    unitPrice: item.rate,
+  }));
+}
+
+export function boqToRFQItems(boq: BOQ): { name: string; description: string; quantity: number; unit: string; estimatedPrice?: number }[] {
+  return boq.items.map(item => ({
+    name: item.description,
+    description: `${item.category} — ${item.description}`,
+    quantity: item.quantity,
+    unit: item.unit,
+    estimatedPrice: item.rate,
+  }));
+}
+
+export function createProcurementPlan(boq: BOQ, providerId: string, projectId: string): { order: ProcurementOrder; rfq: RFQ } {
+  const items = boqToProcurementItems(boq, providerId);
+  const rfqItems = boqToRFQItems(boq);
+  const order = createProcurementOrder({
+    projectId,
+    providerId,
+    items,
+  });
+  const rfq = createRFQ({
+    projectId,
+    title: `RFQ — ${boq.estimateDepth ?? 'Standard'} Estimate`,
+    description: `Procurement request for ${boq.items.length} line items (${boq.currency}), estimated total ${boq.summary.grandTotal}`,
+    items: rfqItems,
+    closingDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+  });
+  return { order, rfq };
+}
+
+export function matchBoQToCatalog(boq: BOQ, catalog: CatalogItem[]): { boqItemId: string; description: string; matches: CatalogItem[]; bestMatch?: CatalogItem; savings: number }[] {
+  return boq.items.map(boqItem => {
+    const matches = catalog.filter(c =>
+      (c.category === boqItem.category || c.tags.some(t => boqItem.category.toLowerCase().includes(t.toLowerCase()))) &&
+      c.available
+    );
+    const sorted = matches.sort((a, b) => Math.abs(a.unitPrice - boqItem.rate) - Math.abs(b.unitPrice - boqItem.rate));
+    return {
+      boqItemId: boqItem.id,
+      description: boqItem.description,
+      matches: sorted,
+      bestMatch: sorted[0],
+      savings: sorted[0] ? (boqItem.rate - sorted[0].unitPrice) * boqItem.quantity : 0,
+    };
+  });
 }

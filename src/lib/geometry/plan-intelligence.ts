@@ -1,5 +1,5 @@
 import type { RoomRect, WallSegment, Opening } from '../../domain/plan'
-import { normalizeRooms, detectOverlaps, snapCollection, snap } from './geometry-normalizer'
+import { normalizeRooms, detectOverlaps, resolveOverlaps, snapCollection, snap } from './geometry-normalizer'
 import { isRequiredRoom } from '../layout/layout-templates'
 import { buildPolygons } from './room-polygons'
 import { detectSharedBoundaries } from './shared-boundaries'
@@ -805,7 +805,20 @@ export function assemblePlan(input: PlanAssemblyInput) {
 
   const overlaps = detectOverlaps(normalizedRooms)
   if (overlaps.length > 0) {
-    for (const ov of overlaps) {
+    const resolved = resolveOverlaps(normalizedRooms)
+    if (resolved.resolved > 0) {
+      for (const w of resolved.warnings) {
+        if (w.startsWith('Resolved')) overlapWarnings.push(w)
+      }
+      for (let i = 0; i < normalizedRooms.length; i++) {
+        normalizedRooms[i].snappedX = resolved.rooms[i].snappedX
+        normalizedRooms[i].snappedY = resolved.rooms[i].snappedY
+        normalizedRooms[i].snappedW = resolved.rooms[i].snappedW
+        normalizedRooms[i].snappedH = resolved.rooms[i].snappedH
+      }
+    }
+    const remaining = detectOverlaps(normalizedRooms)
+    for (const ov of remaining) {
       overlapWarnings.push(`Room overlap detected between "${ov.roomA}" and "${ov.roomB}"`)
     }
   }
