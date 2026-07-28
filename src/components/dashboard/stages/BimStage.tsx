@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react'
-import { LazyBimModel3D } from '@/components/bim/LazyBimModel3D'
-import { LazyBimViewer } from '@/components/bim/LazyBimViewer'
-import { FloorVisibilityPanel } from '@/components/bim/FloorVisibilityPanel'
-import { BimInspector } from '@/components/bim/BimInspector'
-import { BimLegend } from '@/components/bim/BimLegend'
+import { useState, useEffect, useCallback } from 'react'
+import { GlbViewer } from '@/components/bim/GlbViewer'
+import { GlbSiteViewer } from '@/components/bim/GlbSiteViewer'
 import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
 import { Button } from '@/components/ui/Button'
-import { Box, LayoutGrid, Boxes, Eye } from 'lucide-react'
+import { Box, LayoutGrid, Boxes, Globe } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { useGlbExport } from '@/hooks/useGlbExport'
+import { loadSiteContext } from '@/lib/site/siteContextReader'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
 import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
+
+type BimView = 'model' | 'site' | 'drawings'
 
 interface BimStageProps {
   activePlan: PlanModel | null
@@ -19,23 +20,38 @@ interface BimStageProps {
 }
 
 export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
-  const [view, setView] = useState<'model' | 'viewer' | 'drawings'>('model')
-  const [activeFloorId, setActiveFloorId] = useState<string | null>(null)
+  const [view, setView] = useState<BimView>('model')
+  const { glbUrl, isExporting, error: exportError, generate, download } = useGlbExport()
   const registerSheets = useDrawingRegisterStore((s) => s.sheets)
   const initializeRegister = useDrawingRegisterStore((s) => s.initialize)
+  const [glbReady, setGlbReady] = useState(false)
 
-  const floors = selectedDesign
-    ? Array.from({ length: selectedDesign.floors }, (_, i) => ({
-        id: `floor-${i + 1}`,
-        name: `Floor ${i + 1}`,
-      }))
-    : []
+  const projectId = selectedDesign?.id
+
+  const siteContext = projectId ? loadSiteContext(projectId) : null
 
   useEffect(() => {
     if (selectedDesign && selectedDesign.floors > 0 && registerSheets.length === 0) {
       initializeRegister({ floorCount: selectedDesign.floors })
     }
   }, [selectedDesign, registerSheets.length, initializeRegister])
+
+  useEffect(() => {
+    if (activePlan && selectedDesign && !glbReady && !isExporting) {
+      generate(activePlan, selectedDesign).then((url) => {
+        if (url) setGlbReady(true)
+      })
+    }
+  }, [activePlan, selectedDesign, glbReady, isExporting, generate])
+
+  const handleRegenerate = useCallback(() => {
+    setGlbReady(false)
+    if (activePlan && selectedDesign) {
+      generate(activePlan, selectedDesign).then((url) => {
+        if (url) setGlbReady(true)
+      })
+    }
+  }, [activePlan, selectedDesign, generate])
 
   if (!selectedDesign || !activePlan) {
     return (
@@ -68,11 +84,11 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
           <Boxes size={14} className="mr-1" /> 3D Model
         </Button>
         <Button
-          variant={view === 'viewer' ? 'brand' : 'ghost'}
+          variant={view === 'site' ? 'brand' : 'ghost'}
           size="sm"
-          onClick={() => setView('viewer')}
+          onClick={() => setView('site')}
         >
-          <Eye size={14} className="mr-1" /> Viewer
+          <Globe size={14} className="mr-1" /> Site
         </Button>
         <Button
           variant={view === 'drawings' ? 'brand' : 'ghost'}
@@ -86,19 +102,41 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
       <div className="flex flex-1 gap-2 overflow-hidden p-2">
         <div className="flex flex-1 flex-col gap-2 overflow-auto">
           {view === 'model' && (
-            <>
-              <FloorVisibilityPanel floors={floors} activeFloorId={activeFloorId} onFloorChange={setActiveFloorId} />
-              <div className="flex-1">
-                <ErrorBoundary>
-                  <LazyBimModel3D plan={activePlan} design={selectedDesign} />
-                </ErrorBoundary>
-              </div>
-            </>
-          )}
-          {view === 'viewer' && (
             <div className="flex-1">
               <ErrorBoundary>
-                <LazyBimViewer model={null} activeFloorId={activeFloorId} height={600} />
+                <div className="mb-2 flex items-center gap-2">
+                  <button
+                    onClick={handleRegenerate}
+                    disabled={isExporting}
+                    className="rounded-md bg-stone-900/80 px-2.5 py-1 text-[11px] font-medium text-stone-400 transition-colors hover:bg-stone-800 hover:text-stone-200 disabled:opacity-50"
+                  >
+                    Regenerate
+                  </button>
+                  <span className="text-[10px] text-stone-500">
+                    Powered by <a href="https://gltf-viewer.donmccurdy.com/" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">glTF Viewer</a>
+                  </span>
+                </div>
+                <GlbViewer
+                  glbUrl={glbUrl}
+                  height="100%"
+                  onExportClick={() => download(activePlan, selectedDesign)}
+                  isExporting={isExporting}
+                  exportError={exportError}
+                />
+              </ErrorBoundary>
+            </div>
+          )}
+          {view === 'site' && (
+            <div className="flex-1">
+              <ErrorBoundary>
+                <GlbSiteViewer
+                  glbUrl={glbUrl}
+                  site={siteContext}
+                  height="100%"
+                  onExportClick={() => download(activePlan, selectedDesign)}
+                  isExporting={isExporting}
+                  exportError={exportError}
+                />
               </ErrorBoundary>
             </div>
           )}
@@ -107,10 +145,6 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
               <DrawingsPanel activePlan={activePlan} design={selectedDesign} floors={selectedDesign?.floors ?? 1} />
             </ErrorBoundary>
           )}
-        </div>
-        <div className="flex w-56 shrink-0 flex-col gap-2">
-          <BimLegend />
-          <BimInspector element={null} />
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { Globe, MapPin, Layers } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -7,16 +7,22 @@ import { createDefaultSiteContext } from '@/engine/analysis/siteAnalysisEngine'
 import { SiteAnalysisPanel } from '@/components/analysis/SiteAnalysisPanel'
 import { HeliodonView } from '@/components/analysis/HeliodonView'
 import { SixDiagramView } from '@/components/analysis/SixDiagramView'
+import { GlbSiteViewer } from '@/components/bim/GlbSiteViewer'
+import { useGlbExport } from '@/hooks/useGlbExport'
+import type { PlanModel } from '@/domain/plan'
+import type { DesignOption } from '@/domain/boq'
 
 interface SiteAnalysisStageProps {
-  selectedDesign?: unknown
-  activePlan?: unknown
+  selectedDesign?: DesignOption | null
+  activePlan?: PlanModel | null
 }
 
-export function SiteAnalysisStage(_props: SiteAnalysisStageProps) {
+export function SiteAnalysisStage({ selectedDesign, activePlan }: SiteAnalysisStageProps) {
   const { id: projectId } = useParams<{ id: string }>()
   const [siteKey, setSiteKey] = useState(0)
   const [showDiagrams, setShowDiagrams] = useState(false)
+  const [show3d, setShow3d] = useState(false)
+  const { glbUrl, isExporting, error: exportError, generate } = useGlbExport()
 
   const site = useMemo(() => {
     if (!projectId) return null
@@ -28,14 +34,20 @@ export function SiteAnalysisStage(_props: SiteAnalysisStageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, siteKey])
 
-  const handleQuickSetup = () => {
+  useEffect(() => {
+    if (show3d && activePlan && selectedDesign && !glbUrl && !isExporting) {
+      generate(activePlan, selectedDesign)
+    }
+  }, [show3d, activePlan, selectedDesign, glbUrl, isExporting, generate])
+
+  const handleQuickSetup = useCallback(() => {
     if (!projectId) return
     try {
       const defaultSite = createDefaultSiteContext(projectId)
       localStorage.setItem(`site-analysis-${projectId}`, JSON.stringify(defaultSite))
       setSiteKey(k => k + 1)
     } catch { /* ignore */ }
-  }
+  }, [projectId])
 
   if (!site) {
     return (
@@ -70,19 +82,40 @@ export function SiteAnalysisStage(_props: SiteAnalysisStageProps) {
         <SiteAnalysisPanel site={site} />
       </div>
       <div className="flex flex-1 flex-col gap-4">
-        <HeliodonView
-          lat={site.lat}
-          lng={site.lng}
-          buildingFloors={2}
-          className="h-full min-h-[400px]"
-        />
-        <button
-          onClick={() => setShowDiagrams(!showDiagrams)}
-          className="flex items-center gap-2 self-start rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
-        >
-          <Layers size={14} />
-          {showDiagrams ? 'Hide' : 'Show'} Analysis Diagrams
-        </button>
+        {show3d ? (
+          <GlbSiteViewer
+            glbUrl={glbUrl}
+            site={site}
+            height={500}
+            isExporting={isExporting}
+            exportError={exportError}
+          />
+        ) : (
+          <HeliodonView
+            lat={site.lat}
+            lng={site.lng}
+            buildingFloors={2}
+            className="h-full min-h-[400px]"
+          />
+        )}
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShow3d(!show3d)}
+            className="flex items-center gap-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
+          >
+            <Globe size={14} />
+            {show3d ? 'Show 2D Heliodon' : 'Show 3D Site View'}
+          </button>
+          <button
+            onClick={() => setShowDiagrams(!showDiagrams)}
+            className="flex items-center gap-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
+          >
+            <Layers size={14} />
+            {showDiagrams ? 'Hide' : 'Show'} Analysis Diagrams
+          </button>
+        </div>
+
         {showDiagrams && <SixDiagramView diagrams={[]} />}
       </div>
     </div>
