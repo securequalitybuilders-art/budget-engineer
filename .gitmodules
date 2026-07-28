@@ -1,0 +1,4 @@
+[submodule "budget-engineer-canonical"]
+	path = budget-engineer-canonical
+	url = https://github.com/securequalitybuilders-art/budget-engineer.git
+	branch = test/deploy-workflow
