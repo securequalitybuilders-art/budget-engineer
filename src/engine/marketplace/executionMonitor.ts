@@ -7,12 +7,14 @@ export function computeExecutionStatus(data: {
   resources: { role: string; required: number; assigned: number }[];
 }): ExecutionStatus {
   const schedule = data.tasks.map(t => ({
-    taskId: t.id, planned: t.plannedDays, actual: t.actualDays,
+    taskId: t.id, taskName: t.id, planned: t.plannedDays, actual: t.actualDays,
     variance: t.actualDays - t.plannedDays,
+    status: (t.actualDays > t.plannedDays ? 'behind' : t.actualDays === 0 ? 'critical' : 'on_track') as 'ahead' | 'on_track' | 'behind' | 'critical',
   }));
   const budget = data.budgetCategories.map(b => ({
     category: b.category, budgeted: b.budgeted, actual: b.actual,
     variance: b.budgeted - b.actual,
+    percentageUsed: b.budgeted > 0 ? Math.round((b.actual / b.budgeted) * 100) : 0,
   }));
   const quality = data.qualityMetrics.map(q => ({
     metric: q.metric, score: q.score, target: q.target,
@@ -21,6 +23,7 @@ export function computeExecutionStatus(data: {
   const resources = data.resources.map(r => ({
     role: r.role, required: r.required, assigned: r.assigned,
     gap: r.required - r.assigned,
+    utilizationPercent: r.required > 0 ? Math.round((r.assigned / r.required) * 100) : 0,
   }));
   const taskProgress = data.tasks.length > 0
     ? Math.round((data.tasks.filter(t => t.actualDays > 0).length / data.tasks.length) * 100)
@@ -31,7 +34,7 @@ export function computeExecutionStatus(data: {
   const overallProgress = Math.round((taskProgress + budgetProgress) / 2);
 
   const criticalPath = findCriticalPath(data.tasks);
-  return { projectId: '', overallProgress, criticalPath, schedule, budget, quality, resources };
+  return { projectId: '', overallProgress, criticalPath, schedule, budget, quality, resources, risks: [] };
 }
 
 export function findCriticalPath(tasks: { id: string; plannedDays: number; dependencies: string[] }[]): string[] {

@@ -110,7 +110,8 @@ export default function CatalogManager({ providerId }: { providerId: string }) {
     for (const line of lines) {
       const parts = line.split(',').map(s => s.trim().replace(/^"|"$/g, ''));
       if (parts.length < 6) continue;
-      addCatalogItem(providerId, { name: parts[0], category: parts[1] || 'material', subcategory: parts[2] || '', description: parts[3] || '', unit: parts[4], unitPrice: parseFloat(parts[5]) || 0, minOrder: parseInt(parts[6]) || 1, leadTimeDays: parseInt(parts[7]) || 7, stockQuantity: parseInt(parts[8]) || 0, tags: (parts[9] || '').split(';').map((t: string) => t.trim()).filter(Boolean), currency: 'USD', available: true, images: [], specifications: {} });
+      const cat = (parts[1] || 'material') as 'material' | 'equipment' | 'service' | 'labour';
+      addCatalogItem(providerId, { name: parts[0], category: cat, subcategory: parts[2] || '', description: parts[3] || '', unit: parts[4], unitPrice: parseFloat(parts[5]) || 0, minOrder: parseInt(parts[6]) || 1, leadTimeDays: parseInt(parts[7]) || 7, stockQuantity: parseInt(parts[8]) || 0, tags: (parts[9] || '').split(';').map((t: string) => t.trim()).filter(Boolean), currency: 'USD', available: true, images: [], specifications: {} });
     }
     setImportText(''); setShowImport(false);
   };

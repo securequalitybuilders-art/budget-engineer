@@ -122,7 +122,6 @@ export interface ExecutionSyncInput {
 }
 
 export function createEscrowFromExecution(input: ExecutionSyncInput): EscrowAgreement {
-  const status = computeExecutionStatus(input);
   const milestones = input.tasks.map(t => ({
     title: t.title,
     description: `Task: ${t.title} (${t.plannedDays} days planned, ${t.actualDays} actual)`,
@@ -148,9 +147,10 @@ export function autoReleaseCompletedMilestones(escrow: EscrowAgreement, tasks: {
     if (!milestone) continue;
 
     updated = completeMilestone(updated, milestone.id, {
+      type: 'signoff',
+      url: '#auto-verified',
       uploadedBy: 'system',
-      description: `Auto-verified: task "${task.title}" completed in ${task.actualDays} days`,
-      files: [],
+      notes: `Auto-verified: task "${task.title}" completed in ${task.actualDays} days`,
     });
     releases.push(`Completed: "${task.title}"`);
 
