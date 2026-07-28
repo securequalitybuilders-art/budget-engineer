@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Box, LayoutGrid, Boxes } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { DrawingEmptyState } from '@/components/drawings/DrawingEmptyState'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
 import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
@@ -67,11 +68,15 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
       <div className="flex-1 overflow-auto">
         {view === 'bim' && (
           <div className="h-full">
-            <LazyBimModel3D activePlan={activePlan} selectedDesign={selectedDesign} />
+            <ErrorBoundary>
+              <LazyBimModel3D plan={activePlan} design={selectedDesign} />
+            </ErrorBoundary>
           </div>
         )}
         {view === 'drawings' && (
-          <DrawingsPanel activePlan={activePlan} selectedDesign={selectedDesign} />
+          <ErrorBoundary>
+            <DrawingsPanel activePlan={activePlan} design={selectedDesign} floors={selectedDesign?.floors ?? 1} />
+          </ErrorBoundary>
         )}
       </div>
     </div>

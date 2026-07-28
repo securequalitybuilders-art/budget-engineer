@@ -13,14 +13,22 @@ import { segmentsToPlan, detectWallsFromImage } from '@/lib/import/wallDetection
 import { convertPlanModelToCadDocument } from '@/adapters/planModelToCadAdapter'
 import { generateDxf, downloadDxf } from '@/lib/export/dxfWriter'
 import type { PlanModel } from '@/domain/plan'
+import { CirculationWarningsPanel } from '@/components/cad/CirculationWarningsPanel'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import type { DesignOption } from '@/domain/boq'
 import type { BackdropState } from '@/lib/import/backdropUtils'
 import type { ComplianceReport } from '@/engine/compliance/types'
+import type { AnalysisResult } from '@/engine/calculators/analysisAssembly'
 
 interface BackgroundIntel {
   compliance: ComplianceReport | null
   structural: { beams: number; columns: number; footings: number }
   mep: { fixtures: number; points: number; hvacUnits: number }
+  analysis: AnalysisResult | null
+  rooms: { total: number; habitable: number }
+  grossFloorArea: number
+  totalFloors: number
+  costEstimate: number
   loading: boolean
 }
 
@@ -368,16 +376,45 @@ export function DesignStage({
           <span className="mr-2 font-semibold text-[var(--brand-accent)]">Background Intel</span>
           {backgroundIntel.compliance && (
             <span className="mr-3">
-              Compliance: {backgroundIntel.compliance.score}% ({backgroundIntel.compliance.passedRules}✓{' '}
-              {backgroundIntel.compliance.warnings.length > 0 && <span className="text-[#f59e0b]">{backgroundIntel.compliance.warnings.length}⚠ </span>})
+              <span className="text-[var(--text-primary)]">Compliance:</span> {backgroundIntel.compliance.score}% ({backgroundIntel.compliance.passedRules}✓{backgroundIntel.compliance.results.filter(r => r.status === 'warn').length > 0 && <span className="text-[#f59e0b]"> {backgroundIntel.compliance.results.filter(r => r.status === 'warn').length}~</span>}{backgroundIntel.compliance.results.filter(r => r.status === 'fail').length > 0 && <span className="text-red-400"> {backgroundIntel.compliance.results.filter(r => r.status === 'fail').length}✗</span>})
             </span>
           )}
           <span className="mr-3">
-            Structural: {backgroundIntel.structural.beams}B {backgroundIntel.structural.columns}C {backgroundIntel.structural.footings}F
+            <span className="text-[var(--text-primary)]">Rooms:</span> {backgroundIntel.rooms.habitable}/{backgroundIntel.rooms.total}
           </span>
           <span className="mr-3">
-            MEP: {backgroundIntel.mep.fixtures}P {backgroundIntel.mep.points}E {backgroundIntel.mep.hvacUnits}H
+            <span className="text-[var(--text-primary)]">Area:</span> {backgroundIntel.grossFloorArea} m²
           </span>
+          <span className="mr-3">
+            <span className="text-[var(--text-primary)]">Floors:</span> {backgroundIntel.totalFloors}
+          </span>
+          <span className="mr-3">
+            <span className="text-[var(--text-primary)]">Str:</span> {backgroundIntel.structural.beams}B {backgroundIntel.structural.columns}C {backgroundIntel.structural.footings}F
+          </span>
+          <span className="mr-3">
+            <span className="text-[var(--text-primary)]">MEP:</span> {backgroundIntel.mep.fixtures}P {backgroundIntel.mep.points}E {backgroundIntel.mep.hvacUnits}H
+          </span>
+          {backgroundIntel.costEstimate > 0 && (
+            <span className="mr-3">
+              <span className="text-[var(--text-primary)]">Est:</span> ${(backgroundIntel.costEstimate / 100).toLocaleString()}
+            </span>
+          )}
+          {backgroundIntel.analysis?.warnings && backgroundIntel.analysis.warnings.length > 0 && (
+            <span className="text-[#f59e0b]" title={backgroundIntel.analysis.warnings.join('; ')}>
+              {backgroundIntel.analysis.warnings.length}⚠
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Circulation warnings */}
+      {activePlan && activePlan.adjacencyWarnings && activePlan.adjacencyWarnings.length > 0 && (
+        <div className="absolute left-4 right-4 z-10 mt-14">
+          <CirculationWarningsPanel
+            adjacencyWarnings={activePlan.adjacencyWarnings}
+            maxTravelDistance={activePlan.maxTravelDistance}
+            egressCompliant={activePlan.egressCompliant}
+          />
         </div>
       )}
 
@@ -385,7 +422,7 @@ export function DesignStage({
       <div className="flex flex-1 flex-row overflow-hidden">
         <div className="flex flex-1 flex-col overflow-auto p-4 pt-20">
         {canvasView === 'plan' ? (
-          <PlanCanvas
+          <ErrorBoundary><PlanCanvas
             projectId={projectId}
             design={selectedDesign}
             persistedPlan={activePlan}
@@ -400,9 +437,9 @@ export function DesignStage({
             onPlaceBlock={placeBlock}
             onRemoveBlock={removeBlock}
             onRotateBlock={rotateBlock}
-          />
+          /></ErrorBoundary>
         ) : canvasView === 'bim' ? (
-          <>
+          <ErrorBoundary>
             <LazyBimModel3D plan={activePlan} design={selectedDesign} height={480} />
             {activePlan && (
               <p className="mt-2 max-w-md text-[10px] text-stone-400 leading-relaxed">
@@ -411,7 +448,7 @@ export function DesignStage({
                 Model downloadable as .glb for use in Blender, Windows 3D Viewer, and other 3D tools.
               </p>
             )}
-          </>
+          </ErrorBoundary>
         ) : (
           activePlan && (
             <DrawingsPanel

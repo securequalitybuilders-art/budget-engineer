@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import type { BlockCategory, PlacedBlock } from '@/domain/furniture'
 
 let nextId = 1
@@ -17,37 +18,45 @@ export interface FurnitureStore {
   clearAll: () => void
 }
 
-export const useFurnitureStore = create<FurnitureStore>((set) => ({
-  blocks: [],
-  activeDefId: null,
-  activeCategory: 'furniture',
+export const useFurnitureStore = create<FurnitureStore>()(
+  persist(
+    (set) => ({
+      blocks: [],
+      activeDefId: null,
+      activeCategory: 'furniture',
 
-  setActiveCategory: (cat) => set({ activeCategory: cat, activeDefId: null }),
+      setActiveCategory: (cat) => set({ activeCategory: cat, activeDefId: null }),
 
-  setActiveDef: (defId) => set({ activeDefId: defId }),
+      setActiveDef: (defId) => set({ activeDefId: defId }),
 
-  placeBlock: (defId, x, y, rotation = 0, roomId) =>
-    set((s) => ({
-      blocks: [
-        ...s.blocks,
-        { instanceId: uid(), defId, x, y, rotation, roomId, flipped: false },
-      ],
-    })),
+      placeBlock: (defId, x, y, rotation = 0, roomId) =>
+        set((s) => ({
+          blocks: [
+            ...s.blocks,
+            { instanceId: uid(), defId, x, y, rotation, roomId, flipped: false },
+          ],
+        })),
 
-  moveBlock: (instanceId, x, y) =>
-    set((s) => ({
-      blocks: s.blocks.map((b) => (b.instanceId === instanceId ? { ...b, x, y } : b)),
-    })),
+      moveBlock: (instanceId, x, y) =>
+        set((s) => ({
+          blocks: s.blocks.map((b) => (b.instanceId === instanceId ? { ...b, x, y } : b)),
+        })),
 
-  rotateBlock: (instanceId) =>
-    set((s) => ({
-      blocks: s.blocks.map((b) =>
-        b.instanceId === instanceId ? { ...b, rotation: (b.rotation + 90) % 360 } : b,
-      ),
-    })),
+      rotateBlock: (instanceId) =>
+        set((s) => ({
+          blocks: s.blocks.map((b) =>
+            b.instanceId === instanceId ? { ...b, rotation: (b.rotation + 90) % 360 } : b,
+          ),
+        })),
 
-  removeBlock: (instanceId) =>
-    set((s) => ({ blocks: s.blocks.filter((b) => b.instanceId !== instanceId) })),
+      removeBlock: (instanceId) =>
+        set((s) => ({ blocks: s.blocks.filter((b) => b.instanceId !== instanceId) })),
 
-  clearAll: () => set({ blocks: [] }),
-}))
+      clearAll: () => set({ blocks: [] }),
+    }),
+    {
+      name: 'budget-engineer-furniture',
+      storage: createJSONStorage(() => localStorage),
+    },
+  ),
+)

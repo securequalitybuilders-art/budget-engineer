@@ -58,6 +58,7 @@ import { computeStructuralPreDesign } from '@/engine/structural/structuralPreDes
 import { computeMepPreDesign } from '@/engine/mep/mepPreDesignEngine';
 import { planModelToBuildingGraph } from '@/adapters/canonical';
 import type { ComplianceReport } from '@/engine/compliance/types';
+import { assembleAnalysis, type AnalysisResult } from '@/engine/calculators/analysisAssembly';
 
 export function Dashboard() {
   const { id } = useParams<{ id: string }>();
@@ -65,6 +66,7 @@ export function Dashboard() {
   const { activeStageId, setActiveStage, activeView, setActiveView, journeyGuideOpen, toggleJourneyGuide, selectedDesignId, setSelectedDesignId, hasSeenTour, setHasSeenTour } = useUIStore();
   const currentDiscipline = useDisciplineStore((s) => s.currentDiscipline);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStatus, setGenerationStatus] = useState<string | null>(null);
   const [tourOpen, setTourOpen] = useState(false);
   const [importWorkflowOpen, setImportWorkflowOpen] = useState(false);
 
@@ -100,8 +102,23 @@ export function Dashboard() {
     compliance: ComplianceReport | null
     structural: { beams: number; columns: number; footings: number }
     mep: { fixtures: number; points: number; hvacUnits: number }
+    analysis: AnalysisResult | null
+    rooms: { total: number; habitable: number }
+    grossFloorArea: number
+    totalFloors: number
+    costEstimate: number
     loading: boolean
-  }>({ compliance: null, structural: { beams: 0, columns: 0, footings: 0 }, mep: { fixtures: 0, points: 0, hvacUnits: 0 }, loading: false })
+  }>({
+    compliance: null,
+    structural: { beams: 0, columns: 0, footings: 0 },
+    mep: { fixtures: 0, points: 0, hvacUnits: 0 },
+    analysis: null,
+    rooms: { total: 0, habitable: 0 },
+    grossFloorArea: 0,
+    totalFloors: 1,
+    costEstimate: 0,
+    loading: false,
+  })
   const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadedPersistenceRef = useRef(false);
   const loadedCadRef = useRef<string | null>(null);
@@ -183,23 +200,30 @@ export function Dashboard() {
     return buildBoqFromDesignOption(selectedDesign)
   }, [selectedDesign, persistedPlan, cadSyncSource, id])
 
-  // ── Background Intelligence: compliance + structural + MEP ──
+  // ── Background Intelligence: compliance + structural + MEP + analysis ──
   useEffect(() => {
     if (!activePlan || !selectedDesign) {
-      setBackgroundIntel({ compliance: null, structural: { beams: 0, columns: 0, footings: 0 }, mep: { fixtures: 0, points: 0, hvacUnits: 0 }, loading: false })
+      setBackgroundIntel({ compliance: null, structural: { beams: 0, columns: 0, footings: 0 }, mep: { fixtures: 0, points: 0, hvacUnits: 0 }, analysis: null, rooms: { total: 0, habitable: 0 }, grossFloorArea: 0, totalFloors: 1, costEstimate: 0, loading: false })
       return
     }
     setBackgroundIntel(prev => ({ ...prev, loading: true }))
     const run = async () => {
       try {
         const graph = planModelToBuildingGraph(activePlan).graph
-        const compliance = runCompliance(currentProject?.region ?? 'zimbabwe', { plan: activePlan, design: selectedDesign, analysis: null, buildingType: latestBuildingType ?? 'residential' })
+        const analysis = assembleAnalysis({ plan: activePlan, design: selectedDesign, boq: currentBoq, buildingType: latestBuildingType ?? 'residential' })
+        const compliance = runCompliance(currentProject?.region ?? 'zimbabwe', { plan: activePlan, design: selectedDesign, analysis, buildingType: latestBuildingType ?? 'residential' })
         const structural = computeStructuralPreDesign(graph)
         const mep = computeMepPreDesign(graph)
+        const habitableCount = activePlan.rooms.filter(r => !['hallway', 'landing', 'foyer', 'entry', 'circulation', 'storage', 'pantry', 'laundry', 'balcony', 'porch', 'garage'].includes(r.name.toLowerCase())).length
         setBackgroundIntel({
           compliance,
           structural: { beams: structural.beams.length, columns: structural.columns.length, footings: structural.footings.length },
           mep: { fixtures: mep.plumbing.fixtures.length, points: mep.electrical.points.length, hvacUnits: mep.hvac.units.length },
+          analysis,
+          rooms: { total: activePlan.rooms.length, habitable: habitableCount },
+          grossFloorArea: selectedDesign.grossFloorArea,
+          totalFloors: selectedDesign.floors,
+          costEstimate: analysis.cost.grandTotal,
           loading: false,
         })
       } catch {
@@ -207,7 +231,7 @@ export function Dashboard() {
       }
     }
     run()
-  }, [activePlan, selectedDesign, currentProject?.region, latestBuildingType])
+  }, [activePlan, selectedDesign, currentBoq, currentProject?.region, latestBuildingType])
 
   const loadAssurance = useAssuranceStore((s) => s.loadForProject);
   const loadMilestones = useMilestoneStore((s) => s.loadForProject);
@@ -264,13 +288,18 @@ export function Dashboard() {
     });
   }, [id, selectedDesign?.id]);
 
-  // ── CAD Persistence: auto-save PlanModel on edit commit ──
+  // ── CAD Persistence: auto-save PlanModel on edit commit (debounced) ──
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const handleSavePlan = useCallback(
     async (projectId: string, designId: string, plan: PlanModel) => {
       setPersistedPlan(plan);
-      await savePlanModel(projectId, designId, plan);
-      setCadSyncSource('persisted-cad');
-      logTransaction(projectId, 'UPDATE', 'design', designId, 'CAD plan saved');
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+      saveTimerRef.current = setTimeout(async () => {
+        await savePlanModel(projectId, designId, plan);
+        setCadSyncSource('persisted-cad');
+        logTransaction(projectId, 'UPDATE', 'design', designId, 'CAD plan saved');
+        saveTimerRef.current = null
+      }, 500);
     },
     [],
   );
@@ -475,24 +504,29 @@ export function Dashboard() {
   const handleGenerate = async () => {
     if (!id) return;
     setIsGenerating(true);
+    setGenerationStatus('Analyzing brief...');
     try {
       await generateDesigns(id);
-      // Run Tier 3 on the generated brief to produce topology-labeled options
       const brief = (await import('@/stores/projectStore')).useProjectStore.getState().currentBrief
       if (brief?.rawText) {
         try {
+          setGenerationStatus('Parsing design requirements...');
           const { parseBrief } = await import('@/engine/parseBrief')
           const parsed = parseBrief(brief.rawText, { buildingType: selectedBuildingType })
+          setGenerationStatus('Generating design concept...');
           const { generateDesignConcept } = await import('@/engine/tier2/conceptEngine')
           const concept = generateDesignConcept(parsed)
           const siteContext = loadSiteContext(id)
           const constraints = composeDesignConstraints(siteContext, {
             maxStructuralSpan: parsed.typology?.maxStructuralSpan,
           })
+          setGenerationStatus('Computing layout parameters...');
           const { generateLayoutParameters, generateFloorPlans } = await import('@/engine/tier3/layoutEngine')
           const params = generateLayoutParameters(concept, parsed, constraints)
+          setGenerationStatus('Generating floor plans...');
           const plans = generateFloorPlans(params, parsed)
           if (plans.length > 0) {
+            setGenerationStatus('Finalizing design options...');
             setTier3Plans(plans)
             setAiDesignOptions((prev) => {
               const updated = prev.map((opt, i) => ({
@@ -520,6 +554,7 @@ export function Dashboard() {
       }
     } finally {
       setIsGenerating(false);
+      setGenerationStatus(null);
     }
   };
 
@@ -681,7 +716,7 @@ export function Dashboard() {
 
           {/* Main content area */}
           <div className="relative flex flex-1 flex-col overflow-hidden bg-[var(--bg-primary)]">
-            {(['brief', 'concept', 'design', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'] as StageId[]).includes(activeView as StageId) ? (
+            {(['brief', 'concept', 'site-analysis', 'design', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'] as StageId[]).includes(activeView as StageId) ? (
               <>
                 {activeStageId === 'brief' && (
                   <BriefStage
@@ -705,6 +740,7 @@ export function Dashboard() {
                     selectedDesign={selectedDesign}
                     handleGenerate={handleGenerate}
                     isGenerating={isGenerating}
+                    generationStatus={generationStatus}
                     onDxfImported={handleDxfImport}
                     onImportFile={handleImportFile}
                     activePlan={activePlan}

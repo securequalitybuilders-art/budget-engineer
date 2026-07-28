@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Globe } from 'lucide-react'
+import { Globe, MapPin } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { loadSiteContext } from '@/lib/site/siteContextReader'
+import { createDefaultSiteContext } from '@/engine/analysis/siteAnalysisEngine'
 import { SiteAnalysisPanel } from '@/components/analysis/SiteAnalysisPanel'
 import { HeliodonView } from '@/components/analysis/HeliodonView'
 
@@ -11,8 +12,9 @@ interface SiteAnalysisStageProps {
   activePlan?: unknown
 }
 
-export function SiteAnalysisStage({ selectedDesign, activePlan }: SiteAnalysisStageProps) {
+export function SiteAnalysisStage(_props: SiteAnalysisStageProps) {
   const { id: projectId } = useParams<{ id: string }>()
+  const [siteKey, setSiteKey] = useState(0)
 
   const site = useMemo(() => {
     if (!projectId) return null
@@ -21,7 +23,17 @@ export function SiteAnalysisStage({ selectedDesign, activePlan }: SiteAnalysisSt
     } catch {
       return null
     }
-  }, [projectId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, siteKey])
+
+  const handleQuickSetup = () => {
+    if (!projectId) return
+    try {
+      const defaultSite = createDefaultSiteContext(projectId)
+      localStorage.setItem(`site-analysis-${projectId}`, JSON.stringify(defaultSite))
+      setSiteKey(k => k + 1)
+    } catch { /* ignore */ }
+  }
 
   if (!site) {
     return (
@@ -36,8 +48,15 @@ export function SiteAnalysisStage({ selectedDesign, activePlan }: SiteAnalysisSt
           </div>
           <h2 className="font-display text-2xl font-bold text-[var(--text-primary)]">Site Analysis</h2>
           <p className="mt-2 max-w-md text-sm text-[var(--text-secondary)]">
-            No site data available. Define site parameters in the Brief stage first.
+            No site data available. Define site parameters in the Brief stage first, or use Quick Setup.
           </p>
+          <button
+            onClick={handleQuickSetup}
+            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[var(--brand-accent)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90"
+          >
+            <MapPin size={16} />
+            Quick Setup (Default Site)
+          </button>
         </motion.div>
       </div>
     )
