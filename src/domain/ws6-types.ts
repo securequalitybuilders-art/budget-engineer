@@ -95,7 +95,8 @@ export type RoomProgramme =
   | 'Void' | 'Circulation' | 'Lounge' | 'Family Room' | 'Games Room'
   | 'Home Office' | 'Dressing Room' | 'Walk-in Wardrobe' | 'Mud Room'
   | 'Porch' | 'Conservatory' | 'Sun Room' | 'Cellar' | 'Basement'
-  | 'Warehouse' | 'Workshop' | 'Apartment' | 'Office';
+  | 'Warehouse' | 'Workshop' | 'Apartment' | 'Office'
+  | 'Lounge / Dining' | 'Living / Kitchen / Dining';
 
 export const CANONICAL_ROOM_NAMES: RoomProgramme[] = [
   'Living Room', 'Kitchen', 'Dining Room', 'Bedroom 1', 'Bedroom 2',
@@ -108,6 +109,7 @@ export const CANONICAL_ROOM_NAMES: RoomProgramme[] = [
   'Home Office', 'Dressing Room', 'Walk-in Wardrobe', 'Mud Room',
   'Porch', 'Conservatory', 'Sun Room', 'Cellar', 'Basement',
   'Warehouse', 'Workshop', 'Apartment', 'Office',
+  'Lounge / Dining', 'Living / Kitchen / Dining',
 ];
 
 export function isCanonicalRoomName(name: string): boolean {

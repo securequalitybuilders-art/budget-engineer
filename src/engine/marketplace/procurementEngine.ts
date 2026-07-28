@@ -1,5 +1,5 @@
-import { CatalogItem, ProcurementOrder, ProcurementLineItem, RFQ, RFQLineItem } from '../../domain/marketplace';
-import type { BOQ, BOQLineItem } from '../../lib/boq/boq-types';
+import { CatalogItem, ProcurementOrder, ProcurementLineItem, RFQ } from '../../domain/marketplace';
+import type { BOQ } from '../../lib/boq/boq-types';
 
 export interface MatchCriteria {
   items: { catalogItemId: string; quantity: number; maxUnitPrice?: number; preferredDeliveryDate?: string; required?: boolean }[];
@@ -156,7 +156,7 @@ export function getOrderTimeline(order: ProcurementOrder): { status: string; dat
   return timeline;
 }
 
-export function boqToProcurementItems(boq: BOQ, providerId: string): { catalogItemId: string; name: string; quantity: number; unit: string; unitPrice: number }[] {
+export function boqToProcurementItems(boq: BOQ, _providerId: string): { catalogItemId: string; name: string; quantity: number; unit: string; unitPrice: number }[] {
   return boq.items.map(item => ({
     catalogItemId: item.id,
     name: item.description,

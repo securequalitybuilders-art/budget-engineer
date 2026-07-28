@@ -1,5 +1,4 @@
 import { EscrowAgreement, EscrowMilestone, EscrowStatus, VerificationProof } from '../../domain/marketplace';
-import { computeExecutionStatus } from './executionMonitor';
 
 export function createEscrow(params: {
   projectId: string; providerId: string; clientId: string; contractReference?: string;

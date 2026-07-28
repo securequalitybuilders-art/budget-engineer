@@ -59,7 +59,7 @@ export function buildScheduleSvg(
         const floor = cad?.floors.find((f) => f.id === d.floorId);
         const floorName = floor ? floor.name : 'Unknown';
         
-        const specCode = d.metadata?.code as string | undefined;
+        const specCode = (d.metadata as unknown as Record<string, unknown> | undefined)?.code as string | undefined;
         let spec = specCode ? findDoorByCode(specCode) : undefined;
         if (!spec) {
           spec = findClosestDoor(d.width * 1000);
@@ -104,7 +104,7 @@ export function buildScheduleSvg(
       for (const w_ of windows) {
         const floor = cad?.floors.find((f) => f.id === w_.floorId);
         
-        const specCode = w_.metadata?.code as string | undefined;
+        const specCode = (w_.metadata as unknown as Record<string, unknown> | undefined)?.code as string | undefined;
         let spec = specCode ? findWindowByCode(specCode) : undefined;
         if (!spec) {
           spec = findClosestWindow(w_.width * 1000);

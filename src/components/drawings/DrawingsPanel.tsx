@@ -416,14 +416,20 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
       {activeTab === 'package' && (
         <PackageSummaryPanel
           assembly={assemblePackage({
-            projectId: projectId ?? 'unknown',
-            packageTitle: design?.name ?? 'Drawing Package',
-            buildingType: 'residential',
-            totalSheets: 1,
-            disciplines: ['ARCH'],
-            issueType: 'for-approval',
-            submissionCategory: 'planning',
-            sheets: [],
+            projectName: design?.name ?? 'Drawing Package',
+            projectNumber: projectId ?? 'N/A',
+            identity: {
+              packageId: `PKG-${projectId ?? '000'}-001`,
+              packageTitle: design?.name ?? 'Drawing Package',
+              issueType: 'for-construction' as const,
+              submissionCategory: 'construction' as const,
+              packageDiscipline: 'architectural' as const,
+              issueNumber: '01',
+              revision: 'A',
+            },
+            register: registerSheets,
+            allScheduleRefs: [],
+            issueDate: new Date().toISOString().slice(0, 10),
           })}
         />
       )}

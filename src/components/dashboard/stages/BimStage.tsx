@@ -8,7 +8,6 @@ import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
 import { Button } from '@/components/ui/Button'
 import { Box, LayoutGrid, Boxes, Eye } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { DrawingEmptyState } from '@/components/drawings/DrawingEmptyState'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
@@ -62,21 +61,21 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 border-b border-[var(--border-default)] px-4 py-2">
         <Button
-          variant={view === 'model' ? 'primary' : 'ghost'}
+          variant={view === 'model' ? 'brand' : 'ghost'}
           size="sm"
           onClick={() => setView('model')}
         >
           <Boxes size={14} className="mr-1" /> 3D Model
         </Button>
         <Button
-          variant={view === 'viewer' ? 'primary' : 'ghost'}
+          variant={view === 'viewer' ? 'brand' : 'ghost'}
           size="sm"
           onClick={() => setView('viewer')}
         >
           <Eye size={14} className="mr-1" /> Viewer
         </Button>
         <Button
-          variant={view === 'drawings' ? 'primary' : 'ghost'}
+          variant={view === 'drawings' ? 'brand' : 'ghost'}
           size="sm"
           onClick={() => setView('drawings')}
         >
