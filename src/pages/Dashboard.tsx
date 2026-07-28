@@ -27,6 +27,7 @@ import { FinishesStage } from '@/components/dashboard/stages/FinishesStage';
 import { AppliancesStage } from '@/components/dashboard/stages/AppliancesStage';
 import { CostDeliverStage } from '@/components/dashboard/stages/CostDeliverStage';
 import { BudgetEngineeredStage } from '@/components/dashboard/stages/BudgetEngineeredStage';
+import { EngineeringStage } from '@/components/dashboard/stages/EngineeringStage';
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
 import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
@@ -716,7 +717,7 @@ export function Dashboard() {
 
           {/* Main content area */}
           <div className="relative flex flex-1 flex-col overflow-hidden bg-[var(--bg-primary)]">
-            {(['brief', 'concept', 'site-analysis', 'design', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'] as StageId[]).includes(activeView as StageId) ? (
+            {(['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'] as StageId[]).includes(activeView as StageId) ? (
               <>
                 {activeStageId === 'brief' && (
                   <BriefStage
@@ -777,6 +778,17 @@ export function Dashboard() {
                   <SiteAnalysisStage
                     activePlan={activePlan}
                     selectedDesign={selectedDesign}
+                  />
+                )}
+                {activeStageId === 'engineering' && (
+                  <EngineeringStage
+                    selectedDesign={selectedDesign}
+                    activePlan={activePlan}
+                    boq={currentBoq}
+                    onDesignOptionsGenerated={handleAiDesignOptions}
+                    onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
+                    onTier3Plans={handleTier3Plans}
+                    onBuildingTypeChange={setSelectedBuildingType}
                   />
                 )}
                 {activeStageId === 'bim' && (

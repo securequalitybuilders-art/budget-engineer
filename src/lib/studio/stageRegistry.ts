@@ -12,6 +12,7 @@ import {
   DollarSign,
   FileSpreadsheet,
   Globe,
+  Activity,
 } from 'lucide-react';
 import type { DisciplineId } from '@/lib/studio/discipline';
 
@@ -20,6 +21,7 @@ export type StageId =
   | 'concept'
   | 'site-analysis'
   | 'design'
+  | 'engineering'
   | 'bim'
   | 'rough-in'
   | 'substrates'
@@ -65,6 +67,13 @@ export const ALL_STAGES: StageDef[] = [
     shortLabel: 'Design',
     description: 'View all architectural elevations and edit 2D plans. Site analysis integrated.',
     icon: PenTool,
+  },
+  {
+    id: 'engineering',
+    label: 'Engineering & Compliance',
+    shortLabel: 'Engineer',
+    description: 'Structural, MEP, code review, and compliance sign-off.',
+    icon: Activity,
   },
   {
     id: 'bim',
@@ -143,14 +152,14 @@ export function getDefaultStage(discipline: DisciplineId): StageId {
 }
 
 const STAGE_ORDER: Record<DisciplineId, StageId[]> = {
-  ARCH: ['brief', 'concept', 'site-analysis', 'design', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'],
-  STR: ['brief', 'concept', 'design', 'bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
-  MEP: ['brief', 'design', 'bim', 'rough-in', 'budget', 'budget-engineered'],
-  ELEC: ['brief', 'design', 'bim', 'rough-in', 'budget', 'budget-engineered'],
-  PLUM: ['brief', 'design', 'bim', 'rough-in', 'budget', 'budget-engineered'],
-  INT: ['brief', 'concept', 'design', 'bim', 'rough-in', 'millwork', 'finishes', 'budget', 'budget-engineered'],
-  LAND: ['brief', 'concept', 'site-analysis', 'design', 'bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
-  CIVIL: ['brief', 'concept', 'site-analysis', 'design', 'bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
+  ARCH: ['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'],
+  STR: ['brief', 'concept', 'design', 'engineering', 'bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
+  MEP: ['brief', 'design', 'engineering', 'bim', 'rough-in', 'budget', 'budget-engineered'],
+  ELEC: ['brief', 'design', 'engineering', 'bim', 'rough-in', 'budget', 'budget-engineered'],
+  PLUM: ['brief', 'design', 'engineering', 'bim', 'rough-in', 'budget', 'budget-engineered'],
+  INT: ['brief', 'concept', 'design', 'engineering', 'bim', 'rough-in', 'millwork', 'finishes', 'budget', 'budget-engineered'],
+  LAND: ['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
+  CIVIL: ['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
 };
 
 export function isStageInDiscipline(stage: StageId, discipline: DisciplineId): boolean {
