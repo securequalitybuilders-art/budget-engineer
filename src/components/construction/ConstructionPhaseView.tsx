@@ -77,7 +77,7 @@ export function ConstructionPhaseView({ phase }: ConstructionPhaseViewProps) {
             >
               {w.status === 'completed' ? <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-green-400" /> :
                w.status === 'in-progress' ? <Clock size={16} className="mt-0.5 shrink-0 text-amber-400" /> :
-               <Circle size={16} className="mt-0.5 shrink-0 text-stone-500" />}
+               <Circle size={16} className="mt-0.5 shrink-0 text-stone-400" />}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className={`text-xs font-medium ${w.status === 'completed' ? 'text-green-300 line-through' : 'text-[var(--text-primary)]'}`}>{w.label}</span>

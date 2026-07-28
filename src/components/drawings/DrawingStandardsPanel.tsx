@@ -101,11 +101,11 @@ function LayerStandardSection() {
           <div key={layer.code} className="flex items-center justify-between rounded px-2 py-1 text-[11px] text-stone-400 hover:bg-stone-800/50">
             <span className="font-mono text-stone-300">{layer.code}</span>
             <span className="flex-1 px-2">{layer.name}</span>
-            <span className="text-[10px] text-stone-500" title={layer.description}>{layer.description.slice(0, 40)}</span>
+            <span className="text-[10px] text-stone-400" title={layer.description}>{layer.description.slice(0, 40)}</span>
           </div>
         ))}
       </div>
-      <p className="mt-2 text-[10px] text-stone-500">{filtered.length} layers</p>
+      <p className="mt-2 text-[10px] text-stone-400">{filtered.length} layers</p>
     </div>
   )
 }
@@ -121,7 +121,7 @@ function LineweightSection() {
           <div key={key} className="flex items-center gap-3 rounded px-2 py-1 text-[11px] text-stone-400 hover:bg-stone-800/50">
             <div className="h-0 w-12" style={{ borderTop: `${val}px solid #94a3b8` }} />
             <span className="w-20 font-mono text-stone-300">{key}</span>
-            <span className="text-stone-500">{val} mm</span>
+            <span className="text-stone-400">{val} mm</span>
           </div>
         ))}
       </div>

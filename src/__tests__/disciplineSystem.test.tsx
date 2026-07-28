@@ -82,8 +82,8 @@ describe('discipline.ts', () => {
 // ── stageRegistry.ts ──
 
 describe('stageRegistry.ts', () => {
-  it('defines 12 stages', () => {
-    expect(ALL_STAGES.length).toBe(12)
+  it('defines 14 stages', () => {
+    expect(ALL_STAGES.length).toBe(14)
   })
 
   it('each StageDef has an id, label, shortLabel, description, icon', () => {
@@ -106,14 +106,14 @@ describe('stageRegistry.ts', () => {
   })
 
   it('getStagesForDiscipline returns discipline-specific stages', () => {
-    expect(getStagesForDiscipline('ARCH').length).toBe(12)
-    expect(getStagesForDiscipline('STR').length).toBe(8)
-    expect(getStagesForDiscipline('MEP').length).toBe(6)
-    expect(getStagesForDiscipline('ELEC').length).toBe(6)
-    expect(getStagesForDiscipline('PLUM').length).toBe(6)
-    expect(getStagesForDiscipline('INT').length).toBe(9)
-    expect(getStagesForDiscipline('LAND').length).toBe(9)
-    expect(getStagesForDiscipline('CIVIL').length).toBe(9)
+    expect(getStagesForDiscipline('ARCH').length).toBe(14)
+    expect(getStagesForDiscipline('STR').length).toBe(10)
+    expect(getStagesForDiscipline('MEP').length).toBe(8)
+    expect(getStagesForDiscipline('ELEC').length).toBe(8)
+    expect(getStagesForDiscipline('PLUM').length).toBe(8)
+    expect(getStagesForDiscipline('INT').length).toBe(11)
+    expect(getStagesForDiscipline('LAND').length).toBe(11)
+    expect(getStagesForDiscipline('CIVIL').length).toBe(11)
   })
 
   it('ARCH and INT have correct first stages', () => {
@@ -123,7 +123,7 @@ describe('stageRegistry.ts', () => {
 
   it('getStageIdsForDiscipline returns stage IDs', () => {
     const ids = getStageIdsForDiscipline('ARCH')
-    expect(ids).toEqual(['brief', 'concept', 'site-analysis', 'design', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'])
+    expect(ids).toEqual(['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'])
   })
 
   it('getDefaultStage returns the first stage', () => {

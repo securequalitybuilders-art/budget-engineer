@@ -229,7 +229,7 @@ export function UnifiedComponentPanel({ onClose }: UnifiedComponentPanelProps) {
               >
                 <span className="text-[11px] font-medium text-stone-800">{tpl.name}</span>
                 <span className="text-[10px] text-stone-400">{tpl.defaultWidth/1000}×{tpl.defaultDepth/1000}m · {tpl.roomType}</span>
-                <span className="text-[9px] text-stone-500 line-clamp-1">{tpl.description}</span>
+                <span className="text-[9px] text-stone-400 line-clamp-1">{tpl.description}</span>
                 <span className="text-[9px] text-stone-400">Materials: {tpl.suggestedMaterials.wall}, {tpl.suggestedMaterials.floor}</span>
               </div>
             ))}

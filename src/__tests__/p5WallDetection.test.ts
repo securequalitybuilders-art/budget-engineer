@@ -3,7 +3,6 @@ import {
   mergeOverlappingSegments,
   mergeCollinearSegments,
   snapToAxis,
-  pixelsToMetresSegment,
   segmentsToPlan,
   computeConfidence,
 } from '@/lib/import/wallDetection';

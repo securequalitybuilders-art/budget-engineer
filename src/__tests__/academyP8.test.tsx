@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { render } from '@testing-library/react'
 import { QuizViewer } from '@/components/academy/QuizViewer'
 import { LessonNavigator } from '@/components/academy/LessonNavigator'
@@ -213,8 +213,8 @@ describe('Quiz Data Integrity', () => {
   })
 
   it('all quiz questions have valid structure', () => {
-    for (const [lessonId, questions] of Object.entries(QUIZ_DATA)) {
-      questions.forEach((q, i) => {
+    for (const [, questions] of Object.entries(QUIZ_DATA)) {
+      questions.forEach((q) => {
         expect(q.id).toBeTruthy()
         expect(q.question).toBeTruthy()
         expect(q.options.length).toBeGreaterThanOrEqual(2)
