@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useProviderStore } from '../../stores/providerStore';
 import type { ServiceOffering } from '../../domain/marketplace';
 import ProviderRegistration from './ProviderRegistration';
@@ -148,10 +148,13 @@ export default function ProviderDashboard() {
   const [showActivity, setShowActivity] = useState(false);
   const provider = providers.find(p => p.id === selectedProviderId);
 
-  const filteredProviders = useMemo(() => {
+  useEffect(() => {
     setFilters({ search: searchQuery || undefined });
+  }, [searchQuery, setFilters]);
+
+  const filteredProviders = useMemo(() => {
     return getFilteredProviders();
-  }, [providers, searchQuery, filters]);
+  }, [providers, filters]);
 
   const activityFeed = useMemo(() => provider ? generateActivityFeed(provider.id, provider.name) : [], [provider]);
   const notifications = useMemo(() => provider ? generateNotifications(provider.id) : [], [provider]);
