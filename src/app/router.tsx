@@ -31,6 +31,7 @@ const DeliveryStudio = lazy(() => import('@/pages/studio/DeliveryStudio').then((
 const HandoverStudio = lazy(() => import('@/pages/studio/HandoverStudio').then((m) => ({ default: m.HandoverStudio })));
 const ProcurementStudio = lazy(() => import('@/pages/studio/ProcurementStudio').then((m) => ({ default: m.ProcurementStudio })));
 const ProjectControlsStudio = lazy(() => import('@/pages/studio/ProjectControlsStudio').then((m) => ({ default: m.ProjectControlsStudio })));
+const MarketplaceStudio = lazy(() => import('@/components/marketplace/ProviderDashboard'));
 const PilotReviewPage = lazy(() => import('@/pages/pilot/PilotReviewPage').then((m) => ({ default: m.PilotReviewPage })));
 const Showcase = lazy(() => import('@/pages/Showcase').then((m) => ({ default: m.Showcase })));
 const ClientPortal = lazy(() => import('@/pages/ClientPortal'));
@@ -153,6 +154,10 @@ const router = createBrowserRouter([
       {
         path: '/project/:id/studio/procurement',
         element: <SafeRoute><ProcurementStudio /></SafeRoute>,
+      },
+      {
+        path: '/project/:id/studio/marketplace',
+        element: <SafeRoute><MarketplaceStudio /></SafeRoute>,
       },
       {
         path: '/project/:id/studio/project-controls',
