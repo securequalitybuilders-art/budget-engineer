@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ApprovalInbox, { ApprovalRequest } from './ApprovalInbox';
-import BuildingPassport from './BuildingPassport';
+import BuildingPassport from '../components/portal/BuildingPassport';
 import { LogOut, Home, Inbox, FileCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
