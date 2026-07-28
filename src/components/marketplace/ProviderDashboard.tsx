@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useProviderStore } from '../../stores/providerStore';
+import type { ServiceOffering } from '../../domain/marketplace';
 import ProviderRegistration from './ProviderRegistration';
 import CatalogManager from './CatalogManager';
 import CredentialManager from './CredentialManager';
-import { Building2, Package, Shield, BarChart3, Settings, Plus, Users, Star, MapPin, ChevronRight, Briefcase, TrendingUp, Clock, Filter, Search, CheckCircle2, XCircle, AlertTriangle, Award, Bell, Activity, AlertOctagon, RefreshCw, Wallet, Truck, FileText, Eye, Info, ArrowUpDown } from 'lucide-react';
+import { Building2, Package, Shield, BarChart3, Settings, Plus, Users, Star, MapPin, ChevronRight, Briefcase, TrendingUp, Clock, Filter, Search, CheckCircle2, XCircle, AlertTriangle, Award, Bell, Activity, AlertOctagon, RefreshCw, Wallet, Truck, FileText, Eye, Info, ArrowUpDown, Calendar } from 'lucide-react';
 
 type Tab = 'overview' | 'catalog' | 'credentials' | 'services' | 'portfolio' | 'analytics' | 'settings';
 
@@ -23,6 +24,119 @@ function generateNotifications(providerId: string): { id: string; type: 'warning
     { id: `${providerId}-notif-2`, type: 'warning', message: '2 catalog items out of stock', action: 'Restock' },
     { id: `${providerId}-notif-3`, type: 'info', message: 'Provider verification pending', action: 'Resubmit' },
   ];
+}
+
+function ServicesTab({ providerId }: { providerId: string }) {
+  const provider = useProviderStore(s => s.providers.find(p => p.id === providerId));
+  const [showForm, setShowForm] = useState(false);
+  const [svc, setSvc] = useState({ name: '', description: '', category: '', pricingModel: 'fixed' as ServiceOffering['pricingModel'], price: 0, currency: 'USD', serviceArea: '', availability: 'Mon-Fri 08:00-17:00' });
+  if (!provider) return null;
+  const addSvc = () => {
+    if (!svc.name || !svc.category) return;
+    useProviderStore.getState().addService(provider.id, {
+      name: svc.name, description: svc.description, category: svc.category,
+      pricingModel: svc.pricingModel, price: svc.price, currency: svc.currency,
+      serviceArea: svc.serviceArea.split(',').map(s => s.trim()),
+      availability: { days: ['Mon','Tue','Wed','Thu','Fri'], hours: svc.availability },
+    });
+    setSvc({ name: '', description: '', category: '', pricingModel: 'fixed', price: 0, currency: 'USD', serviceArea: '', availability: 'Mon-Fri 08:00-17:00' });
+    setShowForm(false);
+  };
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between"><h3 className="text-sm font-semibold text-stone-300 flex items-center gap-2"><Briefcase size={16} className="text-cyan-400" /> Service Offerings</h3><button onClick={() => setShowForm(!showForm)} className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-sm font-medium transition-colors"><Plus size={16} /> {showForm ? 'Cancel' : 'Add Service'}</button></div>
+      {showForm && (
+        <div className="bg-stone-950 border border-stone-800 rounded-xl p-5 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2"><label className="text-xs text-stone-400">Service Name *</label><input value={svc.name} onChange={e => setSvc(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Structural Engineering Design" className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none" /></div>
+            <div className="col-span-2"><label className="text-xs text-stone-400">Description</label><textarea value={svc.description} onChange={e => setSvc(f => ({ ...f, description: e.target.value }))} rows={2} className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none resize-none" placeholder="Describe the service offering..." /></div>
+            <div><label className="text-xs text-stone-400">Category *</label><input value={svc.category} onChange={e => setSvc(f => ({ ...f, category: e.target.value }))} placeholder="e.g. Structural, MEP, Civil" className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none" /></div>
+            <div><label className="text-xs text-stone-400">Pricing Model</label><select value={svc.pricingModel} onChange={e => setSvc(f => ({ ...f, pricingModel: e.target.value as ServiceOffering['pricingModel'] }))} className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none">{['fixed','hourly','per_unit','milestone','cost_plus'].map(m => <option key={m} value={m}>{m.replace('_',' ')}</option>)}</select></div>
+            <div><label className="text-xs text-stone-400">Price</label><input value={svc.price || ''} onChange={e => setSvc(f => ({ ...f, price: Number(e.target.value) }))} type="number" min={0} className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none" /></div>
+            <div><label className="text-xs text-stone-400">Currency</label><select value={svc.currency} onChange={e => setSvc(f => ({ ...f, currency: e.target.value }))} className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none"><option value="USD">USD</option><option value="ZWL">ZWL</option><option value="ZAR">ZAR</option></select></div>
+            <div><label className="text-xs text-stone-400">Service Area (comma-separated)</label><input value={svc.serviceArea} onChange={e => setSvc(f => ({ ...f, serviceArea: e.target.value }))} placeholder="e.g. Harare, Bulawayo, Mutare" className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none" /></div>
+            <div><label className="text-xs text-stone-400">Availability</label><input value={svc.availability} onChange={e => setSvc(f => ({ ...f, availability: e.target.value }))} placeholder="e.g. Mon-Fri 08:00-17:00" className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none" /></div>
+          </div>
+          <div className="flex gap-2 justify-end"><button onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-stone-400 hover:text-stone-200">Cancel</button><button onClick={addSvc} disabled={!svc.name || !svc.category} className="flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-stone-800 disabled:text-stone-400 text-white rounded-lg text-sm font-medium transition-colors"><Plus size={14} /> Save Service</button></div>
+        </div>
+      )}
+      {provider.services.length === 0 && !showForm && (
+        <div className="bg-stone-900 border border-stone-800 rounded-lg p-8 text-center"><Briefcase size={48} className="mx-auto mb-4 text-stone-700" /><p className="text-stone-400">No service offerings yet. Click "Add Service" to create one.</p></div>
+      )}
+      {provider.services.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {provider.services.map(s => (
+            <div key={s.id} className="bg-stone-900 border border-stone-800 rounded-lg p-5">
+              <div className="flex items-start justify-between mb-2"><div><h4 className="text-sm font-semibold text-stone-200">{s.name}</h4><span className="text-xs text-stone-400">{s.category}</span></div><span className="px-2 py-0.5 text-xs font-medium bg-cyan-500/10 text-cyan-400 rounded-full">{s.pricingModel.replace('_',' ')}</span></div>
+              {s.description && <p className="text-xs text-stone-400 mb-3 line-clamp-2">{s.description}</p>}
+              <div className="flex items-center justify-between border-t border-stone-800 pt-3"><span className="text-emerald-400 font-semibold text-sm">{s.currency} {s.price.toLocaleString()}</span><span className="text-xs text-stone-400">{s.serviceArea.slice(0, 3).join(', ')}{s.serviceArea.length > 3 && ` +${s.serviceArea.length - 3}`}</span></div>
+              <div className="flex items-center justify-between mt-1"><span className="text-[10px] text-stone-400 flex items-center gap-1"><Clock size={10} /> {s.availability.days.join(', ')} {s.availability.hours}</span><button onClick={() => useProviderStore.getState().removeService(provider.id, s.id)} className="text-xs text-rose-400 hover:text-rose-300">Remove</button></div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PortfolioTab({ providerId }: { providerId: string }) {
+  const provider = useProviderStore(s => s.providers.find(p => p.id === providerId));
+  const [showForm, setShowForm] = useState(false);
+  const [pf, setPf] = useState({ title: '', description: '', category: '', completionDate: '', value: 0, clientName: '', location: '' });
+  if (!provider) return null;
+  const addPf = () => {
+    if (!pf.title || !pf.category) return;
+    useProviderStore.getState().addPortfolio(provider.id, {
+      title: pf.title, description: pf.description, category: pf.category,
+      completionDate: pf.completionDate || new Date().toISOString(),
+      value: pf.value, clientName: pf.clientName || undefined, location: pf.location || undefined,
+      images: [], documents: [],
+    });
+    setPf({ title: '', description: '', category: '', completionDate: '', value: 0, clientName: '', location: '' });
+    setShowForm(false);
+  };
+  const totalValue = provider.portfolio.reduce((s, p) => s + p.value, 0);
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between"><h3 className="text-sm font-semibold text-stone-300 flex items-center gap-2"><Award size={16} className="text-amber-400" /> Portfolio ({provider.portfolio.length} projects · ${totalValue.toLocaleString()} total)</h3><button onClick={() => setShowForm(!showForm)} className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-sm font-medium transition-colors"><Plus size={16} /> {showForm ? 'Cancel' : 'Add Project'}</button></div>
+      {showForm && (
+        <div className="bg-stone-950 border border-stone-800 rounded-xl p-5 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2"><label className="text-xs text-stone-400">Project Title *</label><input value={pf.title} onChange={e => setPf(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Harare Medical Centre" className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none" /></div>
+            <div className="col-span-2"><label className="text-xs text-stone-400">Description</label><textarea value={pf.description} onChange={e => setPf(f => ({ ...f, description: e.target.value }))} rows={2} className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none resize-none" placeholder="Describe the project, scope, and outcomes..." /></div>
+            <div><label className="text-xs text-stone-400">Category *</label><input value={pf.category} onChange={e => setPf(f => ({ ...f, category: e.target.value }))} placeholder="e.g. Residential, Commercial" className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none" /></div>
+            <div><label className="text-xs text-stone-400">Completion Date</label><input value={pf.completionDate} onChange={e => setPf(f => ({ ...f, completionDate: e.target.value }))} type="date" className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none" /></div>
+            <div><label className="text-xs text-stone-400">Contract Value (USD)</label><input value={pf.value || ''} onChange={e => setPf(f => ({ ...f, value: Number(e.target.value) }))} type="number" min={0} className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none" /></div>
+            <div><label className="text-xs text-stone-400">Client Name</label><input value={pf.clientName} onChange={e => setPf(f => ({ ...f, clientName: e.target.value }))} placeholder="e.g. Ministry of Health" className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none" /></div>
+            <div><label className="text-xs text-stone-400">Location</label><input value={pf.location} onChange={e => setPf(f => ({ ...f, location: e.target.value }))} placeholder="e.g. Harare, Zimbabwe" className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none" /></div>
+          </div>
+          <div className="flex gap-2 justify-end"><button onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-stone-400 hover:text-stone-200">Cancel</button><button onClick={addPf} disabled={!pf.title || !pf.category} className="flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-stone-800 disabled:text-stone-400 text-white rounded-lg text-sm font-medium transition-colors"><Plus size={14} /> Save Project</button></div>
+        </div>
+      )}
+      {provider.portfolio.length === 0 && !showForm && (
+        <div className="bg-stone-900 border border-stone-800 rounded-lg p-8 text-center"><Award size={48} className="mx-auto mb-4 text-stone-700" /><p className="text-stone-400">No portfolio projects yet. Click "Add Project" to showcase your work.</p></div>
+      )}
+      {provider.portfolio.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {provider.portfolio.sort((a, b) => new Date(b.completionDate).getTime() - new Date(a.completionDate).getTime()).map(p => (
+            <div key={p.id} className="bg-stone-900 border border-stone-800 rounded-lg p-5">
+              <div className="flex items-start justify-between mb-2">
+                <div><h4 className="text-sm font-semibold text-stone-200">{p.title}</h4><span className="text-xs text-stone-400">{p.category}</span></div>
+                <span className="text-emerald-400 font-semibold text-sm">${p.value.toLocaleString()}</span>
+              </div>
+              {p.description && <p className="text-xs text-stone-400 mb-3 line-clamp-2">{p.description}</p>}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-400 border-t border-stone-800 pt-3">
+                {p.clientName && <span className="flex items-center gap-1"><Users size={12} /> {p.clientName}</span>}
+                {p.location && <span className="flex items-center gap-1"><MapPin size={12} /> {p.location}</span>}
+                <span className="flex items-center gap-1"><Calendar size={12} /> {new Date(p.completionDate).toLocaleDateString()}</span>
+                {p.testimonial && <span className="flex items-center gap-1"><Star size={12} className="text-amber-500" /> Testimonial</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ProviderDashboard() {
@@ -197,8 +311,8 @@ export default function ProviderDashboard() {
               )}
               {activeTab === 'catalog' && <CatalogManager providerId={provider.id} />}
               {activeTab === 'credentials' && <CredentialManager providerId={provider.id} />}
-              {activeTab === 'services' && <div className="bg-stone-900 border border-stone-800 rounded-lg p-8 text-center text-stone-400"><Briefcase size={48} className="mx-auto mb-4 text-stone-700" /><p className="mb-2">Service management coming soon.</p><p className="text-sm text-stone-400">You can define service offerings through the catalog. Each catalog item can include service-level specifications.</p></div>}
-              {activeTab === 'portfolio' && <div className="bg-stone-900 border border-stone-800 rounded-lg p-8 text-center text-stone-400"><Award size={48} className="mx-auto mb-4 text-stone-700" /><p className="mb-2">Portfolio showcase coming soon.</p><p className="text-sm text-stone-400">Upload completed projects, client testimonials, and case studies to attract more procurement opportunities.</p></div>}
+              {activeTab === 'services' && <ServicesTab providerId={provider.id} />}
+              {activeTab === 'portfolio' && <PortfolioTab providerId={provider.id} />}
               {activeTab === 'analytics' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-stone-900 border border-stone-800 rounded-lg p-5"><h4 className="text-sm font-semibold text-stone-300 mb-4">Provider Score</h4><div className="text-center"><div className="text-5xl font-bold text-amber-400">{provider.rating.toFixed(1)}</div><div className="text-sm text-stone-400 mt-2">out of 5.0</div><div className="flex justify-center gap-1 mt-3">{[1,2,3,4,5].map(i => <Star key={i} size={20} className={i <= Math.round(provider.rating) ? 'text-amber-500 fill-amber-500' : 'text-stone-700'} />)}</div></div></div>
