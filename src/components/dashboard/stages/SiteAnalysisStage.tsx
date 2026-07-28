@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Globe, MapPin } from 'lucide-react'
+import { Globe, MapPin, Layers } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { loadSiteContext } from '@/lib/site/siteContextReader'
 import { createDefaultSiteContext } from '@/engine/analysis/siteAnalysisEngine'
 import { SiteAnalysisPanel } from '@/components/analysis/SiteAnalysisPanel'
 import { HeliodonView } from '@/components/analysis/HeliodonView'
+import { SixDiagramView } from '@/components/analysis/SixDiagramView'
 
 interface SiteAnalysisStageProps {
   selectedDesign?: unknown
@@ -15,6 +16,7 @@ interface SiteAnalysisStageProps {
 export function SiteAnalysisStage(_props: SiteAnalysisStageProps) {
   const { id: projectId } = useParams<{ id: string }>()
   const [siteKey, setSiteKey] = useState(0)
+  const [showDiagrams, setShowDiagrams] = useState(false)
 
   const site = useMemo(() => {
     if (!projectId) return null
@@ -67,13 +69,21 @@ export function SiteAnalysisStage(_props: SiteAnalysisStageProps) {
       <div className="w-96 shrink-0">
         <SiteAnalysisPanel site={site} />
       </div>
-      <div className="flex-1">
+      <div className="flex flex-1 flex-col gap-4">
         <HeliodonView
           lat={site.lat}
           lng={site.lng}
           buildingFloors={2}
           className="h-full min-h-[400px]"
         />
+        <button
+          onClick={() => setShowDiagrams(!showDiagrams)}
+          className="flex items-center gap-2 self-start rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
+        >
+          <Layers size={14} />
+          {showDiagrams ? 'Hide' : 'Show'} Analysis Diagrams
+        </button>
+        {showDiagrams && <SixDiagramView diagrams={[]} />}
       </div>
     </div>
   )

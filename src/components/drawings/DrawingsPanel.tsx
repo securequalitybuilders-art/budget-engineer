@@ -40,10 +40,12 @@ import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
 import { DetailsBrowser } from '@/components/drawings/DetailsBrowser'
 import { RoomScheduleView } from '@/components/drawings/RoomScheduleView'
 import { DrawingStandardsPanel } from '@/components/drawings/DrawingStandardsPanel'
+import { PackageSummaryPanel } from '@/components/drawings/PackageSummaryPanel'
+import { assemblePackage } from '@/lib/drawings/package-assembly'
 import { useDisciplineStore } from '@/stores/disciplineStore'
 import type { DisciplineId } from '@/lib/studio/discipline'
 
-type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'side' | 'section' | 'schedule-door' | 'schedule-window' | 'schedule-structural' | 'presentation' | 'register' | 'details' | 'schedule-room' | 'standards'
+type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'side' | 'section' | 'schedule-door' | 'schedule-window' | 'schedule-structural' | 'presentation' | 'register' | 'details' | 'schedule-room' | 'standards' | 'package'
 
 interface TabDef {
   id: DrawingTab
@@ -71,6 +73,7 @@ const TAB_DEFS: TabDef[] = [
   { id: 'details', label: 'Details', disciplines: ['ARCH', 'STR'] },
   { id: 'schedule-room', label: 'Room Sch.', disciplines: ['ARCH', 'INT'] },
   { id: 'standards', label: 'Standards', disciplines: ['ARCH', 'STR', 'MEP', 'ELEC', 'PLUM', 'INT', 'LAND', 'CIVIL'] },
+  { id: 'package', label: 'Package', disciplines: ['ARCH', 'STR', 'MEP', 'ELEC', 'PLUM', 'INT', 'LAND', 'CIVIL'] },
 ]
 
 interface DrawingsPanelProps {
@@ -409,6 +412,20 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
       )}
       {activeTab === 'standards' && (
         <DrawingStandardsPanel />
+      )}
+      {activeTab === 'package' && (
+        <PackageSummaryPanel
+          assembly={assemblePackage({
+            projectId: projectId ?? 'unknown',
+            packageTitle: design?.name ?? 'Drawing Package',
+            buildingType: 'residential',
+            totalSheets: 1,
+            disciplines: ['ARCH'],
+            issueType: 'for-approval',
+            submissionCategory: 'planning',
+            sheets: [],
+          })}
+        />
       )}
 
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-stone-700/60 bg-stone-900/50 px-3 py-2">

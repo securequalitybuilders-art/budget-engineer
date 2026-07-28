@@ -28,6 +28,7 @@ import { AppliancesStage } from '@/components/dashboard/stages/AppliancesStage';
 import { CostDeliverStage } from '@/components/dashboard/stages/CostDeliverStage';
 import { BudgetEngineeredStage } from '@/components/dashboard/stages/BudgetEngineeredStage';
 import { EngineeringStage } from '@/components/dashboard/stages/EngineeringStage';
+import { DocsBimStage } from '@/components/dashboard/stages/DocsBimStage';
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
 import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
@@ -717,7 +718,7 @@ export function Dashboard() {
 
           {/* Main content area */}
           <div className="relative flex flex-1 flex-col overflow-hidden bg-[var(--bg-primary)]">
-            {(['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'] as StageId[]).includes(activeView as StageId) ? (
+            {(['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'] as StageId[]).includes(activeView as StageId) ? (
               <>
                 {activeStageId === 'brief' && (
                   <BriefStage
@@ -793,6 +794,12 @@ export function Dashboard() {
                 )}
                 {activeStageId === 'bim' && (
                   <BimStage
+                    activePlan={activePlan}
+                    selectedDesign={selectedDesign}
+                  />
+                )}
+                {activeStageId === 'docs-bim' && (
+                  <DocsBimStage
                     activePlan={activePlan}
                     selectedDesign={selectedDesign}
                   />

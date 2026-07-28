@@ -12,6 +12,8 @@ import { StructuralPreDesignPanel } from '@/components/structural/StructuralPreD
 import { MepPreDesignPanel } from '@/components/structural/MepPreDesignPanel';
 import { CodeReviewPanel } from '@/components/structural/CodeReviewPanel';
 import { SignoffGatePanel } from '@/components/structural/SignoffGatePanel';
+import { ValidationSummaryPanel } from '@/components/validation/ValidationSummaryPanel';
+import { generateValidationReport } from '@/lib/validation/validationEngine';
 import { RATE_CARDS } from '@/lib/rates/rate-card';
 import type { DesignOption } from '@/domain/boq';
 import type { BOQ } from '@/lib/boq/boq-types';
@@ -28,7 +30,7 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
-type TabId = 'structural' | 'mep' | 'review' | 'signoff' | 'ai' | 'rates' | 'rebar' | 'footings' | 'loads' | 'section' | 'analysis' | 'columns' | 'materials' | 'clashes';
+type TabId = 'structural' | 'mep' | 'review' | 'signoff' | 'ai' | 'rates' | 'rebar' | 'footings' | 'loads' | 'section' | 'analysis' | 'columns' | 'materials' | 'clashes' | 'validation';
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'structural', label: 'Structural' },
@@ -45,6 +47,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'clashes', label: 'Clashes' },
   { id: 'section', label: 'Section' },
   { id: 'analysis', label: 'Analysis' },
+  { id: 'validation', label: 'Validation' },
 ];
 
 function safeSqrt(n: number): number {
@@ -206,6 +209,27 @@ export function EngineeringStudioPanel({ selectedDesign, activePlan, boq, projec
 
         <div id="analysis-panel" role="tabpanel" aria-labelledby="analysis-tab" hidden={activeTab !== 'analysis'}>{activeTab === 'analysis' && (
           <AnalysisPanel plan={activePlan ?? null} design={selectedDesign} boq={boq ?? null} buildingType={buildingType} jurisdiction="zimbabwe" />
+        )}</div>
+
+        <div id="validation-panel" role="tabpanel" aria-labelledby="validation-tab" hidden={activeTab !== 'validation'}>{activeTab === 'validation' && (
+          <ValidationSummaryPanel
+            showPilotReadiness
+            report={{
+              id: 'val-live',
+              runAt: new Date().toISOString(),
+              totalBenchmarks: 0,
+              passed: 0,
+              marginal: 0,
+              failed: 0,
+              notRated: 0,
+              overallScore: 0,
+              scorecards: [],
+              regressionRecords: [],
+              weaknesses: [],
+              summary: 'Run full validation from the benchmark runner to see results here.',
+              validationResults: [],
+            }}
+          />
         )}</div>
       </div>
 

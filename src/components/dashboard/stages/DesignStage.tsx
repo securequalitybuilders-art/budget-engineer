@@ -6,7 +6,9 @@ import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
 import { UnifiedComponentPanel } from '@/components/furniture/UnifiedComponentPanel'
 import { CadSyncControls } from '@/components/dashboard/CadSyncControls'
 import { Button } from '@/components/ui/Button'
-import { Box, Layers, Ruler, Wand2, Upload, LayoutGrid, Boxes, Sofa, Download, Table2 } from 'lucide-react'
+import { PlanLegend } from '@/components/cad/PlanLegend'
+import { ReferenceCasePanel } from '@/components/reference/ReferenceCasePanel'
+import { Box, Layers, Ruler, Wand2, Upload, LayoutGrid, Boxes, Sofa, Download, Table2, FileText, FolderOpen } from 'lucide-react'
 import { useFurnitureStore } from '@/stores/furnitureStore'
 import { motion } from 'framer-motion'
 import { segmentsToPlan, detectWallsFromImage } from '@/lib/import/wallDetection'
@@ -86,6 +88,8 @@ export function DesignStage({
   const [detectMessage, setDetectMessage] = useState<string | null>(null)
   const [detectError, setDetectError] = useState(false)
   const [showComponentPanel, setShowComponentPanel] = useState(false)
+  const [showPlanLegend, setShowPlanLegend] = useState(false)
+  const [showReferenceCases, setShowReferenceCases] = useState(false)
   const { id: projectIdParam } = useParams<{ id: string }>()
   const importInputRef = useRef<HTMLInputElement>(null)
   const furnitureBlocks = useFurnitureStore((s) => s.blocks)
@@ -343,6 +347,32 @@ export function DesignStage({
           <span className="hidden sm:inline">Components</span>
         </Button>
 
+        <span className="mx-1 h-5 w-px bg-white/10" />
+
+        <Button
+          variant={showPlanLegend ? 'default' : 'ghost'}
+          size="sm"
+          className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
+          aria-label="Plan Metadata"
+          title="Plan Metadata"
+          onClick={() => setShowPlanLegend(v => !v)}
+        >
+          <Ruler size={14} />
+          <span className="hidden sm:inline">Plan Info</span>
+        </Button>
+
+        <Button
+          variant={showReferenceCases ? 'default' : 'ghost'}
+          size="sm"
+          className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
+          aria-label="Reference Cases"
+          title="Reference Cases"
+          onClick={() => setShowReferenceCases(v => !v)}
+        >
+          <FolderOpen size={14} />
+          <span className="hidden sm:inline">References</span>
+        </Button>
+
         {activePlan && (
           <Button
             variant="ghost"
@@ -465,6 +495,28 @@ export function DesignStage({
 
       {showComponentPanel && (
         <UnifiedComponentPanel onClose={() => setShowComponentPanel(false)} />
+      )}
+      {showPlanLegend && selectedDesign && (
+        <div className="absolute right-4 top-20 z-20 w-72 rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] shadow-xl">
+          <div className="flex items-center justify-between border-b border-[var(--border-default)] px-3 py-2">
+            <span className="text-xs font-semibold text-[var(--text-primary)]">Plan Metadata</span>
+            <button onClick={() => setShowPlanLegend(false)} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">✕</button>
+          </div>
+          <div className="p-3">
+            <PlanLegend design={selectedDesign} plan={activePlan} />
+          </div>
+        </div>
+      )}
+      {showReferenceCases && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/40">
+          <div className="h-[80vh] w-[80vw] overflow-auto rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[var(--border-default)] px-4 py-2">
+              <span className="text-sm font-semibold text-[var(--text-primary)]">Reference Cases</span>
+              <button onClick={() => setShowReferenceCases(false)} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">✕</button>
+            </div>
+            <ReferenceCasePanel />
+          </div>
+        </div>
       )}
 
       <input
