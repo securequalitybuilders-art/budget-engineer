@@ -101,6 +101,7 @@ export function DisciplineSwitcher({ className = '', compact = false }: Discipli
           value={currentDiscipline}
           onChange={(e) => handleSelect(e.target.value as DisciplineId)}
           className="cursor-pointer bg-transparent text-sm font-medium text-[var(--text-primary)] outline-none"
+          aria-label="Discipline"
         >
           {DISCIPLINES.map((disc) => (
             <option key={disc.id} value={disc.id}>

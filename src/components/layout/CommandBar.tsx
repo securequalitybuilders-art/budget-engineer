@@ -30,7 +30,7 @@ export function CommandBar() {
         <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="Toggle sidebar">
           <Menu size={18} />
         </Button>
-        <Link to="/" className="flex items-center gap-2" aria-label="Home">
+        <Link to="/" className="flex items-center gap-2" aria-label="Dzenhare Home">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--brand-primary)] text-[var(--brand-accent)]" aria-hidden="true">
             <Sparkles size={18} />
           </div>
@@ -78,7 +78,7 @@ export function CommandBar() {
       </nav>
 
       <div className="flex items-center gap-2">
-        <div className="hidden items-center gap-2 text-xs text-[var(--text-muted)] sm:flex">
+        <div className="hidden items-center gap-2 text-xs text-[var(--text-secondary)] sm:flex">
           <Save size={14} />
           <span>Auto-saved</span>
         </div>
