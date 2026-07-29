@@ -47,12 +47,12 @@ const SIDE_CORRIDOR: LayoutTemplate = {
   typology: 'house',
   minArea: 0,
   maxArea: 9999,
-  cols: 5,
+  cols: 6,
   rows: 4,
   zones: [
-      { id: 'front-public', label: 'Front Public', role: 'public', colStart: 0, colEnd: 4, rowStart: 0, rowEnd: 2, acceptRoles: ['public', 'service', 'wet'], priority: 2 },
-      { id: 'rear-private', label: 'Rear Private', role: 'private', colStart: 0, colEnd: 4, rowStart: 2, rowEnd: 4, acceptRoles: ['private'], priority: 1 },
-    { id: 'circulation', label: 'Side Hall', role: 'circulation', colStart: 4, colEnd: 5, rowStart: 0, rowEnd: 4, acceptRoles: ['circulation'], priority: 4 },
+    { id: 'front-public', label: 'Front Public', role: 'public', colStart: 0, colEnd: 5, rowStart: 0, rowEnd: 2, acceptRoles: ['public', 'service', 'wet'], priority: 2 },
+    { id: 'circulation', label: 'Side Hall', role: 'circulation', colStart: 5, colEnd: 6, rowStart: 0, rowEnd: 4, acceptRoles: ['circulation'], priority: 4 },
+    { id: 'rear-private', label: 'Rear Private', role: 'private', colStart: 0, colEnd: 5, rowStart: 2, rowEnd: 4, acceptRoles: ['private'], priority: 1 },
   ],
 }
 
@@ -352,4 +352,8 @@ export function pickHouseTemplate(area: number, seed = 0): LayoutTemplate {
   const valid = HOUSE_TEMPLATES.filter(t => area >= t.minArea && area <= t.maxArea)
   if (valid.length === 0) return L_PLAN
   return valid[seed % valid.length]
+}
+
+export function listHouseTemplates(area: number): LayoutTemplate[] {
+  return HOUSE_TEMPLATES.filter(t => area >= t.minArea && area <= t.maxArea)
 }

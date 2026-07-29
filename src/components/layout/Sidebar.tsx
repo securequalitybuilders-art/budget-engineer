@@ -3,7 +3,7 @@ import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
-import { Plus, Home, Settings, Folder, Sofa, Monitor, Globe, BookOpen, Bug, ShieldCheck, FileSpreadsheet, FolderOpen, ShoppingCart, BarChart3, Eye, FileText, Rocket } from 'lucide-react';
+import { Plus, Home, Settings, Folder, Sofa, Monitor, Globe, BookOpen, Bug, ShieldCheck, FileSpreadsheet, FolderOpen, ShoppingCart, BarChart3, Eye, FileText, Rocket, Store } from 'lucide-react';
 import { DisciplineSwitcher } from '@/components/studio/DisciplineSwitcher';
 import { RoleSwitcher } from '@/components/auth/RoleSwitcher';
 import { LocaleSwitcher } from '@/components/common/LocaleSwitcher';
@@ -143,6 +143,16 @@ export function Sidebar() {
               <div className="flex flex-col">
                 <span>Procurement</span>
                 <span className="text-[9px] text-[var(--text-tertiary)]">BOQ-linked requests</span>
+              </div>
+            </Link>
+            <Link
+              to={`/project/${currentProjectId}/studio/marketplace`}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+            >
+              <Store size={16} />
+              <div className="flex flex-col">
+                <span>Marketplace</span>
+                <span className="text-[9px] text-[var(--text-tertiary)]">Provider & catalog management</span>
               </div>
             </Link>
             <Link

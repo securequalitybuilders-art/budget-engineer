@@ -1,34 +1,6 @@
 import { describe, test, expect } from 'vitest'
-import { convertPlanModelToWs6Cad } from '@/adapters/planModelToWs6Cad'
 import { buildElevationSvg } from '@/lib/drawings/elevation-svg'
-import type { PlanModel, Opening } from '@/domain/plan'
 import type { CadDocument } from '@/domain/ws6-types'
-
-function makePlan(overrides?: Partial<PlanModel>): PlanModel {
-  return {
-    width: 8,
-    height: 6,
-    wallThickness: 0.23,
-    storeyHeight: 3.0,
-    rooms: [
-      {
-        id: 'r1', name: 'Living Room', width: 5, height: 4,
-        x: 0.5, y: 0.5,
-        windowIds: ['w1'], doorIds: ['d1'],
-      },
-      {
-        id: 'r2', name: 'Kitchen', width: 3, height: 4,
-        x: 5.5, y: 0.5,
-        windowIds: ['w2'], doorIds: [],
-      },
-    ],
-    walls: [],
-    openings: [
-      { id: 'w1', wallId: 'right-wall-1', kind: 'window', width: 1.2, height: 1.5, offset: 2.0, sillHeight: 0.9, headHeight: 2.4 },
-    ],
-    ...overrides,
-  } as PlanModel
-}
 
 function makeCadWithOpenings(cadOverrides?: Partial<CadDocument>): CadDocument {
   return {
@@ -184,13 +156,13 @@ describe('P43.2 — Front elevation baseline (regression guard)', () => {
     const cad = makeCadWithOpenings({
       roomProgramme: { r1: 'Living Room', r2: 'Kitchen' },
       walls: [
-        { id: 'front-wall-1', floorId: 'fl1', structural: true, start: { x: 0, y: 0 }, end: { x: 8, y: 0 } },
-        { id: 'right-wall-1', floorId: 'fl1', structural: true, start: { x: 8, y: 6 }, end: { x: 8, y: 0 } },
-        { id: 'left-wall-1', floorId: 'fl1', structural: true, start: { x: 0, y: 0 }, end: { x: 0, y: 6 } },
-        { id: 'rear-wall-1', floorId: 'fl1', structural: true, start: { x: 8, y: 6 }, end: { x: 0, y: 6 } },
+        { id: 'front-wall-1', floorId: 'fl1', structural: true, start: { x: 0, y: 0 }, end: { x: 8, y: 0 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
+        { id: 'right-wall-1', floorId: 'fl1', structural: true, start: { x: 8, y: 6 }, end: { x: 8, y: 0 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
+        { id: 'left-wall-1', floorId: 'fl1', structural: true, start: { x: 0, y: 0 }, end: { x: 0, y: 6 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
+        { id: 'rear-wall-1', floorId: 'fl1', structural: true, start: { x: 8, y: 6 }, end: { x: 0, y: 6 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
       ],
       openings: [
-        { id: 'o1', floorId: 'fl1', wallId: 'front-wall-1', kind: 'door', width: 0.9, offset: 3.0, sillHeight: 0, headHeight: 2.1, name: '', metadata: { typeName: 'hinged' } },
+        { id: 'o1', floorId: 'fl1', wallId: 'front-wall-1', kind: 'door', width: 0.9, offset: 3.0, sillHeight: 0, headHeight: 2.1, name: '', metadata: { ifcClass: '', category: '', properties: {}, typeName: 'hinged' } },
       ],
     })
     const svg = buildElevationSvg(cad, 'front')
@@ -215,13 +187,13 @@ describe('P43.2 — Semantic fallback with openings on perpendicular walls', () 
   test('perpendicular wall opening still has basic sill/head markers', () => {
     const cad = makeCadWithOpenings({
       walls: [
-        { id: 'front-wall-1', floorId: 'fl1', structural: true, start: { x: 0, y: 0 }, end: { x: 8, y: 0 } },
-        { id: 'right-wall-1', floorId: 'fl1', structural: true, start: { x: 8, y: 6 }, end: { x: 8, y: 0 } },
-        { id: 'left-wall-1', floorId: 'fl1', structural: true, start: { x: 0, y: 0 }, end: { x: 0, y: 6 } },
-        { id: 'rear-wall-1', floorId: 'fl1', structural: true, start: { x: 8, y: 6 }, end: { x: 0, y: 6 } },
+        { id: 'front-wall-1', floorId: 'fl1', structural: true, start: { x: 0, y: 0 }, end: { x: 8, y: 0 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
+        { id: 'right-wall-1', floorId: 'fl1', structural: true, start: { x: 8, y: 6 }, end: { x: 8, y: 0 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
+        { id: 'left-wall-1', floorId: 'fl1', structural: true, start: { x: 0, y: 0 }, end: { x: 0, y: 6 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
+        { id: 'rear-wall-1', floorId: 'fl1', structural: true, start: { x: 8, y: 6 }, end: { x: 0, y: 6 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
       ],
       openings: [
-        { id: 'o-horiz', floorId: 'fl1', wallId: 'front-wall-1', kind: 'window', width: 1.2, offset: 3.0, sillHeight: 0.9, headHeight: 2.4, name: '', metadata: {} },
+        { id: 'o-horiz', floorId: 'fl1', wallId: 'front-wall-1', kind: 'window', width: 1.2, offset: 3.0, sillHeight: 0.9, headHeight: 2.4, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
       ],
     })
     const svg = buildElevationSvg(cad, 'right')
@@ -240,14 +212,14 @@ describe('P43.2 — Floor role detection', () => {
         { id: 'fl2', name: 'First Floor', elevation: 3.0, height: 2.7 },
       ],
       walls: [
-        { id: 'right-wall-1', floorId: 'fl1', structural: true, start: { x: 8, y: 6 }, end: { x: 8, y: 0 } },
-        { id: 'left-wall-1', floorId: 'fl1', structural: true, start: { x: 0, y: 0 }, end: { x: 0, y: 6 } },
-        { id: 'front-wall-1', floorId: 'fl1', structural: true, start: { x: 0, y: 0 }, end: { x: 8, y: 0 } },
-        { id: 'rear-wall-1', floorId: 'fl1', structural: true, start: { x: 8, y: 6 }, end: { x: 0, y: 6 } },
-        { id: 'right-wall-2', floorId: 'fl2', structural: true, start: { x: 8, y: 6 }, end: { x: 8, y: 0 } },
-        { id: 'left-wall-2', floorId: 'fl2', structural: true, start: { x: 0, y: 0 }, end: { x: 0, y: 6 } },
-        { id: 'front-wall-2', floorId: 'fl2', structural: true, start: { x: 0, y: 0 }, end: { x: 8, y: 0 } },
-        { id: 'rear-wall-2', floorId: 'fl2', structural: true, start: { x: 8, y: 6 }, end: { x: 0, y: 6 } },
+        { id: 'right-wall-1', floorId: 'fl1', structural: true, start: { x: 8, y: 6 }, end: { x: 8, y: 0 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
+        { id: 'left-wall-1', floorId: 'fl1', structural: true, start: { x: 0, y: 0 }, end: { x: 0, y: 6 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
+        { id: 'front-wall-1', floorId: 'fl1', structural: true, start: { x: 0, y: 0 }, end: { x: 8, y: 0 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
+        { id: 'rear-wall-1', floorId: 'fl1', structural: true, start: { x: 8, y: 6 }, end: { x: 0, y: 6 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
+        { id: 'right-wall-2', floorId: 'fl2', structural: true, start: { x: 8, y: 6 }, end: { x: 8, y: 0 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
+        { id: 'left-wall-2', floorId: 'fl2', structural: true, start: { x: 0, y: 0 }, end: { x: 0, y: 6 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
+        { id: 'front-wall-2', floorId: 'fl2', structural: true, start: { x: 0, y: 0 }, end: { x: 8, y: 0 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
+        { id: 'rear-wall-2', floorId: 'fl2', structural: true, start: { x: 8, y: 6 }, end: { x: 0, y: 6 }, thickness: 0.23, height: 3.0, name: '', metadata: { ifcClass: '', category: '', properties: {} } },
       ],
     })
     const svg = buildElevationSvg(cad, 'right')

@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import type { PlanModel } from '@/domain/plan'
 import { INK, PAPER, INK_DIMENSION, CAD_HAIR, CAD_THIN } from '@/components/drawings/cadConstants'
 import { TitleBlock } from '@/components/drawings/cadPrimitives'
-import { renderFloorPlanSheet } from '@/components/drawings/planSheetModel'
 import type { PaperSpaceLayout, Viewport, IsoPaperSize } from '@/engine/parametric/paperSpaceModel'
 import { createPaperSpaceLayout, getPaperDimensions, MARGIN_MM, TITLE_BLOCK_HEIGHT_MM, VIEWPORT_SCALES } from '@/engine/parametric/paperSpaceModel'
 import type { ViewportScale } from '@/engine/parametric/paperSpaceModel'
@@ -116,8 +115,8 @@ function renderViewportContent(
     const cx = (wall.start.x + ux * opening.offset * wallLen) * s * 1000
     const cy = (wall.start.y + uy * opening.offset * wallLen) * s * 1000
     const halfW = (opening.width / 2) * s * 1000
-    const ppx = ox + cx - ux * halfW
-    const ppy = oy - cy + uy * halfW
+    const _ppx = ox + cx - ux * halfW
+    const _ppy = oy - cy + uy * halfW
     const ppw = opening.width * s * 1000
     const pph =
       wall.type === 'internal' ? 0 :

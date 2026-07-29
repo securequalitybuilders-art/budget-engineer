@@ -108,3 +108,57 @@ export function getEscrowSummary(escrow: EscrowAgreement): { total: number; rele
     nextMilestone: getNextMilestone(escrow), overdueCount: getOverdueMilestones(escrow).length,
   };
 }
+
+export interface ExecutionSyncInput {
+  tasks: { id: string; title: string; plannedDays: number; actualDays: number; dependencies: string[] }[];
+  budgetCategories: { category: string; budgeted: number; actual: number }[];
+  qualityMetrics: { metric: string; score: number; target: number }[];
+  resources: { role: string; required: number; assigned: number }[];
+  totalBudget: number;
+  projectId: string;
+  providerId: string;
+  clientId: string;
+}
+
+export function createEscrowFromExecution(input: ExecutionSyncInput): EscrowAgreement {
+  const milestones = input.tasks.map(t => ({
+    title: t.title,
+    description: `Task: ${t.title} (${t.plannedDays} days planned, ${t.actualDays} actual)`,
+    amount: Math.round(input.totalBudget * (t.plannedDays / input.tasks.reduce((s, x) => s + x.plannedDays, 0))),
+    dueDate: new Date(Date.now() + t.plannedDays * 86400000).toISOString().split('T')[0],
+  }));
+  return createEscrow({
+    projectId: input.projectId,
+    providerId: input.providerId,
+    clientId: input.clientId,
+    totalAmount: milestones.reduce((s, m) => s + m.amount, 0),
+    milestones,
+  });
+}
+
+export function autoReleaseCompletedMilestones(escrow: EscrowAgreement, tasks: { id: string; title: string; actualDays: number; completed: boolean }[]): { escrow: EscrowAgreement; releases: string[] } {
+  const releases: string[] = [];
+  let updated = { ...escrow, milestones: escrow.milestones.map(m => ({ ...m })) };
+
+  for (const task of tasks) {
+    if (!task.completed) continue;
+    const milestone = updated.milestones.find(m => m.title === task.title && m.status === 'pending');
+    if (!milestone) continue;
+
+    updated = completeMilestone(updated, milestone.id, {
+      type: 'signoff',
+      url: '#auto-verified',
+      uploadedBy: 'system',
+      notes: `Auto-verified: task "${task.title}" completed in ${task.actualDays} days`,
+    });
+    releases.push(`Completed: "${task.title}"`);
+
+    updated = verifyMilestone(updated, milestone.id, true);
+    releases.push(`Verified: "${task.title}"`);
+
+    updated = releaseFunds(updated, milestone.id, 'auto-system');
+    releases.push(`Released: "${task.title}" ($${milestone.amount.toLocaleString()})`);
+  }
+
+  return { escrow: updated, releases };
+}

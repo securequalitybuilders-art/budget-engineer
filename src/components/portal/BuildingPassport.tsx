@@ -32,11 +32,11 @@ export default function BuildingPassport() {
           <ul className="space-y-3">
             <li className="flex items-center justify-between p-3 bg-stone-950 rounded border border-stone-800/50 group hover:border-stone-700 transition-colors cursor-pointer">
               <div className="text-sm font-medium text-stone-300">Final Floor Plans</div>
-              <Download size={16} className="text-stone-500 group-hover:text-cyan-400 transition-colors" />
+              <Download size={16} className="text-stone-400 group-hover:text-cyan-400 transition-colors" />
             </li>
             <li className="flex items-center justify-between p-3 bg-stone-950 rounded border border-stone-800/50 group hover:border-stone-700 transition-colors cursor-pointer">
               <div className="text-sm font-medium text-stone-300">MEP Services Layout</div>
-              <Download size={16} className="text-stone-500 group-hover:text-cyan-400 transition-colors" />
+              <Download size={16} className="text-stone-400 group-hover:text-cyan-400 transition-colors" />
             </li>
           </ul>
         </div>
@@ -52,16 +52,16 @@ export default function BuildingPassport() {
             <li className="flex items-center justify-between p-3 bg-stone-950 rounded border border-stone-800/50 group hover:border-stone-700 transition-colors cursor-pointer">
               <div>
                 <div className="text-sm font-medium text-stone-300">Roofing Warranty</div>
-                <div className="text-xs text-stone-500">Valid until 2046</div>
+                <div className="text-xs text-stone-400">Valid until 2046</div>
               </div>
-              <Download size={16} className="text-stone-500 group-hover:text-emerald-400 transition-colors" />
+              <Download size={16} className="text-stone-400 group-hover:text-emerald-400 transition-colors" />
             </li>
             <li className="flex items-center justify-between p-3 bg-stone-950 rounded border border-stone-800/50 group hover:border-stone-700 transition-colors cursor-pointer">
               <div>
                 <div className="text-sm font-medium text-stone-300">Electrical Compliance Certificate</div>
-                <div className="text-xs text-stone-500">Issued by Authority</div>
+                <div className="text-xs text-stone-400">Issued by Authority</div>
               </div>
-              <Download size={16} className="text-stone-500 group-hover:text-emerald-400 transition-colors" />
+              <Download size={16} className="text-stone-400 group-hover:text-emerald-400 transition-colors" />
             </li>
           </ul>
         </div>

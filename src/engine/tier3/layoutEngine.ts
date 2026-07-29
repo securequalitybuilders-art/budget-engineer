@@ -13,6 +13,7 @@ import type { TopologyBoundaryParams } from './topologySolver'
 import { computeStairwellDesign, computeStairArea, enforceVerticalStacking, partitionProgramForStoreys } from './multiStoreySolver'
 import type { MultiStoreyWarnings } from './multiStoreySolver'
 
+export type { ProgramItem } from '../tier1-types'
 export type Topology = 'rectangle' | 'l-shape' | 'split-wing' | 'courtyard'
 
 export interface MasterChassis {

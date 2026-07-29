@@ -33,7 +33,7 @@ export default function ApprovalInbox({ requests, onApprove, onReject }: Approva
           Pending Approvals
         </h2>
         {pendingRequests.length === 0 ? (
-          <div className="bg-stone-900 border border-stone-800 rounded-lg p-8 text-center text-stone-500">
+          <div className="bg-stone-900 border border-stone-800 rounded-lg p-8 text-center text-stone-400">
             <CheckCircle2 size={48} className="mx-auto mb-4 text-stone-700" />
             <p>You're all caught up. No pending approvals.</p>
           </div>
@@ -78,7 +78,7 @@ export default function ApprovalInbox({ requests, onApprove, onReject }: Approva
         </h2>
         <div className="bg-stone-900 border border-stone-800 rounded-lg overflow-hidden">
           {pastRequests.length === 0 ? (
-            <div className="p-4 text-center text-stone-500 text-sm">No recent activity.</div>
+            <div className="p-4 text-center text-stone-400 text-sm">No recent activity.</div>
           ) : (
             <table className="w-full text-left text-sm">
               <thead className="bg-stone-950 border-b border-stone-800 text-stone-400">

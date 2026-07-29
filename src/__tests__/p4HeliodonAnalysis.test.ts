@@ -175,7 +175,7 @@ describe('windAnalysis', () => {
 
 // ─── siteAnalysis ─────────────────────────────────────────────────
 import { computeSiteAnalysis, orientationScore } from '@/engine/analysis/siteAnalysis';
-import type { SiteContext, WindRose } from '@/domain/site';
+import type { SiteContext } from '@/domain/site';
 
 describe('siteAnalysis', () => {
   const mockSite: SiteContext = {

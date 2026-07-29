@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { generatePlanModel } from '../engine/plan-generator'
 import { getMinimumDimensions } from '../lib/geometry/plan-intelligence'
 
@@ -6,8 +6,10 @@ function makeOption(area: number) {
   return { id: 'test', name: 'Test', buildingType: 'house' as const, grossFloorArea: area, floors: 1, elements: [] }
 }
 
-function analyze(area: number) {
+function analyze(area: number, seed: number) {
+  vi.spyOn(Date, 'now').mockReturnValue(seed)
   const plan = generatePlanModel(makeOption(area))
+  vi.restoreAllMocks()
 
   let overlaps = 0
   for (let i = 0; i < plan.rooms.length; i++) {
@@ -39,7 +41,7 @@ describe('P48.1 Compact Multi-Seed Sweep', () => {
   const SEEDS = [42, 97, 133, 256, 511, 777, 1024, 2048, 4096, 8192]
 
   describe('70m² compact sweep', () => {
-    const results = SEEDS.map(() => analyze(70))
+    const results = SEEDS.map(s => analyze(70, s))
     const passRate = results.filter(r => r.valid).length
 
     it('passes ≥70% of seeds', () => {
@@ -68,7 +70,7 @@ describe('P48.1 Compact Multi-Seed Sweep', () => {
   })
 
   describe('80m² compact sweep', () => {
-    const results = SEEDS.map(() => analyze(80))
+    const results = SEEDS.map(s => analyze(80, s))
     const passRate = results.filter(r => r.valid).length
 
     it('passes ≥70% of seeds', () => {
@@ -97,7 +99,7 @@ describe('P48.1 Compact Multi-Seed Sweep', () => {
   })
 
   describe('100m² compact sweep', () => {
-    const results = SEEDS.map(() => analyze(100))
+    const results = SEEDS.map(s => analyze(100, s))
     const passRate = results.filter(r => r.valid).length
 
     it('passes ≥70% of seeds', () => {

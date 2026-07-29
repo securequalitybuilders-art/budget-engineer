@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useMemo, useState } from 'react'
+import { useRef, useEffect, useCallback, useState } from 'react'
 import { useProjectStore } from '@/stores/projectStore'
 import { PlanCanvas } from '@/components/cad/PlanCanvas'
 import { MiniFloorPlanPreview } from '@/components/cad/MiniFloorPlanPreview'
@@ -18,6 +18,7 @@ interface ConceptStageProps {
   selectedDesign: DesignOption | null
   handleGenerate: () => Promise<void>
   isGenerating: boolean
+  generationStatus?: string | null
   onDxfImported?: (plan: PlanModel) => void
   onImportFile?: (file: File) => void
   activePlan?: PlanModel | null
@@ -31,6 +32,7 @@ export function ConceptStage({
   selectedDesign,
   handleGenerate,
   isGenerating,
+  generationStatus,
   onDxfImported,
   onImportFile,
   activePlan,
@@ -88,8 +90,11 @@ export function ConceptStage({
           <div className="mt-6 flex flex-col items-center gap-3">
             <Button className="gap-2" onClick={handleGenerate} disabled={isGenerating || !currentBrief}>
               {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
-              {isGenerating ? 'Generating designs...' : 'Generate Design Options'}
+              {isGenerating ? (generationStatus || 'Generating designs...') : 'Generate Design Options'}
             </Button>
+            {isGenerating && generationStatus && (
+              <p className="text-[11px] text-cyan-300">{generationStatus}</p>
+            )}
             <Button variant="secondary" className="gap-2" onClick={() => importInputRef.current?.click()}>
               <Upload size={16} />
               Import (DXF / image / PDF)
@@ -193,7 +198,7 @@ export function ConceptStage({
             disabled={isGenerating || !currentBrief}
           >
             {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
-            {isGenerating ? 'Generating...' : 'Regenerate options'}
+            {isGenerating ? (generationStatus || 'Generating...') : 'Regenerate options'}
           </Button>
         </div>
       </div>

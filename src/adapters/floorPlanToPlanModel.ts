@@ -67,6 +67,10 @@ export function floorPlanToPlanModel(
     openings,
     scaleLabel: '1:100 @ A3',
     planSource: 'tier3-floorplan' as const,
+    egressPoints: floorPlan.egressPoints,
+    adjacencyWarnings: floorPlan.adjacencyWarnings,
+    maxTravelDistance: floorPlan.maxTravelDistance,
+    egressCompliant: floorPlan.egressCompliant,
   }
 }
 

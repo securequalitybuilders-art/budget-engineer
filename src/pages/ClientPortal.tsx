@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import ApprovalInbox, { ApprovalRequest } from './ApprovalInbox';
-import BuildingPassport from './BuildingPassport';
+import ApprovalInbox, { ApprovalRequest } from '../components/portal/ApprovalInbox';
+import BuildingPassport from '../components/portal/BuildingPassport';
 import { LogOut, Home, Inbox, FileCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -62,7 +62,7 @@ export default function ClientPortal() {
         <aside className="w-full md:w-64 shrink-0 flex flex-col gap-2">
           <div className="mb-6 px-3">
             <h2 className="text-xl font-bold text-stone-100">My Project</h2>
-            <p className="text-sm text-stone-500 mt-1">Avondale Residential</p>
+            <p className="text-sm text-stone-400 mt-1">Avondale Residential</p>
           </div>
 
           <button 

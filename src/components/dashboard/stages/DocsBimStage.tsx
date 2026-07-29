@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
-import { LazyBimModel3D } from '@/components/bim/LazyBimModel3D'
+import { GlbViewer } from '@/components/bim/GlbViewer'
 import { Button } from '@/components/ui/Button'
 import { Box, LayoutGrid, Boxes } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useGlbExport } from '@/hooks/useGlbExport'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
 import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
@@ -15,6 +16,7 @@ interface DocsBimStageProps {
 
 export function DocsBimStage({ activePlan, selectedDesign }: DocsBimStageProps) {
   const [view, setView] = useState<'drawings' | 'bim'>('drawings')
+  const { glbUrl, isExporting, error: exportError, generate, download } = useGlbExport()
   const registerSheets = useDrawingRegisterStore((s) => s.sheets)
   const initializeRegister = useDrawingRegisterStore((s) => s.initialize)
 
@@ -24,8 +26,20 @@ export function DocsBimStage({ activePlan, selectedDesign }: DocsBimStageProps) 
     }
   }, [selectedDesign, registerSheets.length, initializeRegister])
 
+  useEffect(() => {
+    if (activePlan && selectedDesign && !glbUrl && !isExporting) {
+      generate(activePlan, selectedDesign)
+    }
+  }, [activePlan, selectedDesign, glbUrl, isExporting, generate])
+
   const generatedCount = registerSheets.filter((s) => s.status === 'generated').length
   const totalCount = registerSheets.length
+
+  const handleExport = useCallback(() => {
+    if (activePlan && selectedDesign) {
+      download(activePlan, selectedDesign)
+    }
+  }, [activePlan, selectedDesign, download])
 
   if (!selectedDesign || !activePlan) {
     return (
@@ -83,10 +97,17 @@ export function DocsBimStage({ activePlan, selectedDesign }: DocsBimStageProps) 
           />
         ) : (
           <>
-            <LazyBimModel3D plan={activePlan} design={selectedDesign} height={600} />
+            <GlbViewer
+              glbUrl={glbUrl}
+              height={600}
+              onExportClick={handleExport}
+              isExporting={isExporting}
+              exportError={exportError}
+            />
             {activePlan && (
               <p className="mt-2 max-w-md text-[10px] text-stone-400 leading-relaxed">
                 3D BIM model — walls, slabs, storeys, doors, windows and roof generated from your floor plan.
+                Powered by <a href="https://gltf-viewer.donmccurdy.com/" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">glTF Viewer</a>.
                 Storey height 3.0&nbsp;m, wall thickness {(activePlan.wallThickness || 0.23).toFixed(2)}&nbsp;m.
                 Model downloadable as .glb for use in Blender, Windows 3D Viewer, and other 3D tools.
               </p>

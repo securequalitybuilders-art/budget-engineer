@@ -13,6 +13,7 @@ import { exportPlanToSvg } from '../../lib/export/svg-export'
 import { TraceBackdrop, BackdropControls } from './TraceBackdrop'
 import type { BackdropState } from '@/lib/import/backdropUtils'
 import { FurnitureLayer } from '../furniture/FurnitureLayer'
+import { EgressOverlay } from './EgressOverlay'
 import { getFurnitureDef } from '@/lib/furniture/furniture-library'
 import { FALLBACK_WALL_THICKNESS } from '@/adapters/planTo3d'
 
@@ -27,6 +28,7 @@ interface PlanCanvasProps {
   onBackdropClear?: () => void
   onDesignCreated?: (projectId: string, plan: PlanModel) => void
   furnitureBlocks?: PlacedBlock[]
+  loading?: boolean
   activeBlockDefId?: string | null
   onPlaceBlock?: (defId: string, x: number, y: number) => void
   onRemoveBlock?: (instanceId: string) => void
@@ -80,6 +82,7 @@ export function PlanCanvas({
   furnitureBlocks,
   activeBlockDefId,
   onPlaceBlock,
+  loading,
 }: PlanCanvasProps) {
   const createdRef = useRef(false)
   // Only generate legacy baseModel if no persistedPlan is provided
@@ -139,6 +142,17 @@ export function PlanCanvas({
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (document.activeElement && document.activeElement !== document.body) return
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) { redo(); return }
+        undo()
+        return
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        e.preventDefault()
+        redo()
+        return
+      }
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (selectedOpeningId) { deleteOpening(selectedOpeningId); return }
         if (selectedRoomId) deleteRoom(selectedRoomId)
@@ -184,6 +198,16 @@ export function PlanCanvas({
   const pointerAccum = useRef({ dx: 0, dy: 0 })
   const svgRef = useRef<SVGSVGElement | null>(null)
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center rounded-3xl border border-white/10 bg-white/5 p-12">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
+          <p className="text-sm text-slate-400">Generating plan...</p>
+        </div>
+      </div>
+    )
+  }
   if (!model) {
     return (
       <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-slate-300">
@@ -517,6 +541,13 @@ export function PlanCanvas({
             })}
             <RoomLabels model={model} />
             <DimensionLayer model={model} />
+            {model.egressPoints && model.egressPoints.length > 0 && (
+              <EgressOverlay
+                egressPoints={model.egressPoints}
+                maxTravelDistance={model.maxTravelDistance}
+                egressCompliant={model.egressCompliant}
+              />
+            )}
             {furnitureBlocks && (
               <FurnitureLayer
                 blocks={furnitureBlocks}

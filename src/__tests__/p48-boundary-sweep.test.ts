@@ -64,7 +64,7 @@ function analyze(area: number, seed: number): SeedResult {
 
   const kitchen = plan.rooms.find(r => r.name === 'Kitchen' || r.name === 'Living / Kitchen / Dining' || r.name === 'Kitchenette')
   const kitchenMin = kitchen ? getMinimumDimensions(kitchen.name) : null
-  const kitchenBelowMin = kitchenMin ? (kitchen.width < kitchenMin.minWidth - 0.01 || kitchen.height < kitchenMin.minDepth - 0.01) : false
+  const kitchenBelowMin = kitchenMin && kitchen ? (kitchen.width < kitchenMin.minWidth - 0.01 || kitchen.height < kitchenMin.minDepth - 0.01) : false
 
   const bathrooms = plan.rooms.filter(r => r.name.startsWith('Bathroom'))
   const bathroomBelowMin = bathrooms.length > 0 && bathrooms.some(b => {

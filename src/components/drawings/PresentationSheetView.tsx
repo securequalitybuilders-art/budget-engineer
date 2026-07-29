@@ -273,10 +273,11 @@ function embedElevationDrawing(
     )
   }
 
-  for (const poly of drawing.polygons) {
+  for (let pi = 0; pi < drawing.polygons.length; pi++) {
+    const poly = drawing.polygons[pi]
     const pts = poly.points.map(p => `${p.x},${p.y}`).join(' ')
     groupEls.push(
-      <polygon key={`p-${pts.slice(0, 20)}`} points={pts} fill={poly.fill || 'none'} stroke={poly.stroke || INK} strokeWidth={CAD_THIN} />,
+      <polygon key={`poly-${pi}`} points={pts} fill={poly.fill || 'none'} stroke={poly.stroke || INK} strokeWidth={CAD_THIN} />,
     )
   }
 
