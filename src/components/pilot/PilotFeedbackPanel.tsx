@@ -287,10 +287,10 @@ export function PilotFeedbackPanel({ onExport }: { onExport?: () => void }) {
             <CardDescription className="text-[10px]">Create a pilot session to start capturing observations</CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-2 space-y-3">
-            <input type="text" value={sessionName} onChange={(e) => setSessionName(e.target.value)}
+            <input type="text" value={sessionName} onChange={(e) => setSessionName(e.target.value)} aria-label="Session name"
               placeholder="Session name (e.g. Pilot Round 1)"
               className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--brand-accent)]" />
-            <textarea value={sessionDesc} onChange={(e) => setSessionDesc(e.target.value)}
+            <textarea value={sessionDesc} onChange={(e) => setSessionDesc(e.target.value)} aria-label="Session description"
               placeholder="Session description (optional)"
               rows={2}
               className="w-full resize-none rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--brand-accent)]" />
@@ -413,10 +413,10 @@ export function PilotFeedbackPanel({ onExport }: { onExport?: () => void }) {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <input type="text" value={form.title} onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))}
+              <input type="text" value={form.title} onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))} aria-label="Observation title"
                 placeholder="Observation title *"
                 className="col-span-2 rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] px-2 py-1.5 text-[10px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--brand-accent)]" />
-              <textarea value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
+              <textarea value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} aria-label="Description"
                 placeholder="Description"
                 rows={2}
                 className="col-span-2 resize-none rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] px-2 py-1.5 text-[10px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--brand-accent)]" />
@@ -433,13 +433,13 @@ export function PilotFeedbackPanel({ onExport }: { onExport?: () => void }) {
                   ))}
                 </select>
               </div>
-              <input type="text" value={form.reviewerName} onChange={(e) => setForm(f => ({ ...f, reviewerName: e.target.value }))}
+              <input type="text" value={form.reviewerName} onChange={(e) => setForm(f => ({ ...f, reviewerName: e.target.value }))} aria-label="Reviewer name"
                 placeholder="Reviewer name"
                 className="rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] px-2 py-1.5 text-[10px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--brand-accent)]" />
-              <input type="text" value={form.reviewerRole} onChange={(e) => setForm(f => ({ ...f, reviewerRole: e.target.value }))}
+              <input type="text" value={form.reviewerRole} onChange={(e) => setForm(f => ({ ...f, reviewerRole: e.target.value }))} aria-label="Reviewer role"
                 placeholder="Reviewer role"
                 className="rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] px-2 py-1.5 text-[10px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--brand-accent)]" />
-              <input type="text" value={form.evidenceRef} onChange={(e) => setForm(f => ({ ...f, evidenceRef: e.target.value }))}
+              <input type="text" value={form.evidenceRef} onChange={(e) => setForm(f => ({ ...f, evidenceRef: e.target.value }))} aria-label="Evidence reference"
                 placeholder="Evidence reference (screenshot #, log ref)"
                 className="col-span-2 rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] px-2 py-1.5 text-[10px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--brand-accent)]" />
               <div className="col-span-2">
@@ -475,14 +475,14 @@ export function PilotFeedbackPanel({ onExport }: { onExport?: () => void }) {
                   </div>
                 )}
               </div>
-              <textarea value={form.recommendation} onChange={(e) => setForm(f => ({ ...f, recommendation: e.target.value }))}
+              <textarea value={form.recommendation} onChange={(e) => setForm(f => ({ ...f, recommendation: e.target.value }))} aria-label="Recommended action"
                 placeholder="Recommended action"
                 rows={2}
                 className="col-span-2 resize-none rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] px-2 py-1.5 text-[10px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--brand-accent)]" />
-              <input type="text" value={form.followUpAction} onChange={(e) => setForm(f => ({ ...f, followUpAction: e.target.value }))}
+              <input type="text" value={form.followUpAction} onChange={(e) => setForm(f => ({ ...f, followUpAction: e.target.value }))} aria-label="Follow-up action"
                 placeholder="Follow-up action"
                 className="rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] px-2 py-1.5 text-[10px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--brand-accent)]" />
-              <input type="text" value={form.followUpAssignee} onChange={(e) => setForm(f => ({ ...f, followUpAssignee: e.target.value }))}
+              <input type="text" value={form.followUpAssignee} onChange={(e) => setForm(f => ({ ...f, followUpAssignee: e.target.value }))} aria-label="Follow-up assignee"
                 placeholder="Follow-up assignee"
                 className="rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] px-2 py-1.5 text-[10px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--brand-accent)]" />
             </div>
@@ -494,7 +494,7 @@ export function PilotFeedbackPanel({ onExport }: { onExport?: () => void }) {
                 {allObservations.find(o => o.id === editingId)?.status === 'action-planned' && (
                   <div className="flex items-center gap-1">
                     <input type="text" value={form.resolutionNotes || ''}
-                      onChange={(e) => setForm(f => ({ ...f, resolutionNotes: e.target.value }))}
+                      onChange={(e) => setForm(f => ({ ...f, resolutionNotes: e.target.value }))} aria-label="Resolution notes"
                       placeholder="Resolution notes"
                       className="w-40 rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] px-2 py-1 text-[9px] text-[var(--text-primary)] outline-none" />
                   </div>

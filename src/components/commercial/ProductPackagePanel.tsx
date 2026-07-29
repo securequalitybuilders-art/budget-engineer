@@ -326,7 +326,7 @@ export function ProductPackagePanel() {
               <Card key={item.id}>
                 <CardContent className="p-3">
                   <div className="flex items-start gap-2">
-                    <input type="checkbox" checked={isChecked} onChange={() => handleToggleChecklist(item.id)} className="mt-0.5 rounded border-[var(--border-default)]" />
+                    <input type="checkbox" checked={isChecked} onChange={() => handleToggleChecklist(item.id)} aria-label="Toggle checklist item" className="mt-0.5 rounded border-[var(--border-default)]" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1 flex-wrap">
                         <span className={'text-[9px] font-medium ' + (isChecked ? 'line-through text-[var(--text-tertiary)]' : 'text-[var(--text-primary)]')}>{item.label}</span>
@@ -338,7 +338,7 @@ export function ProductPackagePanel() {
                       <div className="mt-1 flex items-center gap-1">
                         {newNoteId === item.id ? (
                           <div className="flex items-center gap-1">
-                            <input type="text" value={newNoteText} onChange={(e) => setNewNoteText(e.target.value)} placeholder="Add note..."
+                            <input type="text" value={newNoteText} onChange={(e) => setNewNoteText(e.target.value)} placeholder="Add note..." aria-label="Add note"
                               className="w-40 rounded border border-[var(--border-default)] bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[8px] text-[var(--text-primary)] outline-none"
                               onKeyDown={(e) => { if (e.key === 'Enter') handleSaveNote(item.id); if (e.key === 'Escape') { setNewNoteId(null); setNewNoteText(''); } }} autoFocus />
                             <button onClick={() => handleSaveNote(item.id)} className="text-[7px] text-[var(--brand-accent)]">Save</button>

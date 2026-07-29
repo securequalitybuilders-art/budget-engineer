@@ -135,7 +135,7 @@ export default function CatalogManager({ providerId }: { providerId: string }) {
 
       {showAlerts && lowStockItems.length > 0 && (
         <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3"><h4 className="text-sm font-semibold text-amber-400 flex items-center gap-2"><AlertTriangle size={16} /> Inventory Alerts</h4><button onClick={() => setShowAlerts(false)} className="text-stone-400 hover:text-stone-300"><X size={14} /></button></div>
+          <div className="flex items-center justify-between mb-3"><h4 className="text-sm font-semibold text-amber-400 flex items-center gap-2"><AlertTriangle size={16} /> Inventory Alerts</h4><button onClick={() => setShowAlerts(false)} aria-label="Close inventory alerts" className="text-stone-400 hover:text-stone-300"><X size={14} /></button></div>
           <div className="flex items-center gap-3 mb-3"><label className="text-xs text-stone-400">Low stock threshold:</label><input type="number" min="1" value={lowStockThreshold} onChange={e => setLowStockThreshold(parseInt(e.target.value) || 5)} className="w-20 bg-stone-900 border border-stone-800 rounded px-2 py-1 text-sm text-stone-200 outline-none" /></div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">{lowStockItems.map(i => (
             <div key={i.id} className="flex items-center justify-between bg-stone-950 border border-stone-800 rounded-lg p-3">
@@ -150,9 +150,9 @@ export default function CatalogManager({ providerId }: { providerId: string }) {
         <div className="flex items-center gap-2"><Package className="text-cyan-400" size={20} /><h3 className="text-lg font-semibold text-stone-200">Catalog Inventory</h3></div>
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex bg-stone-950 border border-stone-800 rounded-lg p-0.5">
-            <button onClick={() => { setViewMode('grid'); setSelectMode(false); }} className={`p-1.5 rounded ${viewMode === 'grid' && !selectMode ? 'bg-stone-800 text-stone-200' : 'text-stone-400'}`}><Grid3X3 size={14} /></button>
-            <button onClick={() => { setViewMode('list'); setSelectMode(false); }} className={`p-1.5 rounded ${viewMode === 'list' && !selectMode ? 'bg-stone-800 text-stone-200' : 'text-stone-400'}`}><List size={14} /></button>
-            <button onClick={() => setSelectMode(!selectMode)} className={`p-1.5 rounded ${selectMode ? 'bg-cyan-500/10 text-cyan-400' : 'text-stone-400'}`}><CheckSquare size={14} /></button>
+            <button onClick={() => { setViewMode('grid'); setSelectMode(false); }} aria-label="Grid view" className={`p-1.5 rounded ${viewMode === 'grid' && !selectMode ? 'bg-stone-800 text-stone-200' : 'text-stone-400'}`}><Grid3X3 size={14} /></button>
+            <button onClick={() => { setViewMode('list'); setSelectMode(false); }} aria-label="List view" className={`p-1.5 rounded ${viewMode === 'list' && !selectMode ? 'bg-stone-800 text-stone-200' : 'text-stone-400'}`}><List size={14} /></button>
+            <button onClick={() => setSelectMode(!selectMode)} aria-label="Toggle selection mode" className={`p-1.5 rounded ${selectMode ? 'bg-cyan-500/10 text-cyan-400' : 'text-stone-400'}`}><CheckSquare size={14} /></button>
           </div>
           <button onClick={exportCSV} className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-stone-400 hover:text-stone-200 bg-stone-950 border border-stone-800 rounded-lg transition-colors"><Download size={12} /> Export</button>
           <button onClick={() => setShowImport(!showImport)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-stone-400 hover:text-stone-200 bg-stone-950 border border-stone-800 rounded-lg transition-colors"><Upload size={12} /> Import</button>
@@ -162,7 +162,7 @@ export default function CatalogManager({ providerId }: { providerId: string }) {
 
       {showImport && (
         <div className="bg-stone-950 border border-stone-800 rounded-xl p-5 space-y-3">
-          <div className="flex items-center justify-between"><h4 className="text-sm font-semibold text-stone-300">Import from CSV</h4><button onClick={() => setShowImport(false)} className="text-stone-400 hover:text-stone-300"><X size={16} /></button></div>
+          <div className="flex items-center justify-between"><h4 className="text-sm font-semibold text-stone-300">Import from CSV</h4><button onClick={() => setShowImport(false)} aria-label="Close import dialog" className="text-stone-400 hover:text-stone-300"><X size={16} /></button></div>
           <p className="text-xs text-stone-400">Paste CSV data (header: Name,Category,Subcategory,Description,Unit,Unit Price,Min Order,Lead Time,Stock,Tags)</p>
           <textarea value={importText} onChange={e => setImportText(e.target.value)} rows={5} className="w-full bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none resize-none font-mono" placeholder="Name,Category,Subcategory,Description,Unit,Unit Price,Min Order,Lead Time,Stock,Tags&#10;Portland Cement 32.5N,material,Cement &amp; Binders,Ordinary Portland Cement,ton,320.00,1,5,50,cement;foundation" />
           <div className="flex gap-2 justify-end"><button onClick={() => setShowImport(false)} className="px-4 py-2 text-sm text-stone-400 hover:text-stone-200">Cancel</button><button onClick={importCSV} disabled={!importText.trim()} className="flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-stone-800 disabled:text-stone-400 text-white rounded-lg text-sm font-medium transition-colors"><Upload size={14} /> Import Items</button></div>
@@ -170,7 +170,7 @@ export default function CatalogManager({ providerId }: { providerId: string }) {
       )}
 
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <div className="relative flex-1 w-full"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, description, tags..." className="w-full bg-stone-950 border border-stone-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-stone-200 outline-none focus:border-stone-600" /></div>
+        <div className="relative flex-1 w-full"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" /><input value={search} onChange={e => setSearch(e.target.value)} aria-label="Search catalog" placeholder="Search by name, description, tags..." className="w-full bg-stone-950 border border-stone-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-stone-200 outline-none focus:border-stone-600" /></div>
         <div className="flex flex-wrap gap-1 bg-stone-950 border border-stone-800 rounded-lg p-1">
           {[{ key: 'all', label: 'All' }, ...allCategories.map(c => ({ key: c, label: CATEGORY_LABELS[c] ?? c }))].map(c => (
             <button key={c.key} onClick={() => setFilterCat(c.key)} className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${filterCat === c.key ? 'bg-stone-800 text-stone-200' : 'text-stone-400 hover:text-stone-300'}`}>{c.label}</button>
@@ -181,7 +181,7 @@ export default function CatalogManager({ providerId }: { providerId: string }) {
 
       {showForm && (
         <div className="bg-stone-950 border border-stone-800 rounded-xl p-5 space-y-3">
-          <div className="flex items-center justify-between"><h4 className="text-sm font-semibold text-stone-300">{editingId ? 'Edit Item' : 'New Catalog Item'}</h4><button onClick={() => { setShowForm(false); setEditingId(null); resetForm(); }} className="text-stone-400 hover:text-stone-300"><X size={16} /></button></div>
+          <div className="flex items-center justify-between"><h4 className="text-sm font-semibold text-stone-300">{editingId ? 'Edit Item' : 'New Catalog Item'}</h4><button onClick={() => { setShowForm(false); setEditingId(null); resetForm(); }} aria-label="Close item form" className="text-stone-400 hover:text-stone-300"><X size={16} /></button></div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="col-span-2"><label className="text-xs text-stone-400">Item Name *</label><input value={item.name} onChange={e => setItem(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Portland Cement 32.5N" className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none focus:border-cyan-500/50" /></div>
             <div><label className="text-xs text-stone-400">Category</label><select value={item.category} onChange={e => { setItem(f => ({ ...f, category: e.target.value as any, subcategory: '' })); }} className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none">{allCategories.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c] ?? c}</option>)}</select></div>
@@ -230,12 +230,12 @@ export default function CatalogManager({ providerId }: { providerId: string }) {
             const isSelected = selectedItems.has(ci.id);
             return (
               <div key={ci.id} className={`bg-stone-950 border ${isSelected ? 'border-cyan-500/50 ring-1 ring-cyan-500/20' : 'border-stone-800/50'} rounded-lg p-4 flex flex-col gap-2 relative group hover:border-stone-700 transition-all`}>
-                {selectMode && <button onClick={() => toggleSelect(ci.id)} className="absolute top-2 left-2 z-10">{isSelected ? <CheckSquare size={16} className="text-cyan-400" /> : <Square size={16} className="text-stone-400" />}</button>}
+                {selectMode && <button onClick={() => toggleSelect(ci.id)} aria-label={isSelected ? "Deselect item" : "Select item"} className="absolute top-2 left-2 z-10">{isSelected ? <CheckSquare size={16} className="text-cyan-400" /> : <Square size={16} className="text-stone-400" />}</button>}
                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-10">
-                  {!selectMode && <button onClick={() => toggleSelect(ci.id)} className="p-1.5 text-stone-400 hover:text-cyan-400 bg-stone-900 rounded"><CheckSquare size={12} /></button>}
-                  <button onClick={() => duplicateItem(ci)} className="p-1.5 text-stone-400 hover:text-emerald-400 bg-stone-900 rounded"><Copy size={12} /></button>
-                  <button onClick={() => startEdit(ci)} className="p-1.5 text-stone-400 hover:text-cyan-400 bg-stone-900 rounded"><Edit2 size={12} /></button>
-                  <button onClick={() => removeCatalogItem(providerId, ci.id)} className="p-1.5 text-stone-400 hover:text-rose-400 bg-stone-900 rounded"><X size={12} /></button>
+                  {!selectMode && <button onClick={() => toggleSelect(ci.id)} aria-label="Toggle item selection" className="p-1.5 text-stone-400 hover:text-cyan-400 bg-stone-900 rounded"><CheckSquare size={12} /></button>}
+                  <button onClick={() => duplicateItem(ci)} aria-label="Duplicate item" className="p-1.5 text-stone-400 hover:text-emerald-400 bg-stone-900 rounded"><Copy size={12} /></button>
+                  <button onClick={() => startEdit(ci)} aria-label="Edit item" className="p-1.5 text-stone-400 hover:text-cyan-400 bg-stone-900 rounded"><Edit2 size={12} /></button>
+                  <button onClick={() => removeCatalogItem(providerId, ci.id)} aria-label="Remove item" className="p-1.5 text-stone-400 hover:text-rose-400 bg-stone-900 rounded"><X size={12} /></button>
                 </div>
                 <div className="flex items-start gap-3"><div className={`p-2 rounded-lg shrink-0 ${CATEGORY_COLORS[ci.category] ?? 'text-stone-400 bg-stone-800'}`}><Package size={16} /></div>
                   <div className="flex-1 min-w-0"><h4 className="font-medium text-stone-200 text-sm truncate">{ci.name}</h4><span className={`inline-block px-1.5 py-0.5 rounded text-xs mt-0.5 ${CATEGORY_COLORS[ci.category] ?? ''}`}>{CATEGORY_LABELS[ci.category]}</span></div></div>
@@ -267,7 +267,7 @@ export default function CatalogManager({ providerId }: { providerId: string }) {
           <table className="w-full text-sm">
             <thead className="bg-stone-900 border-b border-stone-800">
               <tr>
-                {selectMode && <th className="p-3 w-10"><button onClick={toggleSelectAll} className="text-stone-400 hover:text-stone-200">{selectedItems.size === filteredItems.length ? <CheckSquare size={14} className="text-cyan-400" /> : <Square size={14} />}</button></th>}
+                {selectMode && <th className="p-3 w-10"><button onClick={toggleSelectAll} aria-label={selectedItems.size === filteredItems.length ? "Deselect all" : "Select all"} className="text-stone-400 hover:text-stone-200">{selectedItems.size === filteredItems.length ? <CheckSquare size={14} className="text-cyan-400" /> : <Square size={14} />}</button></th>}
                 <th className="p-3 text-left text-stone-400 font-medium">Item</th>
                 <th className="p-3 text-left text-stone-400 font-medium">Category</th>
                 <th className="p-3 text-right text-stone-400 font-medium">Price</th>
@@ -280,16 +280,16 @@ export default function CatalogManager({ providerId }: { providerId: string }) {
               const isSelected = selectedItems.has(ci.id);
               return (
                 <tr key={ci.id} className={`hover:bg-stone-900/50 transition-colors group ${isSelected ? 'bg-cyan-500/5' : ''}`}>
-                  {selectMode && <td className="p-3"><button onClick={() => toggleSelect(ci.id)}>{isSelected ? <CheckSquare size={14} className="text-cyan-400" /> : <Square size={14} className="text-stone-400" />}</button></td>}
+                  {selectMode && <td className="p-3"><button onClick={() => toggleSelect(ci.id)} aria-label={isSelected ? "Deselect" : "Select"}>{isSelected ? <CheckSquare size={14} className="text-cyan-400" /> : <Square size={14} className="text-stone-400" />}</button></td>}
                   <td className="p-3"><div className="font-medium text-stone-200">{ci.name}</div><div className="text-xs text-stone-400">{ci.subcategory || '—'}</div></td>
                   <td className="p-3"><span className={`px-2 py-0.5 rounded text-xs ${CATEGORY_COLORS[ci.category]}`}>{CATEGORY_LABELS[ci.category]}</span></td>
                   <td className="p-3 text-right text-stone-200 font-medium">${ci.unitPrice.toFixed(2)}<span className="text-stone-400 text-xs">/{ci.unit}</span></td>
                   <td className="p-3 text-center text-stone-400">{ci.leadTimeDays}d</td>
                   <td className="p-3 text-center">{ci.stockQuantity !== undefined ? <span className={`text-xs ${ci.stockQuantity > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>{ci.stockQuantity > 0 ? `${ci.stockQuantity}` : 'Out of stock'}</span> : <span className="text-xs text-stone-400">—</span>}</td>
                   <td className="p-3 text-right"><div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-all">
-                    <button onClick={() => duplicateItem(ci)} className="p-1 text-stone-400 hover:text-emerald-400"><Copy size={14} /></button>
-                    <button onClick={() => startEdit(ci)} className="p-1 text-stone-400 hover:text-cyan-400"><Edit2 size={14} /></button>
-                    <button onClick={() => removeCatalogItem(providerId, ci.id)} className="p-1 text-stone-400 hover:text-rose-400"><X size={14} /></button>
+                    <button onClick={() => duplicateItem(ci)} aria-label="Duplicate item" className="p-1 text-stone-400 hover:text-emerald-400"><Copy size={14} /></button>
+                    <button onClick={() => startEdit(ci)} aria-label="Edit item" className="p-1 text-stone-400 hover:text-cyan-400"><Edit2 size={14} /></button>
+                    <button onClick={() => removeCatalogItem(providerId, ci.id)} aria-label="Remove item" className="p-1 text-stone-400 hover:text-rose-400"><X size={14} /></button>
                   </div></td>
                 </tr>
               );

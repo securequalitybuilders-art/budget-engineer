@@ -70,7 +70,7 @@ function DiffRow({ diff }: { diff: ComparisonDiff }) {
     <div className="flex items-center gap-2 text-[10px] py-0.5">
       <span className={`font-mono font-bold ${color}`}>{arrow}</span>
       <span className="text-gray-300 flex-1">{diff.field}</span>
-      {diff.before !== '—' && <span className="text-gray-500 line-through">{diff.before}</span>}
+      {diff.before !== '—' && <span className="text-gray-400 line-through">{diff.before}</span>}
       <span className={`font-semibold ${color}`}>{diff.after}</span>
     </div>
   );
@@ -95,7 +95,7 @@ function ComparisonView({ comparison, onClose }: { comparison: AssessmentCompari
           <GitCompare className="w-3.5 h-3.5 text-blue-400" />
           <h4 className="text-xs font-semibold text-gray-300">Comparison</h4>
         </div>
-        <button onClick={onClose} className="p-0.5 text-gray-500 hover:text-gray-300">
+        <button onClick={onClose} className="p-0.5 text-gray-400 hover:text-gray-300">
           <X className="w-3 h-3" />
         </button>
       </div>
@@ -104,7 +104,7 @@ function ComparisonView({ comparison, onClose }: { comparison: AssessmentCompari
         <span className="text-blue-400">{comparison.afterName} ({new Date(comparison.afterDate).toLocaleDateString('en-GB')})</span>
       </div>
       {!hasAny ? (
-        <p className="text-[10px] text-gray-500">No significant differences between these assessments.</p>
+        <p className="text-[10px] text-gray-400">No significant differences between these assessments.</p>
       ) : (
         sections.map(s => s.diffs.length > 0 && (
           <div key={s.label} className="mb-2">
@@ -240,11 +240,11 @@ export function SelfAssessmentPanel({ linkedSessionId = null }: SelfAssessmentPa
                   </span>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-gray-500">{new Date(a.createdAt).toLocaleDateString('en-GB')}</span>
+                  <span className="text-gray-400">{new Date(a.createdAt).toLocaleDateString('en-GB')}</span>
                   {activeAssessment && activeAssessment.id !== a.id && (
                     <button
                       onClick={(e) => { e.stopPropagation(); setCompareTargetId(a.id); }}
-                      className={`p-0.5 transition-colors ${compareTargetId === a.id ? 'text-blue-400' : 'text-gray-500 hover:text-blue-400'}`}
+                      className={`p-0.5 transition-colors ${compareTargetId === a.id ? 'text-blue-400' : 'text-gray-400 hover:text-blue-400'}`}
                       title="Compare with active assessment"
                     >
                       <GitCompare className="w-2.5 h-2.5" />
@@ -252,7 +252,7 @@ export function SelfAssessmentPanel({ linkedSessionId = null }: SelfAssessmentPa
                   )}
                   <button
                     onClick={(e) => handleDelete(a.id, e)}
-                    className="p-0.5 text-gray-500 hover:text-red-400 transition-colors"
+                    className="p-0.5 text-gray-400 hover:text-red-400 transition-colors"
                     title="Delete assessment"
                   >
                     <X className="w-2.5 h-2.5" />
@@ -516,8 +516,8 @@ export function SelfAssessmentPanel({ linkedSessionId = null }: SelfAssessmentPa
           {/* Footer disclaimer */}
           <div className="bg-gray-800/40 border border-gray-700 rounded p-2">
             <div className="flex items-start gap-1">
-              <ShieldCheck className="w-3 h-3 text-gray-500 mt-0.5 shrink-0" />
-              <p className="text-[9px] text-gray-500">
+              <ShieldCheck className="w-3 h-3 text-gray-400 mt-0.5 shrink-0" />
+              <p className="text-[9px] text-gray-400">
                 This self-assessment is for internal capability evaluation only. It does not constitute
                 professional design approval, regulatory signoff, or certification of fitness for construction.
                 All outputs require qualified professional review before use in real projects.

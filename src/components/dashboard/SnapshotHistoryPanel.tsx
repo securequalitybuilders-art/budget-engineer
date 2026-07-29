@@ -118,6 +118,7 @@ export function SnapshotHistoryPanel({ projectId, selectedDesign, currentBoq, va
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 placeholder="Snapshot label..."
+                aria-label="Snapshot label"
                 className="min-w-0 flex-1 rounded border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-[var(--text-primary)] outline-none focus:border-cyan-400/40"
                 disabled={!hasDesign}
               />

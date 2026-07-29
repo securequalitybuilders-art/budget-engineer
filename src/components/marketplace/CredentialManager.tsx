@@ -100,7 +100,7 @@ export default function CredentialManager({ providerId }: { providerId: string }
 
       {showTimeline && (
         <div className="bg-stone-950 border border-stone-800 rounded-xl p-5">
-          <div className="flex items-center justify-between mb-4"><h4 className="text-sm font-semibold text-stone-300 flex items-center gap-2"><Calendar size={16} className="text-cyan-400" /> Renewal Timeline</h4><button onClick={() => setShowTimeline(false)} className="text-stone-400 hover:text-stone-300"><XCircle size={14} /></button></div>
+          <div className="flex items-center justify-between mb-4"><h4 className="text-sm font-semibold text-stone-300 flex items-center gap-2"><Calendar size={16} className="text-cyan-400" /> Renewal Timeline</h4><button onClick={() => setShowTimeline(false)} aria-label="Close renewal timeline" className="text-stone-400 hover:text-stone-300"><XCircle size={14} /></button></div>
           <div className="relative">
             <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-stone-800" />
             <div className="space-y-0">
@@ -124,7 +124,7 @@ export default function CredentialManager({ providerId }: { providerId: string }
       )}
 
       <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by title, issuer, number..." className="w-full bg-stone-950 border border-stone-800 rounded-lg pl-10 pr-4 py-2 text-sm text-stone-200 outline-none focus:border-stone-600" /></div>
+        <div className="relative flex-1"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by title, issuer, number..." aria-label="Search credentials" className="w-full bg-stone-950 border border-stone-800 rounded-lg pl-10 pr-4 py-2 text-sm text-stone-200 outline-none focus:border-stone-600" /></div>
         <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-xs text-stone-400 outline-none"><option value="all">All Types</option>{CREDENTIAL_TYPES.map(t => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}</select>
         <div className="flex gap-1 bg-stone-950 border border-stone-800 rounded-lg p-1">
           {[{ key: 'all', label: 'All' }, { key: 'active', label: 'Active' }, { key: 'expired', label: 'Expired' }, { key: 'pending_renewal', label: 'Renewal' }].map(s => (
@@ -144,7 +144,7 @@ export default function CredentialManager({ providerId }: { providerId: string }
 
       {showForm && (
         <div className="bg-stone-950 border border-stone-800 rounded-xl p-5 space-y-3">
-          <div className="flex items-center justify-between"><h4 className="text-sm font-semibold text-stone-300">Add New Credential</h4><button onClick={() => setShowForm(false)} className="text-stone-400 hover:text-stone-300"><XCircle size={16} /></button></div>
+          <div className="flex items-center justify-between"><h4 className="text-sm font-semibold text-stone-300">Add New Credential</h4><button onClick={() => setShowForm(false)} aria-label="Close credential form" className="text-stone-400 hover:text-stone-300"><XCircle size={16} /></button></div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div><label className="text-xs text-stone-400">Type</label><select value={cred.type} onChange={e => setCred(f => ({ ...f, type: e.target.value as any }))} className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none">{CREDENTIAL_TYPES.map(t => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}</select></div>
             <div className="col-span-2"><label className="text-xs text-stone-400">Title *</label><input value={cred.title} onChange={e => setCred(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Civil Engineering License (CEng)" className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none" /></div>
@@ -170,7 +170,7 @@ export default function CredentialManager({ providerId }: { providerId: string }
           return (
             <div key={c.id} className={`bg-stone-950 border ${isExpanded ? 'border-stone-700' : 'border-stone-800/50'} rounded-lg transition-all hover:border-stone-700 ${isSelected ? 'ring-1 ring-cyan-500/20 border-cyan-500/50' : ''}`}>
               <div className="p-4 flex items-start gap-4 cursor-pointer" onClick={() => { if (!selectMode) setShowDetail(isExpanded ? null : c.id); }}>
-                {selectMode && <button onClick={(e) => { e.stopPropagation(); toggleSelect(c.id); }} className="mt-1">{isSelected ? <CheckSquare size={16} className="text-cyan-400" /> : <Square size={16} className="text-stone-400" />}</button>}
+                {selectMode && <button onClick={(e) => { e.stopPropagation(); toggleSelect(c.id); }} aria-label={isSelected ? 'Deselect credential' : 'Select credential'} className="mt-1">{isSelected ? <CheckSquare size={16} className="text-cyan-400" /> : <Square size={16} className="text-stone-400" />}</button>}
                 <div className={`p-2.5 rounded-lg shrink-0 ${c.verificationStatus === 'verified' ? 'bg-emerald-500/10' : 'bg-stone-900'}`}>{TYPE_ICONS[c.type] ?? <FileText size={18} />}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-3">

@@ -114,7 +114,7 @@ export function PilotReviewPage() {
                 <p className="text-[9px] text-gray-400 mt-1">
                   {linkedAssessment.name} — {linkedAssessment.result.matchedCases.length} matched reference case(s)
                 </p>
-                <div className="flex gap-3 mt-1 text-[9px] text-gray-500">
+                <div className="flex gap-3 mt-1 text-[9px] text-gray-400">
                   <span>Typology: {linkedAssessment.snapshot.typology}</span>
                   <span>Storeys: {linkedAssessment.snapshot.storeyProfile}</span>
                 </div>

@@ -190,13 +190,13 @@ export default function ProviderDashboard() {
         <div><h2 className="text-2xl font-bold text-stone-100 flex items-center gap-2"><Building2 className="text-cyan-400" size={24} /> Provider Dashboard</h2><p className="text-stone-400 text-sm mt-1">{providers.length} registered {providers.length === 1 ? 'provider' : 'providers'} on the network</p></div>
         <div className="flex items-center gap-2">
           <div className="relative">
-            <button onClick={() => { setShowNotifications(!showNotifications); setShowActivity(false); }} className="relative p-2 text-stone-400 hover:text-stone-200 bg-stone-950 border border-stone-800 rounded-lg transition-colors">
+            <button onClick={() => { setShowNotifications(!showNotifications); setShowActivity(false); }} aria-label="Toggle notifications" className="relative p-2 text-stone-400 hover:text-stone-200 bg-stone-950 border border-stone-800 rounded-lg transition-colors">
               <Bell size={18} />
               {notifications.length > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 rounded-full text-[10px] text-white flex items-center justify-center font-medium">{notifications.length}</span>}
             </button>
             {showNotifications && (
               <div className="absolute right-0 top-full mt-2 w-80 bg-stone-950 border border-stone-800 rounded-xl shadow-xl z-50 overflow-hidden">
-                <div className="p-3 border-b border-stone-800 flex items-center justify-between"><span className="text-sm font-medium text-stone-200">Notifications</span><button onClick={() => setShowNotifications(false)} className="text-stone-400 hover:text-stone-300"><XCircle size={14} /></button></div>
+                <div className="p-3 border-b border-stone-800 flex items-center justify-between"><span className="text-sm font-medium text-stone-200">Notifications</span><button onClick={() => setShowNotifications(false)} aria-label="Close notifications" className="text-stone-400 hover:text-stone-300"><XCircle size={14} /></button></div>
                 <div className="max-h-64 overflow-y-auto">{notifications.map(n => (
                   <div key={n.id} className="flex items-start gap-3 p-3 hover:bg-stone-900 transition-colors border-b border-stone-800/50 last:border-0">
                     <div className={`p-1.5 rounded-full shrink-0 ${n.type === 'warning' ? 'bg-amber-500/10' : n.type === 'error' ? 'bg-rose-500/10' : 'bg-cyan-500/10'}`}>
@@ -215,7 +215,7 @@ export default function ProviderDashboard() {
 
       <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0">
         <aside className="w-full md:w-72 shrink-0 flex flex-col gap-3">
-          <div className="relative"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" /><input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search providers..." className="w-full bg-stone-950 border border-stone-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-stone-200 outline-none focus:border-stone-600" /></div>
+          <div className="relative"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" /><input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search providers..." aria-label="Search providers" className="w-full bg-stone-950 border border-stone-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-stone-200 outline-none focus:border-stone-600" /></div>
           <div className="flex flex-wrap gap-1 mb-2">
             {[{ key: 'all', label: 'All' }, { key: 'contractor', label: 'Contractor' }, { key: 'supplier', label: 'Supplier' }, { key: 'professional', label: 'Professional' }, { key: 'subcontractor', label: 'Sub' }].map(t => (
               <button key={t.key} onClick={() => setFilters({ type: t.key === 'all' ? undefined : t.key })} className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${(t.key === 'all' && !filters.type) || filters.type === t.key ? 'bg-cyan-500/10 text-cyan-400' : 'text-stone-400 hover:text-stone-300'}`}>{t.label}</button>
@@ -260,7 +260,7 @@ export default function ProviderDashboard() {
             <div className="flex-1 animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-y-auto">
               {showActivity && (
                 <div className="bg-stone-950 border border-stone-800 rounded-xl p-4 mb-4">
-                  <div className="flex items-center justify-between mb-3"><h4 className="text-sm font-semibold text-stone-300 flex items-center gap-2"><Activity size={14} className="text-cyan-400" /> Recent Activity</h4><button onClick={() => setShowActivity(false)} className="text-stone-400 hover:text-stone-300"><XCircle size={14} /></button></div>
+                  <div className="flex items-center justify-between mb-3"><h4 className="text-sm font-semibold text-stone-300 flex items-center gap-2"><Activity size={14} className="text-cyan-400" /> Recent Activity</h4><button onClick={() => setShowActivity(false)} aria-label="Close activity panel" className="text-stone-400 hover:text-stone-300"><XCircle size={14} /></button></div>
                   <div className="relative">
                     <div className="absolute left-[7px] top-1 bottom-1 w-0.5 bg-stone-800" />
                     <div className="space-y-3">

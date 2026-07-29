@@ -318,6 +318,7 @@ export function GovernancePanel({ selectedDesign, hasBim, hasBoq, hasAnalysis, p
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 placeholder="Type your comment..."
+                aria-label="Comment text"
                 className="w-full rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-2 py-1 text-[10px] text-[var(--text-primary)] placeholder-[var(--text-muted)]"
                 rows={2}
               />

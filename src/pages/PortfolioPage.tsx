@@ -361,6 +361,7 @@ export function PortfolioPage() {
               <input
                 type="text"
                 placeholder="Search projects..."
+                aria-label="Search projects"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] py-2 pl-9 pr-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--brand-accent)]"
