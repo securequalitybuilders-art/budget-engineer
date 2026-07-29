@@ -268,7 +268,44 @@ Fixed 6 runtime crash sources and eliminated all non-test TypeScript errors. Rem
 - `src/engine/tier3/multiStoreySolver.ts` — unsafe casts fixed
 - `src/lib/drawings/disciplines/schedule-svg.ts` — BimMetadata.code access fixed
 
+## P14.13 — GLTF Viewer (donmccurdy) + Site Analysis Integration (Commit: `a4369ed`)
+
+### What was done
+Replaced the React-three-fiber-based BimModel3D viewer with `@google/model-viewer` (the same rendering engine behind https://gltf-viewer.donmccurdy.com/), providing orbit controls, environment presets, auto-rotate, fullscreen, and GLB export. Integrated the 3D model viewer with the site analysis engine so users can see sun position, orientation, and shadows alongside the building model.
+
+### Files created (4)
+- **`src/types/model-viewer.d.ts`** — JSX type declarations for `<model-viewer>` web component (all attributes: camera-controls, auto-rotate, environment-image, shadow, AR, events)
+- **`src/hooks/useGlbExport.ts`** — Hook that generates a GLB blob from PlanModel data using three.js `GLTFExporter` headlessly. Builds a three.js scene matching BimModel3D's geometry (walls, slabs, ceilings, doors, windows, gable roof) using the same brand-colored materials. Returns `{ glbUrl, isExporting, error, generate, download, revoke }`.
+- **`src/components/bim/GlbViewer.tsx`** — Wraps `<model-viewer>` with full toolbar: auto-rotate toggle, 4 environment presets (neutral/sunrise/sunset/night with Sun/Moon icons), fullscreen toggle, GLB download button, loading spinner, error display.
+- **`src/components/bim/GlbSiteViewer.tsx`** — Combines GlbViewer with site context panel. Shows lat/lng/orientation/terrain + interactive sun study with date/time pickers. Computes sun azimuth/elevation via `computeSunPosition()` from heliodon engine.
+
+### Files modified (3)
+- **`BimStage.tsx`** — Replaced LazyBimModel3D + LazyBimViewer with GlbViewer (3D Model tab) and GlbSiteViewer (new Site tab). Auto-generates GLB when plan/design changes. Removed unused imports. Attribution link to gltf-viewer.donmccurdy.com.
+- **`DocsBimStage.tsx`** — Replaced LazyBimModel3D with GlbViewer. Auto-generates GLB. Attribution link.
+- **`SiteAnalysisStage.tsx`** — Added toggle between 2D HeliodonView and 3D GlbSiteViewer. Accepts typed `selectedDesign`/`activePlan` props. Auto-generates GLB when 3D view activated.
+
+### Architecture
+```
+PlanModel + DesignOption
+    │
+    ▼
+useGlbExport().generate()
+    │  planTo3d() → buildScene() → GLTFExporter → Blob URL
+    ▼
+GlbViewer (model-viewer web component)
+    │  camera-controls, auto-rotate, environment presets
+    │
+    ├──► BimStage (3D Model tab)
+    │
+    └──► GlbSiteViewer (adds site context + sun study)
+            ├──► BimStage (Site tab)
+            └──► SiteAnalysisStage (3D toggle)
+```
+
+### Dependencies added
+- `@google/model-viewer@4.3.1` (peer: `three@^0.183.0`, installed with `--legacy-peer-deps`)
+
 ### Remaining (6 errors, all test files)
-- `p6DxfExport.test.ts` — 4 fixture type mismatches (CadDocument, CadOpening 'label', CadAnnotation missing fields)
-- `presentationSheet.test.ts` — `'sheet' is possibly 'null'` (line 172)
-- `sheetPdfExport.test.ts` — `'"test"' not assignable to PlanSource | undefined` (line 48)
+- `p6DxfExport.test.ts` — 4 fixture type mismatches
+- `presentationSheet.test.ts` — `'sheet' is possibly 'null'`
+- `sheetPdfExport.test.ts` — `'"test"' not assignable to PlanSource | undefined`
