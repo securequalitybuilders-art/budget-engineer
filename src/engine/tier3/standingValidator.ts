@@ -1,7 +1,5 @@
 import type { PlacedRoom, FloorPlan } from './layoutEngine'
 import { classifyRoom } from './roomClassifier'
-import { dimForRoom } from './layoutEngine'
-
 // ── Construction defaults ──
 
 export const CONSTRUCTION_DEFAULTS = {
@@ -50,7 +48,7 @@ function significantDigits(a: number, b: number, places: number = 2): boolean {
   return Math.abs(a - b) < 10 ** -places
 }
 
-export function checkWallThicknesses(rooms: PlacedRoom[], walls?: Array<{ thickness: number }>): ValidationFinding[] {
+export function checkWallThicknesses(_rooms: PlacedRoom[], walls?: Array<{ thickness: number }>): ValidationFinding[] {
   const findings: ValidationFinding[] = []
   if (!walls || walls.length === 0) {
     findings.push({
@@ -141,7 +139,6 @@ export function checkDaylight(rooms: PlacedRoom[]): ValidationFinding[] {
   for (const room of rooms) {
     const isHabitable = habitableKeywords.some(k => room.name.startsWith(k))
     if (!isHabitable) continue
-    const glazingArea = room.width * room.height * CONSTRUCTION_DEFAULTS.minGlazingRatio
     const hasExternalExposure = room.x === 0 || Math.abs(room.x + room.width - 0) < 0.01 ||
       room.y === 0 || Math.abs(room.y + room.height - 0) < 0.01
     if (!hasExternalExposure && room.width * room.height > 8) {

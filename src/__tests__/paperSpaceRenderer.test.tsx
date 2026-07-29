@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest'
-import React from 'react'
 import type { ReactNode } from 'react'
 import type { PlanModel } from '@/domain/plan'
 import { createPaperSpaceLayout } from '@/engine/parametric/paperSpaceModel'

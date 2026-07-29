@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { useProviderStore } from '../../stores/providerStore';
-import { Package, Plus, X, DollarSign, Clock, Tag, Search, Edit2, Save, AlertTriangle, CheckCircle2, Filter, Copy, Download, Upload, RefreshCw, Grid3X3, List, ChevronDown, Image, TrendingUp, BarChart3, CheckSquare, Square, Trash2, Percent, ArrowUpDown, AlertOctagon, Eye, EyeOff, Printer, FileSpreadsheet, Layers } from 'lucide-react';
+import { Package, Plus, X, DollarSign, Clock, Tag, Search, Edit2, Save, AlertTriangle, CheckCircle2, Copy, Download, Upload, Grid3X3, List, Image, TrendingUp, CheckSquare, Square, Trash2, Percent, AlertOctagon } from 'lucide-react';
 
 const CATEGORIES = ['material', 'equipment', 'service', 'labour'] as const;
 const CATEGORY_LABELS: Record<string, string> = { material: 'Materials', equipment: 'Equipment', service: 'Services', labour: 'Labour' };
@@ -38,9 +38,7 @@ export default function CatalogManager({ providerId }: { providerId: string }) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'lead' | 'stock'>('name');
   const [showPriceHistory, setShowPriceHistory] = useState<string | null>(null);
-  const [customCategory, setCustomCategory] = useState('');
-  const [showCategoryManager, setShowCategoryManager] = useState(false);
-  const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [customCategories] = useState<string[]>([]);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
   const [bulkPricePct, setBulkPricePct] = useState(0);

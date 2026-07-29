@@ -1,4 +1,3 @@
-import React from 'react';
 import { CheckCircle2, Clock, XCircle, ShieldCheck } from 'lucide-react';
 
 export interface ApprovalRequest {

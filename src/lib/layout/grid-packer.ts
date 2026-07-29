@@ -224,15 +224,12 @@ function packHorizontalBand(
   }
 
   // Scale-to-fit as last resort
-  const totalMinW_all = ordered.reduce((s, r) => s + r.minWidth, 0)
-  const scale = Math.min(1, zoneW / Math.max(totalMinW_all, 0.01))
   const result: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
   let x = 0
 
   // Reserve minimum widths for all rooms, distribute any excess proportionally
   const totalMin = ordered.reduce((s, r) => s + r.minWidth, 0)
   const deficit = Math.max(0, totalMin - zoneW)
-  const ratioSum2 = ordered.reduce((s, r) => s + r.ratio, 0) || 1
 
   for (let i = 0; i < ordered.length; i++) {
     const r = ordered[i]
@@ -338,7 +335,6 @@ function packVerticalBand(
   // Scale-to-fit as last resort
   const totalMinH_all = ordered.reduce((s, r) => s + r.minDepth, 0)
   const deficit2 = Math.max(0, totalMinH_all - zoneH)
-  const ratioSum3 = ordered.reduce((s, r) => s + r.ratio, 0) || 1
   const result: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
   let y = 0
 

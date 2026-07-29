@@ -18,9 +18,6 @@ function addWindow(openings: Opening[], wall: WallSegment, offset: number, width
 function isFrontWall(w: WallSegment, eps = 0.01): boolean {
   return Math.abs(w.start.y) < eps && Math.abs(w.end.y) < eps
 }
-function isRearWall(w: WallSegment, eps = 0.01): boolean {
-  return Math.abs(w.start.y - w.end.y) < eps && w.start.y > eps && w.end.y > eps
-}
 function wallLen(w: WallSegment): number {
   return Math.hypot(w.end.x - w.start.x, w.end.y - w.start.y)
 }
@@ -176,7 +173,7 @@ export function resolveOpeningHosts(
   // 3. Windows — room-type-aware, multi-window for large front rooms
   const roomsWithWindows = new Set<string>()
 
-  function roomWindowWidth(role: string, roomName: string, onFront: boolean, wallLen: number): number {
+  function roomWindowWidth(_role: string, roomName: string, onFront: boolean, wallLen: number): number {
     if (onFront) {
       if (isPublicRoom(roomName)) return Math.min(2.0, wallLen * 0.45)
       if (isWetRoom(roomName)) return Math.min(1.2, wallLen * 0.35)

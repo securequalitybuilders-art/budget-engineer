@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useProviderStore } from '../../stores/providerStore';
 import { ProviderType } from '../../domain/marketplace';
-import { Building2, Briefcase, Package, MapPin, ChevronRight, ChevronLeft, Check, AlertCircle, Globe, Phone, Mail, Building, Users, Calendar, Award, FileText, Shield, HelpCircle, X, Sparkles, Clock } from 'lucide-react';
+import { Building2, Briefcase, Package, MapPin, ChevronRight, ChevronLeft, Check, AlertCircle, Globe, Phone, Mail, Building, Users, Award, Shield, Sparkles, Clock } from 'lucide-react';
 
 const PROVIDER_TYPES: { value: ProviderType; label: string; description: string; longDesc: string; icon: React.ReactNode }[] = [
   { value: 'contractor', label: 'General Contractor', description: 'Full construction project management', longDesc: 'Manages entire builds from groundbreak to handover. Subcontracts specialist trades.', icon: <Building2 size={22} /> },

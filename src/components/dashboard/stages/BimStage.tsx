@@ -112,7 +112,7 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
                   >
                     Regenerate
                   </button>
-                  <span className="text-[10px] text-stone-500">
+                  <span className="text-[10px] text-stone-400">
                     Powered by <a href="https://gltf-viewer.donmccurdy.com/" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">glTF Viewer</a>
                   </span>
                 </div>

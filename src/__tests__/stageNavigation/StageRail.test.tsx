@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, fireEvent, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup } from '@testing-library/react'
 
 import { StageRail } from '@/components/dashboard/StageRail'
 import { getStagesForDiscipline } from '@/lib/studio/stageRegistry'

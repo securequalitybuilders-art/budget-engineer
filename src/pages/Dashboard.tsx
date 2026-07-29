@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback, Suspense, lazy } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -7,6 +7,7 @@ import { BentoShell } from '@/components/layout/BentoShell';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { PropertiesPanel } from '@/components/layout/PropertiesPanel';
 import { LazyBOQPanel } from '@/components/layout/LazyBOQPanel';
+import { PageLoader } from '@/components/layout/PageLoader';
 import { TransactionPanel } from '@/components/layout/TransactionPanel';
 import { AIChatPanel } from '@/components/layout/AIChatPanel';
 import ExecutionPanel from '@/components/execution/ExecutionPanel';
@@ -15,20 +16,20 @@ import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { getStageDef, getStagesForDiscipline, type StageId } from '@/lib/studio/stageRegistry';
 import { StageRail } from '@/components/dashboard/StageRail';
 import { MobileNavDrawer } from '@/components/dashboard/MobileNavDrawer';
-import { BriefStage } from '@/components/dashboard/stages/BriefStage';
-import { ConceptStage } from '@/components/dashboard/stages/ConceptStage';
-import { SiteAnalysisStage } from '@/components/dashboard/stages/SiteAnalysisStage';
-import { DesignStage } from '@/components/dashboard/stages/DesignStage';
-import { BimStage } from '@/components/dashboard/stages/BimStage';
-import { RoughInStage } from '@/components/dashboard/stages/RoughInStage';
-import { SubstratesStage } from '@/components/dashboard/stages/SubstratesStage';
-import { MillworkStage } from '@/components/dashboard/stages/MillworkStage';
-import { FinishesStage } from '@/components/dashboard/stages/FinishesStage';
-import { AppliancesStage } from '@/components/dashboard/stages/AppliancesStage';
-import { CostDeliverStage } from '@/components/dashboard/stages/CostDeliverStage';
-import { BudgetEngineeredStage } from '@/components/dashboard/stages/BudgetEngineeredStage';
-import { EngineeringStage } from '@/components/dashboard/stages/EngineeringStage';
-import { DocsBimStage } from '@/components/dashboard/stages/DocsBimStage';
+const BriefStage = lazy(() => import('@/components/dashboard/stages/BriefStage').then(m => ({ default: m.BriefStage })));
+const ConceptStage = lazy(() => import('@/components/dashboard/stages/ConceptStage').then(m => ({ default: m.ConceptStage })));
+const SiteAnalysisStage = lazy(() => import('@/components/dashboard/stages/SiteAnalysisStage').then(m => ({ default: m.SiteAnalysisStage })));
+const DesignStage = lazy(() => import('@/components/dashboard/stages/DesignStage').then(m => ({ default: m.DesignStage })));
+const BimStage = lazy(() => import('@/components/dashboard/stages/BimStage').then(m => ({ default: m.BimStage })));
+const RoughInStage = lazy(() => import('@/components/dashboard/stages/RoughInStage').then(m => ({ default: m.RoughInStage })));
+const SubstratesStage = lazy(() => import('@/components/dashboard/stages/SubstratesStage').then(m => ({ default: m.SubstratesStage })));
+const MillworkStage = lazy(() => import('@/components/dashboard/stages/MillworkStage').then(m => ({ default: m.MillworkStage })));
+const FinishesStage = lazy(() => import('@/components/dashboard/stages/FinishesStage').then(m => ({ default: m.FinishesStage })));
+const AppliancesStage = lazy(() => import('@/components/dashboard/stages/AppliancesStage').then(m => ({ default: m.AppliancesStage })));
+const CostDeliverStage = lazy(() => import('@/components/dashboard/stages/CostDeliverStage').then(m => ({ default: m.CostDeliverStage })));
+const BudgetEngineeredStage = lazy(() => import('@/components/dashboard/stages/BudgetEngineeredStage').then(m => ({ default: m.BudgetEngineeredStage })));
+const EngineeringStage = lazy(() => import('@/components/dashboard/stages/EngineeringStage').then(m => ({ default: m.EngineeringStage })));
+const DocsBimStage = lazy(() => import('@/components/dashboard/stages/DocsBimStage').then(m => ({ default: m.DocsBimStage })));
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
 import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
@@ -38,8 +39,7 @@ import { ProjectHealthSummaryCard } from '@/components/lifecycle/ProjectHealthSu
 import { useAssuranceStore } from '@/stores/assuranceStore';
 import { useMilestoneStore } from '@/stores/milestoneStore';
 import { useChangeStore } from '@/stores/changeStore';
-import { Box, FileSpreadsheet, Bug, Globe } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Box, FileSpreadsheet, Bug } from 'lucide-react';
 import { generateVariedPlanModel } from '@/engine/plan-generator';
 import { floorPlanToPlanModel } from '@/adapters/floorPlanToPlanModel';
 import type { FloorPlan } from '@/engine/tier3/layoutEngine';
@@ -60,6 +60,7 @@ import { computeStructuralPreDesign } from '@/engine/structural/structuralPreDes
 import { computeMepPreDesign } from '@/engine/mep/mepPreDesignEngine';
 import { planModelToBuildingGraph } from '@/adapters/canonical';
 import type { ComplianceReport } from '@/engine/compliance/types';
+import type { ParseResult } from '@/lib/ai/ai-provider';
 import { assembleAnalysis, type AnalysisResult } from '@/engine/calculators/analysisAssembly';
 
 export function Dashboard() {
@@ -721,111 +722,129 @@ export function Dashboard() {
             {(['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'] as StageId[]).includes(activeView as StageId) ? (
               <>
                 {activeStageId === 'brief' && (
-                  <BriefStage
-                    projectId={id}
-                    onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
-                    onDesignOptionsGenerated={handleAiDesignOptions}
-                    onTier3Plans={handleTier3Plans}
-                    onBuildingTypeChange={setSelectedBuildingType}
-                    visibleDesignOptions={visibleDesignOptions}
-                    selectedDesignId={selectedDesignId}
-                    setSelectedDesignId={setSelectedDesignId}
-                    selectedDesign={selectedDesign}
-                    onImportFile={handleImportFile}
-                  />
+                  <Suspense fallback={<PageLoader />}>
+                    <BriefStage
+                      projectId={id}
+                      onParsed={(result: ParseResult) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
+                      onDesignOptionsGenerated={handleAiDesignOptions}
+                      onTier3Plans={handleTier3Plans}
+                      onBuildingTypeChange={setSelectedBuildingType}
+                      visibleDesignOptions={visibleDesignOptions}
+                      selectedDesignId={selectedDesignId}
+                      setSelectedDesignId={setSelectedDesignId}
+                      selectedDesign={selectedDesign}
+                      onImportFile={handleImportFile}
+                    />
+                  </Suspense>
                 )}
                 {activeStageId === 'concept' && (
-                  <ConceptStage
-                    visibleDesignOptions={visibleDesignOptions}
-                    selectedDesignId={selectedDesignId}
-                    setSelectedDesignId={setSelectedDesignId}
-                    selectedDesign={selectedDesign}
-                    handleGenerate={handleGenerate}
-                    isGenerating={isGenerating}
-                    generationStatus={generationStatus}
-                    onDxfImported={handleDxfImport}
-                    onImportFile={handleImportFile}
-                    activePlan={activePlan}
-                    projectId={id ?? null}
-                  />
+                  <Suspense fallback={<PageLoader />}>
+                    <ConceptStage
+                      visibleDesignOptions={visibleDesignOptions}
+                      selectedDesignId={selectedDesignId}
+                      setSelectedDesignId={setSelectedDesignId}
+                      selectedDesign={selectedDesign}
+                      handleGenerate={handleGenerate}
+                      isGenerating={isGenerating}
+                      generationStatus={generationStatus}
+                      onDxfImported={handleDxfImport}
+                      onImportFile={handleImportFile}
+                      activePlan={activePlan}
+                      projectId={id ?? null}
+                    />
+                  </Suspense>
                 )}
                 {activeStageId === 'design' && (
-                  <DesignStage
-                    projectId={id ?? null}
-                    selectedDesign={selectedDesign}
-                    activePlan={activePlan}
-                    handleSavePlan={handleSavePlan}
-                    cadSyncSource={cadSyncSource}
-                    lastSavedAt={lastSavedAt}
-                    isManualSaving={isManualSaving}
-                    statusMessage={statusMessage}
-                    statusType={statusType}
-                    onManualSavePlan={handleManualSavePlan}
-                    onRestoreSavedPlan={handleRestoreSavedPlan}
-                    onResetToGeneratedPlan={handleResetToGeneratedPlan}
-                    handleGenerate={handleGenerate}
-                    isGenerating={isGenerating}
-                    backdrop={backdrop.imageDataUrl ? backdrop : null}
-                    onBackdropUpdate={handleBackdropUpdate}
-                    onBackdropSetScale={handleBackdropSetScale}
-                    onBackdropClear={handleBackdropClear}
-                    onImportFile={handleImportFile}
-                    onDesignCreated={handleDesignCreated}
-                    onOpenImportWorkflow={() => setImportWorkflowOpen(true)}
-                    backgroundIntel={backgroundIntel}
-                  />
+                  <Suspense fallback={<PageLoader />}>
+                    <DesignStage
+                      projectId={id ?? null}
+                      selectedDesign={selectedDesign}
+                      activePlan={activePlan}
+                      handleSavePlan={handleSavePlan}
+                      cadSyncSource={cadSyncSource}
+                      lastSavedAt={lastSavedAt}
+                      isManualSaving={isManualSaving}
+                      statusMessage={statusMessage}
+                      statusType={statusType}
+                      onManualSavePlan={handleManualSavePlan}
+                      onRestoreSavedPlan={handleRestoreSavedPlan}
+                      onResetToGeneratedPlan={handleResetToGeneratedPlan}
+                      handleGenerate={handleGenerate}
+                      isGenerating={isGenerating}
+                      backdrop={backdrop.imageDataUrl ? backdrop : null}
+                      onBackdropUpdate={handleBackdropUpdate}
+                      onBackdropSetScale={handleBackdropSetScale}
+                      onBackdropClear={handleBackdropClear}
+                      onImportFile={handleImportFile}
+                      onDesignCreated={handleDesignCreated}
+                      onOpenImportWorkflow={() => setImportWorkflowOpen(true)}
+                      backgroundIntel={backgroundIntel}
+                    />
+                  </Suspense>
                 )}
                 {activeStageId === 'site-analysis' && (
-                  <SiteAnalysisStage
-                    activePlan={activePlan}
-                    selectedDesign={selectedDesign}
-                  />
+                  <Suspense fallback={<PageLoader />}>
+                    <SiteAnalysisStage
+                      activePlan={activePlan}
+                      selectedDesign={selectedDesign}
+                    />
+                  </Suspense>
                 )}
                 {activeStageId === 'engineering' && (
-                  <EngineeringStage
-                    selectedDesign={selectedDesign}
-                    activePlan={activePlan}
-                    boq={currentBoq}
-                    onDesignOptionsGenerated={handleAiDesignOptions}
-                    onParsed={(result) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
-                    onTier3Plans={handleTier3Plans}
-                    onBuildingTypeChange={setSelectedBuildingType}
-                  />
+                  <Suspense fallback={<PageLoader />}>
+                    <EngineeringStage
+                      selectedDesign={selectedDesign}
+                      activePlan={activePlan}
+                      boq={currentBoq}
+                      onDesignOptionsGenerated={handleAiDesignOptions}
+                      onParsed={(result: ParseResult) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
+                      onTier3Plans={handleTier3Plans}
+                      onBuildingTypeChange={setSelectedBuildingType}
+                    />
+                  </Suspense>
                 )}
                 {activeStageId === 'bim' && (
-                  <BimStage
-                    activePlan={activePlan}
-                    selectedDesign={selectedDesign}
-                  />
+                  <Suspense fallback={<PageLoader />}>
+                    <BimStage
+                      activePlan={activePlan}
+                      selectedDesign={selectedDesign}
+                    />
+                  </Suspense>
                 )}
                 {activeStageId === 'docs-bim' && (
-                  <DocsBimStage
-                    activePlan={activePlan}
-                    selectedDesign={selectedDesign}
-                  />
+                  <Suspense fallback={<PageLoader />}>
+                    <DocsBimStage
+                      activePlan={activePlan}
+                      selectedDesign={selectedDesign}
+                    />
+                  </Suspense>
                 )}
-                {activeStageId === 'rough-in' && <RoughInStage />}
-                {activeStageId === 'substrates' && <SubstratesStage />}
-                {activeStageId === 'millwork' && <MillworkStage />}
-                {activeStageId === 'finishes' && <FinishesStage />}
-                {activeStageId === 'appliances' && <AppliancesStage />}
+                {activeStageId === 'rough-in' && <Suspense fallback={<PageLoader />}><RoughInStage /></Suspense>}
+                {activeStageId === 'substrates' && <Suspense fallback={<PageLoader />}><SubstratesStage /></Suspense>}
+                {activeStageId === 'millwork' && <Suspense fallback={<PageLoader />}><MillworkStage /></Suspense>}
+                {activeStageId === 'finishes' && <Suspense fallback={<PageLoader />}><FinishesStage /></Suspense>}
+                {activeStageId === 'appliances' && <Suspense fallback={<PageLoader />}><AppliancesStage /></Suspense>}
                 {activeStageId === 'budget' && (
-                  <CostDeliverStage
-                    selectedDesign={selectedDesign}
-                    boq={currentBoq}
-                    onExport={handleExport}
-                    activePlan={activePlan}
-                    buildingType={buildingType}
-                    projectRegion={currentProject?.region}
-                  />
+                  <Suspense fallback={<PageLoader />}>
+                    <CostDeliverStage
+                      selectedDesign={selectedDesign}
+                      boq={currentBoq}
+                      onExport={handleExport}
+                      activePlan={activePlan}
+                      buildingType={buildingType}
+                      projectRegion={currentProject?.region}
+                    />
+                  </Suspense>
                 )}
                 {activeStageId === 'budget-engineered' && (
-                  <BudgetEngineeredStage
-                    activePlan={activePlan}
-                    selectedDesign={selectedDesign}
-                    buildingType={buildingType}
-                    projectRegion={currentProject?.region}
-                  />
+                  <Suspense fallback={<PageLoader />}>
+                    <BudgetEngineeredStage
+                      activePlan={activePlan}
+                      selectedDesign={selectedDesign}
+                      buildingType={buildingType}
+                      projectRegion={currentProject?.region}
+                    />
+                  </Suspense>
                 )}
 
                 <LazyBOQPanel />

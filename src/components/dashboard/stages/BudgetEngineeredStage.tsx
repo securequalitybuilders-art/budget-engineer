@@ -1,5 +1,4 @@
-import { useMemo } from 'react'
-import { FileSpreadsheet, Presentation, FileText, Download } from 'lucide-react'
+import { FileSpreadsheet } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { PresentationSheetView } from '@/components/drawings/PresentationSheetView'
 import type { PlanModel } from '@/domain/plan'
@@ -12,7 +11,7 @@ interface BudgetEngineeredStageProps {
   projectRegion?: string
 }
 
-export function BudgetEngineeredStage({ activePlan, selectedDesign, buildingType, projectRegion }: BudgetEngineeredStageProps) {
+export function BudgetEngineeredStage({ activePlan, selectedDesign, buildingType: _buildingType, projectRegion: _projectRegion }: BudgetEngineeredStageProps) {
   if (!selectedDesign || !activePlan) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center p-4">

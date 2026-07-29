@@ -1,4 +1,4 @@
-import type { SiteContext, WindRose, AccessEdge, NoiseSource, Point2D } from '@/domain/site'
+import type { SiteContext, WindRose, AccessEdge, NoiseSource } from '@/domain/site'
 
 export interface ClimateZone {
   id: string

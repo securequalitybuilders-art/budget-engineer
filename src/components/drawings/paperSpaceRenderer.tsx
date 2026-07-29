@@ -115,8 +115,7 @@ function renderViewportContent(
     const cx = (wall.start.x + ux * opening.offset * wallLen) * s * 1000
     const cy = (wall.start.y + uy * opening.offset * wallLen) * s * 1000
     const halfW = (opening.width / 2) * s * 1000
-    const _ppx = ox + cx - ux * halfW
-    const _ppy = oy - cy + uy * halfW
+
     const ppw = opening.width * s * 1000
     const pph =
       wall.type === 'internal' ? 0 :

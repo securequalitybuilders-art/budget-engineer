@@ -1,4 +1,4 @@
-import type { Typology, ProgramItem } from './tier1-types'
+import type { ProgramItem } from './tier1-types'
 import type { EgressPoint, AdjacencyWarning } from './tier3/circulationEngine'
 
 // ── Top-level schema ──
@@ -498,7 +498,7 @@ export function floorPlanToSchema(
     }
   }
 
-  const entries: SchemaEntry[] = egressPoints.map((ep, i) => ({
+  const entries: SchemaEntry[] = egressPoints.map((ep, _i) => ({
     type: ep.type as SchemaEntry['type'],
     x: ep.x,
     y: ep.y,

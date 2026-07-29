@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import * as THREE from 'three'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
@@ -194,6 +194,11 @@ export function useGlbExport() {
   const [glbUrl, setGlbUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const urlRef = useRef<string | null>(null)
+  const mountedRef = useRef(true)
+
+  useEffect(() => {
+    return () => { mountedRef.current = false }
+  }, [])
 
   const generate = useCallback(async (plan: PlanModel | null, design: DesignOption | null) => {
     if (!plan || !design) {
@@ -228,13 +233,16 @@ export function useGlbExport() {
       const blob = new Blob([glb], { type: 'model/gltf-binary' })
       const url = URL.createObjectURL(blob)
       urlRef.current = url
-      setGlbUrl(url)
-      setIsExporting(false)
+      try { if (mountedRef.current) { setGlbUrl(url); setIsExporting(false) } } catch {}
       return url
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'GLB generation failed'
-      setError(msg)
-      setIsExporting(false)
+      try {
+        if (mountedRef.current) {
+          const msg = err instanceof Error ? err.message : 'GLB generation failed'
+          setError(msg)
+          setIsExporting(false)
+        }
+      } catch {}
       return null
     }
   }, [])

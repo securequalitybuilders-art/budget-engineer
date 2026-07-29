@@ -158,7 +158,7 @@ export function EnhancedBriefPanel({ projectId, onGenerate }: {
   onGenerate?: (q: BriefQuestionnaire) => void
 }) {
   const [q, setQ] = useState<BriefQuestionnaire>(DEFAULT_QUESTIONNAIRE)
-  const [showFreeText, setShowFreeText] = useState(false)
+  const [showFreeText, _setShowFreeText] = useState(false)
   const [cityPreset, setCityPreset] = useState('')
 
   const set = useCallback(<K extends keyof BriefQuestionnaire>(key: K, value: BriefQuestionnaire[K]) => {
@@ -198,16 +198,7 @@ export function EnhancedBriefPanel({ projectId, onGenerate }: {
     onGenerate?.(q)
   }, [q, onGenerate])
 
-  const uniqueFeatures = useMemo(() => {
-    const features: string[] = []
-    if (q.garage) features.push('garage')
-    if (q.verandah) features.push('verandah')
-    if (q.store) features.push('store')
-    if (q.solar) features.push('solar')
-    if (q.rainwater) features.push('rainwater harvesting')
-    if (q.borehole) features.push('borehole')
-    return features.join(', ')
-  }, [q.garage, q.verandah, q.store, q.solar, q.rainwater, q.borehole])
+
 
   if (showFreeText) {
     return null

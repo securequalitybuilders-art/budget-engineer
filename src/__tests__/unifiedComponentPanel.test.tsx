@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from 'vitest'
-import React from 'react'
 import { render, cleanup, screen, fireEvent } from '@testing-library/react'
 import { UnifiedComponentPanel } from '@/components/furniture/UnifiedComponentPanel'
 import { useFurnitureStore } from '@/stores/furnitureStore'

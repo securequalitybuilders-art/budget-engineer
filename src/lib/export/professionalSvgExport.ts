@@ -48,7 +48,6 @@ export function exportProfessionalSvg(plan: PlanModel): string {
     const wcX = wall.start.x + (wall.end.x - wall.start.x) * opening.offset
     const wcY = wall.start.y + (wall.end.y - wall.start.y) * opening.offset
 
-    const perpAngle = angle + Math.PI / 2
     const thick = Math.max(wall.thickness * scale, 3)
 
     if (opening.kind === 'door') {

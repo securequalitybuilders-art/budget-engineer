@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import GanttChart, { Task } from './GanttChart';
 import BudgetVsActual, { BudgetCategory } from './BudgetVsActual';
-import { Play, Pause, Calendar, DollarSign, Users } from 'lucide-react';
+import { Play, Calendar, DollarSign, Users } from 'lucide-react';
 
 const MOCK_TASKS: Task[] = [
   { id: 't1', name: 'Site Preparation & Clearance', startOffset: 0, duration: 5, progress: 100, status: 'completed' },

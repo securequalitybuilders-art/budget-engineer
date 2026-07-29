@@ -9,7 +9,7 @@ interface QuizViewerProps {
   onComplete: (result: QuizResult) => void
 }
 
-export function QuizViewer({ lessonId, questions, existingResult, onComplete }: QuizViewerProps) {
+export function QuizViewer({ lessonId: _lessonId, questions, existingResult, onComplete }: QuizViewerProps) {
   const [answers, setAnswers] = useState<number[]>([])
   const [submitted, setSubmitted] = useState(false)
   const [result, setResult] = useState<QuizResult | undefined>(existingResult)
@@ -60,8 +60,6 @@ export function QuizViewer({ lessonId, questions, existingResult, onComplete }: 
 
       {questions.map((q, qIdx) => {
         const selected = answers[qIdx]
-        const isCorrect = result && selected === q.correctIndex
-        const isWrong = result && selected !== undefined && selected !== q.correctIndex
 
         return (
           <div key={q.id} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: qIdx < questions.length - 1 ? '1px solid #eee' : 'none' }}>

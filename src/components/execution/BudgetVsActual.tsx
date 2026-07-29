@@ -1,4 +1,3 @@
-import React from 'react';
 import { DollarSign, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 export interface BudgetCategory {

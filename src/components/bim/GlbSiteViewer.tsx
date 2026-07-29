@@ -62,19 +62,19 @@ export function GlbSiteViewer({
             </h4>
             <div className="space-y-1 text-[11px] text-stone-300">
               <div className="flex justify-between">
-                <span className="text-stone-500">Latitude</span>
+                <span className="text-stone-400">Latitude</span>
                 <span>{site.lat.toFixed(4)}°</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone-500">Longitude</span>
+                <span className="text-stone-400">Longitude</span>
                 <span>{site.lng.toFixed(4)}°</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone-500">Orientation</span>
+                <span className="text-stone-400">Orientation</span>
                 <span>{site.orientation}°</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone-500">Terrain</span>
+                <span className="text-stone-400">Terrain</span>
                 <span className="capitalize">{site.terrain}</span>
               </div>
             </div>
@@ -86,7 +86,7 @@ export function GlbSiteViewer({
             </h4>
 
             <div className="mb-2 space-y-1.5">
-              <label className="block text-[10px] font-medium text-stone-500">Date</label>
+              <label className="block text-[10px] font-medium text-stone-400">Date</label>
               <input
                 type="date"
                 value={selectedDate}
@@ -96,7 +96,7 @@ export function GlbSiteViewer({
             </div>
 
             <div className="mb-2 space-y-1.5">
-              <label className="block text-[10px] font-medium text-stone-500">Time</label>
+              <label className="block text-[10px] font-medium text-stone-400">Time</label>
               <select
                 value={selectedHour}
                 onChange={(e) => setSelectedHour(Number(e.target.value))}
@@ -113,11 +113,11 @@ export function GlbSiteViewer({
             {sunPosition && (
               <div className="space-y-1 rounded-md bg-stone-800/60 p-2 text-[11px]">
                 <div className="flex justify-between">
-                  <span className="text-stone-500">Azimuth</span>
+                  <span className="text-stone-400">Azimuth</span>
                   <span className="text-amber-300">{formatAzimuth(sunPosition.azimuth)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-stone-500">Elevation</span>
+                  <span className="text-stone-400">Elevation</span>
                   <span className="text-amber-300">{formatElevation(sunPosition.elevation)}</span>
                 </div>
               </div>

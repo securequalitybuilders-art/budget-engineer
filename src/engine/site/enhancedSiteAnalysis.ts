@@ -1,4 +1,4 @@
-import { generateSiteContext, detectClimateZone, generateDefaultAccessEdges, generateDefaultNoiseSources, calculateOptimalOrientation, generateSunPath, generateWindRose } from './locationIntelligence'
+import { generateSiteContext, detectClimateZone, calculateOptimalOrientation } from './locationIntelligence'
 import type { SiteContext, WindRose } from '@/domain/site'
 
 export interface LandUseZone {
@@ -72,7 +72,7 @@ export interface DesignInterpretation {
 
 export interface EnhancedSiteAnalysis {
   siteContext: SiteContext
-  landUse: LandUseZone[]
+  _landUse: LandUseZone[]
   publicTransport: PublicTransportStop[]
   parking: ParkingAvailability
   climate: ClimateDetail
@@ -206,7 +206,7 @@ function determineFloodRisk(terrain: string, annualRainfallMm: number): 'none' |
 function generateSWOT(
   siteContext: SiteContext,
   climate: ClimateDetail,
-  landUse: LandUseZone[],
+  _landUse: LandUseZone[],
 ): SWOTItem[] {
   const items: SWOTItem[] = []
 
@@ -255,7 +255,7 @@ function generateSWOT(
     items.push({ category: 'threat', description: 'Noise pollution — may require acoustic glazing and buffer planting' })
   }
   items.push({ category: 'threat', description: 'Climate change — increasing temperatures and storm intensity expected' })
-  const industrial = landUse.find(z => z.type === 'industrial')
+  const industrial = _landUse.find(z => z.type === 'industrial')
   if (industrial && industrial.distanceM < 500) {
     items.push({ category: 'threat', description: `Industrial zone ${industrial.direction} — potential air quality and noise concerns` })
   }
@@ -266,11 +266,9 @@ function generateSWOT(
 function generateDesignInterpretation(
   siteContext: SiteContext,
   climate: ClimateDetail,
-  landUse: LandUseZone[],
+  _landUse: LandUseZone[],
 ): DesignInterpretation {
   const optimalOrientation = calculateOptimalOrientation(siteContext.lat)
-  const commercialZone = landUse.find(z => z.type === 'commercial')
-  const residentialZone = landUse.find(z => z.type === 'residential')
   const roadDir = 'S'
   const goodView = generateViews(siteContext.terrain).find(v => v.quality === 'excellent' || v.quality === 'good')
   const soil = determineSoil(siteContext.terrain)
@@ -300,7 +298,7 @@ export function generateEnhancedSiteAnalysis(
   const siteContext = generateSiteContext(projectId, lat, lng, siteWidth, siteDepth)
   const windRose = siteContext.windRose
   const climate = generateClimate(lat, lng, windRose)
-  const landUse = generateLandUse(lat, lng)
+  const _landUse = generateLandUse(lat, lng)
   const soil = determineSoil(siteContext.terrain)
   const drainage = determineDrainage(siteContext.terrain, soil)
   const floodRisk = determineFloodRisk(siteContext.terrain, climate.annualRainfallMm)
@@ -309,7 +307,7 @@ export function generateEnhancedSiteAnalysis(
 
   return {
     siteContext,
-    landUse,
+    _landUse,
     publicTransport: generatePublicTransport(lat, lng),
     parking: generateParking(),
     climate,
@@ -324,7 +322,7 @@ export function generateEnhancedSiteAnalysis(
       drainage,
       floodRisk,
     },
-    swot: generateSWOT(siteContext, climate, landUse),
-    designInterpretation: generateDesignInterpretation(siteContext, climate, landUse),
+    swot: generateSWOT(siteContext, climate, _landUse),
+    designInterpretation: generateDesignInterpretation(siteContext, climate, _landUse),
   }
 }

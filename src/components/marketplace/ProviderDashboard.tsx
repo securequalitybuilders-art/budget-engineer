@@ -4,7 +4,7 @@ import type { ServiceOffering } from '../../domain/marketplace';
 import ProviderRegistration from './ProviderRegistration';
 import CatalogManager from './CatalogManager';
 import CredentialManager from './CredentialManager';
-import { Building2, Package, Shield, BarChart3, Settings, Plus, Users, Star, MapPin, ChevronRight, Briefcase, TrendingUp, Clock, Filter, Search, CheckCircle2, XCircle, AlertTriangle, Award, Bell, Activity, AlertOctagon, RefreshCw, Wallet, Truck, FileText, Eye, Info, ArrowUpDown, Calendar } from 'lucide-react';
+import { Building2, Package, Shield, BarChart3, Settings, Plus, Users, Star, MapPin, Briefcase, TrendingUp, Clock, Search, XCircle, AlertTriangle, Award, Bell, Activity, AlertOctagon, RefreshCw, Info, ArrowUpDown, Calendar } from 'lucide-react';
 
 type Tab = 'overview' | 'catalog' | 'credentials' | 'services' | 'portfolio' | 'analytics' | 'settings';
 
@@ -140,7 +140,7 @@ function PortfolioTab({ providerId }: { providerId: string }) {
 }
 
 export default function ProviderDashboard() {
-  const { providers, selectedProviderId, selectProvider, removeProvider, getFilteredProviders, filters, setFilters, setSort, sortBy, sortAsc } = useProviderStore();
+  const { providers, selectedProviderId, selectProvider, removeProvider, getFilteredProviders, filters, setFilters, setSort, sortBy } = useProviderStore();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [showRegistration, setShowRegistration] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

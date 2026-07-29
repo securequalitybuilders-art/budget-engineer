@@ -1,4 +1,3 @@
-import React from 'react';
 import { BookOpen, FileText, Download, CheckCircle2, Shield } from 'lucide-react';
 
 export default function BuildingPassport() {

@@ -45,7 +45,7 @@ test.describe('Deploy smoke tests', () => {
     }
   })
 
-  test('manifest and service worker are present', async ({ page, request }) => {
+  test('manifest and service worker are present', async ({ request }) => {
     const manifestOk = await request.get(`${BASE_URL}/manifest.webmanifest`)
       .then((r) => r.ok())
       .catch(() => false)

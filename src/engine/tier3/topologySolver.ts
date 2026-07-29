@@ -17,18 +17,12 @@ function roomCenterInRect(r: PlacedRoom, rx: number, ry: number, rw: number, rh:
   return cx >= rx && cx <= rx + rw && cy >= ry && cy <= ry + rh
 }
 
-function roomIntersectsRect(r: PlacedRoom, rx: number, ry: number, rw: number, rh: number): boolean {
-  return r.x < rx + rw && r.x + r.width > rx && r.y < ry + rh && r.y + r.height > ry
-}
-
 export function createLShapeBoundary(params: TopologyBoundaryParams): (room: PlacedRoom) => boolean {
   const { buildingW, buildingD, lShape } = params
   const vertW = lShape?.vertW ?? buildingW * 0.45
-  const vertH = lShape?.vertH ?? buildingD
   const horizD = lShape?.horizD ?? buildingD * 0.4
   const corridorW = lShape?.corridorW ?? 2.0
   const corridorX = vertW
-  const horizY = buildingD - horizD
   const courtyardX = corridorX + corridorW
   const courtyardY = 0
   const courtyardW = buildingW - courtyardX
@@ -56,8 +50,6 @@ export function createSplitWingBoundary(params: TopologyBoundaryParams): (room: 
   const galleryW = splitWing?.galleryW ?? 2.0
   const galleryX = pavW
   const rightX = pavW + galleryW
-  const bldgD = Math.max(leftH, rightH)
-
   return (room: PlacedRoom) => {
     return (
       roomCenterInRect(room, 0, 0, pavW, leftH) ||

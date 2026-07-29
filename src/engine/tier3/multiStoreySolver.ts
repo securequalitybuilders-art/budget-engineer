@@ -1,4 +1,4 @@
-import type { FloorPlan, PlacedRoom, ProgramItem, MasterChassis } from './layoutEngine'
+import type { FloorPlan, PlacedRoom, ProgramItem } from './layoutEngine'
 import type { VerticalChassis } from './vertical-chassis'
 
 export interface StairwellDesign {
@@ -24,7 +24,6 @@ export function computeStairwellDesign(floorHeight: number): StairwellDesign {
   const landingClear = 0.3
 
   const risers = Math.ceil(floorHeight / maxRiser)
-  const actualRiser = floorHeight / risers
   const treads = risers - 1
   const run = treads * minGoing
   const landingDepth = stairWidth + landingClear
@@ -108,7 +107,6 @@ export function enforceVerticalStacking(
 
   // ── 3. Structural grid alignment ──
   if (floors.length >= 2 && floors[0].length > 0) {
-    const refWidth = floors[0][0].width
     for (let fi = 1; fi < floors.length; fi++) {
       for (const plan of floors[fi]) {
         const refPlan = floors[0].find(p => p.topology === plan.topology)

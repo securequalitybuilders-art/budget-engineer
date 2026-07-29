@@ -40,11 +40,6 @@ function SafeRoute({ children }: { children: React.ReactNode }) {
   return <ErrorBoundary><Suspense fallback={<PageLoader />}>{children}</Suspense></ErrorBoundary>;
 }
 
-import { RoleGuard } from '@/components/auth/RoleGuard';
-function ProtectedRoute({ roles, children }: { roles: string[]; children: React.ReactNode }) {
-  return <SafeRoute><RoleGuard roles={roles as any} fallback={<PageLoader />}>{children}</RoleGuard></SafeRoute>;
-}
-
 function GlobalLayout() {
   useKeyboardShortcuts();
   const [diagOpen, setDiagOpen] = useState(false);

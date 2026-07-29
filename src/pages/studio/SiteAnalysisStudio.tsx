@@ -52,7 +52,7 @@ export function SiteAnalysisStudio() {
   const handleAutoCalculate = useCallback(() => {
     const climate = detectClimateZone(site.lat, site.lng)
     setClimateLabel(`${climate.name} — ${climate.description}`)
-    setSite(prev => generateSiteContext(projectId ?? 'demo', site.lat, site.lng))
+    setSite(_prev => generateSiteContext(projectId ?? 'demo', site.lat, site.lng))
   }, [site.lat, site.lng, projectId]);
 
   const fullAnalysis = computeFullSiteAnalysis(site);

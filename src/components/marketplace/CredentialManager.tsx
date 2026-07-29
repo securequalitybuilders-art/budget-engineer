@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useProviderStore } from '../../stores/providerStore';
-import { Shield, Upload, Plus, CheckCircle2, Clock, XCircle, FileText, Search, Filter, AlertTriangle, Eye, Download, Star, Award, HelpCircle, RefreshCw, Calendar, CheckSquare, Square, Trash2, ExternalLink, Bell, Info, Mail, Phone, Building2, UserCheck, FileSignature, Link2, MoreHorizontal } from 'lucide-react';
+import { Shield, Upload, Plus, CheckCircle2, Clock, XCircle, FileText, Search, AlertTriangle, Eye, Download, Star, Award, RefreshCw, Calendar, CheckSquare, Square, Trash2, Bell, UserCheck } from 'lucide-react';
 
 const CREDENTIAL_TYPES = ['license', 'certification', 'insurance', 'registration', 'qualification', 'accreditation'] as const;
 const TYPE_LABELS: Record<string, string> = { license: 'Professional License', certification: 'Certification', insurance: 'Insurance', registration: 'Registration', qualification: 'Qualification', accreditation: 'Accreditation' };
@@ -48,7 +48,6 @@ export default function CredentialManager({ providerId }: { providerId: string }
   const handleAdd = () => { addCredential(providerId, { ...cred, status: 'active' }); setCred({ type: 'license', title: '', issuingBody: '', number: '', issueDate: '', expiryDate: '', notes: '' }); setShowForm(false); };
 
   const toggleSelect = (id: string) => { setSelectedItems(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; }); };
-  const toggleSelectAll = () => { if (selectedItems.size === filteredCreds.length) setSelectedItems(new Set()); else setSelectedItems(new Set(filteredCreds.map(i => i.id))); };
   const bulkDelete = () => { selectedItems.forEach(id => updateCredential(providerId, id, { status: 'revoked' })); setSelectedItems(new Set()); setSelectMode(false); };
   const bulkVerify = () => { selectedItems.forEach(id => updateCredential(providerId, id, { verificationStatus: 'verified', verifiedAt: new Date().toISOString(), verifiedBy: 'provider' })); setSelectedItems(new Set()); setSelectMode(false); };
 

@@ -11,7 +11,6 @@ import { solveConstraintPlacement } from './constraintPlacer'
 import { solveTopologyPlacement } from './topologySolver'
 import type { TopologyBoundaryParams } from './topologySolver'
 import { computeStairwellDesign, computeStairArea, enforceVerticalStacking, partitionProgramForStoreys } from './multiStoreySolver'
-import type { MultiStoreyWarnings } from './multiStoreySolver'
 
 export type { ProgramItem } from '../tier1-types'
 export type Topology = 'rectangle' | 'l-shape' | 'split-wing' | 'courtyard'
@@ -430,8 +429,6 @@ function generateLShape(program: ProgramItem[], siteW: number, _siteD: number, m
   const progArea = totalProgramArea(program)
 
   const bldgW = chassis ? chassis.buildingW : Math.max(6, Math.min(siteW * 0.75, Math.sqrt(progArea) * 0.8))
-  const wingW = bldgW
-
   const corridorW = chassis?.lShape ? chassis.lShape.corridorW : 2.0
   const vertW = chassis?.lShape ? chassis.lShape.vertW : Math.max(3, bldgW * 0.45)
   const vertH = chassis?.lShape ? chassis.lShape.vertH : Math.max(items.length * 3 + 3, 6)
@@ -722,22 +719,6 @@ function generateCourtyard(program: ProgramItem[], siteW: number, siteD: number,
     return Math.max(r.minD, r.area / wingDepth)
   }
 
-  function horizontalSpan(w: SizedRoom[]): number {
-    if (w.length === 0) return 3
-    return w.reduce((s, r) => s + hSize(r) + gutter, 0)
-  }
-
-  function verticalSpan(w: SizedRoom[]): number {
-    if (w.length === 0) return 3
-    return w.reduce((s, r) => s + vSize(r) + gutter, 0)
-  }
-
-  // Compute spans for each of the 4 cardinal wings (or fewer)
-  const hSpan0 = horizontalSpan(wings[0] || [])  // north
-  const vSpan1 = verticalSpan(wings[1] || [])    // east
-  const hSpan2 = horizontalSpan(wings[2] || [])  // south
-  const vSpan3 = verticalSpan(wings[3] || [])    // west
-
   // For N-wing layouts, pad missing wings with 0 span
   const rooms: PlacedRoom[] = []
   
@@ -841,68 +822,6 @@ function floorPlanWithMeta(
   stairCalculations?: { risers: number; treads: number; run: number }
 ): FloorPlan {
   return { ...plan, floorIndex, totalFloors, stairCalculations }
-}
-
-const PUBLIC_PREFIXES = ['Reception / Waiting', 'Reception / Lobby', 'Reception', 'Living Room', 'Lounge / Dining', 'Dining Area', 'Sales Floor', 'Retail Floor', 'Dining Area 1', 'Main Hall', 'Open Plan Office', 'Kitchen', 'Restaurant', 'Commercial Kitchen', 'Consultation Room', 'Treatment Room', 'Staff Room', 'Meeting Room', 'Ground Floor Shop']
-
-function isPublicItem(name: string): boolean {
-  return PUBLIC_PREFIXES.some((p) => name.startsWith(p))
-}
-
-function partitionProgram(
-  program: ProgramItem[],
-  floorCount: number,
-  typologyId?: string,
-): { groundFloor: ProgramItem[]; upperFloors: ProgramItem[][] } {
-  if (floorCount <= 1) {
-    return { groundFloor: [...program], upperFloors: [] }
-  }
-
-  const groundItems: ProgramItem[] = []
-  const remainingItems: ProgramItem[] = []
-
-  // Detect mixed-use: inject Residential Lobby for fire-separated egress
-  const isMixedUse = typologyId === 'mixed-use'
-  let hasResidentialLobby = false
-
-  for (const item of program) {
-    if (
-      isPublicItem(item.name) || 
-      item.name === 'Circulation' || 
-      item.name.startsWith('Circulation') ||
-      item.name.includes('Lobby') ||
-      item.name.includes('Stair')
-    ) {
-      groundItems.push(item)
-      if (item.name.includes('Lobby')) hasResidentialLobby = true
-    } else {
-      remainingItems.push(item)
-    }
-  }
-
-  if (isMixedUse && !hasResidentialLobby) {
-    groundItems.push({ name: 'Residential Lobby', count: 1, areaM2: 8, zone: 'circulation' })
-  }
-
-  if (groundItems.length === 0 && remainingItems.length > 0) {
-    groundItems.push(remainingItems.shift()!)
-  }
-
-  const upperCount = floorCount - 1
-  const perFloor = Math.max(1, Math.ceil(remainingItems.length / upperCount))
-  const upperFloors: ProgramItem[][] = []
-
-  for (let i = 0; i < upperCount; i++) {
-    const start = i * perFloor
-    const end = Math.min(start + perFloor, remainingItems.length)
-    if (start < remainingItems.length) {
-      upperFloors.push(remainingItems.slice(start, end))
-    } else {
-      upperFloors.push([])
-    }
-  }
-
-  return { groundFloor: groundItems, upperFloors }
 }
 
 function computeMasterChassis(

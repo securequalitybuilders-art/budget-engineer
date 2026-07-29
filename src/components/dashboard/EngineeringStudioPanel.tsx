@@ -13,7 +13,6 @@ import { MepPreDesignPanel } from '@/components/structural/MepPreDesignPanel';
 import { CodeReviewPanel } from '@/components/structural/CodeReviewPanel';
 import { SignoffGatePanel } from '@/components/structural/SignoffGatePanel';
 import { ValidationSummaryPanel } from '@/components/validation/ValidationSummaryPanel';
-import { generateValidationReport } from '@/lib/validation/validationEngine';
 import { RATE_CARDS } from '@/lib/rates/rate-card';
 import type { DesignOption } from '@/domain/boq';
 import type { BOQ } from '@/lib/boq/boq-types';
