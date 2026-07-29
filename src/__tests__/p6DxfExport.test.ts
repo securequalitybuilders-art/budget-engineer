@@ -1,23 +1,30 @@
 import { describe, it, expect } from 'vitest';
 
 // ─── dxfWriter ────────────────────────────────────────────────────
-import { generateDxf, type DxfExportOptions } from '@/lib/export/dxfWriter';
-import type { CadDocument, CadWall, CadOpening, CadAnnotation } from '@/domain/cad';
+import { generateDxf } from '@/lib/export/dxfWriter';
+import type { CadDocument } from '@/domain/cad';
 
-function makeMinimalDoc(overrides?: Partial<CadDocument>): CadDocument {
+function makeDoc(overrides?: Record<string, unknown>): CadDocument {
   return {
+    id: 'test',
+    projectId: 'p1',
+    designId: 'd1',
+    activeFloorId: 'f1',
+    activeTool: 'select',
+    floors: [],
+    layers: [],
     walls: [],
+    boundaries: [],
     openings: [],
     annotations: [],
     blocks: [],
-    layers: [],
     ...overrides,
-  };
+  } as CadDocument;
 }
 
 describe('dxfWriter', () => {
   it('generates DXF string with header', () => {
-    const dxf = generateDxf(makeMinimalDoc());
+    const dxf = generateDxf(makeDoc());
     expect(dxf).toContain('SECTION');
     expect(dxf).toContain('HEADER');
     expect(dxf).toContain('ENDSEC');
@@ -25,16 +32,16 @@ describe('dxfWriter', () => {
   });
 
   it('includes layer table', () => {
-    const dxf = generateDxf(makeMinimalDoc());
+    const dxf = generateDxf(makeDoc());
     expect(dxf).toContain('TABLE');
     expect(dxf).toContain('LAYER');
   });
 
   it('handles walls as LWPOLYLINE when thick', () => {
-    const doc = makeMinimalDoc({
+    const doc = makeDoc({
       walls: [{
         id: 'w1', start: { x: 0, y: 0 }, end: { x: 100, y: 0 },
-        thickness: 20, layerId: 'WALL', type: 'wall',
+        thickness: 20, layerId: 'walls',
       }],
     });
     const dxf = generateDxf(doc);
@@ -43,10 +50,10 @@ describe('dxfWriter', () => {
   });
 
   it('handles thin walls as LINE', () => {
-    const doc = makeMinimalDoc({
+    const doc = makeDoc({
       walls: [{
         id: 'w1', start: { x: 0, y: 0 }, end: { x: 100, y: 0 },
-        thickness: 0, layerId: 'WALL', type: 'wall',
+        thickness: 0, layerId: 'walls',
       }],
     });
     const dxf = generateDxf(doc);
@@ -54,14 +61,14 @@ describe('dxfWriter', () => {
   });
 
   it('includes door openings as lines', () => {
-    const doc = makeMinimalDoc({
+    const doc = makeDoc({
       walls: [{
         id: 'w1', start: { x: 0, y: 0 }, end: { x: 200, y: 0 },
-        thickness: 10, layerId: 'WALL', type: 'wall',
+        thickness: 10, layerId: 'walls',
       }],
       openings: [{
         id: 'd1', wallId: 'w1', kind: 'door', width: 90,
-        height: 210, offsetRatio: 0.3, label: 'D1',
+        height: 210, offsetRatio: 0.3,
       }],
     });
     const dxf = generateDxf(doc);
@@ -70,14 +77,14 @@ describe('dxfWriter', () => {
   });
 
   it('includes window openings as lines', () => {
-    const doc = makeMinimalDoc({
+    const doc = makeDoc({
       walls: [{
         id: 'w1', start: { x: 0, y: 0 }, end: { x: 300, y: 0 },
-        thickness: 10, layerId: 'WALL', type: 'wall',
+        thickness: 10, layerId: 'walls',
       }],
       openings: [{
         id: 'w1', wallId: 'w1', kind: 'window', width: 120,
-        height: 120, offsetRatio: 0.1, label: 'W1',
+        height: 120, offsetRatio: 0.1,
       }],
     });
     const dxf = generateDxf(doc);
@@ -85,8 +92,9 @@ describe('dxfWriter', () => {
   });
 
   it('includes annotations as TEXT entities', () => {
-    const doc = makeMinimalDoc({
+    const doc = makeDoc({
       annotations: [{
+        id: 'a1', floorId: 'f1', kind: 'label', layerId: 'annotations',
         text: 'Bedroom 1', position: { x: 50, y: 50 },
       }],
     });
@@ -96,9 +104,9 @@ describe('dxfWriter', () => {
   });
 
   it('includes INSERTS for blocks', () => {
-    const doc = makeMinimalDoc({
+    const doc = makeDoc({
       blocks: [{
-        blockType: 'SOFA', position: { x: 10, y: 10 },
+        blockType: 'sofa', position: { x: 10, y: 10 },
         width: 1, height: 1, rotation: 0,
       }],
     });
@@ -107,22 +115,22 @@ describe('dxfWriter', () => {
   });
 
   it('adds title when provided', () => {
-    const dxf = generateDxf(makeMinimalDoc(), { title: 'Floor Plan' });
+    const dxf = generateDxf(makeDoc(), { title: 'Floor Plan' });
     expect(dxf).toContain('Floor Plan');
     expect(dxf).toContain('A-TTLB');
   });
 
   it('uses discipline prefix for layers', () => {
-    const dxf = generateDxf(makeMinimalDoc(), { discipline: 'S' });
+    const dxf = generateDxf(makeDoc(), { discipline: 'S' });
     expect(dxf).toContain('S-WALL');
     expect(dxf).not.toContain('A-WALL');
   });
 
   it('applies scale factor', () => {
-    const doc = makeMinimalDoc({
+    const doc = makeDoc({
       walls: [{
         id: 'w1', start: { x: 1, y: 0 }, end: { x: 2, y: 0 },
-        thickness: 0, layerId: 'WALL', type: 'wall',
+        thickness: 0, layerId: 'walls',
       }],
     });
     const dxf = generateDxf(doc, { scale: 100 });
@@ -150,8 +158,8 @@ describe('dxfBlocks', () => {
 
   it('generates INSERT for a block instance', () => {
     const insert = generateBlockInsert({
-      blockType: 'SOFA', position: { x: 5, y: 5 },
-      width: 1, height: 1, rotation: 0,
+      id: 'b1', floorId: 'f1', blockType: 'sofa', position: { x: 5, y: 5 },
+      width: 1, height: 1, rotation: 0, bim: { classification: '-' },
     }, 100);
     expect(insert).toContain('INSERT');
     expect(insert).toContain('SOFA');

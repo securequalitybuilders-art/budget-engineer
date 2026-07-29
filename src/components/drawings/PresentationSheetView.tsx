@@ -15,7 +15,7 @@ import {
 import type { ElevationDrawing } from '@/adapters/planToElevations'
 import { renderSectionSheet } from '@/components/drawings/sectionModel'
 import {
-  CAD_THIN, CAD_HAIR, CAD_MEDIUM, INK, PAPER,
+  CAD_THIN, INK, PAPER,
 } from '@/components/drawings/cadConstants'
 import { DISCIPLINE } from '@/components/drawings/drawingColors'
 import { SheetBorder } from '@/components/drawings/cadPrimitives'

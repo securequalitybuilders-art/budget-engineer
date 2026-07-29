@@ -45,7 +45,7 @@ function makeMockPlan(overrides: Partial<PlanModel> = {}): PlanModel {
       { id: 'o2', wallId: 'w2', offset: 0.5, width: 1.2, kind: 'window' },
     ],
     scaleLabel: '1:100 @ A3',
-    planSource: 'test',
+    planSource: 'unknown',
     ...overrides,
   }
 }

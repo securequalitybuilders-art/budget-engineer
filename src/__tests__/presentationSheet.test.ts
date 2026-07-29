@@ -169,6 +169,7 @@ describe('renderFloorPlanSheet', () => {
     const plan = makePlan()
     const sheet = renderFloorPlanSheet(plan)
     expect(sheet).not.toBeNull()
+    if (!sheet) throw new Error('sheet is null')
     const { container } = render(React.createElement('svg', null, sheet.elements))
     expect(container.textContent).toContain('LIVING')
     expect(container.textContent).toContain('KITCHEN')
