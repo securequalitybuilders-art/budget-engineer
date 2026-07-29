@@ -1,31 +1,42 @@
 import { useMemo, useState } from 'react'
-import { FURNITURE_LIBRARY, getFurnitureByCategory } from '@/lib/furniture/furniture-library'
-import { getDoors, getWindows, getSanitary, getStairs } from '@/engine/parametric/componentRegistry'
+import { getFurnitureByCategory } from '@/lib/furniture/furniture-library'
+import { getDoors, getWindows } from '@/engine/parametric/componentRegistry'
 import { useFurnitureStore } from '@/stores/furnitureStore'
 import { useComponentSelectionStore } from '@/stores/componentSelectionStore'
+import { useDisciplineStore } from '@/stores/disciplineStore'
+import { ROOM_TEMPLATES } from '@/lib/interior/roomTemplates'
 import type { BlockCategory } from '@/domain/furniture'
+import type { DisciplineId } from '@/lib/studio/discipline'
 
 interface UnifiedComponentPanelProps {
   onClose?: () => void
 }
 
-type UnifiedCategory = BlockCategory | 'doors' | 'windows'
+type UnifiedCategory = BlockCategory | 'doors' | 'windows' | 'interior' | 'stairs'
 
-const UNIFIED_CATEGORIES: { key: UnifiedCategory; label: string }[] = [
-  { key: 'furniture', label: 'Furniture' },
-  { key: 'sanitary', label: 'Sanitary' },
-  { key: 'kitchen', label: 'Kitchen' },
-  { key: 'lighting', label: 'Lighting' },
-  { key: 'stairs', label: 'Stairs' },
-  { key: 'structural', label: 'Structural' },
-  { key: 'doors', label: 'Doors' },
-  { key: 'windows', label: 'Windows' },
+interface UnifiedCatDef {
+  key: UnifiedCategory
+  label: string
+  disciplines: DisciplineId[]
+}
+
+const CATEGORY_DEFS: UnifiedCatDef[] = [
+  { key: 'furniture', label: 'Furniture', disciplines: ['ARCH', 'INT'] },
+  { key: 'sanitary', label: 'Sanitary', disciplines: ['ARCH', 'PLUM', 'INT'] },
+  { key: 'kitchen', label: 'Kitchen', disciplines: ['ARCH', 'INT'] },
+  { key: 'lighting', label: 'Lighting', disciplines: ['ARCH', 'ELEC', 'INT'] },
+  { key: 'stairs', label: 'Stairs', disciplines: ['ARCH', 'STR'] },
+  { key: 'structural', label: 'Structural', disciplines: ['STR', 'ARCH'] },
+  { key: 'doors', label: 'Doors', disciplines: ['ARCH', 'INT'] },
+  { key: 'windows', label: 'Windows', disciplines: ['ARCH', 'INT'] },
+  { key: 'interior', label: 'Room Templates', disciplines: ['INT', 'ARCH'] },
 ]
 
 export function UnifiedComponentPanel({ onClose }: UnifiedComponentPanelProps) {
   const [activeCategory, setActiveCategory] = useState<UnifiedCategory>('furniture')
   const [search, setSearch] = useState('')
   const [showSearch, setShowSearch] = useState(false)
+  const currentDiscipline = useDisciplineStore((s) => s.currentDiscipline)
 
   const activeDefId = useFurnitureStore((s) => s.activeDefId)
   const setActiveDef = useFurnitureStore((s) => s.setActiveDef)
@@ -67,12 +78,12 @@ export function UnifiedComponentPanel({ onClose }: UnifiedComponentPanelProps) {
     return all.filter((w) => w.label.toLowerCase().includes(q) || w.code.toLowerCase().includes(q) || w.type.includes(q))
   }, [search])
 
-  const isFurnitureCategory = activeCategory !== 'doors' && activeCategory !== 'windows'
+  const isFurnitureCategory = activeCategory !== 'doors' && activeCategory !== 'windows' && activeCategory !== 'interior'
 
   const handleCategoryChange = (cat: UnifiedCategory) => {
     setActiveCategory(cat)
     setSearch('')
-    if (cat !== 'doors' && cat !== 'windows') {
+    if (cat !== 'doors' && cat !== 'windows' && cat !== 'interior') {
       setActiveFurnitureCategory(cat as BlockCategory)
     }
   }
@@ -139,7 +150,7 @@ export function UnifiedComponentPanel({ onClose }: UnifiedComponentPanelProps) {
 
       {/* Category tabs */}
       <div className="flex flex-wrap gap-1 border-b border-stone-200 px-2 py-1.5">
-        {UNIFIED_CATEGORIES.map((cat) => (
+        {CATEGORY_DEFS.filter((c) => c.disciplines.includes(currentDiscipline)).map((cat) => (
           <button
             key={cat.key}
             onClick={() => handleCategoryChange(cat.key)}
@@ -209,6 +220,22 @@ export function UnifiedComponentPanel({ onClose }: UnifiedComponentPanelProps) {
           </div>
         )}
 
+        {activeCategory === 'interior' && (
+          <div className="grid grid-cols-1 gap-1.5">
+            {ROOM_TEMPLATES.map((tpl) => (
+              <div
+                key={tpl.id}
+                className="flex flex-col gap-0.5 rounded-lg border border-stone-200 bg-stone-50 p-2"
+              >
+                <span className="text-[11px] font-medium text-stone-800">{tpl.name}</span>
+                <span className="text-[10px] text-stone-400">{tpl.defaultWidth/1000}×{tpl.defaultDepth/1000}m · {tpl.roomType}</span>
+                <span className="text-[9px] text-stone-400 line-clamp-1">{tpl.description}</span>
+                <span className="text-[9px] text-stone-400">Materials: {tpl.suggestedMaterials.wall}, {tpl.suggestedMaterials.floor}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {isFurnitureCategory && (
           <div className="grid grid-cols-2 gap-2">
             {filteredFurniture.map((item) => {
@@ -249,7 +276,7 @@ export function UnifiedComponentPanel({ onClose }: UnifiedComponentPanelProps) {
         {isFurnitureCategory && activeDefId && (
           <span>Click on the plan to place the selected item. Right-click or press Escape to cancel.</span>
         )}
-        {isFurnitureCategory && !activeDefId && activeCategory !== 'doors' && activeCategory !== 'windows' && (
+        {isFurnitureCategory && !activeDefId && (
           <span>Select an item above, then click the plan to place it.</span>
         )}
         {activeCategory === 'doors' && !selectedDoorSpec && (
@@ -257,6 +284,9 @@ export function UnifiedComponentPanel({ onClose }: UnifiedComponentPanelProps) {
         )}
         {activeCategory === 'windows' && !selectedWindowSpec && (
           <span>Select a window size, then use <strong>+Window</strong> on the plan.</span>
+        )}
+        {activeCategory === 'interior' && (
+          <span>Room templates for reference. Configure rooms in <strong>Interior Studio</strong> (Design → Interior button).</span>
         )}
       </div>
     </div>

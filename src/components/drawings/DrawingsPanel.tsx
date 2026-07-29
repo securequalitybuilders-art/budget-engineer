@@ -39,29 +39,42 @@ import type { DrawingTabId } from '@/lib/drawings/drawing-register'
 import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
 import { DetailsBrowser } from '@/components/drawings/DetailsBrowser'
 import { RoomScheduleView } from '@/components/drawings/RoomScheduleView'
+import { DrawingStandardsPanel } from '@/components/drawings/DrawingStandardsPanel'
+import { PackageSummaryPanel } from '@/components/drawings/PackageSummaryPanel'
+import { assemblePackage } from '@/lib/drawings/package-assembly'
+import { useDisciplineStore } from '@/stores/disciplineStore'
+import type { DisciplineId } from '@/lib/studio/discipline'
 
-type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'side' | 'section' | 'schedule-door' | 'schedule-window' | 'schedule-structural' | 'presentation' | 'register' | 'details' | 'schedule-room'
+type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'side' | 'section' | 'schedule-door' | 'schedule-window' | 'schedule-structural' | 'presentation' | 'register' | 'details' | 'schedule-room' | 'standards' | 'package'
 
-const TABS: { id: DrawingTab; label: string }[] = [
-  { id: 'plan', label: 'Plan' },
-  { id: 'site-plan', label: 'Site Plan' },
-  { id: 'foundation', label: 'Foundation' },
-  { id: 'roof', label: 'Roof Plan' },
-  { id: 'ceiling', label: 'Ceiling (RCP)' },
-  { id: 'electrical', label: 'Electrical' },
-  { id: 'plumbing', label: 'Plumbing' },
-  { id: 'hvac', label: 'HVAC' },
-  { id: 'front', label: 'Front Elevation' },
-  { id: 'side', label: 'Side Elevation' },
-  { id: 'section', label: 'Section A-A' },
-  { id: 'schedule-door', label: 'Door Sch.' },
-  { id: 'schedule-window', label: 'Window Sch.' },
-  { id: 'schedule-structural', label: 'Struct. Sch.' },
-  { id: 'presentation', label: 'Presentation Sheet' },
-  { id: 'register', label: 'Register' },
-  { id: 'details', label: 'Details' },
-  { id: 'schedule-room', label: 'Room Sch.' },
-] as { id: DrawingTab; label: string }[]
+interface TabDef {
+  id: DrawingTab
+  label: string
+  disciplines: DisciplineId[]
+}
+
+const TAB_DEFS: TabDef[] = [
+  { id: 'plan', label: 'Plan', disciplines: ['ARCH', 'INT'] },
+  { id: 'site-plan', label: 'Site Plan', disciplines: ['ARCH', 'LAND', 'CIVIL'] },
+  { id: 'foundation', label: 'Foundation', disciplines: ['ARCH', 'STR', 'CIVIL'] },
+  { id: 'roof', label: 'Roof Plan', disciplines: ['ARCH'] },
+  { id: 'ceiling', label: 'Ceiling (RCP)', disciplines: ['ARCH', 'INT', 'ELEC'] },
+  { id: 'electrical', label: 'Electrical', disciplines: ['ELEC', 'MEP'] },
+  { id: 'plumbing', label: 'Plumbing', disciplines: ['PLUM', 'MEP'] },
+  { id: 'hvac', label: 'HVAC', disciplines: ['MEP'] },
+  { id: 'front', label: 'Front Elevation', disciplines: ['ARCH'] },
+  { id: 'side', label: 'Side Elevation', disciplines: ['ARCH'] },
+  { id: 'section', label: 'Section A-A', disciplines: ['ARCH', 'STR'] },
+  { id: 'schedule-door', label: 'Door Sch.', disciplines: ['ARCH'] },
+  { id: 'schedule-window', label: 'Window Sch.', disciplines: ['ARCH'] },
+  { id: 'schedule-structural', label: 'Struct. Sch.', disciplines: ['STR', 'ARCH'] },
+  { id: 'presentation', label: 'Presentation', disciplines: ['ARCH', 'INT'] },
+  { id: 'register', label: 'Register', disciplines: ['ARCH', 'STR', 'MEP', 'ELEC', 'PLUM', 'INT', 'LAND', 'CIVIL'] },
+  { id: 'details', label: 'Details', disciplines: ['ARCH', 'STR'] },
+  { id: 'schedule-room', label: 'Room Sch.', disciplines: ['ARCH', 'INT'] },
+  { id: 'standards', label: 'Standards', disciplines: ['ARCH', 'STR', 'MEP', 'ELEC', 'PLUM', 'INT', 'LAND', 'CIVIL'] },
+  { id: 'package', label: 'Package', disciplines: ['ARCH', 'STR', 'MEP', 'ELEC', 'PLUM', 'INT', 'LAND', 'CIVIL'] },
+]
 
 interface DrawingsPanelProps {
   activePlan: PlanModel | null
@@ -74,6 +87,7 @@ interface DrawingsPanelProps {
 export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAULT_STOREY_HEIGHT, pitchHeight = ROOF_PITCH_HEIGHT }: DrawingsPanelProps) {
   const { id: projectId } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<DrawingTab>('front')
+  const currentDiscipline = useDisciplineStore((s) => s.currentDiscipline)
   const registerSheets = useDrawingRegisterStore((s) => s.sheets)
   const activeSheetId = useDrawingRegisterStore((s) => s.activeSheetId)
   const initializeRegister = useDrawingRegisterStore((s) => s.initialize)
@@ -217,7 +231,7 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap gap-1 rounded-lg border border-stone-700/60 bg-stone-900/80 p-1">
-        {TABS.map((tab) => (
+        {TAB_DEFS.filter((t) => t.disciplines.includes(currentDiscipline)).map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -395,6 +409,29 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
       )}
       {activeTab === 'schedule-room' && (
         <RoomScheduleView activePlan={activePlan} />
+      )}
+      {activeTab === 'standards' && (
+        <DrawingStandardsPanel />
+      )}
+      {activeTab === 'package' && (
+        <PackageSummaryPanel
+          assembly={assemblePackage({
+            projectName: design?.name ?? 'Drawing Package',
+            projectNumber: projectId ?? 'N/A',
+            identity: {
+              packageId: `PKG-${projectId ?? '000'}-001`,
+              packageTitle: design?.name ?? 'Drawing Package',
+              issueType: 'for-construction' as const,
+              submissionCategory: 'construction' as const,
+              packageDiscipline: 'architectural' as const,
+              issueNumber: '01',
+              revision: 'A',
+            },
+            register: registerSheets,
+            allScheduleRefs: [],
+            issueDate: new Date().toISOString().slice(0, 10),
+          })}
+        />
       )}
 
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-stone-700/60 bg-stone-900/50 px-3 py-2">

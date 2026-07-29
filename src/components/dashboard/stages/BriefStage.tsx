@@ -47,9 +47,14 @@ export function BriefStage({
     onBuildingTypeChange(q.buildingType)
 
     const fakeResult: ParseResult = {
-      briefText: text,
       buildingType: q.buildingType,
+      bedrooms: 0,
+      bathrooms: 0,
       floors: q.floors,
+      approxAreaM2: 0,
+      features: [],
+      raw: text,
+      engineUsed: 'local-rules',
     }
     onParsed(fakeResult)
 

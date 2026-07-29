@@ -194,6 +194,23 @@ export function renderFloorPlanSheet(plan: PlanModel): { sheetW: number; sheetH:
     for (const f of fixtures) elements.push(f)
   }
 
+  // Egress overlay (for printed drawings)
+  if (plan.egressPoints && plan.egressPoints.length > 0) {
+    const egressColors: Record<string, string> = { 'main-entry': '#22c55e', 'secondary-exit': '#f59e0b', 'emergency-exit': '#ef4444' }
+    const egressLabels: Record<string, string> = { 'main-entry': 'MAIN', 'secondary-exit': 'SEC', 'emergency-exit': 'EMERG' }
+    for (let ei = 0; ei < plan.egressPoints.length; ei++) {
+      const ep = plan.egressPoints[ei]
+      const color = egressColors[ep.type] ?? '#94a3b8'
+      const label = egressLabels[ep.type] ?? ep.type
+      const sx = ox + ep.x * scale
+      const sy = oy - ep.y * scale
+      elements.push(<circle key={`egress-outer-${ei}`} cx={sx} cy={sy} r={4} fill={color} fillOpacity={0.15} stroke={color} strokeWidth={0.5} />)
+      elements.push(<circle key={`egress-inner-${ei}`} cx={sx} cy={sy} r={1.5} fill={color} />)
+      elements.push(<text key={`egress-label-${ei}`} x={sx} y={sy - 5} fill={color} fontSize={5} fontWeight="bold" textAnchor="middle" fontFamily="Arial, sans-serif">{label}</text>)
+      elements.push(<text key={`egress-desc-${ei}`} x={sx} y={sy + 6} fill={color} fontSize={4} textAnchor="middle" fontFamily="Arial, sans-serif">{ep.label}</text>)
+    }
+  }
+
   // ── Tier 1: Overall dimensions (outermost) ──
   const overallY = oy - plan.height * scale - DIM_OFFSET_FROM_WALL
   const overallX = ox - DIM_OFFSET_FROM_WALL

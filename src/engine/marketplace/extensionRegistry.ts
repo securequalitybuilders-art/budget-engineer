@@ -14,6 +14,7 @@ export function createExtensionRegistry(): Map<string, ExtensionInstance> {
     registry.set(manifest.id, {
       manifest, enabled: true, loaded: false,
       hooks: new Map(), config: { ...manifest.config },
+      metrics: { calls: 0, errors: 0 },
     });
   }
   return registry;
@@ -68,6 +69,7 @@ export function installExtension(registry: Map<string, ExtensionInstance>, manif
   if (existing) throw new Error(`Extension ${manifest.id} is already installed`);
   const instance: ExtensionInstance = {
     manifest, enabled: true, loaded: false, hooks: new Map(), config: { ...manifest.config },
+    metrics: { calls: 0, errors: 0 },
   };
   registry.set(manifest.id, instance);
   return instance;

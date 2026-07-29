@@ -13,7 +13,7 @@ import {
   getScaleLabel, getRecommendedScale,
   listIsoSizes, listScales,
 } from '@/engine/parametric/paperSpaceModel'
-import type { IsoPaperSize, ViewportScale, PaperSpaceLayout, Viewport } from '@/engine/parametric/paperSpaceModel'
+
 
 describe('ComponentRegistry', () => {
   describe('catalog completeness', () => {

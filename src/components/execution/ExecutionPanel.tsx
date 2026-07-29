@@ -77,9 +77,9 @@ export default function ExecutionPanel() {
         {activeTab === 'resources' && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 flex items-center justify-center h-64 border border-dashed border-stone-700 rounded-lg bg-stone-900/50">
             <div className="text-center">
-              <Users className="mx-auto text-stone-500 mb-2" size={32} />
+              <Users className="mx-auto text-stone-400 mb-2" size={32} />
               <h3 className="text-stone-300 font-medium">Resource Allocation</h3>
-              <p className="text-stone-500 text-sm mt-1">Provider labor tracking coming soon.</p>
+              <p className="text-stone-400 text-sm mt-1">Provider labor tracking coming soon.</p>
             </div>
           </div>
         )}

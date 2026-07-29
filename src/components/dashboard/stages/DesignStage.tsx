@@ -6,21 +6,31 @@ import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
 import { UnifiedComponentPanel } from '@/components/furniture/UnifiedComponentPanel'
 import { CadSyncControls } from '@/components/dashboard/CadSyncControls'
 import { Button } from '@/components/ui/Button'
-import { Box, Layers, Ruler, Wand2, Upload, LayoutGrid, Boxes, Sofa, Download, Table2 } from 'lucide-react'
+import { PlanLegend } from '@/components/cad/PlanLegend'
+import { ReferenceCasePanel } from '@/components/reference/ReferenceCasePanel'
+import { Box, Layers, Ruler, Wand2, Upload, LayoutGrid, Boxes, Sofa, Download, Table2, FileText, FolderOpen } from 'lucide-react'
 import { useFurnitureStore } from '@/stores/furnitureStore'
 import { motion } from 'framer-motion'
 import { segmentsToPlan, detectWallsFromImage } from '@/lib/import/wallDetection'
 import { convertPlanModelToCadDocument } from '@/adapters/planModelToCadAdapter'
 import { generateDxf, downloadDxf } from '@/lib/export/dxfWriter'
 import type { PlanModel } from '@/domain/plan'
+import { CirculationWarningsPanel } from '@/components/cad/CirculationWarningsPanel'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import type { DesignOption } from '@/domain/boq'
 import type { BackdropState } from '@/lib/import/backdropUtils'
 import type { ComplianceReport } from '@/engine/compliance/types'
+import type { AnalysisResult } from '@/engine/calculators/analysisAssembly'
 
 interface BackgroundIntel {
   compliance: ComplianceReport | null
   structural: { beams: number; columns: number; footings: number }
   mep: { fixtures: number; points: number; hvacUnits: number }
+  analysis: AnalysisResult | null
+  rooms: { total: number; habitable: number }
+  grossFloorArea: number
+  totalFloors: number
+  costEstimate: number
   loading: boolean
 }
 
@@ -78,6 +88,8 @@ export function DesignStage({
   const [detectMessage, setDetectMessage] = useState<string | null>(null)
   const [detectError, setDetectError] = useState(false)
   const [showComponentPanel, setShowComponentPanel] = useState(false)
+  const [showPlanLegend, setShowPlanLegend] = useState(false)
+  const [showReferenceCases, setShowReferenceCases] = useState(false)
   const { id: projectIdParam } = useParams<{ id: string }>()
   const importInputRef = useRef<HTMLInputElement>(null)
   const furnitureBlocks = useFurnitureStore((s) => s.blocks)
@@ -335,6 +347,32 @@ export function DesignStage({
           <span className="hidden sm:inline">Components</span>
         </Button>
 
+        <span className="mx-1 h-5 w-px bg-white/10" />
+
+        <Button
+          variant={showPlanLegend ? 'default' : 'ghost'}
+          size="sm"
+          className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
+          aria-label="Plan Metadata"
+          title="Plan Metadata"
+          onClick={() => setShowPlanLegend(v => !v)}
+        >
+          <Ruler size={14} />
+          <span className="hidden sm:inline">Plan Info</span>
+        </Button>
+
+        <Button
+          variant={showReferenceCases ? 'default' : 'ghost'}
+          size="sm"
+          className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
+          aria-label="Reference Cases"
+          title="Reference Cases"
+          onClick={() => setShowReferenceCases(v => !v)}
+        >
+          <FolderOpen size={14} />
+          <span className="hidden sm:inline">References</span>
+        </Button>
+
         {activePlan && (
           <Button
             variant="ghost"
@@ -368,16 +406,45 @@ export function DesignStage({
           <span className="mr-2 font-semibold text-[var(--brand-accent)]">Background Intel</span>
           {backgroundIntel.compliance && (
             <span className="mr-3">
-              Compliance: {backgroundIntel.compliance.score}% ({backgroundIntel.compliance.passedRules}✓{' '}
-              {backgroundIntel.compliance.warnings.length > 0 && <span className="text-[#f59e0b]">{backgroundIntel.compliance.warnings.length}⚠ </span>})
+              <span className="text-[var(--text-primary)]">Compliance:</span> {backgroundIntel.compliance.score}% ({backgroundIntel.compliance.passedRules}✓{backgroundIntel.compliance.results.filter(r => r.status === 'warn').length > 0 && <span className="text-[#f59e0b]"> {backgroundIntel.compliance.results.filter(r => r.status === 'warn').length}~</span>}{backgroundIntel.compliance.results.filter(r => r.status === 'fail').length > 0 && <span className="text-red-400"> {backgroundIntel.compliance.results.filter(r => r.status === 'fail').length}✗</span>})
             </span>
           )}
           <span className="mr-3">
-            Structural: {backgroundIntel.structural.beams}B {backgroundIntel.structural.columns}C {backgroundIntel.structural.footings}F
+            <span className="text-[var(--text-primary)]">Rooms:</span> {backgroundIntel.rooms.habitable}/{backgroundIntel.rooms.total}
           </span>
           <span className="mr-3">
-            MEP: {backgroundIntel.mep.fixtures}P {backgroundIntel.mep.points}E {backgroundIntel.mep.hvacUnits}H
+            <span className="text-[var(--text-primary)]">Area:</span> {backgroundIntel.grossFloorArea} m²
           </span>
+          <span className="mr-3">
+            <span className="text-[var(--text-primary)]">Floors:</span> {backgroundIntel.totalFloors}
+          </span>
+          <span className="mr-3">
+            <span className="text-[var(--text-primary)]">Str:</span> {backgroundIntel.structural.beams}B {backgroundIntel.structural.columns}C {backgroundIntel.structural.footings}F
+          </span>
+          <span className="mr-3">
+            <span className="text-[var(--text-primary)]">MEP:</span> {backgroundIntel.mep.fixtures}P {backgroundIntel.mep.points}E {backgroundIntel.mep.hvacUnits}H
+          </span>
+          {backgroundIntel.costEstimate > 0 && (
+            <span className="mr-3">
+              <span className="text-[var(--text-primary)]">Est:</span> ${(backgroundIntel.costEstimate / 100).toLocaleString()}
+            </span>
+          )}
+          {backgroundIntel.analysis?.warnings && backgroundIntel.analysis.warnings.length > 0 && (
+            <span className="text-[#f59e0b]" title={backgroundIntel.analysis.warnings.join('; ')}>
+              {backgroundIntel.analysis.warnings.length}⚠
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Circulation warnings */}
+      {activePlan && activePlan.adjacencyWarnings && activePlan.adjacencyWarnings.length > 0 && (
+        <div className="absolute left-4 right-4 z-10 mt-14">
+          <CirculationWarningsPanel
+            adjacencyWarnings={activePlan.adjacencyWarnings}
+            maxTravelDistance={activePlan.maxTravelDistance}
+            egressCompliant={activePlan.egressCompliant}
+          />
         </div>
       )}
 
@@ -385,7 +452,7 @@ export function DesignStage({
       <div className="flex flex-1 flex-row overflow-hidden">
         <div className="flex flex-1 flex-col overflow-auto p-4 pt-20">
         {canvasView === 'plan' ? (
-          <PlanCanvas
+          <ErrorBoundary><PlanCanvas
             projectId={projectId}
             design={selectedDesign}
             persistedPlan={activePlan}
@@ -400,9 +467,9 @@ export function DesignStage({
             onPlaceBlock={placeBlock}
             onRemoveBlock={removeBlock}
             onRotateBlock={rotateBlock}
-          />
+          /></ErrorBoundary>
         ) : canvasView === 'bim' ? (
-          <>
+          <ErrorBoundary>
             <LazyBimModel3D plan={activePlan} design={selectedDesign} height={480} />
             {activePlan && (
               <p className="mt-2 max-w-md text-[10px] text-stone-400 leading-relaxed">
@@ -411,7 +478,7 @@ export function DesignStage({
                 Model downloadable as .glb for use in Blender, Windows 3D Viewer, and other 3D tools.
               </p>
             )}
-          </>
+          </ErrorBoundary>
         ) : (
           activePlan && (
             <DrawingsPanel
@@ -428,6 +495,28 @@ export function DesignStage({
 
       {showComponentPanel && (
         <UnifiedComponentPanel onClose={() => setShowComponentPanel(false)} />
+      )}
+      {showPlanLegend && selectedDesign && (
+        <div className="absolute right-4 top-20 z-20 w-72 rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] shadow-xl">
+          <div className="flex items-center justify-between border-b border-[var(--border-default)] px-3 py-2">
+            <span className="text-xs font-semibold text-[var(--text-primary)]">Plan Metadata</span>
+            <button onClick={() => setShowPlanLegend(false)} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">✕</button>
+          </div>
+          <div className="p-3">
+            <PlanLegend design={selectedDesign} plan={activePlan} />
+          </div>
+        </div>
+      )}
+      {showReferenceCases && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/40">
+          <div className="h-[80vh] w-[80vw] overflow-auto rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[var(--border-default)] px-4 py-2">
+              <span className="text-sm font-semibold text-[var(--text-primary)]">Reference Cases</span>
+              <button onClick={() => setShowReferenceCases(false)} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">✕</button>
+            </div>
+            <ReferenceCasePanel />
+          </div>
+        </div>
       )}
 
       <input

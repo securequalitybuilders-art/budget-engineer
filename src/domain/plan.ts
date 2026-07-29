@@ -49,6 +49,20 @@ export interface PlanningZoneMarker {
   height: number
 }
 
+export interface EgressPoint {
+  label: string
+  x: number
+  y: number
+  type: 'main-entry' | 'secondary-exit' | 'emergency-exit'
+}
+
+export interface AdjacencyWarning {
+  roomA: string
+  roomB: string
+  distance: number
+  message: string
+}
+
 export interface PlanModel {
   id: string
   designOptionId: string
@@ -61,6 +75,10 @@ export interface PlanModel {
   scaleLabel: string
   planSource?: PlanSource
   entranceMarkers?: PlanningZoneMarker[]
+  egressPoints?: EgressPoint[]
+  adjacencyWarnings?: AdjacencyWarning[]
+  maxTravelDistance?: number
+  egressCompliant?: boolean
 }
 
 export function getPlanSource(plan: PlanModel): PlanSource {
