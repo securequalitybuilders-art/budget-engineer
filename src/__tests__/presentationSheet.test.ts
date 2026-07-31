@@ -5,7 +5,7 @@ import React from 'react'
 import type { PlanModel } from '@/domain/plan'
 import { computePresentationLayout } from '@/components/drawings/presentationSheetModel'
 import { PresentationSheetView } from '@/components/drawings/PresentationSheetView'
-import { renderFloorPlanSheet } from '@/components/drawings/planSheetModel'
+import { renderFloorPlanSheet } from '@/lib/drawings/planSheetRenderer'
 import { serializeSvg } from '@/adapters/sheetExport'
 
 function makePlan(overrides?: Partial<PlanModel>): PlanModel {

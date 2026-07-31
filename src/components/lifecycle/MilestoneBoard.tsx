@@ -4,7 +4,7 @@ import { computeMilestoneLifecycleSummary } from '@/lib/lifecycle/lifecycleSumma
 import { Flag, CheckCircle2, Clock, XCircle, Lock } from 'lucide-react';
 
 export function MilestoneBoard() {
-  const { milestones } = useMilestoneStore();
+  const milestones = useMilestoneStore((s) => s.milestones);
   const summary = useMemo(() => computeMilestoneLifecycleSummary(milestones), [milestones]);
 
   if (milestones.length === 0) {

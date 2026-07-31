@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
-import { RoomScheduleView, buildRoomScheduleRows } from '@/components/drawings/RoomScheduleView'
+import { RoomScheduleView } from '@/components/drawings/RoomScheduleView'
+import { buildRoomScheduleRows } from '@/lib/drawings/roomScheduleRows'
 import type { PlanModel } from '@/domain/plan'
 
 function makePlan(overrides?: Partial<PlanModel>): PlanModel {

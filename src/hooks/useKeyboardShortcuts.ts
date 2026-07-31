@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { useUIStore } from '@/stores/uiStore';
 import { useProjectStore } from '@/stores/projectStore';
 
@@ -14,8 +15,8 @@ const isTypingTarget = (e: KeyboardEvent) => {
  */
 export function useKeyboardShortcuts() {
   const navigate = useNavigate();
-  const { setTheme, resolvedTheme, toggleSidebar, toggleAiChat, toggleBoqPanel, toggleShortcutsHelp, setActiveStage } = useUIStore();
-  const { currentProjectId } = useProjectStore();
+  const { setTheme, resolvedTheme, toggleSidebar, toggleAiChat, toggleBoqPanel, toggleShortcutsHelp, setActiveStage } = useUIStore(useShallow(s => ({ setTheme: s.setTheme, resolvedTheme: s.resolvedTheme, toggleSidebar: s.toggleSidebar, toggleAiChat: s.toggleAiChat, toggleBoqPanel: s.toggleBoqPanel, toggleShortcutsHelp: s.toggleShortcutsHelp, setActiveStage: s.setActiveStage })));
+  const { currentProjectId } = useProjectStore(useShallow(s => ({ currentProjectId: s.currentProjectId })));
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {

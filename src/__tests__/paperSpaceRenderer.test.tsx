@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest'
 import type { ReactNode } from 'react'
 import type { PlanModel } from '@/domain/plan'
 import { createPaperSpaceLayout } from '@/engine/parametric/paperSpaceModel'
-import { renderSheet, ScaleBar, NorthArrow, createPlanSheet } from '@/components/drawings/paperSpaceRenderer'
+import { renderSheet, createPlanSheet } from '@/lib/drawings/paperSpaceSheet'
+import { ScaleBar, NorthArrow } from '@/components/drawings/paperSpaceRenderer'
 
 function makePlan(overrides?: Partial<PlanModel>): PlanModel {
   return {

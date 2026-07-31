@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
 import { Button } from '@/components/ui/Button';
@@ -9,8 +10,8 @@ import { RoleSwitcher } from '@/components/auth/RoleSwitcher';
 import { LocaleSwitcher } from '@/components/common/LocaleSwitcher';
 
 export function Sidebar() {
-  const { sidebarOpen } = useUIStore();
-  const { projects, currentProjectId } = useProjectStore();
+  const sidebarOpen = useUIStore((s) => s.sidebarOpen);
+  const { projects, currentProjectId } = useProjectStore(useShallow(s => ({ projects: s.projects, currentProjectId: s.currentProjectId })));
   const userRole = useAuthStore((s) => s.user.role);
 
   if (!sidebarOpen) return null;

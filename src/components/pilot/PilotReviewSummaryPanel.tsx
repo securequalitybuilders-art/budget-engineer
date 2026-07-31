@@ -2,6 +2,7 @@ import { useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { useShallow } from 'zustand/react/shallow';
 import { usePilotFeedbackStore } from '@/stores/pilotFeedbackStore';
 import { DOMAIN_LABELS, SEVERITY_LABELS, SEVERITY_ORDER } from '@/lib/pilot/pilotFeedbackModel';
 import { getDomainConcentration } from '@/lib/pilot/pilotIssueClassification';
@@ -24,7 +25,10 @@ const RECOMMENDATION_LABEL: Record<string, string> = {
 };
 
 export function PilotReviewSummaryPanel() {
-  const store = usePilotFeedbackStore();
+  const store = usePilotFeedbackStore(useShallow(s => ({
+    getActiveSession: s.getActiveSession,
+    getActiveObservations: s.getActiveObservations,
+  })));
   const activeSession = store.getActiveSession();
   const observations = store.getActiveObservations();
 

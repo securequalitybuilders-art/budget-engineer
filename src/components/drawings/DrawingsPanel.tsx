@@ -155,21 +155,23 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
     } catch { return null }
   }, [activePlan, floors, storeyHeight])
 
+  const projectName = design?.name ?? 'Budget Engineer'
+
   const frontElevationSvg = useMemo(() => {
     if (!ws6CadDoc) return null
     try {
-      const titleMeta: TitleBlockMeta = { project: design?.name ?? 'Budget Engineer', drawing: 'FRONT ELEVATION', scale: '1:100' }
+      const titleMeta: TitleBlockMeta = { project: projectName, drawing: 'FRONT ELEVATION', scale: '1:100' }
       return buildElevationSvg(ws6CadDoc, 'front', titleMeta)
     } catch { return null }
-  }, [ws6CadDoc, design?.name])
+  }, [ws6CadDoc, projectName])
 
   const sideElevationSvg = useMemo(() => {
     if (!ws6CadDoc) return null
     try {
-      const titleMeta: TitleBlockMeta = { project: design?.name ?? 'Budget Engineer', drawing: 'RIGHT SIDE ELEVATION', scale: '1:100' }
+      const titleMeta: TitleBlockMeta = { project: projectName, drawing: 'RIGHT SIDE ELEVATION', scale: '1:100' }
       return buildElevationSvg(ws6CadDoc, 'right', titleMeta)
     } catch { return null }
-  }, [ws6CadDoc, design?.name])
+  }, [ws6CadDoc, projectName])
 
   const sectionDrawing = useMemo(() => {
     return resolveSection(activePlan!, floors, storeyHeight, pitchHeight, design?.buildingType)
@@ -200,21 +202,20 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
   const ws6ConversionOk = !!ws6CadDoc
 
   const pipeline: 'rich-svg' | 'legacy-fallback' | 'none' = isRichActive ? 'rich-svg' : (ws6ConversionOk ? 'legacy-fallback' : 'none')
-  const fallbackReason = ws6ConversionOk && !isRichActive
-    ? (() => {
-        try {
-          const comp = computeFaçadeComposition(ws6CadDoc!, elevationOrientation)
-          if (comp.segments.length === 0) return 'Zero facade segments for this orientation'
-        } catch { return 'Façade composition threw' }
-        try {
-          if (elevationOrientation === 'front' && !frontElevationSvg) return 'buildElevationSvg(front) returned null'
-          if (elevationOrientation === 'right' && !sideElevationSvg) return 'buildElevationSvg(right) returned null'
-        } catch { return 'buildElevationSvg threw' }
-        return 'Unknown fallback reason'
-      })()
-    : undefined
+  const fallbackReason = useMemo(() => {
+    if (!ws6ConversionOk || isRichActive) return undefined
+    try {
+      const comp = computeFaçadeComposition(ws6CadDoc!, elevationOrientation)
+      if (comp.segments.length === 0) return 'Zero facade segments for this orientation'
+    } catch { return 'Façade composition threw' }
+    try {
+      if (elevationOrientation === 'front' && !frontElevationSvg) return 'buildElevationSvg(front) returned null'
+      if (elevationOrientation === 'right' && !sideElevationSvg) return 'buildElevationSvg(right) returned null'
+    } catch { return 'buildElevationSvg threw' }
+    return 'Unknown fallback reason'
+  }, [ws6ConversionOk, isRichActive, ws6CadDoc, elevationOrientation, frontElevationSvg, sideElevationSvg])
 
-  if (fallbackReason && ws6ConversionOk) {
+  if (fallbackReason && ws6ConversionOk && import.meta.env.DEV) {
     console.warn(`[DrawingsPanel] Rich SVG eligible but fallback active: ${fallbackReason} (orientation=${elevationOrientation}, segments=${segmentCount}, openings=${openingCountOnFace}, rooms=${roomCount})`)
   }
 

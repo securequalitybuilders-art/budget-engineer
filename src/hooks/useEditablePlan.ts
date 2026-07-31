@@ -60,6 +60,7 @@ export function useEditablePlan(baseModel: PlanModel | null, persistedModel: Pla
 
   useEffect(() => {
     history.resetTo(initialModel)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- history identity changes on every commit (present); resetting would destroy undo history
   }, [initialModel])
 
   const clearSelection = () => {

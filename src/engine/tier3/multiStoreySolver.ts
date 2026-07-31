@@ -1,4 +1,4 @@
-import type { FloorPlan, PlacedRoom, ProgramItem } from './layoutEngine'
+import type { FloorPlan, ProgramItem } from './layoutEngine'
 import type { VerticalChassis } from './vertical-chassis'
 
 export interface StairwellDesign {
@@ -36,11 +36,7 @@ export function computeStairArea(stairDesign: StairwellDesign): number {
   return Math.ceil(stairDesign.stairWidth * Math.max(stairDesign.uShapeDepth, 2.5))
 }
 
-function roomsOverlapX(a: PlacedRoom, b: PlacedRoom, tolerance: number = 0.5): boolean {
-  const aCx = a.x + a.width / 2
-  const bCx = b.x + b.width / 2
-  return Math.abs(aCx - bCx) < (a.width / 2 + b.width / 2 + tolerance)
-}
+
 
 export function enforceVerticalStacking(
   floors: FloorPlan[][],
@@ -72,7 +68,7 @@ export function enforceVerticalStacking(
       const prev = wetCorePositions[i - 1]
       const curr = wetCorePositions[i]
       if (curr.floor === prev.floor) continue
-      if (!roomsOverlapX({ ...prev, width: 1, height: 1 } as unknown as PlacedRoom, { ...curr, width: 1, height: 1 } as unknown as PlacedRoom, 0.5)) {
+      if (Math.abs(prev.cx - curr.cx) > 1.5) {
         warnings.wetCoreMisalignments.push(
           `Wet core "${curr.name}" on floor ${curr.floor} (cx=${curr.cx.toFixed(1)}) misaligned with "${prev.name}" on floor ${prev.floor} (cx=${prev.cx.toFixed(1)})`,
         )

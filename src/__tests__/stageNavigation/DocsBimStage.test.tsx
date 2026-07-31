@@ -1,8 +1,14 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, afterEach } from 'vitest'
+import { render, screen, cleanup } from '@testing-library/react'
+import { act } from 'react'
 
 import { DocsBimStage } from '@/components/dashboard/stages/DocsBimStage'
+
+afterEach(async () => {
+  cleanup()
+  await act(async () => {})
+})
 
 describe('DocsBimStage', () => {
   it('shows empty state when no design/plan', () => {
@@ -10,7 +16,7 @@ describe('DocsBimStage', () => {
     expect(screen.getByText('Drawings & BIM')).toBeTruthy()
   })
 
-  it('shows view toggle when plan exists', () => {
+  it('shows view toggle when plan exists', async () => {
     const mockPlan = {
       id: 'plan-1', designOptionId: 'opt-1', width: 20, height: 15,
       wallThickness: 0.23, rooms: [], walls: [], openings: [], scaleLabel: '1:100',

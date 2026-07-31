@@ -137,6 +137,6 @@ function renderRevisionTable(revisions: RevisionRecord[], tbY: number, _tbH: num
   );
 }
 
-export function professionalTitleBlockHeight(hasRevisions: boolean): number {
+function professionalTitleBlockHeight(hasRevisions: boolean): number {
   return hasRevisions ? 55 : 46;
 }

@@ -42,12 +42,12 @@ export function ClashHealerPanel({ graph }: ClashHealerPanelProps) {
 
   const walls = useMemo(() => graph ? graphToCadWalls(graph) : [], [graph])
   const openings = useMemo(() => graph ? graphToCadOpenings(graph) : [], [graph])
-  const blocks: CadBlockInstance[] = []
+  const blocks: CadBlockInstance[] = useMemo(() => [], [])
 
   const result = useMemo(() => {
     if (!showResults || walls.length === 0) return null
     return autoHealClashes(walls, openings, blocks)
-  }, [walls, openings, showResults])
+  }, [walls, openings, showResults, blocks])
 
   if (!graph) {
     return (

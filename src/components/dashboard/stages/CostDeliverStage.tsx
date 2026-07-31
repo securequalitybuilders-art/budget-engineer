@@ -7,6 +7,7 @@ import { DeliveryWorkflowPanel } from '@/components/delivery/DeliveryWorkflowPan
 import { ProcurementPanel } from '@/components/procurement/ProcurementPanel'
 import { Box, ClipboardList, CalendarDays, TrendingUp, FileText, FileSpreadsheet, ShoppingCart } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useShallow } from 'zustand/react/shallow'
 import { useDeliveryStore } from '@/stores/deliveryStore'
 import { useProcurementStore } from '@/stores/procurementStore'
 import { useProjectStore } from '@/stores/projectStore'
@@ -52,8 +53,8 @@ export function CostDeliverStage({
   const projectStartDate = new Date().toISOString().split('T')[0]
   const projectId = useProjectStore((s) => s.currentProjectId)
 
-  const { currentDelivery, loadForProject: loadDelivery } = useDeliveryStore()
-  const { loadForProject: loadProcurement } = useProcurementStore()
+  const { currentDelivery, loadForProject: loadDelivery } = useDeliveryStore(useShallow(s => ({ currentDelivery: s.currentDelivery, loadForProject: s.loadForProject })))
+  const { loadForProject: loadProcurement } = useProcurementStore(useShallow(s => ({ loadForProject: s.loadForProject })))
 
   useEffect(() => {
     if (projectId) {
@@ -95,7 +96,7 @@ export function CostDeliverStage({
     const areaM2 = selectedDesign?.grossFloorArea ?? 150
     const floors = selectedDesign?.floors ?? 1
     return generateProgramme(detailedBoq.boq.summary.subtotal, areaM2, floors, detailedBoq.quantities.roomCount, true, projectStartDate)
-  }, [detailedBoq, selectedDesign])
+  }, [detailedBoq, selectedDesign, projectStartDate])
 
   const cashflow = useMemo(() => {
     if (!programme) return null

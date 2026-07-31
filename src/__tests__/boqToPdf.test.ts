@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest'
 import { isValidPngDataUrl, captureSnapshot, registerSnapshotCapture, unregisterSnapshotCapture } from '@/lib/3d-snapshot'
 import { embedSnapshotInPdf, generatePdfReport } from '@/adapters/boqToPdf'
@@ -89,7 +89,7 @@ const MINIMAL_BOQ: BoqResult = {
   },
 }
 
-// ── isValidPngDataUrl ──
+// â”€â”€ isValidPngDataUrl â”€â”€
 
 describe('isValidPngDataUrl', () => {
   it('returns true for a valid base64 PNG data URL', () => {
@@ -122,13 +122,13 @@ describe('isValidPngDataUrl', () => {
   })
 })
 
-// ── embedSnapshotInPdf ──
+// â”€â”€ embedSnapshotInPdf â”€â”€
 
 describe('embedSnapshotInPdf', () => {
   const VALID_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
 
   it('embeds a valid PNG data URL and returns advanced y', () => {
-    const doc = { addImage: vi.fn() }
+    const doc: any = { addImage: vi.fn() }
     const y = 100
     const result = embedSnapshotInPdf(doc, VALID_PNG, y, 14, 182)
     expect(doc.addImage).toHaveBeenCalledTimes(1)
@@ -137,7 +137,7 @@ describe('embedSnapshotInPdf', () => {
   })
 
   it('returns original y when snapshotDataUrl is undefined', () => {
-    const doc = { addImage: vi.fn() }
+    const doc: any = { addImage: vi.fn() }
     const y = 100
     const result = embedSnapshotInPdf(doc, undefined, y, 14, 182)
     expect(doc.addImage).not.toHaveBeenCalled()
@@ -145,7 +145,7 @@ describe('embedSnapshotInPdf', () => {
   })
 
   it('returns original y when snapshotDataUrl is an invalid string', () => {
-    const doc = { addImage: vi.fn() }
+    const doc: any = { addImage: vi.fn() }
     const y = 100
     const result = embedSnapshotInPdf(doc, 'not-a-valid-url', y, 14, 182)
     expect(doc.addImage).not.toHaveBeenCalled()
@@ -153,7 +153,7 @@ describe('embedSnapshotInPdf', () => {
   })
 
   it('gracefully skips when addImage throws', () => {
-    const doc = { addImage: vi.fn().mockImplementation(() => { throw new Error('corrupt image') }) }
+    const doc: any = { addImage: vi.fn().mockImplementation(() => { throw new Error('corrupt image') }) }
     const y = 100
     const result = embedSnapshotInPdf(doc, VALID_PNG, y, 14, 182)
     expect(doc.addImage).toHaveBeenCalledTimes(1)
@@ -161,7 +161,7 @@ describe('embedSnapshotInPdf', () => {
   })
 
   it('returns original y for empty string', () => {
-    const doc = { addImage: vi.fn() }
+    const doc: any = { addImage: vi.fn() }
     const y = 100
     const result = embedSnapshotInPdf(doc, '', y, 14, 182)
     expect(doc.addImage).not.toHaveBeenCalled()
@@ -169,7 +169,7 @@ describe('embedSnapshotInPdf', () => {
   })
 })
 
-// ── capture registry ──
+// â”€â”€ capture registry â”€â”€
 
 describe('capture registry', () => {
   it('returns null when no capture function is registered', () => {
@@ -197,10 +197,10 @@ describe('capture registry', () => {
   })
 })
 
-// ── embedSnapshotInPdf: never-throws guarantee ──
+// â”€â”€ embedSnapshotInPdf: never-throws guarantee â”€â”€
 
 describe('embedSnapshotInPdf resilience', () => {
-  const doc = { addImage: vi.fn() }
+  const doc: any = { addImage: vi.fn() }
 
   it('never throws for undefined', () => {
     expect(() => embedSnapshotInPdf(doc, undefined, 100, 14, 182)).not.toThrow()
@@ -221,13 +221,13 @@ describe('embedSnapshotInPdf resilience', () => {
     expect(() => embedSnapshotInPdf(doc, 123 as any, 100, 14, 182)).not.toThrow()
   })
   it('never throws when addImage throws', () => {
-    const badDoc = { addImage: vi.fn().mockImplementation(() => { throw new Error('addImage failed') }) }
+    const badDoc: any = { addImage: vi.fn().mockImplementation(() => { throw new Error('addImage failed') }) }
     const VALID_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
     expect(() => embedSnapshotInPdf(badDoc, VALID_PNG, 100, 14, 182)).not.toThrow()
   })
 })
 
-// ── capture isolation: captureSnapshot throwing never propagates ──
+// â”€â”€ capture isolation: captureSnapshot throwing never propagates â”€â”€
 
 describe('capture isolation', () => {
   it('captureSnapshot that throws does not propagate when wrapped', () => {
@@ -255,7 +255,7 @@ describe('capture isolation', () => {
   })
 })
 
-// ── generatePdfReport always reaches download (doc.output called) ──
+// â”€â”€ generatePdfReport always reaches download (doc.output called) â”€â”€
 
 describe('generatePdfReport always saves PDF', () => {
   const VALID_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
@@ -293,7 +293,7 @@ describe('generatePdfReport always saves PDF', () => {
   })
 })
 
-// ── generatePdfReport structure assertions ──
+// â”€â”€ generatePdfReport structure assertions â”€â”€
 
 function realisticBoq(): BoqResult {
   return {
@@ -336,7 +336,7 @@ const REALISTIC_DESIGN: DesignOption = {
 
 const VALID_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
 
-describe('generatePdfReport — structure assertions', () => {
+describe('generatePdfReport â€” structure assertions', () => {
   beforeEach(() => { vi.clearAllMocks() })
 
   it('generates blob output and produces a sensible filename', async () => {
@@ -445,7 +445,7 @@ describe('generatePdfReport — structure assertions', () => {
   })
 })
 
-describe('currency — currencySymbol helper', () => {
+describe('currency â€” currencySymbol helper', () => {
   it('USD returns $', () => {
     expect(currencySymbol('USD')).toBe('$')
   })
@@ -457,7 +457,7 @@ describe('currency — currencySymbol helper', () => {
   })
 })
 
-// ── autoTable is called with functional API (doc, opts), NOT doc.autoTable ──
+// â”€â”€ autoTable is called with functional API (doc, opts), NOT doc.autoTable â”€â”€
 
 describe('autoTable functional API', () => {
   it('calls autoTable as a function (doc, opts) not doc.autoTable', async () => {
@@ -488,7 +488,7 @@ describe('autoTable functional API', () => {
     // Override lastAutoTable to undefined to simulate missing finalY
     delete (doc as any).lastAutoTable
     doc.output = vi.fn().mockReturnValue(new Blob())
-    // generatePdfReport wraps its own autoTable calls — this test verifies
+    // generatePdfReport wraps its own autoTable calls â€” this test verifies
     // the guard doesn't throw even if we force lastAutoTable off
     // (the mock in generatePdfReport always sets it, so we just verify
     //  that the fallback expression (doc as any).lastAutoTable?.finalY ?? y is safe)
@@ -497,12 +497,12 @@ describe('autoTable functional API', () => {
 
   describe('Design Analysis section in PDF', () => {
     const analysis = {
-      areaSchedule: '150 m² gross / 112 m² net',
-      envelope: 'Wall 0.45 W/m²K (pass)',
+      areaSchedule: '150 mÂ² gross / 112 mÂ² net',
+      envelope: 'Wall 0.45 W/mÂ²K (pass)',
       daylight: 'DF 3.2% (ok)',
       egress: '10 persons, 1 exit (pass)',
-      structural: '4.0+1.9 kN/m² (prelim)',
-      energy: '55 kWh/m²/yr',
+      structural: '4.0+1.9 kN/mÂ² (prelim)',
+      energy: '55 kWh/mÂ²/yr',
       costPerM2: '$85.00',
       grandTotal: '$12,750.00',
       hasData: true,
@@ -514,7 +514,7 @@ describe('autoTable functional API', () => {
       const textCalls = (doc.text as ReturnType<typeof vi.fn>).mock.calls
       const allTexts = textCalls.map((c: unknown[]) => String(c[0]))
       expect(allTexts.some((t: string) => t.includes('Design Analysis'))).toBe(true)
-      expect(allTexts.some((t: string) => t.includes('150 m² gross'))).toBe(true)
+      expect(allTexts.some((t: string) => t.includes('150 mÂ² gross'))).toBe(true)
       expect(allTexts.some((t: string) => t.includes('4.0+1.9'))).toBe(true)
     })
 
@@ -533,3 +533,4 @@ describe('autoTable functional API', () => {
     })
   })
 })
+

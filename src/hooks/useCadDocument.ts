@@ -17,6 +17,7 @@ export function useCadDocument(initialDoc: CadDocument | null, projectId: string
       return
     }
     history.resetTo(seedCadDocument(projectId, designId, plan))
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- history identity changes on every commit (present); re-seeding only on input changes; plan?.id intentional
   }, [initialDoc, projectId, designId, plan?.id])
 
   return {

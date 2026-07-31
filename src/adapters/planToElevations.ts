@@ -348,6 +348,7 @@ export function computeSection(
     // Project wall onto X axis at the cut plane
     const wl = wallLen2D(wall.start.x, wall.start.y, wall.end.x, wall.end.y)
     if (wl < 0.01) continue
+    if (Math.abs(wall.end.y - wall.start.y) < 0.001) continue
     // Linearly interpolate X at cutY
     const t = wl > 0 ? (cutY - wall.start.y) / (wall.end.y - wall.start.y) : 0
     const cx = wall.start.x + (wall.end.x - wall.start.x) * t

@@ -66,10 +66,10 @@ export function LazyBimModel3D(props: LazyBimModel3DProps) {
   }, [canopyParams])
 
   // Sync canopy params when plan changes (reset to defaults)
-  const lastPlanKeyRef = useRef<string>('')
   const planKey = `${props.plan?.width ?? ''}-${props.plan?.height ?? ''}`
-  if (planKey !== lastPlanKeyRef.current) {
-    lastPlanKeyRef.current = planKey
+  const [lastPlanKey, setLastPlanKey] = useState(planKey)
+  if (lastPlanKey !== planKey) {
+    setLastPlanKey(planKey)
     if (roofType !== 'canopy') {
       setCanopyParams(defaultCanopyParams)
     }

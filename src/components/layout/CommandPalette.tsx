@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { useUIStore } from '@/stores/uiStore';
 import { useProjectStore } from '@/stores/projectStore';
 import { Input } from '@/components/ui/Input';
@@ -33,8 +34,8 @@ export function CommandPalette() {
   const prevFocusRef = useRef<HTMLElement | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const { setTheme, resolvedTheme, toggleSidebar, toggleAiChat, toggleBoqPanel, toggleShortcutsHelp } = useUIStore();
-  const { currentProjectId } = useProjectStore();
+  const { setTheme, resolvedTheme, toggleSidebar, toggleAiChat, toggleBoqPanel, toggleShortcutsHelp } = useUIStore(useShallow(s => ({ setTheme: s.setTheme, resolvedTheme: s.resolvedTheme, toggleSidebar: s.toggleSidebar, toggleAiChat: s.toggleAiChat, toggleBoqPanel: s.toggleBoqPanel, toggleShortcutsHelp: s.toggleShortcutsHelp })));
+  const currentProjectId = useProjectStore((s) => s.currentProjectId);
 
   const commands = useMemo<CommandItem[]>(() => {
     const isDark = resolvedTheme === 'dark';
@@ -111,9 +112,12 @@ export function CommandPalette() {
     );
   }, [commands, query]);
 
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [query]);
+  // Reset selection to the first command whenever the query changes
+  const [prevQuery, setPrevQuery] = useState(query)
+  if (query !== prevQuery) {
+    setPrevQuery(query)
+    setSelectedIndex(0)
+  }
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {

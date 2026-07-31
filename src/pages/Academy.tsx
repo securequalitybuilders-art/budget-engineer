@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import taxonomy from '@/data/skills/taxonomy.json'
 import { QUIZ_DATA } from '@/data/skills/quiz-data'
@@ -117,22 +117,21 @@ export function AcademyLesson() {
   const completedLessons = useAcademyStore((s) => s.completedLessons)
   const addCertification = useAcademyStore((s) => s.addCertification)
   const hasCertification = useAcademyStore((s) => s.hasCertification)
-  const [renderError, setRenderError] = useState<string | null>(null)
-
   const result = useMemo(() => {
     if (!pathId || !lessonId) return null
     return findLesson(tax as Taxonomy, pathId, lessonId)
   }, [pathId, lessonId])
 
-  const html = useMemo(() => {
-    if (!result) return ''
+  const renderOutcome = useMemo(() => {
+    if (!result) return { html: '', error: null as string | null }
     try {
-      return renderLessonToHtml(result.lesson)
+      return { html: renderLessonToHtml(result.lesson), error: null }
     } catch (err) {
-      setRenderError(err instanceof Error ? err.message : 'Failed to render lesson')
-      return ''
+      return { html: '', error: err instanceof Error ? err.message : 'Failed to render lesson' }
     }
   }, [result])
+
+  const renderError = renderOutcome.error
 
   const quizQuestions = useMemo(() => {
     if (!lessonId) return []
@@ -224,7 +223,7 @@ export function AcademyLesson() {
             fontSize: 14,
             color: '#1a1a1a',
           }}>
-            <div dangerouslySetInnerHTML={{ __html: html }} />
+            <div dangerouslySetInnerHTML={{ __html: renderOutcome.html }} />
           </div>
 
           <div style={{ marginTop: 20, display: 'flex', gap: 12, alignItems: 'center' }}>

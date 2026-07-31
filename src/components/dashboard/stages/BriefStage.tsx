@@ -1,5 +1,6 @@
 import { useRef, useCallback, useState } from 'react'
-import { EnhancedBriefPanel, generateBriefText, type BriefQuestionnaire } from '@/components/ai/EnhancedBriefPanel'
+import { EnhancedBriefPanel } from '@/components/ai/EnhancedBriefPanel'
+import { generateBriefText, type BriefQuestionnaire } from '@/lib/ai/briefQuestionnaire'
 import { AiBriefPanel } from '@/components/ai/AiBriefPanel'
 import { Button } from '@/components/ui/Button'
 import { Upload, FileText, ClipboardList } from 'lucide-react'

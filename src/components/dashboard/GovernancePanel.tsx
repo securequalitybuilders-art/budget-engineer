@@ -85,22 +85,29 @@ export function GovernancePanel({ selectedDesign, hasBim, hasBoq, hasAnalysis, p
   const [commentText, setCommentText] = useState('');
   const [commentType, setCommentType] = useState<CommentType>('general');
 
-  const loadWorkflow = useCallback(async () => {
-    if (!projectId) return;
+  // Show loading indicator while the workflow loads for the current project/role
+  const [prevLoadKey, setPrevLoadKey] = useState('');
+  const loadKey = `${projectId ?? ''}|${currentRole}`;
+  if (loadKey !== prevLoadKey) {
+    setPrevLoadKey(loadKey);
     setIsLoading(true);
-    try {
-      const state = await loadGovernanceWorkflow(projectId, currentRole);
-      setWorkflowState(state);
-    } catch {
-      /* ignore */
-    } finally {
-      setIsLoading(false);
-    }
-  }, [projectId, currentRole]);
+  }
 
   useEffect(() => {
-    loadWorkflow();
-  }, [loadWorkflow]);
+    if (!projectId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const state = await loadGovernanceWorkflow(projectId, currentRole);
+        if (!cancelled) setWorkflowState(state);
+      } catch {
+        /* ignore */
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [projectId, currentRole]);
 
   const handleAction = useCallback(async (action: string) => {
     if (!projectId || !workflowState) return;

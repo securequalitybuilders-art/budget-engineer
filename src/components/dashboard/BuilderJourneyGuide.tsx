@@ -64,7 +64,7 @@ export function BuilderJourneyGuide({
   const [isOpen, setIsOpen] = useState(true)
   const [showTemplates, setShowTemplates] = useState(false)
   const navigate = useNavigate()
-  const { activeStage } = useUIStore()
+  const activeStage = useUIStore((s) => s.activeStage)
 
   const currentStep = activeStage
   const nextAction = getNextAction(currentStep)

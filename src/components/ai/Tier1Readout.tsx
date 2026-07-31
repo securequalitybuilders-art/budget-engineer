@@ -11,8 +11,8 @@ export function Tier1Readout({ parsed }: Tier1ReadoutProps) {
   if (!parsed) return null
 
   const { typology, typologyConfidence, climateZone, heritagePattern, qualityGate } = parsed
-  const passed = qualityGate.passed
-  const score = qualityGate.score
+  const passed = qualityGate?.passed ?? false
+  const score = qualityGate?.score ?? 0
 
   const scoreColor = score >= 80 ? 'text-emerald-400' : score >= 50 ? 'text-amber-400' : 'text-red-400'
   const scoreBg = passed ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-amber-500/10 border-amber-500/30'
@@ -65,10 +65,10 @@ export function Tier1Readout({ parsed }: Tier1ReadoutProps) {
           </div>
 
           {/* Quality gate issues */}
-          {qualityGate.issues.length > 0 && (
+          {(qualityGate?.issues?.length ?? 0) > 0 && (
             <div className="space-y-1">
               <span className="text-[9px] font-semibold text-stone-400 uppercase">Quality Checks</span>
-              {qualityGate.issues.map((issue, i) => (
+              {qualityGate!.issues!.map((issue, i) => (
                 <div key={i} className={`rounded px-1.5 py-0.5 text-[9px] ${
                   issue.severity === 'error'
                     ? 'bg-red-500/15 text-red-300'
@@ -83,10 +83,10 @@ export function Tier1Readout({ parsed }: Tier1ReadoutProps) {
           )}
 
           {/* Recommendations */}
-          {qualityGate.recommendations.length > 0 && (
+          {(qualityGate?.recommendations?.length ?? 0) > 0 && (
             <div className="space-y-0.5">
               <span className="text-[9px] font-semibold text-stone-400 uppercase">Recommendations</span>
-              {qualityGate.recommendations.map((rec, i) => (
+              {qualityGate!.recommendations!.map((rec, i) => (
                 <p key={i} className="text-[9px] text-stone-400">→ {rec}</p>
               ))}
             </div>

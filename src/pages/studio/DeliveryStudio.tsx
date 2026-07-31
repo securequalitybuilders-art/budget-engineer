@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { useDeliveryStore } from '@/stores/deliveryStore';
 import { useMilestoneStore } from '@/stores/milestoneStore';
 import { DeliveryWorkflowPanel } from '@/components/delivery/DeliveryWorkflowPanel';
@@ -9,7 +10,7 @@ import { ArrowLeft, FileSpreadsheet, Flag, AlertTriangle } from 'lucide-react';
 
 export function DeliveryStudio() {
   const { id: projectId } = useParams<{ id: string }>();
-  const { loadForProject, currentDelivery, isLoading } = useDeliveryStore();
+  const { loadForProject, currentDelivery, isLoading } = useDeliveryStore(useShallow(s => ({ loadForProject: s.loadForProject, currentDelivery: s.currentDelivery, isLoading: s.isLoading })));
   const loadMilestones = useMilestoneStore((s) => s.loadForProject);
   const milestones = useMilestoneStore((s) => s.milestones);
   const [viewMode, setViewMode] = useState<'workflow' | 'milestones'>('workflow');

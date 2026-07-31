@@ -17,7 +17,7 @@ const actorConfig: Record<
 };
 
 export function TransactionPanel({ variant = 'sidebar' }: TransactionPanelProps) {
-  const { transactions } = useProjectStore();
+  const transactions = useProjectStore((s) => s.transactions);
   const sidebarClasses = 'hidden flex-col border-t border-[var(--border-default)] bg-[var(--bg-secondary)] lg:flex lg:w-64 lg:border-t-0 lg:border-l';
   const fullClasses = 'flex flex-col bg-[var(--bg-secondary)]';
   const containerClass = variant === 'full' ? fullClasses : sidebarClasses;

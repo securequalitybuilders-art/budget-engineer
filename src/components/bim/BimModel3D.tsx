@@ -377,9 +377,7 @@ function WalkController({ bounds, plan, onPointerLockChange }: WalkControllerPro
       [camera.position.x, camera.position.y, camera.position.z],
       bounds,
     )
-    camera.position.x = clamped[0]
-    camera.position.y = 1.6
-    camera.position.z = clamped[2]
+    camera.position.set(clamped[0], 1.6, clamped[2])
 
     // Camera look direction
     const euler = new THREE.Euler(pitchRef.current, yawRef.current, 0, 'YXZ')

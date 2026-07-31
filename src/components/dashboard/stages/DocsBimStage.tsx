@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
 import { GlbViewer } from '@/components/bim/GlbViewer'
 import { Button } from '@/components/ui/Button'
@@ -16,6 +16,7 @@ interface DocsBimStageProps {
 
 export function DocsBimStage({ activePlan, selectedDesign }: DocsBimStageProps) {
   const [view, setView] = useState<'drawings' | 'bim'>('drawings')
+  const [glbFailed, setGlbFailed] = useState(false)
   const { glbUrl, isExporting, error: exportError, generate, download } = useGlbExport()
   const registerSheets = useDrawingRegisterStore((s) => s.sheets)
   const initializeRegister = useDrawingRegisterStore((s) => s.initialize)
@@ -26,11 +27,14 @@ export function DocsBimStage({ activePlan, selectedDesign }: DocsBimStageProps) 
     }
   }, [selectedDesign, registerSheets.length, initializeRegister])
 
+  const mountedRef = useRef(true)
   useEffect(() => {
-    if (activePlan && selectedDesign && !glbUrl && !isExporting) {
-      generate(activePlan, selectedDesign)
+    mountedRef.current = true
+    if (activePlan && selectedDesign && !glbUrl && !glbFailed && !isExporting) {
+      generate(activePlan, selectedDesign).then((url) => { if (mountedRef.current && !url) setGlbFailed(true) })
     }
-  }, [activePlan, selectedDesign, glbUrl, isExporting, generate])
+    return () => { mountedRef.current = false }
+  }, [activePlan, selectedDesign, glbUrl, glbFailed, isExporting, generate])
 
   const generatedCount = registerSheets.filter((s) => s.status === 'generated').length
   const totalCount = registerSheets.length

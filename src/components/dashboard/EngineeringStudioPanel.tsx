@@ -58,7 +58,7 @@ function sampleGraph(design: DesignOption | null): BuildingGraph | null {
   const dim = Math.sqrt(design.grossFloorArea);
   const defaultFinish = { wallMaterialId: null, floorMaterialId: null, ceilingMaterialId: null, wallFinish: '', floorFinish: '', ceilingFinish: '' };
   return {
-    meta: { id: '', projectId: '', name: design.name, category: (design.buildingType as any) ?? 'residential', description: '', createdAt: '', updatedAt: '' },
+    meta: { id: '', projectId: '', name: design.name, category: (design.buildingType ?? 'residential') as import('@/domain/building').BuildingCategory, description: '', createdAt: '', updatedAt: '' },
     site: null,
     levels: [
       { id: 'l1', name: 'Ground', number: 0, elevation: 0, floorHeight: 3 },

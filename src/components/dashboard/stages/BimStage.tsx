@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { GlbViewer } from '@/components/bim/GlbViewer'
 import { GlbSiteViewer } from '@/components/bim/GlbSiteViewer'
 import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
@@ -25,6 +25,7 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
   const registerSheets = useDrawingRegisterStore((s) => s.sheets)
   const initializeRegister = useDrawingRegisterStore((s) => s.initialize)
   const [glbReady, setGlbReady] = useState(false)
+  const [glbFailed, setGlbFailed] = useState(false)
 
   const projectId = selectedDesign?.id
 
@@ -36,16 +37,22 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
     }
   }, [selectedDesign, registerSheets.length, initializeRegister])
 
+  const mountedRef = useRef(true)
   useEffect(() => {
-    if (activePlan && selectedDesign && !glbReady && !isExporting) {
+    mountedRef.current = true
+    if (activePlan && selectedDesign && !glbReady && !glbFailed && !isExporting) {
       generate(activePlan, selectedDesign).then((url) => {
-        if (url) setGlbReady(true)
+        if (mountedRef.current) {
+          if (url) { setGlbReady(true) } else { setGlbFailed(true) }
+        }
       })
     }
-  }, [activePlan, selectedDesign, glbReady, isExporting, generate])
+    return () => { mountedRef.current = false }
+  }, [activePlan, selectedDesign, glbReady, glbFailed, isExporting, generate])
 
   const handleRegenerate = useCallback(() => {
     setGlbReady(false)
+    setGlbFailed(false)
     if (activePlan && selectedDesign) {
       generate(activePlan, selectedDesign).then((url) => {
         if (url) setGlbReady(true)
@@ -105,6 +112,9 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
             <div className="flex-1">
               <ErrorBoundary>
                 <div className="mb-2 flex items-center gap-2">
+                  {glbFailed && (
+                    <span className="text-[11px] text-red-400">Generation failed. Ensure the plan has walls and try again.</span>
+                  )}
                   <button
                     onClick={handleRegenerate}
                     disabled={isExporting}

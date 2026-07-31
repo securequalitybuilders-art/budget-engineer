@@ -67,7 +67,7 @@ export function SkillPathView({ path, progress, currentLessonId, onSelectLesson,
               onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = 'transparent' }}
             >
               <span
-                onClick={(e) => { e.stopPropagation(); done ? onCompleteLesson('') : onCompleteLesson(lesson.id) }}
+                onClick={(e) => { e.stopPropagation(); if (done) onCompleteLesson(''); else onCompleteLesson(lesson.id) }}
                 style={{
                   width: 20,
                   height: 20,

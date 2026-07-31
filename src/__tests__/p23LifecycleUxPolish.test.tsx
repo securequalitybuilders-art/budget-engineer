@@ -355,7 +355,7 @@ describe('P23 — NextStepHint', () => {
 
 describe('P23 — CrossStudioLinks', () => {
   it('renders links when provided', async () => {
-    const { CrossStudioLinks, buildStudioLink } = await import('@/components/lifecycle/CrossStudioLinks')
+    const [{ CrossStudioLinks }, { buildStudioLink }] = await Promise.all([import('@/components/lifecycle/CrossStudioLinks'), import('@/lib/lifecycle/studioLinks')])
     const links = [buildStudioLink('p1', 'delivery', 'Delivery', 'View delivery', 'info')]
     renderWithRouter(<CrossStudioLinks projectId="p1" links={links} title="Related" />)
     expect(screen.getByText('Related')).toBeTruthy()

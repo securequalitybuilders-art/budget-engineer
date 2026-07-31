@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import type { CadDocument, CadOpening, CadTool, CadWall } from '../../domain/cad'
 import type { PlanModel } from '../../domain/plan'
 import { moveOpeningOffset, moveWallEndpoint, setActiveTool, toggleLayer } from '../../lib/cad/cad-editing'
@@ -189,8 +189,80 @@ export function WallFirstCanvas({ document, basePlan, onChange, onUndo, onRedo, 
           viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
           className="block h-auto w-full"
           onClick={(event) => {
+            const target = event.target as SVGElement
+            const wallEl = target.closest('[data-wall-id]') as SVGElement | null
+            const openingEl = target.closest('[data-opening-id]') as SVGElement | null
+            const annotationEl = target.closest('[data-annotation-id]') as SVGElement | null
+            if (wallEl) {
+              const wid = wallEl.getAttribute('data-wall-id')
+              if (wid) {
+                if (event.shiftKey && selectedWallId && selectedWallId !== wid) {
+                  setSecondSelectedWallId(wid)
+                } else {
+                  setSelectedWallId(wid)
+                  setSecondSelectedWallId(null)
+                }
+                setSelectedOpeningId(null)
+                setSelectedAnnotationId(null)
+              }
+              return
+            }
+            if (openingEl) {
+              const oid = openingEl.getAttribute('data-opening-id')
+              if (oid) {
+                setSelectedOpeningId(oid)
+                setSelectedAnnotationId(null)
+                const opening = doc.openings.find((item) => item.id === oid)
+                if (opening) {
+                  setSelectedWallId(opening.wallId)
+                  setSecondSelectedWallId(null)
+                }
+              }
+              return
+            }
+            if (annotationEl) {
+              const aid = annotationEl.getAttribute('data-annotation-id')
+              if (aid) {
+                setSelectedAnnotationId(aid)
+                setSelectedWallId(null)
+                setSelectedOpeningId(null)
+              }
+              return
+            }
             const rect = (event.currentTarget as SVGSVGElement).getBoundingClientRect()
             handleCanvasClick(toWorld(event.clientX, event.clientY, rect))
+          }}
+          onPointerDown={(event) => {
+            const target = event.target as SVGElement
+            const epEl = target.closest('[data-wall-ep]') as SVGElement | null
+            if (epEl) {
+              const wid = epEl.closest('[data-wall-id]')?.getAttribute('data-wall-id')
+              const ep = epEl.getAttribute('data-wall-ep')
+              if (wid && ep) {
+                event.stopPropagation()
+                if (event.shiftKey && selectedWallId && selectedWallId !== wid) {
+                  setSecondSelectedWallId(wid)
+                } else {
+                  setSelectedWallId(wid)
+                  setSecondSelectedWallId(null)
+                }
+                setSelectedOpeningId(null)
+                setSelectedAnnotationId(null)
+                setDrag({ type: ep === 'start' ? 'wall-start' : 'wall-end', id: wid })
+              }
+              return
+            }
+            const openingEl = target.closest('[data-opening-id]') as SVGElement | null
+            if (openingEl) {
+              const oid = openingEl.getAttribute('data-opening-id')
+              if (oid) {
+                event.stopPropagation()
+                setSelectedOpeningId(oid)
+                setSelectedAnnotationId(null)
+                setDrag({ type: 'opening', id: oid })
+              }
+              return
+            }
           }}
           onPointerMove={(event) => {
             if (!drag) return
@@ -225,24 +297,14 @@ export function WallFirstCanvas({ document, basePlan, onChange, onUndo, onRedo, 
                 wall={wall}
                 selected={selectedWallId === wall.id}
                 secondary={secondSelectedWallId === wall.id}
-                onSelect={(multi) => {
-                  if (multi && selectedWallId && selectedWallId !== wall.id) {
-                    setSecondSelectedWallId(wall.id)
-                  } else {
-                    setSelectedWallId(wall.id)
-                    setSecondSelectedWallId(null)
-                  }
-                  setSelectedOpeningId(null)
-                }}
-                onDragStart={setDrag}
               />
             ))}
             {visibleOpenings.map((opening) => {
               const wall = doc.walls.find((item) => item.id === opening.wallId)
-              return wall ? <EditableOpening key={opening.id} opening={opening} wall={wall} selected={selectedOpeningId === opening.id} onSelect={() => { setSelectedOpeningId(opening.id); setSelectedWallId(wall.id); setSelectedAnnotationId(null) }} onDragStart={setDrag} /> : null
+              return wall ? <EditableOpening key={opening.id} opening={opening} wall={wall} selected={selectedOpeningId === opening.id} /> : null
             })}
             {visibleAnnotations.map((annotation) => (
-              <text key={annotation.id} x={annotation.position.x} y={annotation.position.y} fill={annotation.kind === 'dimension' ? '#67e8f9' : '#f59e0b'} fontSize={annotation.kind === 'dimension' ? 0.32 : 0.42} onClick={(e) => { e.stopPropagation(); setSelectedAnnotationId(annotation.id); setSelectedWallId(null); setSelectedOpeningId(null) }}>{annotation.text}</text>
+              <text key={annotation.id} data-annotation-id={annotation.id} x={annotation.position.x} y={annotation.position.y} fill={annotation.kind === 'dimension' ? '#67e8f9' : '#f59e0b'} fontSize={annotation.kind === 'dimension' ? 0.32 : 0.42} style={{ cursor: 'pointer' }}>{annotation.text}</text>
             ))}
             {visibleBlocks.map((block) => (
               <rect key={block.id} x={block.position.x} y={block.position.y} width={block.width} height={block.height} fill={block.blockType === 'stair' ? '#8b5cf6' : '#22c55e'} fillOpacity={0.22} stroke={block.blockType === 'core' ? '#f97316' : '#94a3b8'} strokeWidth={0.05} />
@@ -264,27 +326,32 @@ export function WallFirstCanvas({ document, basePlan, onChange, onUndo, onRedo, 
   )
 }
 
-function EditableWall({ wall, selected, secondary, onSelect, onDragStart }: { wall: CadWall; selected: boolean; secondary: boolean; onSelect: (multi: boolean) => void; onDragStart: (drag: { type: 'wall-start' | 'wall-end'; id: string }) => void }) {
+const EditableWall = memo(function EditableWall({ wall, selected, secondary }: { wall: CadWall; selected: boolean; secondary: boolean }) {
   const stroke = selected ? '#22d3ee' : secondary ? '#facc15' : wall.structuralRole === 'external' ? '#f8fafc' : '#cbd5e1'
   return (
-    <g>
-      <line x1={wall.start.x} y1={wall.start.y} x2={wall.end.x} y2={wall.end.y} stroke={stroke} strokeWidth={wall.thickness} strokeLinecap="square" onClick={(e) => { e.stopPropagation(); onSelect(e.shiftKey) }} />
-      <circle cx={wall.start.x} cy={wall.start.y} r={0.18} fill="#67e8f9" onPointerDown={(e) => { e.stopPropagation(); onSelect(e.shiftKey); onDragStart({ type: 'wall-start', id: wall.id }) }} />
-      <circle cx={wall.end.x} cy={wall.end.y} r={0.18} fill="#67e8f9" onPointerDown={(e) => { e.stopPropagation(); onSelect(e.shiftKey); onDragStart({ type: 'wall-end', id: wall.id }) }} />
+    <g data-wall-id={wall.id} style={{ cursor: 'pointer' }}>
+      <line x1={wall.start.x} y1={wall.start.y} x2={wall.end.x} y2={wall.end.y} stroke={stroke} strokeWidth={wall.thickness} strokeLinecap="square" />
+      <circle cx={wall.start.x} cy={wall.start.y} r={0.18} fill="#67e8f9" data-wall-ep="start" style={{ cursor: 'grab' }} />
+      <circle cx={wall.end.x} cy={wall.end.y} r={0.18} fill="#67e8f9" data-wall-ep="end" style={{ cursor: 'grab' }} />
     </g>
   )
-}
+})
 
-function EditableOpening({ opening, wall, selected, onSelect, onDragStart }: { opening: CadOpening; wall: CadWall; selected: boolean; onSelect: () => void; onDragStart: (drag: { type: 'opening'; id: string }) => void }) {
+const EditableOpening = memo(function EditableOpening({ opening, wall, selected }: { opening: CadOpening; wall: CadWall; selected: boolean }) {
   const point = pointOnWall(wall, opening.offsetRatio)
   const horizontal = wall.start.y === wall.end.y
   const half = opening.width / 2
-  return horizontal ? (
-    <line x1={point.x - half} y1={point.y} x2={point.x + half} y2={point.y} stroke={selected ? '#facc15' : opening.kind === 'door' ? '#f59e0b' : '#38bdf8'} strokeWidth={0.16} strokeLinecap="round" onPointerDown={(e) => { e.stopPropagation(); onSelect(); onDragStart({ type: 'opening', id: opening.id }) }} />
-  ) : (
-    <line x1={point.x} y1={point.y - half} x2={point.x} y2={point.y + half} stroke={selected ? '#facc15' : opening.kind === 'door' ? '#f59e0b' : '#38bdf8'} strokeWidth={0.16} strokeLinecap="round" onPointerDown={(e) => { e.stopPropagation(); onSelect(); onDragStart({ type: 'opening', id: opening.id }) }} />
+  const strokeColor = selected ? '#facc15' : opening.kind === 'door' ? '#f59e0b' : '#38bdf8'
+  return (
+    <g data-opening-id={opening.id} style={{ cursor: 'pointer' }}>
+      {horizontal ? (
+        <line x1={point.x - half} y1={point.y} x2={point.x + half} y2={point.y} stroke={strokeColor} strokeWidth={0.16} strokeLinecap="round" />
+      ) : (
+        <line x1={point.x} y1={point.y - half} x2={point.x} y2={point.y + half} stroke={strokeColor} strokeWidth={0.16} strokeLinecap="round" />
+      )}
+    </g>
   )
-}
+})
 
 function pointOnWall(wall: CadWall, ratio: number) {
   return {

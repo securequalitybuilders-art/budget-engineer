@@ -56,7 +56,7 @@ export function buildBoqDossierHtml(boq: BOQ, cad: CadDocument, project: Project
     </tr>`)).join('');
     
   const sheetSections = register.map((s) => {
-    let svgContent = '';
+    let svgContent: string;
     const floorId = s.floorIndex !== undefined && cad.floors[s.floorIndex] ? cad.floors[s.floorIndex].id : cad.floors[0]?.id;
     
     // Determine drawing type label for title block

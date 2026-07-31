@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useHandoverStore } from '@/stores/handoverStore';
 import { useMilestoneStore } from '@/stores/milestoneStore';
 import { useChangeStore } from '@/stores/changeStore';
@@ -8,7 +9,8 @@ import { computeMilestoneLifecycleSummary, computeBlockingDependencies } from '@
 import { EmptyState } from '@/components/lifecycle/EmptyState';
 import { BlockerList } from '@/components/lifecycle/BlockerList';
 import { NextStepHint } from '@/components/lifecycle/NextStepHint';
-import { CrossStudioLinks, buildStudioLink } from '@/components/lifecycle/CrossStudioLinks';
+import { CrossStudioLinks } from '@/components/lifecycle/CrossStudioLinks';
+import { buildStudioLink } from '@/lib/lifecycle/studioLinks';
 import { StatusTransitionGuide } from '@/components/lifecycle/StatusTransitionGuide';
 import { ClipboardCheck, Package, Archive, ShieldCheck, CheckCircle, XCircle, AlertTriangle, Flag, FolderOpen } from 'lucide-react';
 
@@ -43,10 +45,10 @@ const PACKAGE_STATUS_COLORS: Record<string, string> = {
 
 export function HandoverPanel({ projectId }: HandoverPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('completion');
-  const { completionStages, snagLists, handoverPackages, assetRegister, warrantyRecords } = useHandoverStore();
+  const { completionStages, snagLists, handoverPackages, assetRegister, warrantyRecords } = useHandoverStore(useShallow(s => ({ completionStages: s.completionStages, snagLists: s.snagLists, handoverPackages: s.handoverPackages, assetRegister: s.assetRegister, warrantyRecords: s.warrantyRecords })));
   const milestones = useMilestoneStore((s) => s.milestones);
   const ncrs = useChangeStore((s) => s.ncrs);
-  const assuranceStore = useAssuranceStore();
+  const solvencyChecks = useAssuranceStore((s) => s.solvencyChecks);
 
   const hasData = completionStages.length > 0 || snagLists.length > 0 || handoverPackages.length > 0 || assetRegister.length > 0 || warrantyRecords.length > 0;
 
@@ -75,9 +77,9 @@ export function HandoverPanel({ projectId }: HandoverPanelProps) {
       warrantiesActive: warrantyRecords.filter(w => w.status === 'active').length,
       isHandoverReady: readiness.isReady,
     },
-    solvencyChecks: assuranceStore.solvencyChecks,
+    solvencyChecks,
     projectId,
-  }), [milestones, milestoneSummary, completionStages, snagLists, handoverPackages, assetRegister, warrantyRecords, readiness.isReady, assuranceStore.solvencyChecks, projectId]);
+  }), [milestoneSummary, completionStages, snagLists, handoverPackages, assetRegister, warrantyRecords, readiness.isReady, solvencyChecks, projectId]);
 
   const crossLinks = useMemo(() => {
     const links = [

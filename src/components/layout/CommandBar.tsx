@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow';
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useDisciplineStore } from '@/stores/disciplineStore';
@@ -11,8 +12,8 @@ import { getStagesForDiscipline, type StageId } from '@/lib/studio/stageRegistry
 import { DisciplineSwitcher } from '@/components/studio/DisciplineSwitcher';
 
 export function CommandBar() {
-  const { currentProject } = useProjectStore();
-  const { toggleSidebar, activeStageId, setActiveStage, selectedDesignId } = useUIStore();
+  const currentProject = useProjectStore((s) => s.currentProject);
+  const { toggleSidebar, activeStageId, setActiveStage, selectedDesignId } = useUIStore(useShallow(s => ({ toggleSidebar: s.toggleSidebar, activeStageId: s.activeStageId, setActiveStage: s.setActiveStage, selectedDesignId: s.selectedDesignId })));
   const currentDiscipline = useDisciplineStore((s) => s.currentDiscipline);
 
   const disciplineStages = getStagesForDiscipline(currentDiscipline);

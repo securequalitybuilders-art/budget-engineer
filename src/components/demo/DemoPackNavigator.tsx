@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 import { useProjectStore } from '@/stores/projectStore'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -39,7 +40,7 @@ const capabilityLabels: Record<string, string> = {
 
 function ScenarioCard({ scenario }: { scenario: DemoScenario }) {
   const navigate = useNavigate()
-  const { projects, loadProjects, loadProject } = useProjectStore()
+  const { projects, loadProjects, loadProject } = useProjectStore(useShallow(s => ({ projects: s.projects, loadProjects: s.loadProjects, loadProject: s.loadProject })))
   const [loading, setLoading] = useState(false)
 
   const handleLoad = async () => {

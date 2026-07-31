@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback } from 'react'
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { Globe, MapPin, Layers } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -34,10 +34,13 @@ export function SiteAnalysisStage({ selectedDesign, activePlan }: SiteAnalysisSt
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, siteKey])
 
+  const stageMountedRef = useRef(true)
   useEffect(() => {
+    stageMountedRef.current = true
     if (show3d && activePlan && selectedDesign && !glbUrl && !isExporting) {
       generate(activePlan, selectedDesign)
     }
+    return () => { stageMountedRef.current = false }
   }, [show3d, activePlan, selectedDesign, glbUrl, isExporting, generate])
 
   const handleQuickSetup = useCallback(() => {

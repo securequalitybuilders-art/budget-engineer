@@ -10,7 +10,6 @@ const entrance = getEntranceOpening(cad)
 console.log('Entrance:', JSON.stringify(entrance, null, 2))
 
 if (entrance) {
-  const wall = cad.walls.find(w => w.id === entrance.openingId.replace(/_fl0$/, ''))
   console.log('Opening wallId:', entrance.openingId)
   // Find the actual wall
   const wall2 = cad.walls.find(w => w.id === entrance.openingId)

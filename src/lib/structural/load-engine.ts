@@ -45,8 +45,8 @@ export function computeLoads(bim: BimModel, combo: LoadCombo): LoadResult {
   const elements: ElementLoad[] = [];
 
   for (const el of bim.elements) {
-    let deadKn = 0;
-    let liveKn = 0;
+    let deadKn: number
+    let liveKn: number
 
     if (el.type === 'slab') {
       const area = el.area ?? 0;

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useProviderStore } from '../../stores/providerStore';
 import type { ServiceOffering } from '../../domain/marketplace';
 import ProviderRegistration from './ProviderRegistration';
@@ -140,7 +141,7 @@ function PortfolioTab({ providerId }: { providerId: string }) {
 }
 
 export default function ProviderDashboard() {
-  const { providers, selectedProviderId, selectProvider, removeProvider, getFilteredProviders, filters, setFilters, setSort, sortBy } = useProviderStore();
+  const { providers, selectedProviderId, selectProvider, removeProvider, getFilteredProviders, filters, setFilters, setSort, sortBy } = useProviderStore(useShallow(s => ({ providers: s.providers, selectedProviderId: s.selectedProviderId, selectProvider: s.selectProvider, removeProvider: s.removeProvider, getFilteredProviders: s.getFilteredProviders, filters: s.filters, setFilters: s.setFilters, setSort: s.setSort, sortBy: s.sortBy })));
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [showRegistration, setShowRegistration] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -154,7 +155,7 @@ export default function ProviderDashboard() {
 
   const filteredProviders = useMemo(() => {
     return getFilteredProviders();
-  }, [providers, filters]);
+  }, [getFilteredProviders]);
 
   const activityFeed = useMemo(() => provider ? generateActivityFeed(provider.id, provider.name) : [], [provider]);
   const notifications = useMemo(() => provider ? generateNotifications(provider.id) : [], [provider]);

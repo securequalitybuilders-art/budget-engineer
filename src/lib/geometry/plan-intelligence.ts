@@ -382,7 +382,6 @@ export function generateSmartOpenings(params: SmartOpeningsParams): Opening[] {
         const nRole = roleMap.get(n.roomId)
         if (nRole === 'private') {
           addDoor(n.wall)
-          connected = true
           break
         }
       }

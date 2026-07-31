@@ -17,7 +17,7 @@ console.log('glass-gradient count:', glassRects?.length ?? 0)
 const rects = [...svg.matchAll(/<rect\s+x="([\d.-]+)"\s+y="([\d.-]+)"\s+width="([\d.-]+)"\s+height="([\d.-]+)"[^>]*>/g)]
 console.log('\nAll rect elements:')
 for (const r of rects) {
-  const x = parseFloat(r[1]), y = parseFloat(r[2]), w = parseFloat(r[3]), h = parseFloat(r[4])
+  const y = parseFloat(r[2]), w = parseFloat(r[3])
   // Only show rects on the wall face (y between 50 and 240)
   if (y > 50 && y < 240 && w > 10) {
     console.log(`  rect x=${r[1]} y=${r[2]} w=${r[3]} h=${r[4]}${r[0].includes('glass') ? ' [GLASS]' : ''}${r[0].includes('opening') ? ' [OPENING]' : ''}`)

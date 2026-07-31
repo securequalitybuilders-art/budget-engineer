@@ -363,7 +363,7 @@ describe('pointerAccum simulation (the useEditablePlan pointerAccum pattern)', (
 
   it('pointerAccum resets on new session (beginMove clears accumulator)', () => {
     const plan = makeBasePlan()
-    let accDx = 0
+    let accDx: number
 
     // Session 1: move r1 by 0.5
     accDx = 0
@@ -409,7 +409,7 @@ describe('edit commit flow (beginMove → updatePointer → endPointer → onCom
     const hist = createHistorySim(plan)
     const roomId = 'r1'
     const originPlan = hist.present!
-    let accDx = 0
+    let accDx: number
 
     // beginMove equivalent
     accDx = 0

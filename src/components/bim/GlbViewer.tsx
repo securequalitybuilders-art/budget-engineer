@@ -35,12 +35,17 @@ export function GlbViewer({
   const [fullscreen, setFullscreen] = useState(false)
   const [envPreset, setEnvPreset] = useState<EnvPreset>('neutral')
   const [loading, setLoading] = useState(true)
+  const [renderError, setRenderError] = useState<string | null>(null)
 
   const containerRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  // Reset loading/error state when a new model URL arrives (render-phase adjust)
+  const [prevGlbUrl, setPrevGlbUrl] = useState(glbUrl)
+  if (glbUrl !== prevGlbUrl) {
+    setPrevGlbUrl(glbUrl)
     setLoading(true)
-  }, [glbUrl])
+    setRenderError(null)
+  }
 
   const handleModelLoad = useCallback(() => {
     setLoading(false)
@@ -48,6 +53,7 @@ export function GlbViewer({
 
   const handleError = useCallback(() => {
     setLoading(false)
+    setRenderError('Failed to render 3D model. The model data may be empty or the WebGL context may not be available.')
   }, [])
 
   const toggleFullscreen = useCallback(() => {
@@ -143,6 +149,12 @@ export function GlbViewer({
       {exportError && (
         <div className="mb-2 rounded-md bg-red-900/40 px-3 py-1.5 text-[11px] text-red-300">
           Export error: {exportError}
+        </div>
+      )}
+
+      {renderError && (
+        <div className="mb-2 rounded-md bg-red-900/40 px-3 py-1.5 text-[11px] text-red-300">
+          {renderError}
         </div>
       )}
 

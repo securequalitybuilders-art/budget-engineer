@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { useProjectStore } from '@/stores/projectStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -54,7 +55,7 @@ const BRIEF_TEMPLATES = [
 
 export function ProjectWizard() {
   const navigate = useNavigate();
-  const { createProject, updateBrief } = useProjectStore();
+  const { createProject, updateBrief } = useProjectStore(useShallow(s => ({ createProject: s.createProject, updateBrief: s.updateBrief })));
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [profile, setProfile] = useState<UserProfile>('first-time');

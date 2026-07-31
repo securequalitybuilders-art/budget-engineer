@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { useProjectStore } from '@/stores/projectStore';
 import { loadExecutivePortfolioMetrics } from '@/lib/portfolio/executive-portfolio';
 import { filterAndSortPortfolioProjects } from '@/adapters/portfolioFiltersAdapter';
@@ -158,8 +159,8 @@ const SORT_OPTIONS: { value: SortBy; label: string }[] = [
 ];
 
 export function PortfolioPage() {
-  const { projects, loadProjects, isLoading, isHydrated } = useProjectStore();
-  const [summary, setSummary] = useState<ExecutivePortfolioSummary | null>(null);
+  const { projects, loadProjects, isLoading, isHydrated } = useProjectStore(useShallow(s => ({ projects: s.projects, loadProjects: s.loadProjects, isLoading: s.isLoading, isHydrated: s.isHydrated })));
+  const [summaryState, setSummaryState] = useState<ExecutivePortfolioSummary | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -168,30 +169,34 @@ export function PortfolioPage() {
   const [pageSize] = useState(12);
   const [page, setPage] = useState(1);
 
-  const refreshMetrics = useCallback(async () => {
+  const summary = projects.length === 0 ? null : summaryState;
+
+  useEffect(() => {
     if (projects.length === 0) {
-      setSummary(null);
       return;
     }
-    try {
-      const result = await loadExecutivePortfolioMetrics(projects);
-      setSummary(result);
-      setSummaryError(null);
-    } catch (err: unknown) {
-      setSummaryError(err instanceof Error ? err.message : 'Failed to load portfolio');
-    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await loadExecutivePortfolioMetrics(projects);
+        if (!cancelled) {
+          setSummaryState(result);
+          setSummaryError(null);
+        }
+      } catch (err: unknown) {
+        if (!cancelled) setSummaryError(err instanceof Error ? err.message : 'Failed to load portfolio');
+      }
+    })();
+    return () => { cancelled = true; };
   }, [projects]);
 
-  useEffect(() => {
-    if (!isHydrated) loadProjects();
-  }, [isHydrated, loadProjects]);
-
-  useEffect(() => {
-    refreshMetrics();
-  }, [refreshMetrics]);
-
   // Reset pagination when filters change
-  useEffect(() => { setPage(1) }, [search, statusFilter, sortBy])
+  const [prevFilters, setPrevFilters] = useState('')
+  const filterKey = `${search}|${statusFilter}|${sortBy}`
+  if (filterKey !== prevFilters) {
+    setPrevFilters(filterKey)
+    setPage(1)
+  }
 
   const handleArchive = useCallback(async (projectId: string) => {
     try {

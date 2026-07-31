@@ -53,7 +53,7 @@ export function floorPlanToPlanModel(
   // Validate
   const warnings = validatePlanConnectivity(roomRects, openings, allWalls)
   if (warnings.length > 0) {
-    console.warn(`[floorPlanToPlanModel] ${warnings.length} validation warnings:`, warnings)
+    if (import.meta.env.DEV) console.warn(`[floorPlanToPlanModel] ${warnings.length} validation warnings:`, warnings)
   }
 
   return {
@@ -104,10 +104,8 @@ export function floorPlanToPlanModelWithBridge(
       const slabInfo = assignLevelSlabs(chassis)
       const bridge = computeStructuralBridge(chassis)
       for (const sw of bridge.warnings) warnings.push(`[Structural] ${sw}`)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(plan as any).slabAssignments = slabInfo
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(plan as any).structuralLevels = bridge.levels
+      plan.slabAssignments = slabInfo
+      plan.structuralLevels = bridge.levels
     } catch {
       // bridge data is best-effort
     }

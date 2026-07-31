@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useProviderStore } from '../../stores/providerStore';
+import type { Credential } from '../../domain/marketplace';
 import { Shield, Upload, Plus, CheckCircle2, Clock, XCircle, FileText, Search, AlertTriangle, Eye, Download, Star, Award, RefreshCw, Calendar, CheckSquare, Square, Trash2, Bell, UserCheck } from 'lucide-react';
 
 const CREDENTIAL_TYPES = ['license', 'certification', 'insurance', 'registration', 'qualification', 'accreditation'] as const;
@@ -22,18 +23,16 @@ export default function CredentialManager({ providerId }: { providerId: string }
   const [selectMode, setSelectMode] = useState(false);
   const [cred, setCred] = useState({ type: 'license' as typeof CREDENTIAL_TYPES[number], title: '', issuingBody: '', number: '', issueDate: '', expiryDate: '', notes: '' });
 
-  if (!provider) return <div className="text-stone-400 p-12 text-center">Select a provider to manage credentials</div>;
-
-  const now = new Date();
+  const now = useMemo(() => new Date(), []);
   const filteredCreds = useMemo(() => {
-    let c = [...provider.credentials];
+    let c = [...(provider?.credentials ?? [])];
     if (search) { const q = search.toLowerCase(); c = c.filter(cr => cr.title.toLowerCase().includes(q) || cr.issuingBody.toLowerCase().includes(q) || cr.number.toLowerCase().includes(q) || cr.notes?.toLowerCase().includes(q)); }
     if (statusFilter !== 'all') c = c.filter(cr => cr.status === statusFilter);
     if (typeFilter !== 'all') c = c.filter(cr => cr.type === typeFilter);
     return c.sort((a, b) => new Date(b.issueDate || 0).getTime() - new Date(a.issueDate || 0).getTime());
-  }, [provider.credentials, search, statusFilter, typeFilter]);
+  }, [provider?.credentials, search, statusFilter, typeFilter]);
 
-  const getStatusInfo = (cred: typeof provider.credentials[0]) => {
+  const getStatusInfo = (cred: Credential) => {
     if (cred.status === 'expired') return { icon: <XCircle size={16} />, label: 'Expired', style: 'bg-rose-500/10 text-rose-400' };
     if (cred.status === 'revoked') return { icon: <AlertTriangle size={16} />, label: 'Revoked', style: 'bg-red-500/10 text-red-400' };
     if (cred.status === 'pending_renewal') return { icon: <Clock size={16} />, label: 'Pending Renewal', style: 'bg-amber-500/10 text-amber-400' };
@@ -51,24 +50,26 @@ export default function CredentialManager({ providerId }: { providerId: string }
   const bulkDelete = () => { selectedItems.forEach(id => updateCredential(providerId, id, { status: 'revoked' })); setSelectedItems(new Set()); setSelectMode(false); };
   const bulkVerify = () => { selectedItems.forEach(id => updateCredential(providerId, id, { verificationStatus: 'verified', verifiedAt: new Date().toISOString(), verifiedBy: 'provider' })); setSelectedItems(new Set()); setSelectMode(false); };
 
-  const activeCount = provider.credentials.filter(c => c.status === 'active').length;
-  const expiringCount = provider.credentials.filter(c => c.status === 'active' && c.expiryDate && Math.ceil((new Date(c.expiryDate).getTime() - now.getTime()) / 86400000) <= 90).length;
-  const expiredCount = provider.credentials.filter(c => c.status === 'expired' || (c.expiryDate && Math.ceil((new Date(c.expiryDate).getTime() - now.getTime()) / 86400000) < 0)).length;
-  const verifiedCount = provider.credentials.filter(c => c.verificationStatus === 'verified').length;
+  const activeCount = (provider?.credentials ?? []).filter(c => c.status === 'active').length;
+  const expiringCount = (provider?.credentials ?? []).filter(c => c.status === 'active' && c.expiryDate && Math.ceil((new Date(c.expiryDate).getTime() - now.getTime()) / 86400000) <= 90).length;
+  const expiredCount = (provider?.credentials ?? []).filter(c => c.status === 'expired' || (c.expiryDate && Math.ceil((new Date(c.expiryDate).getTime() - now.getTime()) / 86400000) < 0)).length;
+  const verifiedCount = (provider?.credentials ?? []).filter(c => c.verificationStatus === 'verified').length;
 
   const renewalTimeline = useMemo(() => {
-    const items = provider.credentials.filter(c => c.expiryDate).map(c => ({
+    const items = (provider?.credentials ?? []).filter(c => c.expiryDate).map(c => ({
       ...c,
       daysUntilExpiry: Math.ceil((new Date(c.expiryDate).getTime() - now.getTime()) / 86400000),
     })).sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry);
     return items;
-  }, [provider.credentials]);
+  }, [provider?.credentials, now]);
 
   const verificationStats = useMemo(() => ({
-    verified: provider.credentials.filter(c => c.verificationStatus === 'verified').length,
-    failed: provider.credentials.filter(c => c.verificationStatus === 'failed').length,
-    unverified: provider.credentials.filter(c => !c.verificationStatus || c.verificationStatus === 'unverified').length,
-  }), [provider.credentials]);
+    verified: (provider?.credentials ?? []).filter(c => c.verificationStatus === 'verified').length,
+    failed: (provider?.credentials ?? []).filter(c => c.verificationStatus === 'failed').length,
+    unverified: (provider?.credentials ?? []).filter(c => !c.verificationStatus || c.verificationStatus === 'unverified').length,
+  }), [provider?.credentials]);
+
+  if (!provider) return <div className="text-stone-400 p-12 text-center">Select a provider to manage credentials</div>;
 
   return (
     <div className="flex flex-col gap-4">
@@ -146,7 +147,7 @@ export default function CredentialManager({ providerId }: { providerId: string }
         <div className="bg-stone-950 border border-stone-800 rounded-xl p-5 space-y-3">
           <div className="flex items-center justify-between"><h4 className="text-sm font-semibold text-stone-300">Add New Credential</h4><button onClick={() => setShowForm(false)} aria-label="Close credential form" className="text-stone-400 hover:text-stone-300"><XCircle size={16} /></button></div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <div><label className="text-xs text-stone-400">Type</label><select value={cred.type} onChange={e => setCred(f => ({ ...f, type: e.target.value as any }))} className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none">{CREDENTIAL_TYPES.map(t => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}</select></div>
+            <div><label className="text-xs text-stone-400">Type</label><select value={cred.type} onChange={e => setCred(f => ({ ...f, type: e.target.value as typeof CREDENTIAL_TYPES[number] }))} className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none">{CREDENTIAL_TYPES.map(t => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}</select></div>
             <div className="col-span-2"><label className="text-xs text-stone-400">Title *</label><input value={cred.title} onChange={e => setCred(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Civil Engineering License (CEng)" className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none" /></div>
             <div>
               <label className="text-xs text-stone-400">Issuing Body *</label>

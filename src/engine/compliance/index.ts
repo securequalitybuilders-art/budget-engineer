@@ -17,7 +17,7 @@ import { evaluateBotswanaRules } from './botswana'
 
 export function runCompliance(jurisdiction: string, input: ComplianceInput): ComplianceReport {
   const warnings: string[] = []
-  let results: ComplianceResult[] = []
+  let results: ComplianceResult[]
 
   try {
     switch (jurisdiction) {

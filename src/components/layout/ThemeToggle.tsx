@@ -1,5 +1,6 @@
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { useShallow } from 'zustand/react/shallow';
 import { useUIStore } from '@/stores/uiStore';
 import type { AppTheme } from '@/types';
 
@@ -10,7 +11,7 @@ const themes: { value: AppTheme; icon: typeof Sun; label: string }[] = [
 ];
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useUIStore();
+  const { theme, setTheme } = useUIStore(useShallow(s => ({ theme: s.theme, setTheme: s.setTheme })));
 
   return (
     <div className="flex items-center gap-1 rounded-lg border border-[var(--border-default)] bg-[var(--bg-tertiary)] p-1">
@@ -38,7 +39,7 @@ export function ThemeToggle() {
 }
 
 export function ThemeToggleSimple() {
-  const { setTheme, resolvedTheme } = useUIStore();
+  const { setTheme, resolvedTheme } = useUIStore(useShallow(s => ({ setTheme: s.setTheme, resolvedTheme: s.resolvedTheme })));
   const isDark = resolvedTheme === 'dark';
 
   return (

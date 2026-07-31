@@ -111,23 +111,23 @@ describe('Tier 1 — parseBrief', () => {
     expect(result.constraints.budgetUsd).toBe(80000)
     expect(result.program.length).toBeGreaterThan(0)
     expect(result.qualityGate).toBeDefined()
-    expect(result.qualityGate.score).toBeGreaterThanOrEqual(0)
-    expect(typeof result.qualityGate.passed).toBe('boolean')
+    expect(result.qualityGate!.score).toBeGreaterThanOrEqual(0)
+    expect(typeof result.qualityGate!.passed).toBe('boolean')
   })
 
   it('quality gate passes a reasonable brief', () => {
     const result = parseBrief('Build a 3-bedroom house in Harare on a 20x30 site with $80,000 budget. Include veranda.')
-    expect(result.qualityGate.passed).toBe(true)
-    expect(result.qualityGate.score).toBeGreaterThanOrEqual(70)
-    expect(result.qualityGate.issues.length).toBeGreaterThan(0)
-    expect(result.qualityGate.recommendations.length).toBeGreaterThan(0)
+    expect(result.qualityGate!.passed).toBe(true)
+    expect(result.qualityGate!.score).toBeGreaterThanOrEqual(70)
+    expect(result.qualityGate!.issues.length).toBeGreaterThan(0)
+    expect(result.qualityGate!.recommendations.length).toBeGreaterThan(0)
   })
 
   it('quality gate flags an obviously bad brief', () => {
     const result = parseBrief('Build a 100-bedroom hotel on a 5x5 site with $2,000 budget')
     // Typology might still be detected
-    expect(result.qualityGate.score).toBeLessThanOrEqual(85)
-    const hasSiteIssue = result.qualityGate.issues.some((i) =>
+    expect(result.qualityGate!.score).toBeLessThanOrEqual(85)
+    const hasSiteIssue = result.qualityGate!.issues.some((i) =>
       i.message.includes('small') || i.message.includes('tight'),
     )
     expect(hasSiteIssue).toBe(true)
@@ -143,8 +143,8 @@ describe('Tier 1 — parseBrief', () => {
   it('falls back gracefully on empty text', () => {
     const result = parseBrief('')
     expect(result).toBeDefined()
-    expect(result.qualityGate.passed).toBe(false)
-    expect(result.qualityGate.score).toBeLessThan(70)
+    expect(result.qualityGate!.passed).toBe(false)
+    expect(result.qualityGate!.score).toBeLessThan(70)
     expect(result.typology).toBeNull()
     expect(result.climateZone).not.toBeNull() // still gets generic climate
     expect(result.program.length).toBe(0)
@@ -153,7 +153,7 @@ describe('Tier 1 — parseBrief', () => {
   it('falls back gracefully on garbage text', () => {
     const result = parseBrief('zxcvbnm asdfghjkl qwertyuiop')
     expect(result).toBeDefined()
-    expect(result.qualityGate.passed).toBe(false)
+    expect(result.qualityGate!.passed).toBe(false)
     expect(result.typology).toBeNull()
   })
 

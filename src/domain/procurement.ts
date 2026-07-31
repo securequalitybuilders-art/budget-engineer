@@ -10,6 +10,7 @@ export interface ProcurementRequest {
   id: string
   projectId: string
   requestNumber: string
+  quotes?: SupplierQuote[]
   title: string
   description: string
   category: string

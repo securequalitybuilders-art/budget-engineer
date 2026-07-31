@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { useProjectStore } from '@/stores/projectStore';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -34,7 +35,7 @@ const JOURNEY_STEPS = [
 ]
 
 export function Home() {
-  const { projects, isHydrated, createProject, loadProjects, loadProject } = useProjectStore();
+  const { projects, isHydrated, createProject, loadProjects, loadProject } = useProjectStore(useShallow(s => ({ projects: s.projects, isHydrated: s.isHydrated, createProject: s.createProject, loadProjects: s.loadProjects, loadProject: s.loadProject })));
   const navigate = useNavigate();
   const dxfInputRef = useRef<HTMLInputElement>(null);
   const backupInputRef = useRef<HTMLInputElement>(null);

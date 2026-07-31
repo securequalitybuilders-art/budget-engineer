@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 
+const rootDir = import.meta.dirname;
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -46,7 +48,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(rootDir, './src'),
     },
   },
   optimizeDeps: {
@@ -57,10 +59,17 @@ export default defineConfig({
     rollupOptions: {
       external: ['@mlc-ai/web-llm'],
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['framer-motion', 'lucide-react', 'tailwind-merge', 'clsx', 'class-variance-authority'],
-          'state-vendor': ['zustand', 'immer', 'dexie'],
+        manualChunks(id) {
+          if (id.includes('node_modules/react-router')) return 'react-vendor'
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) return 'react-vendor'
+          if (
+            id.includes('framer-motion') ||
+            id.includes('lucide-react') ||
+            id.includes('tailwind-merge') ||
+            id.includes('clsx') ||
+            id.includes('class-variance-authority')
+          ) return 'ui-vendor'
+          if (id.includes('zustand') || id.includes('immer') || id.includes('dexie')) return 'state-vendor'
         },
       },
     },

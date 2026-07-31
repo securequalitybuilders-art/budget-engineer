@@ -27,7 +27,7 @@ export function loadExtension(registry: Map<string, ExtensionInstance>, extensio
   ext.loaded = true;
   for (const hook of ext.manifest.hooks) {
     ext.hooks.set(hook, (...args: unknown[]) => {
-      console.log(`[${ext.manifest.name}] Hook ${hook} called with`, args);
+      if (import.meta.env.DEV) console.log(`[${ext.manifest.name}] Hook ${hook} called with`, args);
       return args;
     });
   }

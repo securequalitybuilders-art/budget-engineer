@@ -58,8 +58,18 @@ export function SnapshotHistoryPanel({ projectId, selectedDesign, currentBoq, va
   }, [projectId, selectedSnapId]);
 
   useEffect(() => {
-    loadSnapshots();
-  }, [loadSnapshots]);
+    if (!projectId) return;
+    let cancelled = false;
+    (async () => {
+      const loaded = await loadProjectSnapshots(projectId);
+      if (cancelled) return;
+      setSnapshots(loaded);
+      if (loaded.length > 0 && !selectedSnapId) {
+        setSelectedSnapId(loaded[0].id);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [projectId, selectedSnapId]);
 
   const selectedSnap = snapshots.find((s) => s.id === selectedSnapId) ?? null;
 

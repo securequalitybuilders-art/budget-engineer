@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useUIStore } from '@/stores/uiStore';
 import { useProjectStore } from '@/stores/projectStore';
 import { Button } from '@/components/ui/Button';
@@ -13,8 +14,8 @@ interface Message {
 }
 
 export function AIChatPanel() {
-  const { aiChatOpen, toggleAiChat } = useUIStore();
-  const { currentProject, currentBrief, generateDesigns } = useProjectStore();
+  const { aiChatOpen, toggleAiChat } = useUIStore(useShallow(s => ({ aiChatOpen: s.aiChatOpen, toggleAiChat: s.toggleAiChat })));
+  const { currentProject, currentBrief, generateDesigns } = useProjectStore(useShallow(s => ({ currentProject: s.currentProject, currentBrief: s.currentBrief, generateDesigns: s.generateDesigns })));
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',

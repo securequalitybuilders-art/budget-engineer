@@ -24,13 +24,6 @@ function hasEntranceCanopy(svg: string): boolean {
   return svg.includes('ENTRY') || svg.includes('canopy')
 }
 
-// Count distinct door-door openings (door leaf arcs are lines)
-function countDoors(svg: string): number {
-  // Door arcs appear as paths with specific radius or arcs
-  const doorMatches = svg.match(/M\s+\d+\.\d+,\d+\.\d+\s+A\s+0\.9,0\.9/g) || []
-  return doorMatches.length
-}
-
 const AREAS = [80, 100, 140]
 const ORIENTATIONS = ['front', 'rear', 'left', 'right']
 

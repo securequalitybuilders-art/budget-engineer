@@ -4,6 +4,7 @@ import type { ReferenceTypology, StoreyProfile, WorkflowScope } from '@/lib/refe
 import { CALIBRATION_MARKER_ANNOTATIONS } from '@/lib/reference/referenceCaseModel';
 import type { AssessedProjectSnapshot } from '@/lib/selfAssessment/selfAssessmentModel';
 import { buildSelfAssessmentReportData, downloadSelfAssessmentReport } from '@/lib/selfAssessment/selfAssessmentReport';
+import { useShallow } from 'zustand/react/shallow';
 import { useSelfAssessmentStore } from '@/stores/selfAssessmentStore';
 import type { AssessmentComparisonResult, ComparisonDiff } from '@/lib/selfAssessment/assessmentComparison';
 
@@ -122,7 +123,15 @@ interface SelfAssessmentPanelProps {
 }
 
 export function SelfAssessmentPanel({ linkedSessionId = null }: SelfAssessmentPanelProps) {
-  const store = useSelfAssessmentStore();
+  const store = useSelfAssessmentStore(useShallow(s => ({
+    getActiveAssessment: s.getActiveAssessment,
+    getAllAssessments: s.getAllAssessments,
+    compare: s.compare,
+    checkStaleness: s.checkStaleness,
+    runAssessment: s.runAssessment,
+    setActiveAssessment: s.setActiveAssessment,
+    deleteAssessment: s.deleteAssessment,
+  })));
   const [showForm, setShowForm] = useState(false);
   const [compareTargetId, setCompareTargetId] = useState<string | null>(null);
 

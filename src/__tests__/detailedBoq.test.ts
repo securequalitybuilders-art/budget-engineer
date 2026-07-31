@@ -181,7 +181,6 @@ describe('buildDetailedBoqCsv', () => {
   it('handles special characters in descriptions', () => {
     const design = makeDesign()
     const result = generateDetailedBoq(design, baseConfig())
-    const csv = buildDetailedBoqCsv(result.boq, 'USD')
-    expect(csv).not.toThrow
+    expect(() => buildDetailedBoqCsv(result.boq, 'USD')).not.toThrow()
   })
 })

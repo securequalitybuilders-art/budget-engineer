@@ -1,17 +1,17 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { useAssuranceStore } from '@/stores/assuranceStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useMilestoneStore } from '@/stores/milestoneStore';
 import { useProcurementStore } from '@/stores/procurementStore';
 import { useHandoverStore } from '@/stores/handoverStore';
-import { useProjectControlsStore } from '@/stores/projectControlsStore';
-import { useChangeStore } from '@/stores/changeStore';
 import { computeProjectReadiness, computeMilestoneLifecycleSummary, computeProcurementLifecycleSummary, computeHandoverLifecycleSummary, computeBlockingDependencies } from '@/lib/lifecycle/lifecycleSummary';
 import { ProjectReadinessChip } from '@/components/lifecycle/ProjectReadinessChip';
 import { EmptyState } from '@/components/lifecycle/EmptyState';
 import { NextStepHint } from '@/components/lifecycle/NextStepHint';
-import { CrossStudioLinks, buildStudioLink } from '@/components/lifecycle/CrossStudioLinks';
+import { CrossStudioLinks } from '@/components/lifecycle/CrossStudioLinks';
+import { buildStudioLink } from '@/lib/lifecycle/studioLinks';
 import { StatusTransitionGuide } from '@/components/lifecycle/StatusTransitionGuide';
 import { ShieldCheck, ArrowRight, Eye } from 'lucide-react';
 
@@ -45,15 +45,21 @@ const RISK_SEVERITY_COLORS: Record<string, string> = {
 
 export function AssurancePanel({ projectId }: AssurancePanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('feasibility');
-  const assuranceStore = useAssuranceStore();
+  const { feasibilityAssessments, riskGates, riskRegister, solvencyChecks } = useAssuranceStore(useShallow(s => ({
+    feasibilityAssessments: s.feasibilityAssessments,
+    riskGates: s.riskGates,
+    riskRegister: s.riskRegister,
+    solvencyChecks: s.solvencyChecks,
+  })));
   const user = useAuthStore((s) => s.user);
-  const milestoneStore = useMilestoneStore();
-  const procurementStore = useProcurementStore();
-  const handoverStore = useHandoverStore();
-  const controlsStore = useProjectControlsStore();
-  const changeStore = useChangeStore();
-
-  const { feasibilityAssessments, riskGates, riskRegister, solvencyChecks } = assuranceStore;
+  const milestones = useMilestoneStore((s) => s.milestones);
+  const procurementRequests = useProcurementStore((s) => s.requests);
+  const purchaseOrders = useProcurementStore((s) => s.purchaseOrders);
+  const completionStages = useHandoverStore((s) => s.completionStages);
+  const snagLists = useHandoverStore((s) => s.snagLists);
+  const handoverPackages = useHandoverStore((s) => s.handoverPackages);
+  const assetRegister = useHandoverStore((s) => s.assetRegister);
+  const warrantyRecords = useHandoverStore((s) => s.warrantyRecords);
 
   const latestAssessment = useMemo(
     () => feasibilityAssessments.sort((a, b) => new Date(b.assessmentDate).getTime() - new Date(a.assessmentDate).getTime())[0],
@@ -74,18 +80,18 @@ export function AssurancePanel({ projectId }: AssurancePanelProps) {
 
   const hasData = feasibilityAssessments.length > 0 || riskGates.length > 0 || riskRegister.length > 0 || solvencyChecks.length > 0;
 
-  const milestoneSummary = useMemo(() => computeMilestoneLifecycleSummary(milestoneStore.milestones), [milestoneStore.milestones]);
+  const milestoneSummary = useMemo(() => computeMilestoneLifecycleSummary(milestones), [milestones]);
   const procurementSummary = useMemo(() => computeProcurementLifecycleSummary({
-    requests: procurementStore.requests,
-    purchaseOrders: procurementStore.purchaseOrders.map(po => ({ status: po.status, totalCents: po.totalCents })),
-  }), [procurementStore.requests, procurementStore.purchaseOrders]);
+    requests: procurementRequests,
+    purchaseOrders: purchaseOrders.map(po => ({ status: po.status, totalCents: po.totalCents })),
+  }), [procurementRequests, purchaseOrders]);
   const handoverSummary = useMemo(() => computeHandoverLifecycleSummary({
-    completionStages: handoverStore.completionStages,
-    snagLists: handoverStore.snagLists,
-    handoverPackages: handoverStore.handoverPackages.map(p => ({ status: p.status })),
-    assetRegister: handoverStore.assetRegister,
-    warrantyRecords: handoverStore.warrantyRecords.map(w => ({ status: w.status })),
-  }), [handoverStore]);
+    completionStages,
+    snagLists,
+    handoverPackages: handoverPackages.map(p => ({ status: p.status })),
+    assetRegister,
+    warrantyRecords: warrantyRecords.map(w => ({ status: w.status })),
+  }), [completionStages, snagLists, handoverPackages, assetRegister, warrantyRecords]);
   const dependencies = useMemo(() => computeBlockingDependencies({
     readiness,
     milestoneSummary,
@@ -94,8 +100,6 @@ export function AssurancePanel({ projectId }: AssurancePanelProps) {
     solvencyChecks,
     projectId,
   }), [readiness, milestoneSummary, procurementSummary, handoverSummary, solvencyChecks, projectId]);
-
-  void controlsStore; void changeStore; void procurementStore; void handoverStore;
 
   const crossLinks = useMemo(() => [
     buildStudioLink(projectId, 'delivery', 'Delivery', 'View milestone-linked deliveries'),

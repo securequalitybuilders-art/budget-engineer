@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { useShallow } from 'zustand/react/shallow';
 import { usePilotFeedbackStore } from '@/stores/pilotFeedbackStore';
 import type { PilotObservation, PilotSeverity, PilotStatus, PilotDomain, PilotAttachmentRef } from '@/lib/pilot/pilotFeedbackModel';
 import { SEVERITY_LABELS, STATUS_LABELS, DOMAIN_LABELS, SEVERITY_ORDER, generateId } from '@/lib/pilot/pilotFeedbackModel';
@@ -144,7 +145,16 @@ export function PilotObservationCard({ observation, onEdit, onDelete }: {
 }
 
 export function PilotFeedbackPanel({ onExport }: { onExport?: () => void }) {
-  const store = usePilotFeedbackStore();
+  const store = usePilotFeedbackStore(useShallow(s => ({
+    getActiveSession: s.getActiveSession,
+    getActiveObservations: s.getActiveObservations,
+    createSession: s.createSession,
+    addObservation: s.addObservation,
+    updateObservation: s.updateObservation,
+    deleteObservation: s.deleteObservation,
+    updateSession: s.updateSession,
+    activeSessionId: s.activeSessionId,
+  })));
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ObservationFormData>(EMPTY_FORM);

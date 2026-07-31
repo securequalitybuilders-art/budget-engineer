@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useRef, useCallback, Suspense, lazy } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useDisciplineStore } from '@/stores/disciplineStore';
@@ -30,6 +31,7 @@ const CostDeliverStage = lazy(() => import('@/components/dashboard/stages/CostDe
 const BudgetEngineeredStage = lazy(() => import('@/components/dashboard/stages/BudgetEngineeredStage').then(m => ({ default: m.BudgetEngineeredStage })));
 const EngineeringStage = lazy(() => import('@/components/dashboard/stages/EngineeringStage').then(m => ({ default: m.EngineeringStage })));
 const DocsBimStage = lazy(() => import('@/components/dashboard/stages/DocsBimStage').then(m => ({ default: m.DocsBimStage })));
+const LazyImportWorkflow = lazy(() => import('@/components/import/ImportWorkflow').then(m => ({ default: m.ImportWorkflow })));
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
 import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
@@ -40,44 +42,57 @@ import { useAssuranceStore } from '@/stores/assuranceStore';
 import { useMilestoneStore } from '@/stores/milestoneStore';
 import { useChangeStore } from '@/stores/changeStore';
 import { Box, FileSpreadsheet, Bug } from 'lucide-react';
-import { generateVariedPlanModel } from '@/engine/plan-generator';
-import { floorPlanToPlanModel } from '@/adapters/floorPlanToPlanModel';
 import type { FloorPlan } from '@/engine/tier3/layoutEngine';
-import { designOptionToBimModel } from '@/adapters/designToBim';
-import { buildBoqFromDesignOption } from '@/adapters/designToBoq';
-import { deriveBoqFromCadOrDesign, buildCadSyncMetadata } from '@/adapters/cadToDesignSyncAdapter';
 import { persistDesigns, persistBimModel, persistBoq, logTransaction, loadPersistedProjectWork } from '@/services/projectPersistenceService';
 import { savePlanModel, loadPlanModel, loadPlanModelMeta, deletePlanModel } from '@/services/cadPersistenceService';
 import type { DesignOption } from '@/domain/boq';
 import type { PlanModel, PlanSource } from '@/domain/plan';
 import type { GeometrySource } from '@/adapters/cadToDesignSyncAdapter';
-import { routeImportFile } from '@/lib/import/importRouter';
+import type { BoqResult } from '@/adapters/designToBoq';
+import type { BimModel } from '@/domain/bim';
 import type { BackdropState } from '@/lib/import/backdropUtils';
 import { createInitialBackdropState, computeScaleCalibration } from '@/lib/import/backdropUtils';
-import { ImportWorkflow } from '@/components/import/ImportWorkflow';
-import { runCompliance } from '@/engine/compliance';
-import { computeStructuralPreDesign } from '@/engine/structural/structuralPreDesignEngine';
-import { computeMepPreDesign } from '@/engine/mep/mepPreDesignEngine';
-import { planModelToBuildingGraph } from '@/adapters/canonical';
 import type { ComplianceReport } from '@/engine/compliance/types';
 import type { ParseResult } from '@/lib/ai/ai-provider';
-import { assembleAnalysis, type AnalysisResult } from '@/engine/calculators/analysisAssembly';
+import type { PipelineResult } from '@/engine/pipeline/generativeDesignPipeline';
+import type { AnalysisResult } from '@/engine/calculators/analysisAssembly';
+
+type BackgroundIntel = {
+  compliance: ComplianceReport | null
+  structural: { beams: number; columns: number; footings: number }
+  mep: { fixtures: number; points: number; hvacUnits: number }
+  analysis: AnalysisResult | null
+  rooms: { total: number; habitable: number }
+  grossFloorArea: number
+  totalFloors: number
+  costEstimate: number
+  loading: boolean
+}
+
+const EMPTY_BACKGROUND_INTEL: BackgroundIntel = {
+  compliance: null,
+  structural: { beams: 0, columns: 0, footings: 0 },
+  mep: { fixtures: 0, points: 0, hvacUnits: 0 },
+  analysis: null,
+  rooms: { total: 0, habitable: 0 },
+  grossFloorArea: 0,
+  totalFloors: 1,
+  costEstimate: 0,
+  loading: false,
+}
 
 export function Dashboard() {
   const { id } = useParams<{ id: string }>();
-  const { loadProject, currentProject, currentBrief, currentDesigns, isLoading, generateDesigns, seed } = useProjectStore();
-  const { activeStageId, setActiveStage, activeView, setActiveView, journeyGuideOpen, toggleJourneyGuide, selectedDesignId, setSelectedDesignId, hasSeenTour, setHasSeenTour } = useUIStore();
+  const { loadProject, currentProject, currentBrief, currentDesigns, isLoading, generateDesigns, seed } = useProjectStore(useShallow(s => ({ loadProject: s.loadProject, currentProject: s.currentProject, currentBrief: s.currentBrief, currentDesigns: s.currentDesigns, isLoading: s.isLoading, generateDesigns: s.generateDesigns, seed: s.seed })));
+  const { activeStageId, setActiveStage, activeView, setActiveView, journeyGuideOpen, toggleJourneyGuide, selectedDesignId, setSelectedDesignId, hasSeenTour, setHasSeenTour } = useUIStore(useShallow(s => ({ activeStageId: s.activeStageId, setActiveStage: s.setActiveStage, activeView: s.activeView, setActiveView: s.setActiveView, journeyGuideOpen: s.journeyGuideOpen, toggleJourneyGuide: s.toggleJourneyGuide, selectedDesignId: s.selectedDesignId, setSelectedDesignId: s.setSelectedDesignId, hasSeenTour: s.hasSeenTour, setHasSeenTour: s.setHasSeenTour })));
   const currentDiscipline = useDisciplineStore((s) => s.currentDiscipline);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStatus, setGenerationStatus] = useState<string | null>(null);
-  const [tourOpen, setTourOpen] = useState(false);
+  const [isPipelineRunning, setIsPipelineRunning] = useState(false);
+  const [pipelineStatus, setPipelineStatus] = useState<string | null>(null);
+  const [pipelineResult, setPipelineResult] = useState<PipelineResult | null>(null);
+  const [tourOpen, setTourOpen] = useState(() => !hasSeenTour);
   const [importWorkflowOpen, setImportWorkflowOpen] = useState(false);
-
-  useEffect(() => {
-    if (!hasSeenTour) {
-      setTourOpen(true)
-    }
-  }, [hasSeenTour])
 
   const handleTourComplete = useCallback(() => {
     setHasSeenTour(true)
@@ -101,27 +116,8 @@ export function Dashboard() {
   const [isManualSaving, setIsManualSaving] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [backdrop, setBackdrop] = useState<BackdropState>(createInitialBackdropState());
-  const [backgroundIntel, setBackgroundIntel] = useState<{
-    compliance: ComplianceReport | null
-    structural: { beams: number; columns: number; footings: number }
-    mep: { fixtures: number; points: number; hvacUnits: number }
-    analysis: AnalysisResult | null
-    rooms: { total: number; habitable: number }
-    grossFloorArea: number
-    totalFloors: number
-    costEstimate: number
-    loading: boolean
-  }>({
-    compliance: null,
-    structural: { beams: 0, columns: 0, footings: 0 },
-    mep: { fixtures: 0, points: 0, hvacUnits: 0 },
-    analysis: null,
-    rooms: { total: 0, habitable: 0 },
-    grossFloorArea: 0,
-    totalFloors: 1,
-    costEstimate: 0,
-    loading: false,
-  })
+  const [computedIntel, setComputedIntel] = useState<BackgroundIntel | null>(null);
+  const [intelKey, setIntelKey] = useState('');
   const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadedPersistenceRef = useRef(false);
   const loadedCadRef = useRef<string | null>(null);
@@ -166,8 +162,6 @@ export function Dashboard() {
   );
 
   const selectedDesign = visibleDesignOptions.find((d) => d.id === selectedDesignId) ?? visibleDesignOptions[0] ?? null;
-  const bimModel = useMemo(() => designOptionToBimModel(selectedDesign), [selectedDesign]);
-
   // Tier 3: find the plan matching the selected design
   const selectedTier3Plan = useMemo<FloorPlan | null>(() => {
     if (tier3Plans.length === 0) return null
@@ -175,50 +169,84 @@ export function Dashboard() {
     return idx >= 0 ? tier3Plans[idx] : tier3Plans[0]
   }, [tier3Plans, selectedDesign?.id])
 
-  // Active PlanModel: prefer CAD-edited persisted plan, else Tier 3 floorPlan, else varied generation
-  const activePlan = useMemo<PlanModel | null>(() => {
-    if (persistedPlan) return { ...persistedPlan, planSource: 'persisted-plan' }
-    if (selectedTier3Plan && selectedDesign) {
-      return floorPlanToPlanModel(selectedTier3Plan, selectedDesign)
+  // Active PlanModel: lazy-loaded from adapters (persisted branch derived at render)
+  const [loadedPlan, setLoadedPlan] = useState<PlanModel | null>(null);
+  const activePlan: PlanModel | null = useMemo(() => persistedPlan
+    ? { ...persistedPlan, planSource: 'persisted-plan' as PlanSource }
+    : loadedPlan, [persistedPlan, loadedPlan]);
+  useEffect(() => {
+    if (persistedPlan) {
+      return;
     }
-    if (selectedDesign) {
-      const plan = generateVariedPlanModel(selectedDesign)
-      const source: PlanSource = plan.planSource ?? 'advanced-generated-plan'
-      if (process.env.NODE_ENV === 'development') {
-        console.debug(`[PlanSource] ${selectedDesign.id} → ${source}`)
+    const load = async () => {
+      if (selectedTier3Plan && selectedDesign) {
+        const { floorPlanToPlanModel } = await import('@/adapters/floorPlanToPlanModel');
+        setLoadedPlan(floorPlanToPlanModel(selectedTier3Plan, selectedDesign));
+      } else if (selectedDesign) {
+        const { generateVariedPlanModel } = await import('@/engine/plan-generator');
+        const plan = generateVariedPlanModel(selectedDesign);
+        if (process.env.NODE_ENV === 'development') {
+          console.debug(`[PlanSource] ${selectedDesign.id} → ${plan.planSource ?? 'advanced-generated-plan'}`)
+        }
+        setLoadedPlan(plan);
+      } else {
+        setLoadedPlan(null);
       }
-      return plan
-    }
-    return null
+    };
+    load();
   }, [persistedPlan, selectedDesign, selectedTier3Plan]);
-  const currentBoq = useMemo(() => {
-    if (persistedPlan && selectedDesign) {
-      return deriveBoqFromCadOrDesign({
-        plan: persistedPlan,
-        design: selectedDesign,
-        source: cadSyncSource,
-        projectId: id,
-      })
-    }
-    return buildBoqFromDesignOption(selectedDesign)
-  }, [selectedDesign, persistedPlan, cadSyncSource, id])
+
+  const [currentBoq, setCurrentBoq] = useState<BoqResult | null>(null);
+  useEffect(() => {
+    const load = async () => {
+      if (persistedPlan && selectedDesign) {
+        const { deriveBoqFromCadOrDesign } = await import('@/adapters/cadToDesignSyncAdapter');
+        setCurrentBoq(deriveBoqFromCadOrDesign({ plan: persistedPlan, design: selectedDesign, source: cadSyncSource, projectId: id }));
+      } else if (selectedDesign) {
+        const { buildBoqFromDesignOption } = await import('@/adapters/designToBoq');
+        setCurrentBoq(buildBoqFromDesignOption(selectedDesign));
+      } else {
+        setCurrentBoq(null);
+      }
+    };
+    load();
+  }, [selectedDesign, persistedPlan, cadSyncSource, id]);
+
+  const [loadedBimModel, setLoadedBimModel] = useState<BimModel | null>(null);
+  const bimModel: BimModel | null = selectedDesign ? loadedBimModel : null;
+  useEffect(() => {
+    if (!selectedDesign) { return; }
+    import('@/adapters/designToBim').then(m => setLoadedBimModel(m.designOptionToBimModel(selectedDesign)));
+  }, [selectedDesign]);
 
   // ── Background Intelligence: compliance + structural + MEP + analysis ──
+  const hasIntelSource = !!activePlan && !!selectedDesign;
+  const intelSourceKey = `${activePlan?.id ?? ''}|${selectedDesign?.id ?? ''}|${currentBoq?.id ?? ''}|${currentBoq?.summary.grandTotal ?? 0}|${currentProject?.region ?? ''}|${latestBuildingType ?? ''}`;
+  if (intelSourceKey !== intelKey) {
+    setIntelKey(intelSourceKey);
+    setComputedIntel(null);
+  }
+  const backgroundIntel: BackgroundIntel = computedIntel ?? (hasIntelSource ? { ...EMPTY_BACKGROUND_INTEL, loading: true } : EMPTY_BACKGROUND_INTEL);
   useEffect(() => {
     if (!activePlan || !selectedDesign) {
-      setBackgroundIntel({ compliance: null, structural: { beams: 0, columns: 0, footings: 0 }, mep: { fixtures: 0, points: 0, hvacUnits: 0 }, analysis: null, rooms: { total: 0, habitable: 0 }, grossFloorArea: 0, totalFloors: 1, costEstimate: 0, loading: false })
       return
     }
-    setBackgroundIntel(prev => ({ ...prev, loading: true }))
     const run = async () => {
       try {
+        const [{ planModelToBuildingGraph }, { assembleAnalysis }, { runCompliance }, { computeStructuralPreDesign }, { computeMepPreDesign }] = await Promise.all([
+          import('@/adapters/canonical'),
+          import('@/engine/calculators/analysisAssembly'),
+          import('@/engine/compliance'),
+          import('@/engine/structural/structuralPreDesignEngine'),
+          import('@/engine/mep/mepPreDesignEngine'),
+        ])
         const graph = planModelToBuildingGraph(activePlan).graph
         const analysis = assembleAnalysis({ plan: activePlan, design: selectedDesign, boq: currentBoq, buildingType: latestBuildingType ?? 'residential' })
         const compliance = runCompliance(currentProject?.region ?? 'zimbabwe', { plan: activePlan, design: selectedDesign, analysis, buildingType: latestBuildingType ?? 'residential' })
         const structural = computeStructuralPreDesign(graph)
         const mep = computeMepPreDesign(graph)
         const habitableCount = activePlan.rooms.filter(r => !['hallway', 'landing', 'foyer', 'entry', 'circulation', 'storage', 'pantry', 'laundry', 'balcony', 'porch', 'garage'].includes(r.name.toLowerCase())).length
-        setBackgroundIntel({
+        setComputedIntel({
           compliance,
           structural: { beams: structural.beams.length, columns: structural.columns.length, footings: structural.footings.length },
           mep: { fixtures: mep.plumbing.fixtures.length, points: mep.electrical.points.length, hvacUnits: mep.hvac.units.length },
@@ -230,7 +258,7 @@ export function Dashboard() {
           loading: false,
         })
       } catch {
-        setBackgroundIntel(prev => ({ ...prev, loading: false }))
+        setComputedIntel(prev => prev ? { ...prev, loading: false } : { ...EMPTY_BACKGROUND_INTEL, loading: false })
       }
     }
     run()
@@ -278,12 +306,10 @@ export function Dashboard() {
     if (loadedCadRef.current === selectedDesign.id) return;
     loadedCadRef.current = selectedDesign.id;
 
-    loadPlanModel(id, selectedDesign.id).then((plan) => {
+    loadPlanModel(id, selectedDesign.id).then(async (plan) => {
       setPersistedPlan(plan ?? null);
-      const syncMeta = buildCadSyncMetadata(
-        !!plan,
-        false,
-      );
+      const { buildCadSyncMetadata } = await import('@/adapters/cadToDesignSyncAdapter')
+      const syncMeta = buildCadSyncMetadata(!!plan, false);
       setCadSyncSource(syncMeta.source);
     });
     loadPlanModelMeta(id, selectedDesign.id).then((meta) => {
@@ -412,6 +438,7 @@ export function Dashboard() {
   }
 
   const handleImportFile = useCallback(async (file: File) => {
+    const { routeImportFile } = await import('@/lib/import/importRouter')
     const result = routeImportFile(file)
     if (result.type === 'dxf') {
       try {
@@ -503,6 +530,51 @@ export function Dashboard() {
     setActiveView(3);
     showStatus('DXF imported — verify scale', 'success');
   }, [id, setSelectedDesignId, setActiveView]);
+
+  const handlePipelineGenerate = async () => {
+    if (!id) return;
+    setIsPipelineRunning(true);
+    setPipelineStatus('Parsing brief...');
+    try {
+      const brief = (await import('@/stores/projectStore')).useProjectStore.getState().currentBrief
+      const text = brief?.rawText || ''
+      setPipelineStatus('Running generative design pipeline...');
+      const { runPipeline: execPipeline } = await import('@/engine/pipeline/generativeDesignPipeline')
+      const result = await execPipeline({
+        rawBriefText: text,
+        projectName: currentProject?.name,
+        siteWidthM: 15,
+        siteDepthM: 20,
+      })
+      if (result.success && result.planModel && result.designOption) {
+        setPipelineStatus('Adding pipeline result...');
+        const pipelineDesign: DesignOption = {
+          ...result.designOption,
+          id: `pipeline-${Date.now()}`,
+          name: result.designOption.name || 'Pipeline Design',
+          grossFloorArea: result.designOption.grossFloorArea || result.planModel.width * result.planModel.height,
+          buildingType: result.designOption.buildingType || buildingType,
+        }
+        setAiDesignOptions((prev) => [...prev, pipelineDesign])
+        setSelectedDesignId(pipelineDesign.id)
+        if (result.planModel) {
+          savePlanModel(id, pipelineDesign.id, result.planModel)
+        }
+        logTransaction(id, 'AI_GENERATE', 'design', pipelineDesign.id, 'Pipeline-generated design option')
+        setPipelineResult(result)
+        showStatus('Pipeline design generated successfully', 'success')
+      } else {
+        setPipelineResult(result)
+        const msg = result.errors.join('; ') || 'Pipeline produced no valid design'
+        showStatus(msg, 'error')
+      }
+    } catch {
+      showStatus('Pipeline generation failed', 'error')
+    } finally {
+      setIsPipelineRunning(false);
+      setPipelineStatus(null);
+    }
+  };
 
   const handleGenerate = async () => {
     if (!id) return;
@@ -622,7 +694,7 @@ export function Dashboard() {
       }
     }
     return status
-  }, [activeStageId, disciplineStageIds, visibleDesignOptions.length, selectedDesignId, selectedDesign])
+  }, [activeStageId, disciplineStageIds, visibleDesignOptions.length, selectedDesignId])
 
   if (isLoading) {
     return (
@@ -751,6 +823,10 @@ export function Dashboard() {
                       onImportFile={handleImportFile}
                       activePlan={activePlan}
                       projectId={id ?? null}
+                      isPipelineRunning={isPipelineRunning}
+                      onRunPipeline={handlePipelineGenerate}
+                      pipelineStatus={pipelineStatus}
+                      pipelineResult={pipelineResult}
                     />
                   </Suspense>
                 )}
@@ -967,14 +1043,16 @@ export function Dashboard() {
                 ✕
               </button>
             </div>
-            <ImportWorkflow
-              projectId={id}
-              onComplete={() => {
-                setImportWorkflowOpen(false);
-                showStatus('Import completed — review the resulting plan', 'success');
-              }}
-              onCancel={() => setImportWorkflowOpen(false)}
-            />
+            <Suspense fallback={<PageLoader />}>
+              <LazyImportWorkflow
+                projectId={id}
+                onComplete={() => {
+                  setImportWorkflowOpen(false);
+                  showStatus('Import completed — review the resulting plan', 'success');
+                }}
+                onCancel={() => setImportWorkflowOpen(false)}
+              />
+            </Suspense>
           </div>
         </div>
       )}

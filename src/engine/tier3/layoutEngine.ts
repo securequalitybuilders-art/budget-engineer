@@ -233,8 +233,8 @@ function generateRectangle(program: ProgramItem[], siteW: number, siteD: number,
   const usedH = corridorH
   const roomTotalArea = nonCorridors.reduce((s, r) => s + r.area, 0)
 
-  let frontD = 3
-  let backD = 3
+  let frontD: number
+  let backD: number
 
   if (chassis?.rectangle) {
     frontD = chassis.rectangle.frontD
@@ -1194,12 +1194,12 @@ export function generateFloorPlans(
           break
       }
       if (hasOverlaps(plan!.rooms)) {
-        console.warn(`[Tier 3] ${topology} had overlaps — using fallback`)
+        if (import.meta.env.DEV) console.warn(`[Tier 3] ${topology} had overlaps — using fallback`)
         plan = generateRectangle(program, Math.max(siteWidth, 30), Math.max(siteDepth, 30), minRoomDimensions)
         plan = { ...plan, topology, name: `Fallback Rectangle (${topology} degrade)` }
       }
     } catch (err) {
-      console.warn(`[Tier 3] ${topology} error: ${err instanceof Error ? err.message : 'unknown'} — using fallback`)
+      if (import.meta.env.DEV) console.warn(`[Tier 3] ${topology} error: ${err instanceof Error ? err.message : 'unknown'} — using fallback`)
       plan = generateRectangle(program, Math.max(siteWidth, 30), Math.max(siteDepth, 30), minRoomDimensions)
       plan = { ...plan, topology, name: `Fallback Rectangle (${topology} degrade)` }
     }

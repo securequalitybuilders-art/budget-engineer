@@ -187,6 +187,7 @@ export function renderSectionSheet(
   for (const wall of cutWalls) {
     const wl = Math.hypot(wall.end.x - wall.start.x, wall.end.y - wall.start.y)
     if (wl < 0.01) continue
+    if (Math.abs(wall.end.y - wall.start.y) < 0.001) continue
     const t = wl > 0 ? (cutY - wall.start.y) / (wall.end.y - wall.start.y) : 0
     const cx = wall.start.x + (wall.end.x - wall.start.x) * t
     const wallThk = wall.thickness || plan.wallThickness || FALLBACK_WALL_THICKNESS

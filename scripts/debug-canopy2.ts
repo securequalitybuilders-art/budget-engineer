@@ -23,7 +23,7 @@ const rects = [...svg.matchAll(/<rect\s+x="([\d.]+)"\s+y="([\d.]+)"\s+width="([\
 const entryX = 183.6
 const canopyY = 121.2
 for (const r of rects) {
-  const x = parseFloat(r[1]), y = parseFloat(r[2]), w = parseFloat(r[3]), h = parseFloat(r[4])
+  const x = parseFloat(r[1]), y = parseFloat(r[2])
   if (Math.abs(y - canopyY) < 2 || Math.abs(x - entryX) < 30) {
     console.log(`nearby rect: x=${r[1]} y=${r[2]} w=${r[3]} h=${r[4]}`)
   }

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { useAssuranceStore } from '@/stores/assuranceStore';
 import { useMilestoneStore } from '@/stores/milestoneStore';
 import { useProcurementStore } from '@/stores/procurementStore';
@@ -18,44 +19,49 @@ interface ProjectLifecycleDashboardProps {
 }
 
 export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboardProps) {
-  const assuranceStore = useAssuranceStore();
-  const milestoneStore = useMilestoneStore();
-  const procurementStore = useProcurementStore();
-  const handoverStore = useHandoverStore();
-  const controlsStore = useProjectControlsStore();
-  const changeStore = useChangeStore();
+  const intakes = useAssuranceStore((s) => s.intakes);
+  const feasibilityAssessments = useAssuranceStore((s) => s.feasibilityAssessments);
+  const riskGates = useAssuranceStore((s) => s.riskGates);
+  const riskRegister = useAssuranceStore((s) => s.riskRegister);
+  const solvencyChecks = useAssuranceStore((s) => s.solvencyChecks);
+  const milestones = useMilestoneStore((s) => s.milestones);
+  const requests = useProcurementStore((s) => s.requests);
+  const purchaseOrdersFull = useProcurementStore(useShallow(s => s.purchaseOrders.map(po => ({ status: po.status, totalCents: po.totalCents }))));
+  const completionStages = useHandoverStore((s) => s.completionStages);
+  const snagLists = useHandoverStore((s) => s.snagLists);
+  const handoverPackagesStatus = useHandoverStore(useShallow(s => s.handoverPackages.map(p => ({ status: p.status }))));
+  const assetRegister = useHandoverStore((s) => s.assetRegister);
+  const warrantyRecordsStatus = useHandoverStore(useShallow(s => s.warrantyRecords.map(w => ({ status: w.status }))));
+  const snapshots = useProjectControlsStore((s) => s.snapshots);
+  const ncrs = useChangeStore((s) => s.ncrs);
+  const rfis = useChangeStore((s) => s.rfis);
+  const snagItems = useChangeStore((s) => s.snagItems);
 
   const readiness = useMemo(() => computeProjectReadiness({
-    intakes: assuranceStore.intakes,
-    feasibilityAssessments: assuranceStore.feasibilityAssessments,
-    riskGates: assuranceStore.riskGates,
-    riskRegister: assuranceStore.riskRegister,
-    solvencyChecks: assuranceStore.solvencyChecks,
-  }), [assuranceStore]);
+    intakes, feasibilityAssessments, riskGates, riskRegister, solvencyChecks,
+  }), [intakes, feasibilityAssessments, riskGates, riskRegister, solvencyChecks]);
 
-  const milestoneSummary = useMemo(() => computeMilestoneLifecycleSummary(milestoneStore.milestones), [milestoneStore.milestones]);
+  const milestoneSummary = useMemo(() => computeMilestoneLifecycleSummary(milestones), [milestones]);
 
   const procurementSummary = useMemo(() => computeProcurementLifecycleSummary({
-    requests: procurementStore.requests,
-    purchaseOrders: procurementStore.purchaseOrders.map(po => ({ status: po.status, totalCents: po.totalCents })),
-  }), [procurementStore.requests, procurementStore.purchaseOrders]);
+    requests,
+    purchaseOrders: purchaseOrdersFull,
+  }), [requests, purchaseOrdersFull]);
 
   const handoverSummary = useMemo(() => computeHandoverLifecycleSummary({
-    completionStages: handoverStore.completionStages,
-    snagLists: handoverStore.snagLists,
-    handoverPackages: handoverStore.handoverPackages.map(p => ({ status: p.status })),
-    assetRegister: handoverStore.assetRegister,
-    warrantyRecords: handoverStore.warrantyRecords.map(w => ({ status: w.status })),
-  }), [handoverStore]);
+    completionStages,
+    snagLists,
+    handoverPackages: handoverPackagesStatus,
+    assetRegister,
+    warrantyRecords: warrantyRecordsStatus,
+  }), [completionStages, snagLists, handoverPackagesStatus, assetRegister, warrantyRecordsStatus]);
 
   const health = useMemo(() => computeProjectHealthSummary({
     readiness,
     milestoneSummary,
-    controlsSnapshot: controlsStore.snapshots[0] ?? null,
-    ncrs: changeStore.ncrs,
-    rfis: changeStore.rfis,
-    snags: changeStore.snagItems,
-  }), [readiness, milestoneSummary, controlsStore.snapshots, changeStore.ncrs, changeStore.rfis, changeStore.snagItems]);
+    controlsSnapshot: snapshots[0] ?? null,
+    ncrs, rfis, snags: snagItems,
+  }), [readiness, milestoneSummary, snapshots, ncrs, rfis, snagItems]);
 
   const lifecycle = useMemo(() => computeProjectLifecycleSummary({
     readiness,
@@ -63,9 +69,9 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
     procurementSummary,
     handoverSummary,
     health,
-    solvencyChecks: assuranceStore.solvencyChecks,
+    solvencyChecks,
     projectId,
-  }), [readiness, milestoneSummary, procurementSummary, handoverSummary, health, assuranceStore.solvencyChecks, projectId]);
+  }), [readiness, milestoneSummary, procurementSummary, handoverSummary, health, solvencyChecks, projectId]);
 
   const healthColor = lifecycle.health.health === 'on-track' ? 'text-green-400' :
     lifecycle.health.health === 'critical' ? 'text-red-400' :

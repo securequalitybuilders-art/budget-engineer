@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { useProjectControlsStore } from '@/stores/projectControlsStore';
 import { useMilestoneStore } from '@/stores/milestoneStore';
 import { computeMilestoneLifecycleSummary } from '@/lib/lifecycle/lifecycleSummary';
 import { EmptyState } from '@/components/lifecycle/EmptyState';
 import { NextStepHint } from '@/components/lifecycle/NextStepHint';
-import { CrossStudioLinks, buildStudioLink } from '@/components/lifecycle/CrossStudioLinks';
+import { CrossStudioLinks } from '@/components/lifecycle/CrossStudioLinks';
+import { buildStudioLink } from '@/lib/lifecycle/studioLinks';
 import {
   BarChart3,
   AlertTriangle,
@@ -27,7 +29,7 @@ type TabId = 'overview' | 'alerts';
 
 export function ProjectControlsDashboard({ projectId }: ProjectControlsDashboardProps) {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
-  const { baselines, snapshots } = useProjectControlsStore();
+  const { baselines, snapshots } = useProjectControlsStore(useShallow(s => ({ baselines: s.baselines, snapshots: s.snapshots })));
   const milestones = useMilestoneStore((s) => s.milestones);
   const latestSnapshot = snapshots[0];
   const hasData = baselines.length > 0 || snapshots.length > 0;

@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { generateBriefText } from '@/components/ai/EnhancedBriefPanel'
+import { generateBriefText } from '@/lib/ai/briefQuestionnaire'
 
 describe('generateBriefText', () => {
   it('generates text containing bedroom count', () => {
     const text = generateBriefText({
-      buildingType: 'house-residential', siteWidth: 30, siteDepth: 25,
+      buildingType: 'house-residential', lat: -17.8, lng: 31.0, siteWidth: 30, siteDepth: 25,
       bedrooms: 3, bathrooms: 2, livingAreas: 1,
       kitchen: true, garage: false, verandah: false, store: false,
       style: 'modern', roof: 'gable', floors: 1,
@@ -16,7 +16,7 @@ describe('generateBriefText', () => {
 
   it('includes building type and site dimensions', () => {
     const text = generateBriefText({
-      buildingType: 'clinic-health', siteWidth: 40, siteDepth: 30,
+      buildingType: 'clinic-health', lat: -17.8, lng: 31.0, siteWidth: 40, siteDepth: 30,
       bedrooms: 2, bathrooms: 2, livingAreas: 1,
       kitchen: true, garage: false, verandah: false, store: true,
       style: 'modern', roof: 'flat', floors: 2,
@@ -35,7 +35,7 @@ describe('generateBriefText', () => {
 
   it('includes optional features only when enabled', () => {
     const full = generateBriefText({
-      buildingType: 'house-residential', siteWidth: 20, siteDepth: 20,
+      buildingType: 'house-residential', lat: -17.8, lng: 31.0, siteWidth: 20, siteDepth: 20,
       bedrooms: 2, bathrooms: 1, livingAreas: 1,
       kitchen: true, garage: true, verandah: true, store: true,
       style: 'vernacular', roof: 'hip', floors: 1,
@@ -48,7 +48,7 @@ describe('generateBriefText', () => {
     expect(full).toContain('borehole')
 
     const minimal = generateBriefText({
-      buildingType: 'apartment-multi', siteWidth: 25, siteDepth: 20,
+      buildingType: 'apartment-multi', lat: -17.8, lng: 31.0, siteWidth: 25, siteDepth: 20,
       bedrooms: 1, bathrooms: 1, livingAreas: 0,
       kitchen: false, garage: false, verandah: false, store: false,
       style: 'contemporary', roof: 'flat', floors: 3,

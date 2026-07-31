@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { createElement, useCallback } from 'react';
 import {
   Building2,
   Triangle,
@@ -39,7 +39,6 @@ interface DisciplineButtonProps {
 
 function DisciplineButton({ id, active, visible, onSelect, onToggleVisibility }: DisciplineButtonProps) {
   const d = getDiscipline(id);
-  const Icon = resolveIcon(d.icon);
 
   return (
     <button
@@ -61,7 +60,7 @@ function DisciplineButton({ id, active, visible, onSelect, onToggleVisibility }:
         className="flex h-6 w-6 items-center justify-center rounded"
         style={{ backgroundColor: `${d.color}1A`, color: d.color }}
       >
-        <Icon size={14} />
+        {createElement(resolveIcon(d.icon), { size: 14 })}
       </span>
       <span className="flex-1 truncate">{d.shortLabel}</span>
       {!visible && (
@@ -91,11 +90,10 @@ export function DisciplineSwitcher({ className = '', compact = false }: Discipli
 
   if (compact) {
     const d = getDiscipline(currentDiscipline);
-    const Icon = resolveIcon(d.icon);
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <span className="flex h-6 w-6 items-center justify-center rounded" style={{ backgroundColor: `${d.color}1A`, color: d.color }}>
-          <Icon size={14} />
+          {createElement(resolveIcon(d.icon), { size: 14 })}
         </span>
         <select
           value={currentDiscipline}

@@ -233,16 +233,14 @@ export function useGlbExport() {
       const blob = new Blob([glb], { type: 'model/gltf-binary' })
       const url = URL.createObjectURL(blob)
       urlRef.current = url
-      try { if (mountedRef.current) { setGlbUrl(url); setIsExporting(false) } } catch {}
+      if (mountedRef.current) { setGlbUrl(url); setIsExporting(false) }
       return url
     } catch (err) {
-      try {
-        if (mountedRef.current) {
-          const msg = err instanceof Error ? err.message : 'GLB generation failed'
-          setError(msg)
-          setIsExporting(false)
-        }
-      } catch {}
+      if (mountedRef.current) {
+        const msg = err instanceof Error ? err.message : 'GLB generation failed'
+        setError(msg)
+        setIsExporting(false)
+      }
       return null
     }
   }, [])

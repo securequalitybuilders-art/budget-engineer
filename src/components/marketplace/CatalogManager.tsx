@@ -50,29 +50,29 @@ export default function CatalogManager({ providerId }: { providerId: string }) {
   const [expandedDesc, setExpandedDesc] = useState<string | null>(null);
   const [item, setItem] = useState({ name: '', category: 'material' as typeof CATEGORIES[number], subcategory: '', description: '', unit: '', unitPrice: 0, minOrder: 1, leadTimeDays: 7, stockQuantity: 0, tags: '', specifications: '' });
 
-  if (!provider) return <div className="text-stone-400 p-12 text-center">Select a provider to manage their catalog</div>;
-
-  const allCategories = [...CATEGORIES, ...customCategories.filter(c => !CATEGORIES.includes(c as any))];
+  const allCategories = [...CATEGORIES, ...customCategories.filter(c => !CATEGORIES.includes(c as typeof CATEGORIES[number]))];
 
   const filteredItems = useMemo(() => {
-    let items = [...provider.catalog];
+    let items = [...(provider?.catalog ?? [])];
     if (search) { const q = search.toLowerCase(); items = items.filter(i => i.name.toLowerCase().includes(q) || i.description.toLowerCase().includes(q) || i.tags.some(t => t.toLowerCase().includes(q)) || i.subcategory.toLowerCase().includes(q)); }
     if (filterCat !== 'all') items = items.filter(i => i.category === filterCat);
     items.sort((a, b) => sortBy === 'name' ? a.name.localeCompare(b.name) : sortBy === 'price' ? a.unitPrice - b.unitPrice : sortBy === 'stock' ? (a.stockQuantity ?? 0) - (b.stockQuantity ?? 0) : a.leadTimeDays - b.leadTimeDays);
     return items;
-  }, [provider.catalog, search, filterCat, sortBy]);
+  }, [provider?.catalog, search, filterCat, sortBy]);
 
   const priceHistories = useMemo(() => {
     const map = new Map<string, { history: { date: string; price: number }[]; trend: ReturnType<typeof calculateTrend> }>();
-    for (const item of provider.catalog) {
+    for (const item of provider?.catalog ?? []) {
       const history = generatePriceHistory(item.unitPrice);
       map.set(item.id, { history, trend: calculateTrend(history) });
     }
     return map;
-  }, [provider.catalog]);
+  }, [provider?.catalog]);
 
-  const lowStockItems = useMemo(() => provider.catalog.filter(i => i.stockQuantity !== undefined && i.stockQuantity <= lowStockThreshold), [provider.catalog, lowStockThreshold]);
-  const outOfStockItems = useMemo(() => provider.catalog.filter(i => i.stockQuantity !== undefined && i.stockQuantity <= 0), [provider.catalog]);
+  const lowStockItems = useMemo(() => (provider?.catalog ?? []).filter(i => i.stockQuantity !== undefined && i.stockQuantity <= lowStockThreshold), [provider?.catalog, lowStockThreshold]);
+  const outOfStockItems = useMemo(() => (provider?.catalog ?? []).filter(i => i.stockQuantity !== undefined && i.stockQuantity <= 0), [provider?.catalog]);
+
+  if (!provider) return <div className="text-stone-400 p-12 text-center">Select a provider to manage their catalog</div>;
 
   const resetForm = () => setItem({ name: '', category: 'material', subcategory: '', description: '', unit: '', unitPrice: 0, minOrder: 1, leadTimeDays: 7, stockQuantity: 0, tags: '', specifications: '' });
 
@@ -176,7 +176,7 @@ export default function CatalogManager({ providerId }: { providerId: string }) {
             <button key={c.key} onClick={() => setFilterCat(c.key)} className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${filterCat === c.key ? 'bg-stone-800 text-stone-200' : 'text-stone-400 hover:text-stone-300'}`}>{c.label}</button>
           ))}
         </div>
-        <select value={sortBy} onChange={e => setSortBy(e.target.value as any)} className="bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-xs text-stone-400 outline-none"><option value="name">Name</option><option value="price">Price</option><option value="lead">Lead Time</option><option value="stock">Stock</option></select>
+        <select value={sortBy} onChange={e => setSortBy(e.target.value as 'name' | 'price' | 'lead' | 'stock')} className="bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-xs text-stone-400 outline-none"><option value="name">Name</option><option value="price">Price</option><option value="lead">Lead Time</option><option value="stock">Stock</option></select>
       </div>
 
       {showForm && (
@@ -184,7 +184,7 @@ export default function CatalogManager({ providerId }: { providerId: string }) {
           <div className="flex items-center justify-between"><h4 className="text-sm font-semibold text-stone-300">{editingId ? 'Edit Item' : 'New Catalog Item'}</h4><button onClick={() => { setShowForm(false); setEditingId(null); resetForm(); }} aria-label="Close item form" className="text-stone-400 hover:text-stone-300"><X size={16} /></button></div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="col-span-2"><label className="text-xs text-stone-400">Item Name *</label><input value={item.name} onChange={e => setItem(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Portland Cement 32.5N" className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none focus:border-cyan-500/50" /></div>
-            <div><label className="text-xs text-stone-400">Category</label><select value={item.category} onChange={e => { setItem(f => ({ ...f, category: e.target.value as any, subcategory: '' })); }} className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none">{allCategories.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c] ?? c}</option>)}</select></div>
+            <div><label className="text-xs text-stone-400">Category</label><select value={item.category} onChange={e => { setItem(f => ({ ...f, category: e.target.value as typeof CATEGORIES[number], subcategory: '' })); }} className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none">{allCategories.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c] ?? c}</option>)}</select></div>
             <div><label className="text-xs text-stone-400">Subcategory</label><select value={item.subcategory} onChange={e => setItem(f => ({ ...f, subcategory: e.target.value }))} className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none"><option value="">Select</option>{(SUBCATEGORY_OPTIONS[item.category] ?? []).map(s => <option key={s} value={s}>{s}</option>)}</select></div>
             <div><label className="text-xs text-stone-400">Unit *</label><input value={item.unit} onChange={e => setItem(f => ({ ...f, unit: e.target.value }))} placeholder="m², ton, each" className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none" /></div>
             <div><label className="text-xs text-stone-400">Unit Price (USD)</label><input value={item.unitPrice || ''} onChange={e => setItem(f => ({ ...f, unitPrice: parseFloat(e.target.value) || 0 }))} type="number" min="0" step="0.01" className="w-full mt-1 bg-stone-900 border border-stone-800 rounded px-3 py-2 text-sm text-stone-200 outline-none" /></div>

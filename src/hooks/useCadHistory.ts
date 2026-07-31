@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type { CadDocument } from '../domain/cad'
 
 export function useCadHistory(initial: CadDocument | null) {
@@ -9,33 +9,33 @@ export function useCadHistory(initial: CadDocument | null) {
   const canUndo = past.length > 0
   const canRedo = future.length > 0
 
-  const commit = (next: CadDocument) => {
+  const commit = useCallback((next: CadDocument) => {
     setPast((items) => (present ? [...items, present].slice(-60) : items))
     setPresent(next)
     setFuture([])
-  }
+  }, [present])
 
-  const undo = () => {
+  const undo = useCallback(() => {
     if (!present || !past.length) return
     const previous = past[past.length - 1]
     setPast((items) => items.slice(0, -1))
     setFuture((items) => [present, ...items].slice(0, 60))
     setPresent(previous)
-  }
+  }, [past, present])
 
-  const redo = () => {
+  const redo = useCallback(() => {
     if (!present || !future.length) return
     const next = future[0]
     setPast((items) => [...items, present].slice(-60))
     setFuture((items) => items.slice(1))
     setPresent(next)
-  }
+  }, [future, present])
 
-  const resetTo = (next: CadDocument | null) => {
+  const resetTo = useCallback((next: CadDocument | null) => {
     setPast([])
     setFuture([])
     setPresent(next)
-  }
+  }, [])
 
-  return useMemo(() => ({ present, commit, undo, redo, canUndo, canRedo, resetTo }), [present, canUndo, canRedo])
+  return useMemo(() => ({ present, commit, undo, redo, canUndo, canRedo, resetTo }), [present, commit, undo, redo, canUndo, canRedo, resetTo])
 }

@@ -108,7 +108,7 @@ export function runCodeReview(input: CodeReviewInput): CodeReviewResult {
   // 2. Egress
   const needsTwo = occLoad > 49
   const hasTwo = exits >= 2
-  let egressState: CheckState = 'pass'
+  let egressState: CheckState
   if (needsTwo && !hasTwo) egressState = 'fail'
   else if (!needsTwo && occLoad > 0) egressState = 'pass'
   else egressState = 'info'

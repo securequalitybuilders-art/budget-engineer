@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useProcurementStore } from '@/stores/procurementStore';
 import { useMilestoneStore } from '@/stores/milestoneStore';
 import { useAssuranceStore } from '@/stores/assuranceStore';
@@ -6,7 +7,8 @@ import { enrichProcurementWithBOQLinks, type LinkedBOQInfo } from '@/lib/lifecyc
 import { computeProcurementLifecycleSummary, computeBlockingDependencies } from '@/lib/lifecycle/lifecycleSummary';
 import { EmptyState } from '@/components/lifecycle/EmptyState';
 import { NextStepHint } from '@/components/lifecycle/NextStepHint';
-import { CrossStudioLinks, buildStudioLink } from '@/components/lifecycle/CrossStudioLinks';
+import { CrossStudioLinks } from '@/components/lifecycle/CrossStudioLinks';
+import { buildStudioLink } from '@/lib/lifecycle/studioLinks';
 import { StatusTransitionGuide } from '@/components/lifecycle/StatusTransitionGuide';
 import { ClipboardList, ShoppingCart, Truck, Link, ArrowRight, AlertTriangle } from 'lucide-react';
 
@@ -41,17 +43,22 @@ const STATUS_COLORS: Record<string, string> = {
 
 export function ProcurementPanel({ projectId }: ProcurementPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('requests');
-  const { requests, purchaseOrders, deliveryRecords } = useProcurementStore();
+  const { requests, purchaseOrders, deliveryRecords } = useProcurementStore(useShallow(s => ({ requests: s.requests, purchaseOrders: s.purchaseOrders, deliveryRecords: s.deliveryRecords })));
   const milestones = useMilestoneStore((s) => s.milestones);
-  const assuranceStore = useAssuranceStore();
+  const solvencyChecks = useAssuranceStore((s) => s.solvencyChecks);
   const [boqEnrichment, setBoqEnrichment] = useState<Map<string, LinkedBOQInfo>>(new Map());
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     if (requests.length > 0) {
       enrichProcurementWithBOQLinks(requests).then((enriched) => {
-        setBoqEnrichment(new Map(enriched.map((r) => [r.id, r.linkedBOQInfo])));
+        if (mountedRef.current) {
+          setBoqEnrichment(new Map(enriched.map((r) => [r.id, r.linkedBOQInfo])));
+        }
       });
     }
+    return () => { mountedRef.current = false; };
   }, [requests]);
 
   const hasData = requests.length > 0 || purchaseOrders.length > 0 || deliveryRecords.length > 0;
@@ -63,9 +70,9 @@ export function ProcurementPanel({ projectId }: ProcurementPanelProps) {
     milestoneSummary: { total: milestones.length, released: milestones.filter(m => m.releaseState === 'released').length, held: 0, rejected: 0, pending: 0, criticalDelayed: [], overallProgressPct: 0, byCategory: {} },
     procurementSummary: summary,
     handoverSummary: { completionStagesTotal: 0, completionStagesAchieved: 0, openSnagItems: 0, resolvedSnagItems: 0, packagesIssued: 0, packagesTotal: 0, assetsRegistered: 0, warrantiesActive: 0, isHandoverReady: false },
-    solvencyChecks: assuranceStore.solvencyChecks,
+    solvencyChecks,
     projectId,
-  }), [milestones, summary, assuranceStore.solvencyChecks, projectId]);
+  }), [milestones, summary, solvencyChecks, projectId]);
 
   const solvencyDeps = dependencies.filter(d => d.fromModule === 'assurance' && d.toModule === 'procurement');
 
@@ -216,8 +223,7 @@ export function ProcurementPanel({ projectId }: ProcurementPanelProps) {
                           {req.status === 'quotes-sought' || req.status === 'quotes-received' ? (
                             <div className="mt-1 flex items-center gap-1 text-[9px] text-amber-300">
                               <ArrowRight size={10} />
-                              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                              Quote{(req as any).quotes?.length ? ` comparison (${(req as any).quotes.length} received)` : 's being collected'}
+                              Quote{req.quotes?.length ? ` comparison (${req.quotes.length} received)` : 's being collected'}
                             </div>
                           ) : null}
                         </div>

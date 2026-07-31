@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { DesignOption } from '@/domain/boq'
 import type { BoqResult } from './designToBoq'
+import type jsPDF from 'jspdf'
 import { currencySymbol } from '@/lib/utils/currency'
 import { isValidPngDataUrl } from '@/lib/3d-snapshot'
 
@@ -68,7 +68,7 @@ function groupBoqItems(boq: BoqResult): CategoryGroup[] {
   return result
 }
 
-export function embedSnapshotInPdf(doc: any, snapshotDataUrl: string | undefined, y: number, margin: number, contentW: number): number {
+export function embedSnapshotInPdf(doc: jsPDF, snapshotDataUrl: string | undefined, y: number, margin: number, contentW: number): number {
   if (!snapshotDataUrl || !isValidPngDataUrl(snapshotDataUrl)) return y
   try {
     const imgW = contentW * 0.7
@@ -101,7 +101,7 @@ export async function generatePdfReport(
   const pageW = 210
   const margin = 14
   const contentW = pageW - margin * 2
-  let y = margin
+  let y = 36
 
   const projectName = design.name || 'Project'
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -116,8 +116,6 @@ export async function generatePdfReport(
   doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
   doc.text(`Generated: ${today}`, margin, 20)
-
-  y = 36
 
   // ── Project info ──
   doc.setTextColor(30, 41, 82)
@@ -261,7 +259,7 @@ export async function generatePdfReport(
         2: { cellWidth: 26, halign: 'right' },
         3: { cellWidth: 28, halign: 'right' },
       },
-      didParseCell: (data: any) => {
+      didParseCell: (data) => {
         if (data.section === 'head') return
         const ri = data.row.index
         const totalRows = body.length
@@ -271,7 +269,7 @@ export async function generatePdfReport(
       },
     })
 
-    y = (doc as any).lastAutoTable?.finalY ?? y + 4
+    y = doc.lastAutoTable?.finalY ?? y + 4
   }
 
   // ── Grand total section ──
@@ -308,7 +306,7 @@ export async function generatePdfReport(
       0: { cellWidth: 'auto' },
       1: { cellWidth: 32, halign: 'right' },
     },
-    didParseCell: (data: any) => {
+    didParseCell: (data) => {
       const ri = data.row.index
       const totalRows = totalsRows.length
       if (ri === totalRows - 1) {
@@ -316,8 +314,6 @@ export async function generatePdfReport(
       }
     },
   })
-
-  y = ((doc as any).lastAutoTable?.finalY ?? y) + 10
 
   // ── Footer with page numbers ──
   const pageCount = doc.getNumberOfPages()

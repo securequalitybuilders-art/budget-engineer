@@ -208,8 +208,7 @@ describe('buildCashflowCsv', () => {
   it('handles special characters in labels', () => {
     const tasks = makeSimpleTasks(3)
     const cf = computeCashflow(tasks, 40)
-    const csv = buildCashflowCsv(cf, 'USD')
-    expect(csv).not.toThrow
+    expect(() => buildCashflowCsv(cf, 'USD')).not.toThrow()
   })
 
   it('CSV header uses Start Date / End Date columns', () => {

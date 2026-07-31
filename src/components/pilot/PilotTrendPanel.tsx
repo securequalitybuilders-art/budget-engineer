@@ -2,6 +2,7 @@ import { useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { useShallow } from 'zustand/react/shallow';
 import { usePilotFeedbackStore } from '@/stores/pilotFeedbackStore';
 import { buildTrendData, buildSessionSnapshot } from '@/lib/pilot/pilotTrendAnalysis';
 import type { SessionSnapshot } from '@/lib/pilot/pilotTrendAnalysis';
@@ -10,7 +11,10 @@ import { DOMAIN_LABELS } from '@/lib/pilot/pilotFeedbackModel';
 import { AlertTriangle, TrendingUp, BarChart3, FileText, Layers, GitCompare } from 'lucide-react';
 
 export function PilotTrendPanel() {
-  const store = usePilotFeedbackStore();
+  const store = usePilotFeedbackStore(useShallow(s => ({
+    getAllSessions: s.getAllSessions,
+    getAllObservations: s.getAllObservations,
+  })));
   const allSessions = useMemo(() => store.getAllSessions(), [store]);
   const allObservations = useMemo(() => store.getAllObservations(), [store]);
 
@@ -284,7 +288,6 @@ function SessionTimelineRow({ snapshot }: { snapshot: SessionSnapshot }) {
           snapshot.readinessTier === 'internal-only' ? 'bg-amber-500' :
           snapshot.status === 'closed' ? 'bg-gray-500' : 'bg-blue-500'
         }`} />
-        {false && <div className="w-0.5 h-8 bg-[var(--border-default)]" />}
       </div>
       <div className="flex-1 pb-3">
         <div className="flex items-center justify-between">

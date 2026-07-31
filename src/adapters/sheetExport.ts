@@ -69,8 +69,7 @@ export async function exportSheetPdf(svgEl: SVGSVGElement): Promise<void> {
   const dataUrl = await svgToDataUrl(svgEl, 1.5)
   if (!dataUrl) throw new Error('Failed to render PNG for PDF')
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let jsPdfModule: any
+  let jsPdfModule: typeof import('jspdf') | undefined
   try {
     jsPdfModule = await import('jspdf')
   } catch {
@@ -100,6 +99,6 @@ export async function exportSheetPdf(svgEl: SVGSVGElement): Promise<void> {
     doc.addImage(dataUrl, 'PNG', 0, 0, imgW, imgH)
     doc.save('presentation-sheet.pdf')
   } catch (e) {
-    throw new Error(`PDF generation failed: ${(e as Error).message}`)
+    throw new Error(`PDF generation failed: ${(e as Error).message}`, { cause: e })
   }
 }

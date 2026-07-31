@@ -3,6 +3,7 @@ import type { PlanModel, PlanSource, PlanningZoneMarker } from '../domain/plan'
 import { getRoomProgram } from './roomPrograms'
 import { isResidential } from './buildingTypes'
 import { generateLayoutByTypology, type FloorContext } from '../lib/layout/typology-router'
+import type { FloorLayoutResult } from '../lib/layout/typology-router'
 import { assemblePlan, getMinimumDimensions } from '../lib/geometry/plan-intelligence'
 import { listHouseTemplates } from '../lib/layout/layout-templates'
 
@@ -202,7 +203,7 @@ export function generatePlanModel(design: DesignOption): PlanModel {
   // Generate vertical chassis for multi-storey buildings
   const verticalWarnings: string[] = []
   let chassis = null
-  let structuralBridge = null
+  let structuralBridge: ReturnType<typeof computeStructuralBridge> | null
   if (floors > 1) {
     chassis = generateBuildingChassis({
       typology: buildingType,
@@ -260,7 +261,7 @@ export function generatePlanModel(design: DesignOption): PlanModel {
 
   if (floors <= 1) {
     // Single floor: retry with different seeds (→ different templates)
-    let bestLayout: { rooms: any[]; warnings?: string[]; entranceMarkers?: any[]; valid?: boolean } | null = null
+    let bestLayout: FloorLayoutResult | null = null
     let bestRejectedWarnings: string[] = []
 
     const templates = listHouseTemplates(footprint.width * footprint.height)
@@ -277,7 +278,7 @@ export function generatePlanModel(design: DesignOption): PlanModel {
       )
 
       const rawRooms = layoutResult.rooms
-      let rooms = rawRooms.map(r => ({
+      const rooms = rawRooms.map(r => ({
         id: r.id,
         name: r.name,
         x: snap05(r.x),
@@ -308,15 +309,13 @@ export function generatePlanModel(design: DesignOption): PlanModel {
       }
 
       if (!result.rejected && layoutResult.valid !== false) {
-        bestLayout = { rooms: layoutResult.rooms, warnings: layoutResult.warnings, entranceMarkers: layoutResult.entranceMarkers, valid: true }
-        bestRejectedWarnings = []
         const planModel = result.plan as PlanModel
         if (layoutResult.entranceMarkers && layoutResult.entranceMarkers.length > 0) {
           planModel.entranceMarkers = layoutResult.entranceMarkers
         }
         const allWarnings = [...result.warnings, ...verticalWarnings, ...(layoutResult.warnings || [])]
         if (allWarnings.length > 0) {
-          console.warn(`[plan-generator] ${allWarnings.length} warnings:`, allWarnings.slice(0, 8))
+          if (import.meta.env.DEV) console.warn(`[plan-generator] ${allWarnings.length} warnings:`, allWarnings.slice(0, 8))
         }
         return planModel
       }
@@ -329,7 +328,7 @@ export function generatePlanModel(design: DesignOption): PlanModel {
     }
 
     // All retries rejected — use best attempt anyway, log clearly
-    console.error(`[plan-generator] PLAN REJECTED after 3 retries: ${bestRejectedWarnings.filter(w => w.includes('LAYOUT_REJECTED') || w.includes('overlap detected')).join('; ')}`)
+    if (import.meta.env.DEV) console.error(`[plan-generator] PLAN REJECTED after 3 retries: ${bestRejectedWarnings.filter(w => w.includes('LAYOUT_REJECTED') || w.includes('overlap detected')).join('; ')}`)
     const bestRooms = (bestLayout?.rooms || []).map(r => ({
       id: r.id,
       name: r.name,
@@ -362,7 +361,7 @@ export function generatePlanModel(design: DesignOption): PlanModel {
       planModel.entranceMarkers = bestLayout.entranceMarkers
     }
     const allWarnings = [...fallbackResult.warnings, ...verticalWarnings, ...(bestLayout?.warnings || [])]
-    if (allWarnings.length > 0) {
+    if (allWarnings.length > 0 && import.meta.env.DEV) {
       console.warn(`[plan-generator] ${allWarnings.length} warnings (fallback):`, allWarnings.slice(0, 8))
     }
     return planModel
@@ -438,7 +437,6 @@ export function generatePlanModel(design: DesignOption): PlanModel {
       rawRooms = fallbackResult.rooms
       layoutWarnings = fallbackResult.warnings || []
       floorEntranceMarkers = fallbackResult.entranceMarkers || []
-      genSuccess = true
       verticalWarnings.push(`[Level ${fi}] fallback generation used after retries`)
     }
 
@@ -523,7 +521,7 @@ export function generatePlanModel(design: DesignOption): PlanModel {
   })
 
   const { plan, warnings, rejected } = result
-  if (rejected) {
+  if (rejected && import.meta.env.DEV) {
     console.error(`[plan-generator] PLAN REJECTED: ${warnings.map(w => w.includes('LAYOUT_REJECTED') || w.includes('overlap detected') ? w : '').filter(Boolean).join('; ')}`)
   }
 
@@ -538,7 +536,7 @@ export function generatePlanModel(design: DesignOption): PlanModel {
 
   const allWarnings = [...warnings, ...verticalWarnings]
   if (allWarnings.length > 0) {
-    console.warn(`[plan-generator] ${allWarnings.length} warnings:`, allWarnings.slice(0, 8))
+    if (import.meta.env.DEV) console.warn(`[plan-generator] ${allWarnings.length} warnings:`, allWarnings.slice(0, 8))
   }
 
   return planModel
@@ -593,7 +591,7 @@ export function generateVariedPlanModel(
   })
 
   const { plan, warnings, rejected } = result
-  if (rejected) {
+  if (rejected && import.meta.env.DEV) {
     console.error(`[plan-generator] generateVariedPlanModel PLAN REJECTED: ${warnings.filter(w => w.includes('LAYOUT_REJECTED') || w.includes('overlap detected')).join('; ')}`)
   }
 
@@ -611,7 +609,7 @@ export function generateVariedPlanModel(
   const planWarnings = layoutResult.warnings || []
   const allWarnings = [...warnings, ...planWarnings]
   if (allWarnings.length > 0) {
-    console.warn(`[plan-generator] generateVariedPlanModel: ${allWarnings.length} warnings:`, allWarnings.slice(0, 8))
+    if (import.meta.env.DEV) console.warn(`[plan-generator] generateVariedPlanModel: ${allWarnings.length} warnings:`, allWarnings.slice(0, 8))
   }
 
   return planWithSource

@@ -1,14 +1,11 @@
 import type { PlanModel, WallSegment } from '@/domain/plan'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let cvInstance: any = null
+let cvInstance: typeof cv | null = null
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function loadOpenCv(): Promise<any> {
+async function loadOpenCv(): Promise<typeof cv> {
   if (cvInstance) return cvInstance
   await import('@techstark/opencv-js')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  cvInstance = (window as any).cv
+  cvInstance = cv
   if (!cvInstance) throw new Error('OpenCV.js failed to load')
   return cvInstance
 }

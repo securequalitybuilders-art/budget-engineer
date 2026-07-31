@@ -4,9 +4,9 @@ import type { DesignOption } from '@/domain/boq'
 import { computePresentationLayout, type CellRect } from '@/components/drawings/presentationSheetModel'
 import { renderRoofPlan } from '@/components/drawings/roofPlanModel'
 import { renderCeilingPlan } from '@/components/drawings/ceilingPlanModel'
-import { renderFloorPlanSheet } from '@/components/drawings/planSheetModel'
-import { renderSitePlan } from '@/components/drawings/SitePlanView'
-import { renderFoundationPlan } from '@/components/drawings/FoundationPlanView'
+import { renderFloorPlanSheet } from '@/lib/drawings/planSheetRenderer'
+import { renderSitePlan } from '@/lib/drawings/sitePlanRenderer'
+import { renderFoundationPlan } from '@/lib/drawings/foundationPlanRenderer'
 import {
   resolveFrontElevation,
   resolveSideElevation,
@@ -259,6 +259,7 @@ function embedElevationDrawing(
 
   for (let li = 0; li < drawing.lines.length; li++) {
     const line = drawing.lines[li]
+    if (!isFinite(line.x1) || !isFinite(line.y1) || !isFinite(line.x2) || !isFinite(line.y2)) continue
     groupEls.push(
       <line key={`${cell.id}-l-${li}`} x1={line.x1} y1={line.y1} x2={line.x2} y2={line.y2} stroke={line.stroke || INK} strokeWidth={line.strokeWidth || CAD_THIN} />,
     )
@@ -275,6 +276,7 @@ function embedElevationDrawing(
 
   for (let pi = 0; pi < drawing.polygons.length; pi++) {
     const poly = drawing.polygons[pi]
+    if (poly.points.some(p => !isFinite(p.x) || !isFinite(p.y))) continue
     const pts = poly.points.map(p => `${p.x},${p.y}`).join(' ')
     groupEls.push(
       <polygon key={`poly-${pi}`} points={pts} fill={poly.fill || 'none'} stroke={poly.stroke || INK} strokeWidth={CAD_THIN} />,
@@ -282,6 +284,7 @@ function embedElevationDrawing(
   }
 
   for (const text of drawing.texts) {
+    if (!isFinite(text.x) || !isFinite(text.y)) continue
     groupEls.push(
       <text key={`t-${text.x}-${text.y}`} x={text.x} y={text.y} fontSize={text.fontSize || 4} fill={text.fill || INK} fontFamily="system-ui, sans-serif" textAnchor={(text.anchor || 'start') as 'start' | 'middle' | 'end'}>
         {text.text}

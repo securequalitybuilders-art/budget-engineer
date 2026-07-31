@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow';
 import { useUIStore } from '@/stores/uiStore';
 import { Button } from '@/components/ui/Button';
 import { X, Keyboard } from 'lucide-react';
@@ -17,7 +18,7 @@ const shortcuts = [
 ];
 
 export function ShortcutsHelp() {
-  const { shortcutsOpen, toggleShortcutsHelp } = useUIStore();
+  const { shortcutsOpen, toggleShortcutsHelp } = useUIStore(useShallow(s => ({ shortcutsOpen: s.shortcutsOpen, toggleShortcutsHelp: s.toggleShortcutsHelp })));
 
   if (!shortcutsOpen) return null;
 

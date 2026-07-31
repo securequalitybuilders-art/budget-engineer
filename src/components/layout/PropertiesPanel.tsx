@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow';
 import { useProjectStore } from '@/stores/projectStore';
 import { cn } from '@/lib/utils';
 
@@ -6,7 +7,7 @@ interface PropertiesPanelProps {
 }
 
 export function PropertiesPanel({ variant = 'sidebar' }: PropertiesPanelProps) {
-  const { currentProject, currentBrief } = useProjectStore();
+  const { currentProject, currentBrief } = useProjectStore(useShallow(s => ({ currentProject: s.currentProject, currentBrief: s.currentBrief })));
   const containerClass = variant === 'full'
     ? 'flex-1 overflow-y-auto bg-[var(--bg-secondary)] p-4'
     : 'w-80 flex-shrink-0 overflow-y-auto border-l border-[var(--border-default)] bg-[var(--bg-secondary)] p-4';

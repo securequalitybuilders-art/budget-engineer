@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { memo, useEffect, useMemo, useRef } from 'react'
 import type { DesignOption } from '../../domain/boq'
 import type { Opening, PlanModel, RoomRect, WallSegment } from '../../domain/plan'
 import type { PlacedBlock } from '../../domain/furniture'
@@ -133,11 +133,14 @@ export function PlanCanvas({
   )
 
   const modelRef = useRef(model)
-  modelRef.current = model
   const nudgeRoomRef = useRef(nudgeRoom)
-  nudgeRoomRef.current = nudgeRoom
   const nudgeOpeningRef = useRef(nudgeOpening)
-  nudgeOpeningRef.current = nudgeOpening
+
+  useEffect(() => {
+    modelRef.current = model
+    nudgeRoomRef.current = nudgeRoom
+    nudgeOpeningRef.current = nudgeOpening
+  }, [model, nudgeRoom, nudgeOpening])
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -185,7 +188,7 @@ export function PlanCanvas({
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [selectedRoomId, selectedOpeningId, deleteRoom, deleteOpening, snapStep, activeMode])
+  }, [selectedRoomId, selectedOpeningId, deleteRoom, deleteOpening, snapStep, activeMode, undo, redo])
 
   const activePointers = useRef<Map<number, { x: number; y: number }>>(new Map())
   const pinchState = useRef<{ active: boolean; prevP1: { x: number; y: number }; prevP2: { x: number; y: number } }>({
@@ -526,7 +529,7 @@ export function PlanCanvas({
               />
             ))}
 
-            {model.walls.map((wall) => renderWall(wall))}
+            {model.walls.map((wall) => <WallSegmentComp key={wall.id} wall={wall} />)}
             {model.openings.map((opening) => {
               const wall = model.walls.find((item) => item.id === opening.wallId)
               if (!wall) return null
@@ -640,7 +643,35 @@ function TimelinePanel({ timeline, onUndo, onRedo, activeMode }: {
   )
 }
 
-function EditableRoom({
+function renderHandle(cx: number, cy: number, cursor: string, roomId: string) {
+  return (
+    <g key={`handle-${roomId}-${cx}-${cy}`}>
+      <rect
+        x={cx - HANDLE_TOUCH / 2}
+        y={cy - HANDLE_TOUCH / 2}
+        width={HANDLE_TOUCH}
+        height={HANDLE_TOUCH}
+        rx={0.08}
+        fill="transparent"
+        cursor={cursor}
+        data-room-id={roomId}
+        data-resize="true"
+      />
+      <rect
+        x={cx - HANDLE_VISUAL / 2}
+        y={cy - HANDLE_VISUAL / 2}
+        width={HANDLE_VISUAL}
+        height={HANDLE_VISUAL}
+        rx={0.04}
+        fill="#67e8f9"
+        cursor={cursor}
+        pointerEvents="none"
+      />
+    </g>
+  )
+}
+
+const EditableRoom = memo(function EditableRoom({
   room,
   selected,
 }: {
@@ -687,37 +718,9 @@ function EditableRoom({
       )}
     </g>
   )
-}
+})
 
-function renderHandle(cx: number, cy: number, cursor: string, roomId: string) {
-  return (
-    <g>
-      <rect
-        x={cx - HANDLE_TOUCH / 2}
-        y={cy - HANDLE_TOUCH / 2}
-        width={HANDLE_TOUCH}
-        height={HANDLE_TOUCH}
-        rx={0.08}
-        fill="transparent"
-        cursor={cursor}
-        data-room-id={roomId}
-        data-resize="true"
-      />
-      <rect
-        x={cx - HANDLE_VISUAL / 2}
-        y={cy - HANDLE_VISUAL / 2}
-        width={HANDLE_VISUAL}
-        height={HANDLE_VISUAL}
-        rx={0.04}
-        fill="#67e8f9"
-        cursor={cursor}
-        pointerEvents="none"
-      />
-    </g>
-  )
-}
-
-function renderWall(wall: WallSegment) {
+const WallSegmentComp = memo(function WallSegmentComp({ wall }: { wall: WallSegment }) {
   const dx = wall.end.x - wall.start.x
   const dy = wall.end.y - wall.start.y
   const wl = Math.hypot(dx, dy)
@@ -728,18 +731,13 @@ function renderWall(wall: WallSegment) {
   const fillCol = isExt ? '#334155' : '#ffffff'
   const strokeCol = isExt ? '#475569' : '#94a3b8'
   return (
-    <g key={wall.id}>
-      <defs>
-        <pattern id={`hatch-ext-${wall.id}`} width="0.12" height="0.12" patternUnits="userSpaceOnUse" patternTransform={`rotate(${-angle * (180 / Math.PI)})`}>
-          <line x1="0" y1="0" x2="0.12" y2="0.12" stroke="#b0a090" strokeWidth={0.02} />
-        </pattern>
-      </defs>
+    <g>
       <rect
         x={wall.start.x}
         y={wall.start.y - thk / 2}
         width={wl}
         height={thk}
-        fill={isExt ? `url(#hatch-ext-${wall.id})` : fillCol}
+        fill={fillCol}
         stroke={strokeCol}
         strokeWidth={isExt ? 0.04 : 0.03}
         transform={`rotate(${angle * (180 / Math.PI)}, ${wall.start.x}, ${wall.start.y})`}
@@ -747,9 +745,9 @@ function renderWall(wall: WallSegment) {
       />
     </g>
   )
-}
+})
 
-function EditableOpening({
+const EditableOpening = memo(function EditableOpening({
   opening,
   wall,
   selected,
@@ -824,4 +822,4 @@ function EditableOpening({
       )}
     </g>
   )
-}
+})

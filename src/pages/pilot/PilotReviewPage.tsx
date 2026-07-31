@@ -5,6 +5,7 @@ import { PilotFeedbackPanel } from '@/components/pilot/PilotFeedbackPanel';
 import { PilotReviewSummaryPanel } from '@/components/pilot/PilotReviewSummaryPanel';
 import { PilotTrendPanel } from '@/components/pilot/PilotTrendPanel';
 import { SelfAssessmentPanel } from '@/components/selfAssessment/SelfAssessmentPanel';
+import { useShallow } from 'zustand/react/shallow';
 import { usePilotFeedbackStore } from '@/stores/pilotFeedbackStore';
 import { useSelfAssessmentStore } from '@/stores/selfAssessmentStore';
 import { downloadPilotIssueLog, downloadPilotSummaryReport, downloadOpenBlockerReport, downloadCloseoutRecommendation } from '@/lib/pilot/pilotExport';
@@ -15,8 +16,15 @@ type Tab = 'feedback' | 'summary' | 'trends' | 'self-assessment';
 
 export function PilotReviewPage() {
   const navigate = useNavigate();
-  const store = usePilotFeedbackStore();
-  const saStore = useSelfAssessmentStore();
+  const store = usePilotFeedbackStore(useShallow(s => ({
+    getActiveSession: s.getActiveSession,
+    getActiveObservations: s.getActiveObservations,
+  })));
+  const saStore = useSelfAssessmentStore(useShallow(s => ({
+    getLatestAssessment: s.getLatestAssessment,
+    getAssessmentsForSession: s.getAssessmentsForSession,
+    linkToSession: s.linkToSession,
+  })));
   const [tab, setTab] = useState<Tab>('feedback');
 
   const activeSession = store.getActiveSession();

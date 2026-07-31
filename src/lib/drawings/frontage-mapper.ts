@@ -326,7 +326,7 @@ export function getEntranceOpening(cad: CadDocument): { openingId: string; pos: 
 
   const entries = Object.entries(cad.roomProgramme);
 
-  for (const [_roomId, programme] of entries) {
+  for (const [, programme] of entries) {
     if (!ENTRANCE_PROGRAMMES.includes(programme)) continue;
     const wall = findWallForRoomByProgramme(cad, programme);
     if (!wall) continue;
@@ -342,7 +342,7 @@ export function getEntranceOpening(cad: CadDocument): { openingId: string; pos: 
     return { openingId: door.id, pos, floorId: wall.floorId };
   }
 
-  for (const [_roomId, programme] of entries) {
+  for (const [, programme] of entries) {
     if (!ENTRANCE_PROGRAMMES.includes(programme)) continue;
     const wall = cad.walls.find(w => w.structural && orientWall(w) === 'front');
     if (!wall) continue;

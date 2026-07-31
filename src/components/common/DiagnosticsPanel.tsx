@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import { useDiagnosticsStore } from '@/stores/diagnosticsStore'
 import { Bug, Download, Trash2, X } from 'lucide-react'
 
@@ -7,7 +8,7 @@ interface DiagnosticsPanelProps {
 }
 
 export function DiagnosticsPanel({ onClose }: DiagnosticsPanelProps) {
-  const { log, buildVersion, buildTime, clearLog, getExportableState } = useDiagnosticsStore()
+  const { log, buildVersion, buildTime, clearLog, getExportableState } = useDiagnosticsStore(useShallow(s => ({ log: s.log, buildVersion: s.buildVersion, buildTime: s.buildTime, clearLog: s.clearLog, getExportableState: s.getExportableState })))
   const [tab, setTab] = useState<'log' | 'info'>('log')
 
   const handleExport = useCallback(() => {
@@ -36,7 +37,7 @@ export function DiagnosticsPanel({ onClose }: DiagnosticsPanelProps) {
             <button onClick={clearLog} className="rounded p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]" title="Clear log">
               <Trash2 size={14} />
             </button>
-            <button onClick={onClose} className="rounded p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">
+            <button onClick={onClose} className="rounded p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]" aria-label="Close diagnostics">
               <X size={14} />
             </button>
           </div>

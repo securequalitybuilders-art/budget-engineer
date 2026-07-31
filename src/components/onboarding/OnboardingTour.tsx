@@ -16,10 +16,16 @@ export function OnboardingTour({ open, onClose, onComplete }: OnboardingTourProp
   const dialogRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
 
+  // Reset tour to first step each time it opens
+  const [prevOpen, setPrevOpen] = useState(open)
+  if (open && !prevOpen) {
+    setPrevOpen(open)
+    setStep(0)
+  }
+
   useEffect(() => {
     if (open) {
       triggerRef.current = document.activeElement as HTMLElement
-      setStep(0)
     }
   }, [open])
 
@@ -30,9 +36,10 @@ export function OnboardingTour({ open, onClose, onComplete }: OnboardingTourProp
     const focusable = dialog.querySelector<HTMLElement>(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     )
-    requestAnimationFrame(() => {
+    const raf = requestAnimationFrame(() => {
       focusable?.focus()
     })
+    return () => cancelAnimationFrame(raf)
   }, [open, step])
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {

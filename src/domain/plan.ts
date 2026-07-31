@@ -1,3 +1,6 @@
+import type { LevelSlabAssignment } from '@/lib/structure/slab-system'
+import type { StructuralLevel } from '@/lib/structure/structural-bridge'
+
 export interface Point {
   x: number
   y: number
@@ -79,6 +82,8 @@ export interface PlanModel {
   adjacencyWarnings?: AdjacencyWarning[]
   maxTravelDistance?: number
   egressCompliant?: boolean
+  slabAssignments?: LevelSlabAssignment[]
+  structuralLevels?: StructuralLevel[]
 }
 
 export function getPlanSource(plan: PlanModel): PlanSource {

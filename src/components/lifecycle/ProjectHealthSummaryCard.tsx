@@ -8,30 +8,31 @@ import { computeProjectReadiness, computeMilestoneLifecycleSummary, computeProje
 import { Heart, Activity, AlertTriangle, CheckCircle2, Eye, ShieldCheck, Flag } from 'lucide-react';
 
 export function ProjectHealthSummaryCard() {
-  const assuranceStore = useAssuranceStore();
-  const milestoneStore = useMilestoneStore();
-  const controlsStore = useProjectControlsStore();
-  const changeStore = useChangeStore();
   const userRole = useAuthStore((s) => s.user.role);
 
-  const readiness = useMemo(() => computeProjectReadiness({
-    intakes: assuranceStore.intakes,
-    feasibilityAssessments: assuranceStore.feasibilityAssessments,
-    riskGates: assuranceStore.riskGates,
-    riskRegister: assuranceStore.riskRegister,
-    solvencyChecks: assuranceStore.solvencyChecks,
-  }), [assuranceStore.intakes, assuranceStore.feasibilityAssessments, assuranceStore.riskGates, assuranceStore.riskRegister, assuranceStore.solvencyChecks]);
+  const intakes = useAssuranceStore((s) => s.intakes);
+  const feasibilityAssessments = useAssuranceStore((s) => s.feasibilityAssessments);
+  const riskGates = useAssuranceStore((s) => s.riskGates);
+  const riskRegister = useAssuranceStore((s) => s.riskRegister);
+  const solvencyChecks = useAssuranceStore((s) => s.solvencyChecks);
+  const milestones = useMilestoneStore((s) => s.milestones);
+  const snapshots = useProjectControlsStore((s) => s.snapshots);
+  const ncrs = useChangeStore((s) => s.ncrs);
+  const rfis = useChangeStore((s) => s.rfis);
+  const snagItems = useChangeStore((s) => s.snagItems);
 
-  const milestoneSummary = useMemo(() => computeMilestoneLifecycleSummary(milestoneStore.milestones), [milestoneStore.milestones]);
+  const readiness = useMemo(() => computeProjectReadiness({
+    intakes, feasibilityAssessments, riskGates, riskRegister, solvencyChecks,
+  }), [intakes, feasibilityAssessments, riskGates, riskRegister, solvencyChecks]);
+
+  const milestoneSummary = useMemo(() => computeMilestoneLifecycleSummary(milestones), [milestones]);
 
   const health = useMemo(() => computeProjectHealthSummary({
     readiness,
     milestoneSummary,
-    controlsSnapshot: controlsStore.snapshots[0] ?? null,
-    ncrs: changeStore.ncrs,
-    rfis: changeStore.rfis,
-    snags: changeStore.snagItems,
-  }), [readiness, milestoneSummary, controlsStore.snapshots, changeStore.ncrs, changeStore.rfis, changeStore.snagItems]);
+    controlsSnapshot: snapshots[0] ?? null,
+    ncrs, rfis, snags: snagItems,
+  }), [readiness, milestoneSummary, snapshots, ncrs, rfis, snagItems]);
 
   const healthConfig = useMemo(() => {
     switch (health.health) {

@@ -10,10 +10,10 @@ import { CommandPalette } from '@/components/layout/CommandPalette';
 import { ShortcutsHelp } from '@/components/layout/ShortcutsHelp';
 import { PageLoader } from '@/components/layout/PageLoader';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
-import { DiagnosticsPanel } from '@/components/common/DiagnosticsPanel';
-import { ProductPackagePanel } from '@/components/commercial/ProductPackagePanel';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { FileText, X } from 'lucide-react';
+
+const LazyDiagnosticsPanel = lazy(() => import('@/components/common/DiagnosticsPanel').then(m => ({ default: m.DiagnosticsPanel })))
+const LazyProductPackagePanel = lazy(() => import('@/components/commercial/ProductPackagePanel').then(m => ({ default: m.ProductPackagePanel })))
 
 const Home = lazy(() => import('@/pages/Home').then((m) => ({ default: m.Home })));
 const ProjectWizard = lazy(() => import('@/pages/ProjectWizard').then((m) => ({ default: m.ProjectWizard })));
@@ -79,21 +79,26 @@ function GlobalLayout() {
         <Outlet />
         <CommandPalette />
         <ShortcutsHelp />
-        {diagOpen && <DiagnosticsPanel onClose={() => setDiagOpen(false)} />}
+        {diagOpen && (
+          <Suspense fallback={null}>
+            <LazyDiagnosticsPanel onClose={() => setDiagOpen(false)} />
+          </Suspense>
+        )}
         {pkgOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setPkgOpen(false)}>
             <div className="max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-2xl" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between border-b border-[var(--border-default)] px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <FileText size={16} className="text-[var(--brand-accent)]" />
                   <span className="text-sm font-semibold">Product Package</span>
                 </div>
                 <button onClick={() => setPkgOpen(false)} className="rounded p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">
-                  <X size={14} />
+                  ×
                 </button>
               </div>
               <div className="max-h-[75vh] overflow-y-auto p-4">
-                <ProductPackagePanel />
+                <Suspense fallback={<div className="p-8 text-center text-sm text-stone-400">Loading...</div>}>
+                  <LazyProductPackagePanel />
+                </Suspense>
               </div>
             </div>
           </div>

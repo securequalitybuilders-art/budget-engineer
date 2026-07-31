@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow'
 import { useAuthStore } from '@/stores/authStore'
 import { roleLabel } from '@/lib/auth/rbac'
 import type { UserRecord } from '@/domain/rbac'
@@ -7,7 +8,7 @@ import { useState } from 'react'
 const ROLES: UserRecord['role'][] = ['owner', 'reviewer', 'viewer']
 
 export function RoleSwitcher() {
-  const { user, setRole, setName } = useAuthStore()
+  const { user, setRole, setName } = useAuthStore(useShallow(s => ({ user: s.user, setRole: s.setRole, setName: s.setName })))
   const [open, setOpen] = useState(false)
 
   return (

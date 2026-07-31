@@ -8,6 +8,7 @@ import { generateDeploymentManifest, formatDeploymentManifestStandaloneHtml } fr
 import { EVALUATION_CHECKLIST, formatChecklistHtml, formatSupervisedGuidanceHtml, formatPilotRolloutHtml } from '@/lib/commercial/evaluationChecklist';
 import { recommendDeployment } from '@/lib/commercial/deploymentRecommender';
 import { generateEvaluationReport, formatEvaluationReportHtml } from '@/lib/commercial/evaluationReportGenerator';
+import { useShallow } from 'zustand/react/shallow';
 import { useEvaluationChecklistStore } from '@/stores/evaluationChecklistStore';
 import { buildArtifactFilename, downloadHtml, downloadJson } from '@/lib/commercial/artifactExporter';
 import { Download, ShieldCheck, AlertTriangle, CheckCircle2, Info, RefreshCw, FileText } from 'lucide-react';
@@ -18,6 +19,9 @@ const MATURITY_CONFIG: Record<MaturityLevel, { color: string; bg: string; label:
   emerging: { color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/30', label: 'Emerging' },
   foundation: { color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/30', label: 'Foundation' },
 };
+
+const EXAMPLE_AUDIENCES: AudienceProfile[] = ['architect', 'engineer'];
+const EXAMPLE_TEAM_SIZE = 5;
 
 type Tab = 'capabilities' | 'deployment' | 'contexts' | 'supervision' | 'checklist' | 'manifest' | 'evaluation';
 
@@ -30,18 +34,15 @@ export function ProductPackagePanel() {
   const [newNoteText, setNewNoteText] = useState('');
 
   const version = '4.0.0';
-  const checklistStore = useEvaluationChecklistStore();
-  const checklistItems = checklistStore.items;
+  const { items: checklistItems, toggleItem, setItemNotes, resetAll } = useEvaluationChecklistStore(useShallow(s => ({ items: s.items, toggleItem: s.toggleItem, setItemNotes: s.setItemNotes, resetAll: s.resetAll })));
 
   const capabilityManifest = useMemo(() => generateCapabilityManifest(version), [version]);
   const deploymentManifest = useMemo(() => generateDeploymentManifest(version), [version]);
 
-  const exampleAudiences: AudienceProfile[] = ['architect', 'engineer'];
-  const exampleTeamSize = 5;
-  const deploymentRec = useMemo(() => recommendDeployment(exampleAudiences, exampleTeamSize, true, true), []);
+  const deploymentRec = useMemo(() => recommendDeployment(EXAMPLE_AUDIENCES, EXAMPLE_TEAM_SIZE, true, true), []);
 
   const evaluationReport = useMemo(() =>
-    generateEvaluationReport(version, exampleAudiences, exampleTeamSize, true, true, checklistItems, null),
+    generateEvaluationReport(version, EXAMPLE_AUDIENCES, EXAMPLE_TEAM_SIZE, true, true, checklistItems, null),
   [version, checklistItems]);
 
   const completedCount = useMemo(() => Object.values(checklistItems).filter(i => i.checked).length, [checklistItems]);
@@ -93,13 +94,13 @@ export function ProductPackagePanel() {
     }
   }, [capabilityManifest, deploymentManifest, checklistItems, evaluationReport]);
 
-  const handleToggleChecklist = useCallback((id: string) => { checklistStore.toggleItem(id); }, [checklistStore]);
+  const handleToggleChecklist = useCallback((id: string) => { toggleItem(id); }, [toggleItem]);
   const handleSaveNote = useCallback((id: string) => {
-    if (newNoteText.trim()) checklistStore.setItemNotes(id, newNoteText.trim());
+    if (newNoteText.trim()) setItemNotes(id, newNoteText.trim());
     setNewNoteId(null);
     setNewNoteText('');
-  }, [newNoteText, checklistStore]);
-  const handleResetChecklist = useCallback(() => checklistStore.resetAll(), [checklistStore]);
+  }, [newNoteText, setItemNotes]);
+  const handleResetChecklist = useCallback(() => resetAll(), [resetAll]);
 
   return (
     <div className="space-y-4">
@@ -139,7 +140,7 @@ export function ProductPackagePanel() {
               <option value="not-required">No Review</option>
             </select>
             <span className="text-[9px] text-[var(--text-tertiary)] ml-auto">{filteredCapabilities.length} capabilities</span>
-            <button onClick={() => handleDownload('capability-html')} className="rounded p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]" title="Download HTML">
+            <button onClick={() => handleDownload('capability-html')} className="rounded p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]" title="Download HTML" aria-label="Download HTML">
               <Download size={12} />
             </button>
           </div>
@@ -367,8 +368,8 @@ export function ProductPackagePanel() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-[11px]">Capability Manifest</CardTitle>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => handleDownload('capability-json')} className="rounded p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]" title="Download JSON"><Download size={10} /></button>
-                  <button onClick={() => handleDownload('capability-html')} className="rounded p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]" title="Download HTML"><FileText size={10} /></button>
+                  <button onClick={() => handleDownload('capability-json')} className="rounded p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]" title="Download JSON" aria-label="Download JSON"><Download size={10} /></button>
+                  <button onClick={() => handleDownload('capability-html')} className="rounded p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]" title="Download HTML" aria-label="Download HTML"><FileText size={10} /></button>
                 </div>
               </div>
               <CardDescription className="text-[9px]">{capabilityManifest.totalCapabilities} capabilities \u00b7 {capabilityManifest.requiresHumanReviewCount} require human review</CardDescription>
@@ -398,8 +399,8 @@ export function ProductPackagePanel() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-[11px]">Deployment Manifest</CardTitle>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => handleDownload('deployment-json')} className="rounded p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]" title="Download JSON"><Download size={10} /></button>
-                  <button onClick={() => handleDownload('deployment-html')} className="rounded p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]" title="Download HTML"><FileText size={10} /></button>
+                  <button onClick={() => handleDownload('deployment-json')} className="rounded p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]" title="Download JSON" aria-label="Download JSON"><Download size={10} /></button>
+                  <button onClick={() => handleDownload('deployment-html')} className="rounded p-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]" title="Download HTML" aria-label="Download HTML"><FileText size={10} /></button>
                 </div>
               </div>
               <CardDescription className="text-[9px]">{deploymentManifest.totalProfiles} deployment profiles</CardDescription>

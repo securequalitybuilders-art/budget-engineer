@@ -2,12 +2,11 @@ import type { ReactNode } from 'react'
 import type { PlanModel, Opening } from '@/domain/plan'
 import { CAD_HAIR, PEN_025, PEN_050, INK, INK_CUT, PAPER, INK_DIMENSION, metresToMm } from '@/components/drawings/cadConstants'
 import { DimensionLineH, DimensionLineV, GridBubble, LevelMarker, TitleBlock, HatchDefs } from '@/components/drawings/cadPrimitives'
-import { renderOpeningSymbol } from '@/components/drawings/openingSymbols'
+import { renderOpeningSymbol } from '@/lib/drawings/openingSymbolRenderer'
 import { renderRoomFixtures } from '@/components/drawings/roomFixtures'
 import { RoomTag } from '@/components/drawings/annotationTags'
 
 const DIM_RED = '#cc3333'
-const DIM_LINE_COLOR = DIM_RED
 const DIM_TICK_EXT = 3
 const DIM_OFFSET_FROM_WALL = 12
 const DIM_BAY_OFFSET = DIM_OFFSET_FROM_WALL + 10
@@ -221,7 +220,7 @@ export function renderFloorPlanSheet(plan: PlanModel): { sheetW: number; sheetH:
       x2={ox + plan.width * scale}
       y={overallY}
       label={`${metresToMm(plan.width)}`}
-      style={{ lineColor: DIM_LINE_COLOR, textColor: DIM_LINE_COLOR, textHeight: 6, extensionLineExtend: DIM_TICK_EXT, offsetFromOrigin: 2 }}
+      style={{ lineColor: DIM_RED, textColor: DIM_RED, textHeight: 6, extensionLineExtend: DIM_TICK_EXT, offsetFromOrigin: 2 }}
     />,
   )
   elements.push(
@@ -231,7 +230,7 @@ export function renderFloorPlanSheet(plan: PlanModel): { sheetW: number; sheetH:
       y2={oy}
       x={overallX}
       label={`${metresToMm(plan.height)}`}
-      style={{ lineColor: DIM_LINE_COLOR, textColor: DIM_LINE_COLOR, textHeight: 6, extensionLineExtend: DIM_TICK_EXT, offsetFromOrigin: 2 }}
+      style={{ lineColor: DIM_RED, textColor: DIM_RED, textHeight: 6, extensionLineExtend: DIM_TICK_EXT, offsetFromOrigin: 2 }}
     />,
   )
 
@@ -254,7 +253,7 @@ export function renderFloorPlanSheet(plan: PlanModel): { sheetW: number; sheetH:
             x2={ox + right * scale}
             y={bayY}
             label={`${metresToMm(right - left)}`}
-            style={{ lineColor: DIM_LINE_COLOR, textColor: DIM_LINE_COLOR, textHeight: 5, extensionLineExtend: DIM_TICK_EXT, offsetFromOrigin: 1.5 }}
+            style={{ lineColor: DIM_RED, textColor: DIM_RED, textHeight: 5, extensionLineExtend: DIM_TICK_EXT, offsetFromOrigin: 1.5 }}
           />,
         )
       }
@@ -274,7 +273,7 @@ export function renderFloorPlanSheet(plan: PlanModel): { sheetW: number; sheetH:
             y2={oy - bottom * scale}
             x={bayX}
             label={`${metresToMm(top - bottom)}`}
-            style={{ lineColor: DIM_LINE_COLOR, textColor: DIM_LINE_COLOR, textHeight: 5, extensionLineExtend: DIM_TICK_EXT, offsetFromOrigin: 1.5 }}
+            style={{ lineColor: DIM_RED, textColor: DIM_RED, textHeight: 5, extensionLineExtend: DIM_TICK_EXT, offsetFromOrigin: 1.5 }}
           />,
         )
       }

@@ -60,7 +60,7 @@ export function UnifiedComponentPanel({ onClose }: UnifiedComponentPanelProps) {
     return furnitureItems.filter(
       (f) => f.name.toLowerCase().includes(q) || f.id.toLowerCase().includes(q) || f.tags.some((t) => t.includes(q)),
     )
-  }, [furnitureItems, search])
+  }, [furnitureItems, search, activeCategory])
 
   const doors = useMemo(() => {
     if (activeCategory !== 'doors') return []
@@ -68,7 +68,7 @@ export function UnifiedComponentPanel({ onClose }: UnifiedComponentPanelProps) {
     if (!search) return all
     const q = search.toLowerCase()
     return all.filter((d) => d.label.toLowerCase().includes(q) || d.code.toLowerCase().includes(q) || d.type.includes(q))
-  }, [search])
+  }, [search, activeCategory])
 
   const windows = useMemo(() => {
     if (activeCategory !== 'windows') return []
@@ -76,7 +76,7 @@ export function UnifiedComponentPanel({ onClose }: UnifiedComponentPanelProps) {
     if (!search) return all
     const q = search.toLowerCase()
     return all.filter((w) => w.label.toLowerCase().includes(q) || w.code.toLowerCase().includes(q) || w.type.includes(q))
-  }, [search])
+  }, [search, activeCategory])
 
   const isFurnitureCategory = activeCategory !== 'doors' && activeCategory !== 'windows' && activeCategory !== 'interior'
 

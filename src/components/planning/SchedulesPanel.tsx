@@ -1,9 +1,44 @@
+import type { ReactNode } from 'react'
 import type { ScheduleSet } from '@/lib/boq/schedules'
 import { buildScheduleCsv } from '@/lib/boq/schedules'
 import { downloadTextFile } from '@/adapters/designToBoq'
 
 interface SchedulesPanelProps {
   schedules: ScheduleSet | null
+}
+
+function SectionCard({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="rounded-lg border border-stone-700/60 bg-stone-900/40 p-3">
+      <h4 className="mb-2 text-xs font-semibold text-stone-300 uppercase tracking-wider">{title}</h4>
+      {children}
+    </div>
+  )
+}
+
+function Table({ headers, rows }: { headers: string[]; rows: (string | number)[][] }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-[10px]">
+        <thead>
+          <tr className="text-stone-400 border-b border-stone-700/40">
+            {headers.map((h, i) => (
+              <th key={i} className="px-2 py-1 text-left font-medium">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i} className="border-b border-stone-800/40 text-stone-300">
+              {row.map((cell, j) => (
+                <td key={j} className="px-2 py-1">{cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
 }
 
 export function SchedulesPanel({ schedules }: SchedulesPanelProps) {
@@ -37,36 +72,6 @@ export function SchedulesPanel({ schedules }: SchedulesPanelProps) {
     const csv = buildScheduleCsv(schedules)
     downloadTextFile('schedules.csv', csv)
   }
-
-  const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="rounded-lg border border-stone-700/60 bg-stone-900/40 p-3">
-      <h4 className="mb-2 text-xs font-semibold text-stone-300 uppercase tracking-wider">{title}</h4>
-      {children}
-    </div>
-  )
-
-  const Table = ({ headers, rows }: { headers: string[]; rows: (string | number)[][] }) => (
-    <div className="overflow-x-auto">
-      <table className="w-full text-[10px]">
-        <thead>
-          <tr className="text-stone-400 border-b border-stone-700/40">
-            {headers.map((h, i) => (
-              <th key={i} className="px-2 py-1 text-left font-medium">{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, i) => (
-            <tr key={i} className="border-b border-stone-800/40 text-stone-300">
-              {row.map((cell, j) => (
-                <td key={j} className="px-2 py-1">{cell}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
 
   return (
     <div className="space-y-3">

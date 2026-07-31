@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useProjectStore } from '@/stores/projectStore';
 import { useUIStore } from '@/stores/uiStore';
 import { Button } from '@/components/ui/Button';
@@ -9,8 +10,8 @@ import { Table, ChevronDown, Calculator, Loader2, Layers } from 'lucide-react';
 import { useState } from 'react';
 
 export function BOQPanel() {
-  const { currentBOQ, currentDesigns, generateBOQ, boqStale, currentProject } = useProjectStore();
-  const { boqPanelOpen, toggleBoqPanel } = useUIStore();
+  const { currentBOQ, currentDesigns, generateBOQ, boqStale, currentProject } = useProjectStore(useShallow(s => ({ currentBOQ: s.currentBOQ, currentDesigns: s.currentDesigns, generateBOQ: s.generateBOQ, boqStale: s.boqStale, currentProject: s.currentProject })));
+  const { boqPanelOpen, toggleBoqPanel } = useUIStore(useShallow(s => ({ boqPanelOpen: s.boqPanelOpen, toggleBoqPanel: s.toggleBoqPanel })));
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleGenerateBOQ = async () => {

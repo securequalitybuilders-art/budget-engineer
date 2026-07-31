@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { PlanModel } from '../../domain/plan'
 
 interface DimensionLayerProps {
@@ -16,14 +17,13 @@ const lineStyle: React.SVGProps<SVGLineElement> = {
   strokeDasharray: '0.08 0.08',
 }
 
-function OverallDimensions({ model }: { model: PlanModel }) {
+const OverallDimensions = memo(function OverallDimensions({ model }: { model: PlanModel }) {
   const yOff = 0.45
   const xOff = 0.55
   const tick = 0.12
 
   return (
     <g>
-      {/* Top width dimension */}
       <line x1={0} y1={-yOff} x2={model.width} y2={-yOff} {...lineStyle} />
       <line x1={0} y1={-yOff + tick} x2={0} y2={-yOff - tick} stroke="#94a3b8" strokeWidth={0.03} />
       <line x1={model.width} y1={-yOff + tick} x2={model.width} y2={-yOff - tick} stroke="#94a3b8" strokeWidth={0.03} />
@@ -31,7 +31,6 @@ function OverallDimensions({ model }: { model: PlanModel }) {
         {model.width.toFixed(1)} m
       </text>
 
-      {/* Left height dimension */}
       <line x1={-xOff} y1={0} x2={-xOff} y2={model.height} {...lineStyle} />
       <line x1={-xOff + tick} y1={0} x2={-xOff - tick} y2={0} stroke="#94a3b8" strokeWidth={0.03} />
       <line x1={-xOff + tick} y1={model.height} x2={-xOff - tick} y2={model.height} stroke="#94a3b8" strokeWidth={0.03} />
@@ -46,8 +45,8 @@ function OverallDimensions({ model }: { model: PlanModel }) {
       </text>
     </g>
   )
-}
+})
 
-export function DimensionLayer({ model }: DimensionLayerProps) {
+export const DimensionLayer = memo(function DimensionLayer({ model }: DimensionLayerProps) {
   return <OverallDimensions model={model} />
-}
+})

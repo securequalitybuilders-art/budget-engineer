@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { PlanModel } from '../../domain/plan'
 import { roomArea } from '../../lib/geometry/plan-geometry'
 
@@ -19,7 +20,7 @@ function areaFontSize(room: { width: number; height: number }): number {
   return 0.22
 }
 
-export function RoomLabels({ model }: RoomLabelsProps) {
+export const RoomLabels = memo(function RoomLabels({ model }: RoomLabelsProps) {
   return (
     <g>
       {model.rooms.map((room, index) => {
@@ -60,4 +61,4 @@ export function RoomLabels({ model }: RoomLabelsProps) {
       })}
     </g>
   )
-}
+})

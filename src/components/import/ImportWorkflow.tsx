@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { ImageImportZone, type ImageImportResult } from '@/components/import/ImageImportZone';
 import { ScaleCalibration, type ScaleCalibrationResult } from '@/components/import/ScaleCalibration';
 import { DetectionReview } from '@/components/import/DetectionReview';
@@ -34,13 +34,14 @@ export function ImportWorkflow({ projectId, onComplete, onCancel, className = ''
     setStep('detect');
   }, []);
 
+  const importMountedRef = useRef(true)
   const runDetection = useCallback(async () => {
     if (!imageResult) return;
-    setDetectionRunning(true);
-    setDetectionError(null);
 
     try {
       const result: DetectionResult = await detectWallsFromImage(imageResult.dataUrl, 100);
+
+      if (!importMountedRef.current) return;
 
       const processed: DetectedSegment[] = (result.walls as DetectedSegment[]).map((w) => ({
         ...w,
@@ -50,17 +51,54 @@ export function ImportWorkflow({ projectId, onComplete, onCancel, className = ''
       setSegments(snapAndMerge(processed));
       setStep('review');
     } catch (err) {
-      setDetectionError(err instanceof Error ? err.message : 'Detection failed');
+      if (importMountedRef.current) {
+        setDetectionError(err instanceof Error ? err.message : 'Detection failed');
+      }
     } finally {
-      setDetectionRunning(false);
+      if (importMountedRef.current) {
+        setDetectionRunning(false);
+      }
     }
   }, [imageResult]);
 
-  useEffect(() => {
+  // Reset detection status when entering the detect step
+  const [prevStepKey, setPrevStepKey] = useState('')
+  const stepKey = `${step}-${step === 'detect' ? (imageResult?.dataUrl ?? '') : ''}`
+  if (stepKey !== prevStepKey) {
+    setPrevStepKey(stepKey)
     if (step === 'detect') {
-      runDetection();
+      setDetectionRunning(true)
+      setDetectionError(null)
     }
-  }, [step, runDetection]);
+  }
+
+  useEffect(() => {
+    importMountedRef.current = true;
+    let cancelled = false;
+    if (step === 'detect' && imageResult) {
+      (async () => {
+        try {
+          const result: DetectionResult = await detectWallsFromImage(imageResult.dataUrl, 100);
+          if (cancelled) return;
+          const processed: DetectedSegment[] = (result.walls as DetectedSegment[]).map((w) => ({
+            ...w,
+            importConfidence: w.importConfidence ?? (result.confidence === 'high' ? 0.8 : result.confidence === 'medium' ? 0.5 : 0.3),
+          }));
+          setSegments(snapAndMerge(processed));
+          setStep('review');
+        } catch (err) {
+          if (!cancelled) {
+            setDetectionError(err instanceof Error ? err.message : 'Detection failed');
+          }
+        } finally {
+          if (!cancelled) {
+            setDetectionRunning(false);
+          }
+        }
+      })();
+    }
+    return () => { cancelled = true; importMountedRef.current = false; };
+  }, [step, imageResult]);
 
   const handleRemoveSegment = useCallback((index: number) => {
     setSegments((prev) => prev.filter((_, i) => i !== index));
@@ -138,7 +176,7 @@ export function ImportWorkflow({ projectId, onComplete, onCancel, className = ''
               <div className="text-sm text-red-400">Detection failed: {detectionError}</div>
               <button
                 type="button"
-                onClick={runDetection}
+                onClick={() => { setDetectionRunning(true); setDetectionError(null); runDetection(); }}
                 className="rounded-md bg-[var(--brand-primary)] px-3 py-1 text-xs text-white"
               >
                 Retry

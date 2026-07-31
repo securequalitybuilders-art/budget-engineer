@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type { PlanModel } from '../domain/plan'
 
 export function usePlanHistory(initial: PlanModel | null) {
@@ -9,33 +9,33 @@ export function usePlanHistory(initial: PlanModel | null) {
   const canUndo = past.length > 0
   const canRedo = future.length > 0
 
-  const set = (next: PlanModel) => {
+  const set = useCallback((next: PlanModel) => {
     setPast((items) => (present ? [...items, present].slice(-50) : items))
     setPresent(next)
     setFuture([])
-  }
+  }, [present])
 
-  const undo = () => {
+  const undo = useCallback(() => {
     if (!canUndo || !present) return
     const previous = past[past.length - 1]
     setPast((items) => items.slice(0, -1))
     setFuture((items) => [present, ...items].slice(0, 50))
     setPresent(previous)
-  }
+  }, [canUndo, past, present])
 
-  const redo = () => {
+  const redo = useCallback(() => {
     if (!canRedo || !future[0] || !present) return
     const next = future[0]
     setPast((items) => [...items, present].slice(-50))
     setFuture((items) => items.slice(1))
     setPresent(next)
-  }
+  }, [canRedo, future, present])
 
-  const resetTo = (next: PlanModel | null) => {
+  const resetTo = useCallback((next: PlanModel | null) => {
     setPast([])
     setFuture([])
     setPresent(next)
-  }
+  }, [])
 
-  return useMemo(() => ({ past, present, future, set, undo, redo, canUndo, canRedo, resetTo }), [past, present, future, canUndo, canRedo])
+  return useMemo(() => ({ past, present, future, set, undo, redo, canUndo, canRedo, resetTo }), [past, present, future, set, undo, redo, canUndo, canRedo, resetTo])
 }

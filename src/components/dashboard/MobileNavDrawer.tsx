@@ -78,11 +78,12 @@ export function MobileNavDrawer({
       }
     }
     document.addEventListener('keydown', handleKeyDown)
-    setTimeout(() => {
+    const focusTimer = setTimeout(() => {
       const firstFocusable = drawerRef.current?.querySelector<HTMLElement>('button')
       firstFocusable?.focus()
     }, 50)
     return () => {
+      clearTimeout(focusTimer)
       document.removeEventListener('keydown', handleKeyDown)
       if (previousActiveRef.current instanceof HTMLElement) {
         previousActiveRef.current.focus()

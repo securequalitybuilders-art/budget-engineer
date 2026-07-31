@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { ShieldCheck, AlertTriangle, XCircle, Clock, CheckCircle2 } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 import { useAssuranceStore } from '@/stores/assuranceStore';
 import { computeProjectReadiness } from '@/lib/lifecycle/lifecycleSummary';
 
 export function ProjectReadinessChip() {
-  const { intakes, feasibilityAssessments, riskGates, riskRegister, solvencyChecks } = useAssuranceStore();
+  const { intakes, feasibilityAssessments, riskGates, riskRegister, solvencyChecks } = useAssuranceStore(useShallow(s => ({ intakes: s.intakes, feasibilityAssessments: s.feasibilityAssessments, riskGates: s.riskGates, riskRegister: s.riskRegister, solvencyChecks: s.solvencyChecks })));
 
   const readiness = useMemo(() => computeProjectReadiness({
     intakes, feasibilityAssessments, riskGates, riskRegister, solvencyChecks,

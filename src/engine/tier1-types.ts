@@ -76,5 +76,5 @@ export interface Tier1ParsedBrief {
   siteInfo: SiteInfo
   program: ProgramItem[]
   constraints: Constraints
-  qualityGate: QualityGate
+  qualityGate: QualityGate | null
 }

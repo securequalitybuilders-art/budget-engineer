@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, type ReactNode, type TouchEvent as ReactTouchEvent } from 'react'
+import { useRef, useState, useCallback, useEffect, type ReactNode, type TouchEvent as ReactTouchEvent } from 'react'
 import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react'
 import { clamp, DRAWING_ZOOM_MIN, DRAWING_ZOOM_MAX } from '@/lib/drawingZoom'
 
@@ -26,9 +26,12 @@ export function ZoomableDrawing({ children, className = '', minZoom = DRAWING_ZO
   const zoomRef = useRef(zoom)
   const panXRef = useRef(panX)
   const panYRef = useRef(panY)
-  zoomRef.current = zoom
-  panXRef.current = panX
-  panYRef.current = panY
+
+  useEffect(() => {
+    zoomRef.current = zoom
+    panXRef.current = panX
+    panYRef.current = panY
+  }, [zoom, panX, panY])
 
   const zoomIn = useCallback(() => {
     setZoom(z => clamp(z + 0.2, minZoom, maxZoom))

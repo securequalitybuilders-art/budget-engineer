@@ -4,12 +4,14 @@ import { PlanCanvas } from '@/components/cad/PlanCanvas'
 import { MiniFloorPlanPreview } from '@/components/cad/MiniFloorPlanPreview'
 import { PlanComparison } from '@/components/cad/PlanComparison'
 import { Button } from '@/components/ui/Button'
-import { LayoutGrid, Wand2, Loader2, Upload, PenTool, Eye } from 'lucide-react'
+import { LayoutGrid, Wand2, Loader2, Upload, PenTool, Eye, Brain, BarChart3 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { generatePlanModel } from '@/engine/plan-generator'
+import { PipelineResultsPanel } from '@/components/dashboard/PipelineResultsPanel'
 import type { DesignOption } from '@/domain/boq'
 import type { PlanModel } from '@/domain/plan'
+import type { PipelineResult } from '@/engine/pipeline/generativeDesignPipeline'
 
 interface ConceptStageProps {
   visibleDesignOptions: DesignOption[]
@@ -23,6 +25,10 @@ interface ConceptStageProps {
   onImportFile?: (file: File) => void
   activePlan?: PlanModel | null
   projectId?: string | null
+  isPipelineRunning?: boolean
+  onRunPipeline?: () => void
+  pipelineStatus?: string | null
+  pipelineResult?: PipelineResult | null
 }
 
 export function ConceptStage({
@@ -37,9 +43,14 @@ export function ConceptStage({
   onImportFile,
   activePlan,
   projectId,
+  onRunPipeline,
+  isPipelineRunning,
+  pipelineStatus,
+  pipelineResult,
 }: ConceptStageProps) {
   const importInputRef = useRef<HTMLInputElement>(null)
   const [showCanvas, setShowCanvas] = useState(false)
+  const [showPipelineResults, setShowPipelineResults] = useState(false)
 
   const handleImportChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -63,7 +74,7 @@ export function ConceptStage({
     if (e.target) e.target.value = ''
   }, [onImportFile, onDxfImported])
 
-  const { currentBrief } = useProjectStore()
+  const currentBrief = useProjectStore((s) => s.currentBrief)
   const designOptionsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -92,8 +103,20 @@ export function ConceptStage({
               {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
               {isGenerating ? (generationStatus || 'Generating designs...') : 'Generate Design Options'}
             </Button>
+            <Button
+              variant="secondary"
+              className="gap-2"
+              onClick={onRunPipeline}
+              disabled={isPipelineRunning || !currentBrief}
+            >
+              {isPipelineRunning ? <Loader2 size={16} className="animate-spin" /> : <Brain size={16} />}
+              {isPipelineRunning ? (pipelineStatus || 'Running pipeline...') : 'Run AI Pipeline'}
+            </Button>
             {isGenerating && generationStatus && (
               <p className="text-[11px] text-cyan-300">{generationStatus}</p>
+            )}
+            {isPipelineRunning && (
+              <p className="text-[11px] text-cyan-300">{pipelineStatus}</p>
             )}
             <Button variant="secondary" className="gap-2" onClick={() => importInputRef.current?.click()}>
               <Upload size={16} />
@@ -137,6 +160,7 @@ export function ConceptStage({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visibleDesignOptions.map((option) => {
             const isSelected = selectedDesignId === option.id
+            const isPipelineDesign = option.id.startsWith('pipeline-')
             let previewPlan: PlanModel | null = null
             try { previewPlan = generatePlanModel(option) } catch { /* skip */ }
             const roomCount = previewPlan?.rooms.length ?? 0
@@ -162,14 +186,22 @@ export function ConceptStage({
                 <span className="text-xs text-slate-400">
                   {option.grossFloorArea.toFixed(0)} m² · {option.floors} floor{option.floors > 1 ? 's' : ''} · {roomCount} room{roomCount !== 1 ? 's' : ''}
                 </span>
-                <span
-                  className={cn(
-                    'mt-1 self-start rounded-md px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider',
-                    isSelected ? 'bg-cyan-500/20 text-cyan-300' : 'bg-amber-500/10 text-amber-400'
+                <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      'mt-1 self-start rounded-md px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider',
+                      isSelected ? 'bg-cyan-500/20 text-cyan-300' : 'bg-amber-500/10 text-amber-400'
+                    )}
+                  >
+                    {isSelected ? 'Selected' : 'Select this design'}
+                  </span>
+                  {isPipelineDesign && (
+                    <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-400">
+                      <Brain size={10} />
+                      AI
+                    </span>
                   )}
-                >
-                  {isSelected ? 'Selected' : 'Select this design'}
-                </span>
+                </div>
               </button>
             )
           })}
@@ -189,7 +221,7 @@ export function ConceptStage({
           </div>
         )}
 
-        <div className="mt-3 flex justify-center sm:justify-end">
+        <div className="mt-3 flex flex-wrap justify-center gap-2 sm:justify-end">
           <Button
             variant="secondary"
             size="sm"
@@ -200,6 +232,27 @@ export function ConceptStage({
             {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
             {isGenerating ? (generationStatus || 'Generating...') : 'Regenerate options'}
           </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="gap-2"
+            onClick={onRunPipeline}
+            disabled={isPipelineRunning || !currentBrief}
+          >
+            {isPipelineRunning ? <Loader2 size={14} className="animate-spin" /> : <Brain size={14} />}
+            {isPipelineRunning ? (pipelineStatus || 'Running pipeline...') : 'Run AI Pipeline'}
+          </Button>
+          {selectedDesignId && selectedDesignId.startsWith('pipeline-') && pipelineResult && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="gap-2"
+              onClick={() => setShowPipelineResults(true)}
+            >
+              <BarChart3 size={14} />
+              View Results
+            </Button>
+          )}
         </div>
       </div>
 
@@ -215,6 +268,8 @@ export function ConceptStage({
       )}
 
       <PlanComparison designs={visibleDesignOptions} selectedDesignId={selectedDesign?.id} />
+
+      <PipelineResultsPanel result={pipelineResult ?? null} isOpen={showPipelineResults} onClose={() => setShowPipelineResults(false)} />
     </div>
   )
 }
