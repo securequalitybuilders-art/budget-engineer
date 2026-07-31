@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { generateLayoutParameters, generateFloorPlans, generateMultiFloorPlans } from '@/engine/tier3/layoutEngine'
-import type { PlacedRoom, LayoutParameters } from '@/engine/tier3/layoutEngine'
+import type { PlacedRoom, LayoutParameters, Topology } from '@/engine/tier3/layoutEngine'
 import type { Tier1ParsedBrief, ProgramItem } from '@/engine/tier1-types'
 import { parseBrief } from '@/engine/parseBrief'
 import { generateDesignConcept } from '@/engine/tier2/conceptEngine'
@@ -439,7 +439,7 @@ describe('Tier 3 — generateMultiFloorPlans', () => {
 
   function buildParams(storeys: number, _brief: Tier1ParsedBrief): LayoutParameters {
     return {
-      topologies: ['rectangle', 'l-shape', 'split-wing'] as any[],
+      topologies: ['rectangle', 'l-shape', 'split-wing'] as Topology[],
       siteWidth: 40,
       siteDepth: 60,
       wallThickness: 0.2,

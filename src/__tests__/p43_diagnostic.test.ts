@@ -35,7 +35,7 @@ describe('P43.1 — Orientation Diagnostic', () => {
     const plan = makeSamplePlan()
     const w2 = plan.walls.find(w => w.id === 'w2')!
     // w2 is on the right face (x=12), should be oriented 'right'
-    const orientation = orientWall(w2 as any)
+    const orientation = orientWall(w2)
     // But orientWall assumes Y-up, while PlanModel uses Y-down
     // w2 goes (12,0)→(12,8), dy=8>0 → dir.y>0 → 'left'
     expect(orientation).toBe('left')  // this is WRONG — should be 'right'
@@ -45,7 +45,7 @@ describe('P43.1 — Orientation Diagnostic', () => {
     const plan = makeSamplePlan()
     const w4 = plan.walls.find(w => w.id === 'w4')!
     // w4 is on the left face (x=0), should be oriented 'left'
-    const orientation = orientWall(w4 as any)
+    const orientation = orientWall(w4)
     // w4 goes (0,8)→(0,0), dy=-8<0 → dir.y<0 → 'right'
     expect(orientation).toBe('right')  // this is WRONG — should be 'left'
   })

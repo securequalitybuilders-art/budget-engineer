@@ -3,6 +3,7 @@ import React from 'react'
 import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest'
 import { render, cleanup, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import type { DesignStageProps } from '@/components/dashboard/stages/DesignStage'
 
 afterEach(cleanup)
 
@@ -22,7 +23,7 @@ vi.mock('@/stores/furnitureStore', () => ({
   useFurnitureStore: vi.fn(() => ({ activeDefId: null, setActiveDef: vi.fn() })),
 }))
 
-let DesignStage: React.ComponentType<any>
+let DesignStage: React.ComponentType<DesignStageProps>
 
 beforeAll(async () => {
   const mod = await import('@/components/dashboard/stages/DesignStage')

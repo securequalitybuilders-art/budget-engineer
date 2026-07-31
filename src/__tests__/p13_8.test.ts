@@ -310,9 +310,9 @@ describe('P13.8 — Façade Composition Engine', () => {
   });
 
   it('roomFrontageType classifies rooms correctly', () => {
-    expect(roomFrontageType('Living Room' as any)).toBe('public');
-    expect(roomFrontageType('Kitchen' as any)).toBe('service');
-    expect(roomFrontageType('Bedroom 1' as any)).toBe('private');
+    expect(roomFrontageType('Living Room')).toBe('public');
+    expect(roomFrontageType('Kitchen')).toBe('service');
+    expect(roomFrontageType('Bedroom 1')).toBe('private');
   });
 });
 

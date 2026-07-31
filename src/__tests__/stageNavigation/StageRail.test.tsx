@@ -99,7 +99,7 @@ describe('StageRail', () => {
     expect(buttons.length).toBeGreaterThan(0)
     const conceptBtn = buttons.find((b) => b.textContent?.includes('Concept'))
     expect(conceptBtn).toBeTruthy()
-    conceptBtn!.dispatchEvent(new (window as any).MouseEvent('click', { bubbles: true }))
+    conceptBtn!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(onStageChange).toHaveBeenCalledWith('concept')
   })
 
@@ -110,7 +110,7 @@ describe('StageRail', () => {
     expect(buttons.length).toBeGreaterThan(0)
     const historyBtn = buttons.find((b) => b.textContent?.includes('History'))
     expect(historyBtn).toBeTruthy()
-    historyBtn!.dispatchEvent(new (window as any).MouseEvent('click', { bubbles: true }))
+    historyBtn!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     expect(onToolChange).toHaveBeenCalledWith('history')
   })
 

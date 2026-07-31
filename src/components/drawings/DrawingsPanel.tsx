@@ -76,7 +76,7 @@ const TAB_DEFS: TabDef[] = [
   { id: 'package', label: 'Package', disciplines: ['ARCH', 'STR', 'MEP', 'ELEC', 'PLUM', 'INT', 'LAND', 'CIVIL'] },
 ]
 
-interface DrawingsPanelProps {
+export interface DrawingsPanelProps {
   activePlan: PlanModel | null
   design: DesignOption | null
   floors: number

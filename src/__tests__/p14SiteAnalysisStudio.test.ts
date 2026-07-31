@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { generateAllSiteDiagrams } from '@/engine/analysis/sixDiagrams';
 import { computeFullSiteAnalysis, createDefaultSiteContext } from '@/engine/analysis/siteAnalysisEngine';
 import { computeSiteAnalysis, orientationScore } from '@/engine/analysis/siteAnalysis';
-import type { SiteContext } from '@/domain/site';
+import type { SiteContext, FigureGroundData } from '@/domain/site';
 
 function makeSite(overrides?: Partial<SiteContext>): SiteContext {
   return { ...createDefaultSiteContext('test-project'), ...overrides };
@@ -96,8 +96,8 @@ describe('P14 — Site Analysis & Heliodon Studio', () => {
       const diagrams = generateAllSiteDiagrams(makeSite());
       const fg = diagrams.find(d => d.type === 'figure-ground');
       expect(fg).toBeDefined();
-      expect(typeof (fg!.data as any).coveragePct).toBe('number');
-      expect(typeof (fg!.data as any).far).toBe('number');
+      expect(typeof (fg!.data as FigureGroundData).coveragePct).toBe('number');
+      expect(typeof (fg!.data as FigureGroundData).far).toBe('number');
     });
   });
 

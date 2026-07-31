@@ -5,6 +5,8 @@ import { render, cleanup, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import type { DesignOption } from '@/domain/boq'
 import type { PlanModel } from '@/domain/plan'
+import type { DrawingsPanelProps } from '@/components/drawings/DrawingsPanel'
+import type { DesignStageProps } from '@/components/dashboard/stages/DesignStage'
 import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
 afterEach(() => {
   cleanup()
@@ -72,8 +74,8 @@ vi.mock('@/components/drawings/DrawingRegisterPanel', () => ({
   DrawingRegisterPanel: () => <div data-testid="drawing-register">DrawingRegisterPanel</div>,
 }))
 
-let DrawingsPanel: React.ComponentType<any>
-let DesignStage: React.ComponentType<any>
+let DrawingsPanel: React.ComponentType<DrawingsPanelProps>
+let DesignStage: React.ComponentType<DesignStageProps>
 
 beforeAll(async () => {
   const dp = await import('@/components/drawings/DrawingsPanel')

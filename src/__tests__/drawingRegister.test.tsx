@@ -10,6 +10,7 @@ import {
   nextRev,
   DEFAULT_DRAWING_TYPES,
 } from '@/lib/drawings/drawing-register'
+import type { DrawingTabId } from '@/lib/drawings/drawing-register'
 import { DrawingRegisterPanel } from '@/components/drawings/DrawingRegisterPanel'
 import { useDrawingRegisterStore, getFilteredSheets } from '@/stores/drawingRegisterStore'
 
@@ -74,7 +75,7 @@ describe('drawing-register utilities', () => {
 
   it('sheetByView returns undefined for non-existent viewId', () => {
     const reg = generateDefaultRegister({ floorCount: 1 })
-    expect(sheetByView(reg, 'xxx' as any)).toBeUndefined()
+    expect(sheetByView(reg, 'xxx' as unknown as DrawingTabId)).toBeUndefined()
   })
 
   it('sheetsByDiscipline filters correctly', () => {

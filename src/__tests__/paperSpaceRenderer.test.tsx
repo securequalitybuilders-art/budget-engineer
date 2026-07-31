@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import type { ReactNode } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import type { PlanModel } from '@/domain/plan'
 import { createPaperSpaceLayout } from '@/engine/parametric/paperSpaceModel'
 import { renderSheet, createPlanSheet } from '@/lib/drawings/paperSpaceSheet'
@@ -43,7 +43,7 @@ function flatten(els: ReactNode | ReactNode[]): ReactNode[] {
     }
     if (typeof el !== 'object') continue
     out.push(el)
-    const children = (el as any).props?.children
+    const children = (el as ReactElement).props?.children
     if (children != null) {
       out.push(...flatten(children as ReactNode | ReactNode[]))
     }
@@ -53,7 +53,7 @@ function flatten(els: ReactNode | ReactNode[]): ReactNode[] {
 
 function countElements(elements: ReactNode[], keyPrefix: string): number {
   return flatten(elements).filter((el): boolean => {
-    const key = (el as any).key
+    const key = (el as ReactElement).key
     return typeof key === 'string' && key.startsWith(keyPrefix)
   }).length
 }

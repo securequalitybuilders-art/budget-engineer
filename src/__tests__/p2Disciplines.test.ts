@@ -9,6 +9,7 @@ import {
   DEFAULT_DISCIPLINE,
   type DisciplineId,
 } from '@/lib/studio/discipline';
+import type { DisciplineCode } from '@/lib/drawings/layerStandard';
 
 describe('discipline definitions', () => {
   it('has all 8 disciplines', () => {
@@ -61,7 +62,7 @@ describe('discipline definitions', () => {
   });
 
   it('getDiscipline throws for unknown id', () => {
-    expect(() => getDiscipline('FAKE' as any)).toThrow('Unknown discipline');
+    expect(() => getDiscipline('FAKE' as unknown as DisciplineId)).toThrow('Unknown discipline');
   });
 
   it('default discipline is ARCH', () => {
@@ -86,7 +87,7 @@ describe('discipline definitions', () => {
     });
 
     it('returns undefined for unknown code', () => {
-      expect(getDisciplineByAiaCode('X' as any)).toBeUndefined();
+      expect(getDisciplineByAiaCode('X' as unknown as DisciplineCode)).toBeUndefined();
     });
   });
 
@@ -96,7 +97,7 @@ describe('discipline definitions', () => {
     });
 
     it('throws for unknown code', () => {
-      expect(() => getDisciplineByAiaCodeOrFail('X' as any)).toThrow('No studio discipline');
+      expect(() => getDisciplineByAiaCodeOrFail('X' as unknown as DisciplineCode)).toThrow('No studio discipline');
     });
   });
 

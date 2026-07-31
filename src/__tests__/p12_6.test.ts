@@ -225,7 +225,7 @@ describe('P12.6 — Mixed-use entrance separation', () => {
       { id: 'r1', name: 'Retail / Public Entrance', x: 2, y: 0, width: 4, height: 3 },
       { id: 'r2', name: 'Residential Lobby Entrance', x: 3, y: 0, width: 4, height: 3 },
     ]
-    const result = validateEntranceSeparation(badRooms as any)
+    const result = validateEntranceSeparation(badRooms)
     expect(result.conflicts.length).toBeGreaterThan(0)
     expect(result.conflicts.some(c => c.includes('overlap'))).toBe(true)
   })
@@ -271,7 +271,7 @@ describe('P12.6 — DXF export visibility', () => {
   })
 
   it('export should only be visible when valid plan exists', () => {
-    const activePlan = { id: 'plan1', width: 10, height: 10 } as any
+    const activePlan: unknown = { id: 'plan1', width: 10, height: 10 }
     const noPlan = null
 
     // Export button visible with plan

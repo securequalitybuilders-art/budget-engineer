@@ -590,3 +590,6 @@ Cleared every remaining production eslint warning (103 -> 44, all 44 are `no-exp
 - `Academy.tsx` - a refactor accidentally deleted the `result = useMemo(findLesson...)` memo; restored it (would have been a runtime crash on the lesson page).
 
 ### Results: 0 TS errors (`npx tsc --noEmit --skipLibCheck`), eslint 0 errors / 44 warnings (all test-file no-explicit-any), 4053/4053 tests (186 files), `npx vite build` successful (~17s).
+
+### Follow-up: remaining 44 test-file `no-explicit-any` warnings also eliminated
+Mechanical cleanup across 18 test files + 2 production files (added `export interface DesignStageProps` / `export interface DrawingsPanelProps` so tests can type their `ComponentType<any>` mocks): `as any` → real types or `as unknown as T`, `(el as any).key` → `ReactElement`, `new (window as any).MouseEvent` → `new MouseEvent`. Final state: **eslint 0 errors / 0 warnings**, 0 TS errors, 4053/4053 tests (186 files).

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import React from 'react'
-import type { ReactNode } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import type { PlanModel } from '@/domain/plan'
 import { renderFloorPlanSheet } from '@/lib/drawings/planSheetRenderer'
 import { DoorSwing, WindowGlazing, OpeningTag } from '@/components/drawings/openingSymbols'
@@ -40,7 +40,7 @@ function countElements(sheet: { sheetW: number; sheetH: number; elements: ReactN
   const arr = Array.isArray(sheet.elements) ? sheet.elements : [sheet.elements]
   return arr.filter((el): boolean => {
     if (!el || typeof el !== 'object') return false
-    const key = (el as any).key
+    const key = (el as ReactElement).key
     return typeof key === 'string' && key.startsWith(prefix)
   }).length
 }

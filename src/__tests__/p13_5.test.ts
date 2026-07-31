@@ -13,7 +13,7 @@ import { buildSectionSvg } from '@/lib/drawings/section-svg';
 import { buildPresentationSvg } from '@/lib/drawings/disciplines/presentation-svg';
 import { buildScheduleSvg } from '@/lib/drawings/disciplines/schedule-svg';
 import { LW } from '@/lib/drawings/lineweights';
-import type { CadDocument as Ws6CadDocument } from '@/domain/ws6-types';
+import type { CadDocument as Ws6CadDocument, BimMetadata, RoomProgramme } from '@/domain/ws6-types';
 import type { TitleBlockMeta } from '@/lib/drawings/title-block';
 import type { SectionConfig } from '@/lib/drawings/section-svg';
 import { computeRoomsFromWalls } from '@/lib/drawings/annotation-engine';
@@ -182,7 +182,7 @@ describe('P13.5 — Workstream 1: Strengthened Dimensions', () => {
   });
 
   test('floor plan contains internal room dimensions', () => {
-    const cad = fixtureCad({ roomProgramme: { r1: 'Living Room', r2: 'Kitchen', r3: 'Bedroom 1' } as any });
+    const cad = fixtureCad({ roomProgramme: { r1: 'Living Room', r2: 'Kitchen', r3: 'Bedroom 1' } });
     const svg = buildFloorPlanSvg(cad, 'f1', FIXTURE_META);
     expect(svg).toContain('m²');
     expect(svg).toContain('Arial');
@@ -313,11 +313,11 @@ describe('P13.5 — Workstream 3: MEP Technical Content', () => {
   test('electrical plan contains zone demarcation labels when multiple lights', () => {
     const multiLightCad = fixtureCad({
       blocks: [
-        { id: 'bl1', floorId: 'f1', kind: 'light', position: { x: 2, y: 2 }, width: 0.5, depth: 0.5, rotation: 0, name: 'L1', metadata: {} as any },
-        { id: 'bl2', floorId: 'f1', kind: 'light', position: { x: 4, y: 2 }, width: 0.5, depth: 0.5, rotation: 0, name: 'L2', metadata: {} as any },
-        { id: 'bl3', floorId: 'f1', kind: 'light', position: { x: 6, y: 2 }, width: 0.5, depth: 0.5, rotation: 0, name: 'L3', metadata: {} as any },
-        { id: 'bl4', floorId: 'f1', kind: 'switch', position: { x: 1, y: 0.5 }, width: 0.1, depth: 0.1, rotation: 0, name: 'SW1', metadata: {} as any },
-        { id: 'bl5', floorId: 'f1', kind: 'db_board', position: { x: 0.5, y: 0.5 }, width: 0.4, depth: 0.6, rotation: 0, name: 'DB', metadata: {} as any },
+        { id: 'bl1', floorId: 'f1', kind: 'light', position: { x: 2, y: 2 }, width: 0.5, depth: 0.5, rotation: 0, name: 'L1', metadata: {} as unknown as BimMetadata },
+        { id: 'bl2', floorId: 'f1', kind: 'light', position: { x: 4, y: 2 }, width: 0.5, depth: 0.5, rotation: 0, name: 'L2', metadata: {} as unknown as BimMetadata },
+        { id: 'bl3', floorId: 'f1', kind: 'light', position: { x: 6, y: 2 }, width: 0.5, depth: 0.5, rotation: 0, name: 'L3', metadata: {} as unknown as BimMetadata },
+        { id: 'bl4', floorId: 'f1', kind: 'switch', position: { x: 1, y: 0.5 }, width: 0.1, depth: 0.1, rotation: 0, name: 'SW1', metadata: {} as unknown as BimMetadata },
+        { id: 'bl5', floorId: 'f1', kind: 'db_board', position: { x: 0.5, y: 0.5 }, width: 0.4, depth: 0.6, rotation: 0, name: 'DB', metadata: {} as unknown as BimMetadata },
       ],
     });
     const svg = buildElectricalPlanSvg(multiLightCad, 'f1', FIXTURE_META);
@@ -567,7 +567,7 @@ describe('P13.5 — Workstream 6: Schedule Linkage', () => {
   });
 
   test('room names from canonical programme appear on floor plan', () => {
-    const programme = { 'Living Room': 'Living Room' as any, Kitchen: 'Kitchen' as any };
+    const programme: Record<string, RoomProgramme> = { 'Living Room': 'Living Room', Kitchen: 'Kitchen' };
     const cad = fixtureCad({ roomProgramme: programme });
     const svg = buildFloorPlanSvg(cad, 'f1', FIXTURE_META);
     expect(svg).not.toContain('Room 1');
@@ -620,7 +620,7 @@ describe('P13.5 — Regression', () => {
   });
 
   test('canonical room naming does not regress', () => {
-    const cad2 = fixtureCad({ roomProgramme: { 'Living Room': 'Living Room' as any } });
+    const cad2 = fixtureCad({ roomProgramme: { 'Living Room': 'Living Room' } });
     const { rooms } = computeRoomsFromWalls(cad2.walls, 0, cad2.roomProgramme);
     const hasNamed = rooms.some(r => r.name === 'Living Room');
     expect(hasNamed).toBe(true);

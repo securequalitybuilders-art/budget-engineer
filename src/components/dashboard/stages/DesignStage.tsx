@@ -34,7 +34,7 @@ interface BackgroundIntel {
   loading: boolean
 }
 
-interface DesignStageProps {
+export interface DesignStageProps {
   projectId: string | null
   selectedDesign: DesignOption | null
   activePlan: PlanModel | null

@@ -4,6 +4,7 @@ import {
   validateVerticalConstraints,
   getConstraintsForLevel,
   type ChassisGenerationParams,
+  type StructuralSystem,
   type ShaftServiceType,
   type ShaftStack,
 } from '../lib/layout/vertical-chassis'
@@ -20,7 +21,7 @@ function makeChassisParams(overrides: Partial<ChassisGenerationParams> = {}): Ch
     buildingDepth: 10,
     floorToFloorHeight: 3.0,
     wallThickness: 0.2,
-    structuralSystem: undefined as any,
+    structuralSystem: undefined as unknown as StructuralSystem,
     maxStructuralSpan: 6.0,
     hasLift: false,
     hasDuplex: false,
@@ -45,7 +46,7 @@ describe('BuildingChassis', () => {
   })
 
   it('detects rc-frame for 3-5 storeys', () => {
-    const chassis = generateBuildingChassis(makeChassisParams({ storeyCount: 4, structuralSystem: undefined as any }))
+    const chassis = generateBuildingChassis(makeChassisParams({ storeyCount: 4, structuralSystem: undefined as unknown as StructuralSystem }))
     expect(chassis.structuralSystem).toBe('rc-frame')
   })
 

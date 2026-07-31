@@ -149,6 +149,7 @@ import {
   getDisciplinePrefix,
   aiaLayerColor,
 } from '@/lib/drawings/layerStandard';
+import type { DisciplineCode } from '@/lib/drawings/layerStandard';
 
 describe('layerStandard', () => {
   it('has at least 50 layers', () => {
@@ -215,7 +216,7 @@ describe('layerStandard', () => {
     it('maps A to Architecture', () => expect(getDisciplinePrefix('A')).toBe('Architecture'));
     it('maps S to Structure', () => expect(getDisciplinePrefix('S')).toBe('Structure'));
     it('maps M to Mechanical', () => expect(getDisciplinePrefix('M')).toBe('Mechanical'));
-    it('maps unknown to General', () => expect(getDisciplinePrefix('X' as any)).toBe('General'));
+    it('maps unknown to General', () => expect(getDisciplinePrefix('X' as unknown as DisciplineCode)).toBe('General'));
   });
 
   describe('aiaLayerColor', () => {

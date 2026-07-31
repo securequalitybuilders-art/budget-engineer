@@ -229,7 +229,7 @@ describe('Plan Quality Acceptance — Drawing Output Quality', () => {
     const cad = convertPlanModelToWs6Cad(plan, 1, 3.0)
     expect(cad).toBeDefined()
     if (cad) {
-      const svg = buildSectionSvg(cad as any)
+      const svg = buildSectionSvg(cad)
       expect(svg).toContain('FFL +')
     }
   })
@@ -239,7 +239,7 @@ describe('Plan Quality Acceptance — Drawing Output Quality', () => {
     const cad = convertPlanModelToWs6Cad(plan, 1, 3.0)
     expect(cad).toBeDefined()
     if (cad) {
-      const svg = buildSectionSvg(cad as any)
+      const svg = buildSectionSvg(cad)
       expect(svg).toContain('cut @')
       expect(svg).toContain('Section')
     }
@@ -250,7 +250,7 @@ describe('Plan Quality Acceptance — Drawing Output Quality', () => {
     const cad = convertPlanModelToWs6Cad(plan, 1, 3.0)
     expect(cad).toBeDefined()
     if (cad) {
-      const svg = buildElevationSvg(cad as any, 'front')
+      const svg = buildElevationSvg(cad, 'front')
       expect(svg).toContain('Front Elevation')
       expect(svg).toContain('FFL +')
       expect(svg).toContain('1:100')

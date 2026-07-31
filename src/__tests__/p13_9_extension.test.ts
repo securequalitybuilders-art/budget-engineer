@@ -313,7 +313,7 @@ describe('P13.9-EXT — Leader Notes Engine', () => {
 
 describe('P13.9-EXT — Elevation Reference Engine', () => {
   it('renderSectionCutMarker renders AA horizontal cut line with bubbles', () => {
-    const vp = { px: (p: any) => p.x * 100, py: (p: any) => p.y * 100, w: 500, h: 400 };
+    const vp = { px: (p: { x: number; y: number }) => p.x * 100, py: (p: { x: number; y: number }) => p.y * 100, w: 500, h: 400 };
     const parts = renderSectionCutMarker('AA', 2.5, vp, false);
     const svg = parts.join('');
     expect(svg).toContain('stroke-dasharray');
@@ -322,7 +322,7 @@ describe('P13.9-EXT — Elevation Reference Engine', () => {
   });
 
   it('renderSectionCutMarker renders BB vertical cut line', () => {
-    const vp = { px: (p: any) => p.x * 100, py: (p: any) => p.y * 100, w: 500, h: 400 };
+    const vp = { px: (p: { x: number; y: number }) => p.x * 100, py: (p: { x: number; y: number }) => p.y * 100, w: 500, h: 400 };
     const parts = renderSectionCutMarker('BB', 3.0, vp, false);
     const svg = parts.join('');
     expect(svg).toContain('B');
