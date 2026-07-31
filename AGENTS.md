@@ -593,3 +593,14 @@ Cleared every remaining production eslint warning (103 -> 44, all 44 are `no-exp
 
 ### Follow-up: remaining 44 test-file `no-explicit-any` warnings also eliminated
 Mechanical cleanup across 18 test files + 2 production files (added `export interface DesignStageProps` / `export interface DrawingsPanelProps` so tests can type their `ComponentType<any>` mocks): `as any` → real types or `as unknown as T`, `(el as any).key` → `ReactElement`, `new (window as any).MouseEvent` → `new MouseEvent`. Final state: **eslint 0 errors / 0 warnings**, 0 TS errors, 4053/4053 tests (186 files).
+
+## Bug fix - 3D model not showing in BIM page (dev mode) (Current)
+
+### Root cause
+`useGlbExport`'s mount effect had an empty body with only a cleanup (`return () => { mountedRef.current = false }`). Under React StrictMode (dev), the mount -> cleanup -> remount cycle left `mountedRef.current = false` permanently, so every `generate()` resolution skipped `setGlbUrl`. Result: GlbViewer permanently showed "No 3D model loaded. Generate a model first." even after clicking Regenerate. Affected all 3 consumers: BimStage, DocsBimStage, SiteAnalysisStage. Production was unaffected (StrictMode is dev-only) - verified the full GLB pipeline headlessly (generated plan -> planTo3d -> GLTFExporter -> non-empty GLB, ~1KB+).
+
+### Fix (1 line + regression test)
+- `src/hooks/useGlbExport.ts` - added `mountedRef.current = true` at the start of the mount effect so StrictMode remounts restore it.
+- `src/__tests__/useGlbExportStrictMode.test.tsx` (new) - renders a useGlbExport harness under `<StrictMode>`, asserts glbUrl is set after generate() resolves. Verified the test FAILS without the fix (stash check) and passes with it.
+
+### Results: 57/57 targeted tests, 0 TS errors, eslint 0/0.
