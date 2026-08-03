@@ -604,3 +604,24 @@ Mechanical cleanup across 18 test files + 2 production files (added `export inte
 - `src/__tests__/useGlbExportStrictMode.test.tsx` (new) - renders a useGlbExport harness under `<StrictMode>`, asserts glbUrl is set after generate() resolves. Verified the test FAILS without the fix (stash check) and passes with it.
 
 ### Results: 57/57 targeted tests, 0 TS errors, eslint 0/0.
+
+## Lighthouse round 1 - a11y contrast fixes (Current)
+
+### What was done
+Fixed the 2 real app-owned color-contrast failures from the Lighthouse audit of the production deployment (Performance 47, a11y 88, Best Practices 92, SEO 66 on preview URL). The other failures were environment artifacts, not app bugs: extension-polluted long tasks (Sider extension ~1.3s), CSP-blocked manifest.webmanifest/vercel.live feedback.js (Vercel SSO/protection + Feedback widget, preview-only), x-robots-tag: noindex (preview-only, production is indexable).
+
+### Contrast fixes (WCAG AA 4.5:1 on #111827)
+- src/styles/index.css - --text-muted #64748b (3.73:1 FAIL) -> #8494ab (5.75:1 PASS). Affects "Projects" header, "No projects yet" empty state, and all muted text app-wide.
+- src/components/studio/DisciplineSwitcher.tsx - active discipline button text-[var(--brand-primary)] #1a365d (1.46:1 FAIL, near-invisible "Arch" label) -> text-[var(--brand-accent)] #d4a574 (7.97:1 PASS).
+
+### Test fix (pre-existing date bomb, unrelated)
+- src/__tests__/marketplace.test.ts - escrow milestones had hardcoded dueDates (2026-08-01 etc.); createEscrow sets createdAt = new Date(), so after 2026-08-01 the first durationDays went negative and "calculates milestone timeline" failed (-2). Replaced with inDays(n) helper generating dates relative to today.
+
+### Results: 4054/4054 tests (187 files), 0 TS errors, eslint 0/0.
+
+### Post-fix re-audit verification (commit 56920b4, deployed c1md3884a)
+- Re-audit (Lighthouse 13.3.0, git-main preview, same /project/a7552727-... URL, still extension-polluted): Performance 68, Accessibility 91, Best Practices 92, SEO 66.
+- color-contrast audit now PASSES (items: []) - both contrast fixes verified live; production CSS asset index-ByIKgzyx.css confirmed to contain #8494ab and #d4a574.
+- Remaining a11y fails (button-name, tabindex) are the Sider extension's own injected DOM (div.chat-gpt-query-model > button.size-10, tabindex="1" wrapper) - app-owned accessibility is clean.
+- Best Practices/SEO fails unchanged: Vercel preview SSO manifest rewrite + vercel.live feedback.js CSP blocks (preview-only), x-robots-tag: noindex (preview-only).
+- Performance 68: 4 long tasks (Sider content-all.js 595ms + 85ms, all-frames.js 75ms; app document 496ms), 40 script requests with 2818ms longest chain (react-vendor -> Dashboard -> 17 lazy chunks), ~103 KiB unused Tailwind CSS (95.8%), ui-vendor 59% unused. Remaining drag is ~80% extension load variance + preview artifacts; next step is a clean headless production audit.
