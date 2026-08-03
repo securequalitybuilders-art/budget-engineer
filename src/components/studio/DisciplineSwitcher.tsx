@@ -51,7 +51,7 @@ function DisciplineButton({ id, active, visible, onSelect, onToggleVisibility }:
         onToggleVisibility(id);
       }}
       className="group relative flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors
-        data-[active=true]:bg-[var(--brand-primary)]/10 data-[active=true]:text-[var(--brand-primary)]
+        data-[active=true]:bg-[var(--brand-primary)]/10 data-[active=true]:text-[var(--brand-accent)]
         data-[active=false]:text-[var(--text-secondary)] hover:data-[active=false]:bg-[var(--bg-hover)]
         data-[visible=false]:opacity-40"
       title={`${d.label} — ${d.description}${visible ? '' : ' (hidden)'}`}

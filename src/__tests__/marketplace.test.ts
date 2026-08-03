@@ -63,11 +63,17 @@ beforeEach(() => { useProviderStore.getState().reset(); });
 });
 
 describe('Escrow Engine', () => {
+  const inDays = (n: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  };
+
   const baseEscrow = () => createEscrow({
     projectId: 'proj1', providerId: 'prov1', clientId: 'client1', totalAmount: 50000, milestones: [
-      { title: 'Foundation', description: 'Foundation complete', amount: 15000, dueDate: '2026-08-01' },
-      { title: 'Structure', description: 'Structure complete', amount: 25000, dueDate: '2026-09-15' },
-      { title: 'Roofing', description: 'Roof complete', amount: 10000, dueDate: '2026-10-30' },
+      { title: 'Foundation', description: 'Foundation complete', amount: 15000, dueDate: inDays(14) },
+      { title: 'Structure', description: 'Structure complete', amount: 25000, dueDate: inDays(60) },
+      { title: 'Roofing', description: 'Roof complete', amount: 10000, dueDate: inDays(90) },
     ], terms: 'Standard release',
   });
 
