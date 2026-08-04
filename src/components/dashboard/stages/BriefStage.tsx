@@ -3,10 +3,14 @@ import { EnhancedBriefPanel } from '@/components/ai/EnhancedBriefPanel'
 import { generateBriefText, type BriefQuestionnaire } from '@/lib/ai/briefQuestionnaire'
 import { AiBriefPanel } from '@/components/ai/AiBriefPanel'
 import { Button } from '@/components/ui/Button'
-import { Upload, FileText, ClipboardList } from 'lucide-react'
+import { MiniFloorPlanPreview } from '@/components/cad/MiniFloorPlanPreview'
+import { generatePlanModel } from '@/engine/plan-generator'
+import { footprintArea } from '@/lib/geometry/plan-geometry'
+import { Upload, FileText, ClipboardList, ArrowRight } from 'lucide-react'
 import type { ParseResult } from '@/lib/ai/ai-provider'
 import type { DesignOption } from '@/domain/boq'
 import type { FloorPlan } from '@/engine/tier3/layoutEngine'
+import type { PlanModel } from '@/domain/plan'
 
 interface BriefStageProps {
   projectId?: string
@@ -19,6 +23,7 @@ interface BriefStageProps {
   setSelectedDesignId: (id: string | null) => void
   selectedDesign: DesignOption | null
   onImportFile?: (file: File) => void
+  onContinueToConcept?: () => void
 }
 
 export function BriefStage({
@@ -31,6 +36,7 @@ export function BriefStage({
   selectedDesignId,
   setSelectedDesignId,
   onImportFile,
+  onContinueToConcept,
 }: BriefStageProps) {
   const importInputRef = useRef<HTMLInputElement>(null)
   const [mode, setMode] = useState<'structured' | 'free-text'>('structured')
@@ -150,35 +156,54 @@ export function BriefStage({
 
       {visibleDesignOptions.length > 0 && (
         <div className="rounded-2xl border-2 border-cyan-500/25 bg-slate-900/80 p-5 shadow-lg shadow-cyan-500/5">
-          <div className="mb-4 flex items-center gap-3">
+          <div className="mb-4 flex flex-wrap items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20">
               <span className="text-xs text-emerald-400">✓</span>
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <h3 className="text-sm font-bold text-white">Designs generated</h3>
-              <p className="text-xs text-stone-400">{visibleDesignOptions.length} option{visibleDesignOptions.length > 1 ? 's' : ''} available</p>
+              <p className="text-xs text-stone-400">
+                {visibleDesignOptions.length} option{visibleDesignOptions.length > 1 ? 's' : ''} available — concept previews below. Select the ideal concept, then refine it in the Concept stage.
+              </p>
             </div>
+            {onContinueToConcept && (
+              <Button variant="secondary" size="sm" className="gap-1.5" onClick={onContinueToConcept}>
+                Refine in Concept
+                <ArrowRight size={14} />
+              </Button>
+            )}
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {visibleDesignOptions.map((option) => {
               const isSelected = selectedDesignId === option.id
+              let previewPlan: PlanModel | null = null
+              try { previewPlan = generatePlanModel(option) } catch { /* skip */ }
+              const roomCount = previewPlan?.rooms.length ?? 0
+              let footprint = 0
+              try { footprint = previewPlan ? footprintArea(previewPlan) : 0 } catch { /* skip */ }
               return (
                 <button
                   key={option.id}
                   onClick={() => setSelectedDesignId(option.id)}
-                  className={`flex flex-col gap-1 rounded-xl border-2 p-3 text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${
+                  className={`flex flex-col gap-2 rounded-xl border-2 p-3 text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${
                     isSelected
                       ? 'border-cyan-400/60 bg-cyan-500/15 shadow-md shadow-cyan-500/15'
                       : 'border-slate-700/60 bg-slate-800/80 hover:border-cyan-500/40 hover:bg-cyan-500/5'
                   }`}
                 >
+                  {previewPlan && (
+                    <div className="overflow-hidden rounded-lg border border-slate-700/40">
+                      <MiniFloorPlanPreview plan={previewPlan} width={220} height={150} />
+                    </div>
+                  )}
                   <span className={`text-sm font-bold ${isSelected ? 'text-cyan-200' : 'text-slate-200'}`}>
                     {option.name}
                   </span>
                   <span className="text-xs text-slate-400">
-                    {option.grossFloorArea.toFixed(0)} m² · {option.floors} floor{option.floors > 1 ? 's' : ''}
+                    {option.grossFloorArea.toFixed(0)} m² · {option.floors} floor{option.floors > 1 ? 's' : ''} · {roomCount} room{roomCount !== 1 ? 's' : ''}
+                    {footprint > 0 && ` · ${footprint.toFixed(0)} m² footprint`}
                   </span>
-                  <span className={`mt-2 self-start rounded-md px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                  <span className={`mt-1 self-start rounded-md px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                     isSelected ? 'bg-cyan-500/20 text-cyan-300' : 'bg-amber-500/10 text-amber-400'
                   }`}>
                     {isSelected ? 'Selected' : 'Select'}

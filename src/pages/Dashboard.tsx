@@ -818,6 +818,7 @@ export function Dashboard() {
                       setSelectedDesignId={setSelectedDesignId}
                       selectedDesign={selectedDesign}
                       onImportFile={handleImportFile}
+                      onContinueToConcept={() => { setActiveStage('concept'); setActiveView('concept') }}
                     />
                   </Suspense>
                 )}

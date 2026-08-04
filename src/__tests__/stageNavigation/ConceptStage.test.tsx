@@ -55,7 +55,7 @@ describe('ConceptStage', () => {
         isGenerating={false}
       />
     )
-    expect(screen.getByText('Choose your design')).toBeTruthy()
+    expect(screen.getByText('Your designs')).toBeTruthy()
     expect(screen.getAllByText('Test Design').length).toBeGreaterThanOrEqual(1)
   })
 

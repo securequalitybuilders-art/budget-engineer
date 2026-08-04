@@ -699,3 +699,28 @@ The design selection could silently desync from the option list, so the Design p
 - `npx vitest run`: 4054/4054 tests (187 files) — `useGlbExportStrictMode.test.tsx` flaked once under full parallel load (100ms flush vs real three.js export), passes in isolation and on rerun
 - `npx vite build`: success in ~25s (PWA precache 118 entries, 5122.04 KiB); chunk warnings unchanged (opencv/three/useGlbExport lazy)
 - Note: 5 stage-file deletions were present in the working tree (both parent + submodule) before this session; they are consistent with the earlier construction-stage removal and are committed with this change
+
+
+## Concept showcase moved to Brief + Concept page repurposed as editing hub (Current)
+
+### What was done
+Reworked the Brief/Concept split so the generated concepts are showcased where the user can judge the ideal concept, and the Concept page focuses on editing.
+
+- **Brief page** — the "Designs generated / N options available" section is now a visual concept showcase: each option card renders a floor-plan preview (`MiniFloorPlanPreview` via `generatePlanModel`) plus quick metrics (gross area, floors, room count, footprint from `footprintArea`). Added a "Refine in Concept →" header CTA that navigates to the Concept stage for editing.
+- **Concept page** — repurposed from a "Choose your design" showcase grid into an editing hub:
+  - Compact horizontal design selector ("Your designs") with small preview thumbnails; selecting a chip switches the design and auto-opens the editor.
+  - Editing toolbar: **Edit in Canvas** (primary when a design is selected, toggles the PlanCanvas editor), **Regenerate options**, **Run AI Pipeline**, pipeline **View Results**, and **Import**.
+  - PlanCanvas editor renders inline below the toolbar.
+  - **Plan Option Comparison** (side-by-side quick metrics) retained at the bottom.
+
+### Files modified (4)
+- `src/components/dashboard/stages/BriefStage.tsx` — added `MiniFloorPlanPreview` + `generatePlanModel` + `footprintArea` to showcase cards; new optional `onContinueToConcept` prop
+- `src/components/dashboard/stages/ConceptStage.tsx` — options view rewritten: compact selector + editing toolbar + inline PlanCanvas + PlanComparison; `Edit in Canvas` is the primary CTA
+- `src/pages/Dashboard.tsx` — wires `onContinueToConcept` (navigates to concept stage/view)
+- `src/__tests__/stageNavigation/ConceptStage.test.tsx` — updated heading assertion `'Choose your design'` → `'Your designs'`
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run`: 4054/4054 tests (187 files)
+- `npx vite build`: success in ~10s (PWA precache 119 entries, 5122.93 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)

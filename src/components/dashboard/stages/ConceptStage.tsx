@@ -142,34 +142,31 @@ export function ConceptStage({
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
-      <div ref={designOptionsRef} className="rounded-2xl border-2 border-cyan-500/25 bg-slate-900/80 p-5 shadow-lg shadow-cyan-500/5 sm:p-6">
-        <div className="mb-5 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20">
-            <LayoutGrid size={20} className="text-cyan-400" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-bold text-white">Choose your design</h2>
+      {/* Compact design selector */}
+      <div ref={designOptionsRef} className="rounded-2xl border border-stone-700/40 bg-stone-900/60 p-4">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="min-w-0">
+            <h2 className="text-base font-bold text-white">Your designs</h2>
             <p className="text-xs text-slate-400">
-              {selectedDesignId
-                ? 'Design selected — you can change anytime'
-                : 'Select a design option to unlock editing'}
+              Pick a design to edit — full concept previews live in the Brief stage.
             </p>
           </div>
+          <span className="rounded-md bg-cyan-500/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-300">
+            {visibleDesignOptions.length} option{visibleDesignOptions.length > 1 ? 's' : ''}
+          </span>
         </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex gap-3 overflow-x-auto pb-1">
           {visibleDesignOptions.map((option) => {
             const isSelected = selectedDesignId === option.id
             const isPipelineDesign = option.id.startsWith('pipeline-')
             let previewPlan: PlanModel | null = null
             try { previewPlan = generatePlanModel(option) } catch { /* skip */ }
-            const roomCount = previewPlan?.rooms.length ?? 0
             return (
               <button
                 key={option.id}
-                onClick={() => { setSelectedDesignId(option.id); setShowCanvas(false) }}
+                onClick={() => { setSelectedDesignId(option.id); setShowCanvas(true) }}
                 className={cn(
-                  'flex flex-col gap-2 rounded-xl border-2 p-3 text-left transition-all hover:scale-[1.02] active:scale-[0.98]',
+                  'flex w-44 shrink-0 flex-col gap-1.5 rounded-xl border-2 p-2 text-left transition-all hover:scale-[1.02] active:scale-[0.98]',
                   isSelected
                     ? 'border-cyan-400/60 bg-cyan-500/15 shadow-md shadow-cyan-500/15'
                     : 'border-slate-700/60 bg-slate-800/80 hover:border-cyan-500/40 hover:bg-cyan-500/5'
@@ -177,85 +174,82 @@ export function ConceptStage({
               >
                 {previewPlan && (
                   <div className="overflow-hidden rounded-lg">
-                    <MiniFloorPlanPreview plan={previewPlan} width={200} height={140} />
+                    <MiniFloorPlanPreview plan={previewPlan} width={160} height={106} />
                   </div>
                 )}
-                <span className={cn('text-sm font-bold', isSelected ? 'text-cyan-200' : 'text-slate-200')}>
+                <span className={cn('truncate text-xs font-bold', isSelected ? 'text-cyan-200' : 'text-slate-200')}>
                   {option.name}
                 </span>
-                <span className="text-xs text-slate-400">
-                  {option.grossFloorArea.toFixed(0)} m² · {option.floors} floor{option.floors > 1 ? 's' : ''} · {roomCount} room{roomCount !== 1 ? 's' : ''}
+                <span className="text-[10px] text-slate-400">
+                  {option.grossFloorArea.toFixed(0)} m² · {option.floors} floor{option.floors > 1 ? 's' : ''}
                 </span>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      'mt-1 self-start rounded-md px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider',
-                      isSelected ? 'bg-cyan-500/20 text-cyan-300' : 'bg-amber-500/10 text-amber-400'
-                    )}
-                  >
-                    {isSelected ? 'Selected' : 'Select this design'}
+                <span className={cn(
+                  'self-start rounded-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider',
+                  isSelected ? 'bg-cyan-500/20 text-cyan-300' : 'bg-amber-500/10 text-amber-400'
+                )}>
+                  {isSelected ? 'Selected' : 'Select'}
+                </span>
+                {isPipelineDesign && (
+                  <span className="inline-flex items-center gap-1 self-start rounded-md bg-violet-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-400">
+                    <Brain size={10} />
+                    AI
                   </span>
-                  {isPipelineDesign && (
-                    <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-400">
-                      <Brain size={10} />
-                      AI
-                    </span>
-                  )}
-                </div>
+                )}
               </button>
             )
           })}
         </div>
+      </div>
 
-        {selectedDesignId && (
-          <div className="mt-4 flex justify-center sm:justify-end">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="gap-2"
-              onClick={() => setShowCanvas(v => !v)}
-            >
-              {showCanvas ? <Eye size={14} /> : <PenTool size={14} />}
-              {showCanvas ? 'Hide Editor' : 'Edit in Canvas'}
-            </Button>
-          </div>
+      {/* Editing toolbar */}
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-stone-700/40 bg-stone-900/60 px-4 py-3">
+        <Button
+          variant={selectedDesignId ? 'brand' : 'secondary'}
+          className="gap-2"
+          onClick={() => setShowCanvas(v => !v)}
+          disabled={!selectedDesignId}
+        >
+          {showCanvas ? <Eye size={16} /> : <PenTool size={16} />}
+          {showCanvas ? 'Hide Editor' : 'Edit in Canvas'}
+        </Button>
+        <Button
+          variant="secondary"
+          className="gap-2"
+          onClick={handleGenerate}
+          disabled={isGenerating || !currentBrief}
+        >
+          {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
+          {isGenerating ? (generationStatus || 'Regenerating...') : 'Regenerate options'}
+        </Button>
+        <Button
+          variant="secondary"
+          className="gap-2"
+          onClick={onRunPipeline}
+          disabled={isPipelineRunning || !currentBrief}
+        >
+          {isPipelineRunning ? <Loader2 size={16} className="animate-spin" /> : <Brain size={16} />}
+          {isPipelineRunning ? (pipelineStatus || 'Running pipeline...') : 'Run AI Pipeline'}
+        </Button>
+        {selectedDesignId && selectedDesignId.startsWith('pipeline-') && pipelineResult && (
+          <Button
+            variant="secondary"
+            size="sm"
+            className="gap-2"
+            onClick={() => setShowPipelineResults(true)}
+          >
+            <BarChart3 size={14} />
+            View Results
+          </Button>
         )}
-
-        <div className="mt-3 flex flex-wrap justify-center gap-2 sm:justify-end">
-          <Button
-            variant="secondary"
-            size="sm"
-            className="gap-2"
-            onClick={handleGenerate}
-            disabled={isGenerating || !currentBrief}
-          >
-            {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
-            {isGenerating ? (generationStatus || 'Generating...') : 'Regenerate options'}
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="secondary" className="gap-2" onClick={() => importInputRef.current?.click()}>
+            <Upload size={16} />
+            Import
           </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="gap-2"
-            onClick={onRunPipeline}
-            disabled={isPipelineRunning || !currentBrief}
-          >
-            {isPipelineRunning ? <Loader2 size={14} className="animate-spin" /> : <Brain size={14} />}
-            {isPipelineRunning ? (pipelineStatus || 'Running pipeline...') : 'Run AI Pipeline'}
-          </Button>
-          {selectedDesignId && selectedDesignId.startsWith('pipeline-') && pipelineResult && (
-            <Button
-              variant="secondary"
-              size="sm"
-              className="gap-2"
-              onClick={() => setShowPipelineResults(true)}
-            >
-              <BarChart3 size={14} />
-              View Results
-            </Button>
-          )}
         </div>
       </div>
 
+      {/* Canvas editor */}
       {selectedDesignId && showCanvas && (
         <div className="rounded-xl border border-stone-700/40 bg-stone-900/60 p-3">
           <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-cyan-400">Design Editor</h3>
