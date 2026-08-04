@@ -646,3 +646,27 @@ Verified the claimed "workflow redesign" (commit `bcc06fa`) does not exist - no 
 - `npx eslint .` (JSON): 0 errors / 0 warnings
 - `npx vite build`: success (PWA precache 129 entries, 5124.74 KiB)
 - Git sync: `test/deploy-workflow` = `origin/main` = `origin/test/deploy-workflow` = `487c520`; local `main` refreshed from `6f2f744` (112 behind) to `origin/main`. Legacy `master` left behind (8 commits, intentionally archived).
+
+## Refactor - construction phases moved into BimStage hub, 5 rail stages removed (Commit: `28ddcda`)
+
+### What was done
+Removed the 5 construction rail stages (`rough-in`, `substrates`, `millwork`, `finishes`, `appliances`) from the stage pipeline and folded them into the BIM stage as sub-tabs. The stage pipeline is now 9 stages: Brief -> Concept -> Site Analysis -> Design -> Engineering -> BIM -> Docs & BIM -> Budget -> Budget Engineered. The construction-phase data (rough-in/substrates/millwork/finishes/appliances in `src/engine/construction/constructionPhases.ts`) is retained and now consumed inside the BIM hub.
+
+### Files modified (6)
+- `src/lib/studio/stageRegistry.ts` - StageId union reduced to 9 ids; `ALL_STAGES` and `STAGE_ORDER` (all 8 disciplines) dropped the 5 construction stages; BIM description now reads "3D Model, 4D Construction Sequencing, Layered Visual Assembly"
+- `src/stores/uiStore.ts` - `NUM_TO_STAGE_ID` reduced from 14 to 9 entries (numeric 1-9 maps to the ARCH order)
+- `src/components/dashboard/stages.ts` - legacy adapter `NUM_TO_STAGE_ID` reduced to the same 9 entries
+- `src/pages/Dashboard.tsx` - removed imports/render blocks/stage filter entries for the 5 construction stages (now 9 lazy stage imports + 9 render blocks + 9-entry `activeView` filter)
+- `src/components/dashboard/stages/BimStage.tsx` - added `BimView` union (`model` | `site` | `drawings` | `4d-sequence` | `construction`); toolbar now has 4D Sequencing + Construction buttons; Construction view renders 5 phase sub-tabs (Rough-in/Substrates/Millwork/Finishes/Appliances) via `ConstructionPhaseView` with `PHASE_MAP`; 4D Sequencing is a placeholder wired to Execution Monitor milestones (coming soon)
+- `src/__tests__/disciplineSystem.test.tsx` - stage counts updated (ALL_STAGES 9; ARCH 9 / STR 8 / MEP 7 / ELEC 7 / PLUM 7 / INT 8 / LAND 9 / CIVIL 9; ARCH id list and `nextStage` expectations updated)
+
+### Unchanged (correct)
+- `src/components/dashboard/StageRail.tsx` + `src/__tests__/stageNavigation/StageRail.test.tsx` - both derive stages dynamically via `getStagesForDiscipline()`, so no count/list hardcoding to update
+- `src/engine/construction/constructionPhases.ts` + `src/__tests__/constructionPhases.test.tsx` - phase data and its tests kept as-is (now BimStage's data source)
+
+### Verification results (this session)
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run`: 4054/4054 tests (187 files)
+- `npx vite build`: success in ~17s (PWA precache 123 entries, 5123.46 KiB); chunk-size warnings are pre-existing lazy chunks (opencv/three/useGlbExport)
+- Git sync: parent HEAD + submodule `budget-engineer-canonical` both at `28ddcda`, pushed to `origin/test/deploy-workflow`; parent submodule pointer updated to match
