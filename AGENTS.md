@@ -625,3 +625,19 @@ Fixed the 2 real app-owned color-contrast failures from the Lighthouse audit of 
 - Remaining a11y fails (button-name, tabindex) are the Sider extension's own injected DOM (div.chat-gpt-query-model > button.size-10, tabindex="1" wrapper) - app-owned accessibility is clean.
 - Best Practices/SEO fails unchanged: Vercel preview SSO manifest rewrite + vercel.live feedback.js CSP blocks (preview-only), x-robots-tag: noindex (preview-only).
 - Performance 68: 4 long tasks (Sider content-all.js 595ms + 85ms, all-frames.js 75ms; app document 496ms), 40 script requests with 2818ms longest chain (react-vendor -> Dashboard -> 17 lazy chunks), ~103 KiB unused Tailwind CSS (95.8%), ui-vendor 59% unused. Remaining drag is ~80% extension load variance + preview artifacts; next step is a clean headless production audit.
+
+## Verification session - construction lifecycle workflow (Current)
+
+### What was done
+Verified the claimed "workflow redesign" (commit `bcc06fa`) does not exist - no commit, stash, or reflog entry in either repo; tree is clean at `487c520`. Confirmed the described construction-lifecycle workflow was ALREADY shipped in earlier commits and is fully wired:
+
+- **Stage pipeline** (14 stages, `src/lib/studio/stageRegistry.ts`): Brief -> Concept -> Site Analysis -> Design -> Engineering -> BIM -> Docs & BIM -> Rough-in -> Substrates -> Millwork -> Finishes -> Appliances -> Budget -> Budget Engineered, with discipline-specific ordering (ARCH/STR/MEP/ELEC/PLUM/INT/LAND/CIVIL).
+- **Construction phases** (`src/engine/construction/constructionPhases.ts`, committed `8d92544` Phase 4 + `7a6a93c` P14.12): all 5 construction stages contain real work items, materials, specs, and BOQ lines matching the redesign spec (PVC 110mm drains, Copper 15mm supply, PVC 20mm conduit, 1:4 cement:sand plaster, acrylic liquid membrane 1.5mm DFT, 6mm cement board, marine ply 18mm + melamine, granite/quartz 20mm, flexible tile adhesive, epoxy grout BS EN 13888, matt emulsion, 600mm built-in oven, 4-burner gas hob, 600mm canopy extractor, dishwasher).
+- **Stage components** render all 14 stages in `src/pages/Dashboard.tsx`; zero orphaned references to old stage modules (EstimationStage, ProcurementStage, MarketplaceStage, ExecutionStage, HandoverStage, ComplianceStage, BriefViewStage, CollaborationStage).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx vitest run`: 4054/4054 tests (187 files)
+- `npx eslint .` (JSON): 0 errors / 0 warnings
+- `npx vite build`: success (PWA precache 129 entries, 5124.74 KiB)
+- Git sync: `test/deploy-workflow` = `origin/main` = `origin/test/deploy-workflow` = `487c520`; local `main` refreshed from `6f2f744` (112 behind) to `origin/main`. Legacy `master` left behind (8 commits, intentionally archived).
