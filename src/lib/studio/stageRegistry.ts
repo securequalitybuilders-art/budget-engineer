@@ -4,11 +4,6 @@ import {
   FileText,
   PenTool,
   Box,
-  Wrench,
-  Layers,
-  LayoutPanelTop,
-  Palette,
-  Plug,
   DollarSign,
   FileSpreadsheet,
   Globe,
@@ -25,11 +20,6 @@ export type StageId =
   | 'engineering'
   | 'bim'
   | 'docs-bim'
-  | 'rough-in'
-  | 'substrates'
-  | 'millwork'
-  | 'finishes'
-  | 'appliances'
   | 'budget'
   | 'budget-engineered';
 
@@ -92,41 +82,6 @@ export const ALL_STAGES: StageDef[] = [
     icon: BookOpen,
   },
   {
-    id: 'rough-in',
-    label: 'Rough-in & Infrastructure',
-    shortLabel: 'Rough-in',
-    description: 'Laying out plumbing pipes, drains, and electrical conduits.',
-    icon: Wrench,
-  },
-  {
-    id: 'substrates',
-    label: 'Substrates & Enclosures',
-    shortLabel: 'Substrates',
-    description: 'Wall plastering, waterproofing, and tile backing.',
-    icon: Layers,
-  },
-  {
-    id: 'millwork',
-    label: 'Primary Millwork & Fixtures',
-    shortLabel: 'Millwork',
-    description: 'Base and wall cabinet installation, sink fitting, backsplash.',
-    icon: LayoutPanelTop,
-  },
-  {
-    id: 'finishes',
-    label: 'Finishes',
-    shortLabel: 'Finishes',
-    description: 'Wooden floor laying (done after heavy cabinet installation).',
-    icon: Palette,
-  },
-  {
-    id: 'appliances',
-    label: 'Appliances & Staging',
-    shortLabel: 'Appliances',
-    description: 'Installing the oven, stovetop, and countertop accessories.',
-    icon: Plug,
-  },
-  {
     id: 'budget',
     label: 'Budget',
     shortLabel: 'Budget',
@@ -161,14 +116,14 @@ export function getDefaultStage(discipline: DisciplineId): StageId {
 }
 
 const STAGE_ORDER: Record<DisciplineId, StageId[]> = {
-  ARCH: ['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'],
-  STR: ['brief', 'concept', 'design', 'engineering', 'bim', 'docs-bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
-  MEP: ['brief', 'design', 'engineering', 'bim', 'docs-bim', 'rough-in', 'budget', 'budget-engineered'],
-  ELEC: ['brief', 'design', 'engineering', 'bim', 'docs-bim', 'rough-in', 'budget', 'budget-engineered'],
-  PLUM: ['brief', 'design', 'engineering', 'bim', 'docs-bim', 'rough-in', 'budget', 'budget-engineered'],
-  INT: ['brief', 'concept', 'design', 'engineering', 'bim', 'docs-bim', 'rough-in', 'millwork', 'finishes', 'budget', 'budget-engineered'],
-  LAND: ['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
-  CIVIL: ['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'rough-in', 'substrates', 'budget', 'budget-engineered'],
+  ARCH: ['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
+  STR: ['brief', 'concept', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
+  MEP: ['brief', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
+  ELEC: ['brief', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
+  PLUM: ['brief', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
+  INT: ['brief', 'concept', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
+  LAND: ['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
+  CIVIL: ['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
 };
 
 export function isStageInDiscipline(stage: StageId, discipline: DisciplineId): boolean {

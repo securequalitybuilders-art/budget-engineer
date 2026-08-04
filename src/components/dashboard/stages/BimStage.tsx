@@ -3,7 +3,7 @@ import { GlbViewer } from '@/components/bim/GlbViewer'
 import { GlbSiteViewer } from '@/components/bim/GlbSiteViewer'
 import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
 import { Button } from '@/components/ui/Button'
-import { Box, LayoutGrid, Boxes, Globe } from 'lucide-react'
+import { Box, LayoutGrid, Boxes, Globe, Wrench, Layers, LayoutPanelTop, Palette, Plug, Clock } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { useGlbExport } from '@/hooks/useGlbExport'
@@ -11,8 +11,29 @@ import { loadSiteContext } from '@/lib/site/siteContextReader'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
 import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
+import { ConstructionPhaseView } from '@/components/construction/ConstructionPhaseView'
+import { ROUGH_IN_PHASE, SUBSTRATES_PHASE, MILLWORK_PHASE, FINISHES_PHASE, APPLIANCES_PHASE } from '@/engine/construction/constructionPhases'
 
-type BimView = 'model' | 'site' | 'drawings'
+type BimView = 'model' | 'site' | 'drawings' | '4d-sequence' | 'construction'
+
+/** Construction sub-tab within BIM */
+type ConstructionPhaseTab = 'rough-in' | 'substrates' | 'millwork' | 'finishes' | 'appliances'
+
+const CONSTRUCTION_TABS: { key: ConstructionPhaseTab; label: string; icon: typeof Wrench }[] = [
+  { key: 'rough-in', label: 'Rough-in', icon: Wrench },
+  { key: 'substrates', label: 'Substrates', icon: Layers },
+  { key: 'millwork', label: 'Millwork', icon: LayoutPanelTop },
+  { key: 'finishes', label: 'Finishes', icon: Palette },
+  { key: 'appliances', label: 'Appliances', icon: Plug },
+]
+
+const PHASE_MAP = {
+  'rough-in': ROUGH_IN_PHASE,
+  'substrates': SUBSTRATES_PHASE,
+  'millwork': MILLWORK_PHASE,
+  'finishes': FINISHES_PHASE,
+  'appliances': APPLIANCES_PHASE,
+} as const
 
 interface BimStageProps {
   activePlan: PlanModel | null
@@ -21,6 +42,7 @@ interface BimStageProps {
 
 export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
   const [view, setView] = useState<BimView>('model')
+  const [constructionTab, setConstructionTab] = useState<ConstructionPhaseTab>('rough-in')
   const { glbUrl, isExporting, error: exportError, generate, download } = useGlbExport()
   const registerSheets = useDrawingRegisterStore((s) => s.sheets)
   const initializeRegister = useDrawingRegisterStore((s) => s.initialize)
@@ -82,7 +104,7 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 border-b border-[var(--border-default)] px-4 py-2">
+      <div className="flex items-center gap-2 border-b border-[var(--border-default)] px-4 py-2 overflow-x-auto">
         <Button
           variant={view === 'model' ? 'brand' : 'ghost'}
           size="sm"
@@ -103,6 +125,23 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
           onClick={() => setView('drawings')}
         >
           <LayoutGrid size={14} className="mr-1" /> Drawings
+        </Button>
+
+        <div className="mx-1 h-5 w-px bg-stone-700/60 shrink-0" />
+
+        <Button
+          variant={view === '4d-sequence' ? 'brand' : 'ghost'}
+          size="sm"
+          onClick={() => setView('4d-sequence')}
+        >
+          <Clock size={14} className="mr-1" /> 4D Sequencing
+        </Button>
+        <Button
+          variant={view === 'construction' ? 'brand' : 'ghost'}
+          size="sm"
+          onClick={() => setView('construction')}
+        >
+          <Wrench size={14} className="mr-1" /> Construction
         </Button>
       </div>
 
@@ -154,6 +193,53 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
             <ErrorBoundary>
               <DrawingsPanel activePlan={activePlan} design={selectedDesign} floors={selectedDesign?.floors ?? 1} />
             </ErrorBoundary>
+          )}
+
+          {/* 4D Construction Sequencing */}
+          {view === '4d-sequence' && (
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-stone-900/50 rounded-lg border border-stone-800 p-8">
+              <Clock size={48} className="text-cyan-500/60" />
+              <h3 className="text-lg font-semibold text-stone-200">4D Construction Sequencing</h3>
+              <p className="text-sm text-stone-400 max-w-lg text-center">
+                Visualise the build timeline overlaid on the 3D model. Each construction phase (foundation → superstructure → roof → services → finishes)
+                is animated in order, showing materials arriving on-site and being installed.
+              </p>
+              <div className="text-xs text-stone-400 bg-stone-800/60 px-3 py-1.5 rounded">
+                Coming soon — connects to Execution Monitor milestones
+              </div>
+            </div>
+          )}
+
+          {/* Layered Construction Assembly — 5 sub-tabs */}
+          {view === 'construction' && (
+            <div className="flex flex-col h-full gap-2">
+              {/* Construction phase sub-tabs */}
+              <div className="flex items-center gap-1 border-b border-stone-800 pb-2">
+                {CONSTRUCTION_TABS.map((tab) => {
+                  const Icon = tab.icon
+                  const isActive = constructionTab === tab.key
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => setConstructionTab(tab.key)}
+                      className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                        isActive
+                          ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
+                          : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800/60'
+                      }`}
+                    >
+                      <Icon size={12} />
+                      {tab.label}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Active phase content */}
+              <div className="flex-1 overflow-auto">
+                <ConstructionPhaseView phase={PHASE_MAP[constructionTab]} />
+              </div>
+            </div>
           )}
         </div>
       </div>

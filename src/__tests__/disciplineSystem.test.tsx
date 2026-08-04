@@ -82,8 +82,8 @@ describe('discipline.ts', () => {
 // ── stageRegistry.ts ──
 
 describe('stageRegistry.ts', () => {
-  it('defines 14 stages', () => {
-    expect(ALL_STAGES.length).toBe(14)
+  it('defines 9 stages', () => {
+    expect(ALL_STAGES.length).toBe(9)
   })
 
   it('each StageDef has an id, label, shortLabel, description, icon', () => {
@@ -106,14 +106,14 @@ describe('stageRegistry.ts', () => {
   })
 
   it('getStagesForDiscipline returns discipline-specific stages', () => {
-    expect(getStagesForDiscipline('ARCH').length).toBe(14)
-    expect(getStagesForDiscipline('STR').length).toBe(10)
-    expect(getStagesForDiscipline('MEP').length).toBe(8)
-    expect(getStagesForDiscipline('ELEC').length).toBe(8)
-    expect(getStagesForDiscipline('PLUM').length).toBe(8)
-    expect(getStagesForDiscipline('INT').length).toBe(11)
-    expect(getStagesForDiscipline('LAND').length).toBe(11)
-    expect(getStagesForDiscipline('CIVIL').length).toBe(11)
+    expect(getStagesForDiscipline('ARCH').length).toBe(9)
+    expect(getStagesForDiscipline('STR').length).toBe(8)
+    expect(getStagesForDiscipline('MEP').length).toBe(7)
+    expect(getStagesForDiscipline('ELEC').length).toBe(7)
+    expect(getStagesForDiscipline('PLUM').length).toBe(7)
+    expect(getStagesForDiscipline('INT').length).toBe(8)
+    expect(getStagesForDiscipline('LAND').length).toBe(9)
+    expect(getStagesForDiscipline('CIVIL').length).toBe(9)
   })
 
   it('ARCH and INT have correct first stages', () => {
@@ -123,7 +123,7 @@ describe('stageRegistry.ts', () => {
 
   it('getStageIdsForDiscipline returns stage IDs', () => {
     const ids = getStageIdsForDiscipline('ARCH')
-    expect(ids).toEqual(['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'])
+    expect(ids).toEqual(['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'])
   })
 
   it('getDefaultStage returns the first stage', () => {
@@ -135,10 +135,10 @@ describe('stageRegistry.ts', () => {
   it('isStageInDiscipline checks membership', () => {
     expect(isStageInDiscipline('design', 'ARCH')).toBe(true)
     expect(isStageInDiscipline('design', 'MEP')).toBe(true)
-    expect(isStageInDiscipline('millwork', 'ARCH')).toBe(true)
-    expect(isStageInDiscipline('millwork', 'MEP')).toBe(false)
-    expect(isStageInDiscipline('substrates', 'LAND')).toBe(true)
-    expect(isStageInDiscipline('substrates', 'CIVIL')).toBe(true)
+    expect(isStageInDiscipline('bim', 'ARCH')).toBe(true)
+    expect(isStageInDiscipline('docs-bim', 'MEP')).toBe(true)
+    expect(isStageInDiscipline('site-analysis', 'LAND')).toBe(true)
+    expect(isStageInDiscipline('site-analysis', 'CIVIL')).toBe(true)
   })
 
   it('nextStage returns next stage or null', () => {
@@ -146,11 +146,12 @@ describe('stageRegistry.ts', () => {
     expect(nextStage('concept', 'ARCH')).toBe('site-analysis')
     expect(nextStage('site-analysis', 'ARCH')).toBe('design')
     expect(nextStage('budget-engineered', 'ARCH')).toBeNull()
-    expect(nextStage('substrates', 'MEP')).toBeNull()
+    expect(nextStage('docs-bim', 'ARCH')).toBe('budget')
   })
 
   it('nextStage returns null for unknown stage in discipline', () => {
-    expect(nextStage('substrates' as StageId, 'MEP')).toBeNull()
+    // 'site-analysis' is not in MEP discipline
+    expect(nextStage('site-analysis' as StageId, 'MEP')).toBeNull()
   })
 })
 

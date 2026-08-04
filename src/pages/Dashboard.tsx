@@ -22,11 +22,6 @@ const ConceptStage = lazy(() => import('@/components/dashboard/stages/ConceptSta
 const SiteAnalysisStage = lazy(() => import('@/components/dashboard/stages/SiteAnalysisStage').then(m => ({ default: m.SiteAnalysisStage })));
 const DesignStage = lazy(() => import('@/components/dashboard/stages/DesignStage').then(m => ({ default: m.DesignStage })));
 const BimStage = lazy(() => import('@/components/dashboard/stages/BimStage').then(m => ({ default: m.BimStage })));
-const RoughInStage = lazy(() => import('@/components/dashboard/stages/RoughInStage').then(m => ({ default: m.RoughInStage })));
-const SubstratesStage = lazy(() => import('@/components/dashboard/stages/SubstratesStage').then(m => ({ default: m.SubstratesStage })));
-const MillworkStage = lazy(() => import('@/components/dashboard/stages/MillworkStage').then(m => ({ default: m.MillworkStage })));
-const FinishesStage = lazy(() => import('@/components/dashboard/stages/FinishesStage').then(m => ({ default: m.FinishesStage })));
-const AppliancesStage = lazy(() => import('@/components/dashboard/stages/AppliancesStage').then(m => ({ default: m.AppliancesStage })));
 const CostDeliverStage = lazy(() => import('@/components/dashboard/stages/CostDeliverStage').then(m => ({ default: m.CostDeliverStage })));
 const BudgetEngineeredStage = lazy(() => import('@/components/dashboard/stages/BudgetEngineeredStage').then(m => ({ default: m.BudgetEngineeredStage })));
 const EngineeringStage = lazy(() => import('@/components/dashboard/stages/EngineeringStage').then(m => ({ default: m.EngineeringStage })));
@@ -791,7 +786,7 @@ export function Dashboard() {
 
           {/* Main content area */}
           <div className="relative flex flex-1 flex-col overflow-hidden bg-[var(--bg-primary)]">
-            {(['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'rough-in', 'substrates', 'millwork', 'finishes', 'appliances', 'budget', 'budget-engineered'] as StageId[]).includes(activeView as StageId) ? (
+            {(['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'] as StageId[]).includes(activeView as StageId) ? (
               <>
                 {activeStageId === 'brief' && (
                   <Suspense fallback={<PageLoader />}>
@@ -895,11 +890,7 @@ export function Dashboard() {
                     />
                   </Suspense>
                 )}
-                {activeStageId === 'rough-in' && <Suspense fallback={<PageLoader />}><RoughInStage /></Suspense>}
-                {activeStageId === 'substrates' && <Suspense fallback={<PageLoader />}><SubstratesStage /></Suspense>}
-                {activeStageId === 'millwork' && <Suspense fallback={<PageLoader />}><MillworkStage /></Suspense>}
-                {activeStageId === 'finishes' && <Suspense fallback={<PageLoader />}><FinishesStage /></Suspense>}
-                {activeStageId === 'appliances' && <Suspense fallback={<PageLoader />}><AppliancesStage /></Suspense>}
+
                 {activeStageId === 'budget' && (
                   <Suspense fallback={<PageLoader />}>
                     <CostDeliverStage
