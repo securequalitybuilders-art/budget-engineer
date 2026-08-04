@@ -19,12 +19,10 @@ import { StageRail } from '@/components/dashboard/StageRail';
 import { MobileNavDrawer } from '@/components/dashboard/MobileNavDrawer';
 const BriefStage = lazy(() => import('@/components/dashboard/stages/BriefStage').then(m => ({ default: m.BriefStage })));
 const ConceptStage = lazy(() => import('@/components/dashboard/stages/ConceptStage').then(m => ({ default: m.ConceptStage })));
-const SiteAnalysisStage = lazy(() => import('@/components/dashboard/stages/SiteAnalysisStage').then(m => ({ default: m.SiteAnalysisStage })));
 const DesignStage = lazy(() => import('@/components/dashboard/stages/DesignStage').then(m => ({ default: m.DesignStage })));
 const BimStage = lazy(() => import('@/components/dashboard/stages/BimStage').then(m => ({ default: m.BimStage })));
 const CostDeliverStage = lazy(() => import('@/components/dashboard/stages/CostDeliverStage').then(m => ({ default: m.CostDeliverStage })));
 const BudgetEngineeredStage = lazy(() => import('@/components/dashboard/stages/BudgetEngineeredStage').then(m => ({ default: m.BudgetEngineeredStage })));
-const EngineeringStage = lazy(() => import('@/components/dashboard/stages/EngineeringStage').then(m => ({ default: m.EngineeringStage })));
 const DocsBimStage = lazy(() => import('@/components/dashboard/stages/DocsBimStage').then(m => ({ default: m.DocsBimStage })));
 const LazyImportWorkflow = lazy(() => import('@/components/import/ImportWorkflow').then(m => ({ default: m.ImportWorkflow })));
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
@@ -115,7 +113,6 @@ export function Dashboard() {
   const [intelKey, setIntelKey] = useState('');
   const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadedPersistenceRef = useRef(false);
-  const loadedCadRef = useRef<string | null>(null);
   const loggedBimRef = useRef<string | null>(null);
   const loggedBoqRef = useRef<string | null>(null);
 
@@ -157,6 +154,16 @@ export function Dashboard() {
   );
 
   const selectedDesign = visibleDesignOptions.find((d) => d.id === selectedDesignId) ?? visibleDesignOptions[0] ?? null;
+
+  // Keep the selected design valid: if selectedDesignId no longer matches an
+  // available option (regeneration renames ids, persisted selections go stale),
+  // snap to the first option so Concept → Design always transfer the selection.
+  useEffect(() => {
+    if (visibleDesignOptions.length === 0) return
+    if (!visibleDesignOptions.some((d) => d.id === selectedDesignId)) {
+      setSelectedDesignId(visibleDesignOptions[0].id)
+    }
+  }, [visibleDesignOptions, selectedDesignId, setSelectedDesignId])
   // Tier 3: find the plan matching the selected design
   const selectedTier3Plan = useMemo<FloorPlan | null>(() => {
     if (tier3Plans.length === 0) return null
@@ -173,22 +180,24 @@ export function Dashboard() {
     if (persistedPlan) {
       return;
     }
+    let cancelled = false;
     const load = async () => {
       if (selectedTier3Plan && selectedDesign) {
         const { floorPlanToPlanModel } = await import('@/adapters/floorPlanToPlanModel');
-        setLoadedPlan(floorPlanToPlanModel(selectedTier3Plan, selectedDesign));
+        if (!cancelled) setLoadedPlan(floorPlanToPlanModel(selectedTier3Plan, selectedDesign));
       } else if (selectedDesign) {
         const { generateVariedPlanModel } = await import('@/engine/plan-generator');
         const plan = generateVariedPlanModel(selectedDesign);
         if (process.env.NODE_ENV === 'development') {
           console.debug(`[PlanSource] ${selectedDesign.id} → ${plan.planSource ?? 'advanced-generated-plan'}`)
         }
-        setLoadedPlan(plan);
+        if (!cancelled) setLoadedPlan(plan);
       } else {
-        setLoadedPlan(null);
+        if (!cancelled) setLoadedPlan(null);
       }
     };
     load();
+    return () => { cancelled = true; };
   }, [persistedPlan, selectedDesign, selectedTier3Plan]);
 
   const [currentBoq, setCurrentBoq] = useState<BoqResult | null>(null);
@@ -274,7 +283,8 @@ export function Dashboard() {
       loadPersistedProjectWork(id).then((saved) => {
         if (saved.designs.length > 0 && aiDesignOptions.length === 0 && designOptions.length === 0) {
           setAiDesignOptions(saved.designs);
-          setSelectedDesignId(saved.designs[0].id);
+          const stillValid = saved.designs.some((d) => d.id === selectedDesignId)
+          if (!stillValid) setSelectedDesignId(saved.designs[0].id);
         }
       })
     }
@@ -298,18 +308,19 @@ export function Dashboard() {
   // ── CAD Persistence: load saved PlanModel on design selection change ──
   useEffect(() => {
     if (!id || !selectedDesign?.id) return;
-    if (loadedCadRef.current === selectedDesign.id) return;
-    loadedCadRef.current = selectedDesign.id;
-
+    let cancelled = false;
     loadPlanModel(id, selectedDesign.id).then(async (plan) => {
+      if (cancelled) return;
       setPersistedPlan(plan ?? null);
       const { buildCadSyncMetadata } = await import('@/adapters/cadToDesignSyncAdapter')
+      if (cancelled) return;
       const syncMeta = buildCadSyncMetadata(!!plan, false);
       setCadSyncSource(syncMeta.source);
     });
     loadPlanModelMeta(id, selectedDesign.id).then((meta) => {
-      setLastSavedAt(meta.savedAt);
+      if (!cancelled) setLastSavedAt(meta.savedAt);
     });
+    return () => { cancelled = true; };
   }, [id, selectedDesign?.id]);
 
   // ── CAD Persistence: auto-save PlanModel on edit commit (debounced) ──
@@ -598,25 +609,28 @@ export function Dashboard() {
           if (plans.length > 0) {
             setGenerationStatus('Finalizing design options...');
             setTier3Plans(plans)
-            setAiDesignOptions((prev) => {
-              const updated = prev.map((opt, i) => ({
-                ...opt,
-                name: i < plans.length ? plans[i].name : opt.name,
-                id: opt.id + `-t3-${i}`,
-              }))
-              const fallbackBt = prev.length > 0 ? prev[0].buildingType : 'other'
-              for (let i = prev.length; i < plans.length; i++) {
-                updated.push({
-                  name: plans[i].name,
-                  id: `t3-plan-${i}`,
-                  grossFloorArea: 0,
-                  floors: 1,
-                  buildingType: fallbackBt,
-                  elements: [],
-                })
-              }
-              return updated
-            })
+            const prevOptions = aiDesignOptions
+            const updated = prevOptions.map((opt, i) => ({
+              ...opt,
+              name: i < plans.length ? plans[i].name : opt.name,
+              id: opt.id + `-t3-${i}`,
+            }))
+            const fallbackBt = prevOptions.length > 0 ? prevOptions[0].buildingType : 'other'
+            for (let i = prevOptions.length; i < plans.length; i++) {
+              updated.push({
+                name: plans[i].name,
+                id: `t3-plan-${i}`,
+                grossFloorArea: 0,
+                floors: 1,
+                buildingType: fallbackBt,
+                elements: [],
+              })
+            }
+            setAiDesignOptions(updated)
+            if (selectedDesignId) {
+              const selIdx = prevOptions.findIndex((opt) => opt.id === selectedDesignId)
+              if (selIdx >= 0) setSelectedDesignId(updated[selIdx]?.id ?? null)
+            }
           }
         } catch {
           console.warn('[Tier 3] Layout engine in regenerate path — falling back to generic options')
@@ -641,28 +655,31 @@ export function Dashboard() {
 
   const handleTier3Plans = (plans: FloorPlan[]) => {
     setTier3Plans(plans)
-    // Use the ref to avoid stale closure: plans arrive after re-render
-    setAiDesignOptions((prev) => {
-      if (plans.length === 0) return prev
-      const updated = prev.map((opt, i) => ({
-        ...opt,
-        name: i < plans.length ? plans[i].name : opt.name,
-        id: opt.id + `-t3-${i}`,
-      }))
-      const fallbackBt = prev.length > 0 ? prev[0].buildingType : 'other'
-      for (let i = prev.length; i < plans.length; i++) {
-        updated.push({
-          name: plans[i].name,
-          id: `t3-plan-${i}`,
-          grossFloorArea: 0,
-          floors: 1,
-          buildingType: fallbackBt,
-          elements: [],
-        })
-      }
+    if (plans.length === 0) return
+    const prevOptions = aiDesignOptions
+    const updated = prevOptions.map((opt, i) => ({
+      ...opt,
+      name: i < plans.length ? plans[i].name : opt.name,
+      id: opt.id + `-t3-${i}`,
+    }))
+    const fallbackBt = prevOptions.length > 0 ? prevOptions[0].buildingType : 'other'
+    for (let i = prevOptions.length; i < plans.length; i++) {
+      updated.push({
+        name: plans[i].name,
+        id: `t3-plan-${i}`,
+        grossFloorArea: 0,
+        floors: 1,
+        buildingType: fallbackBt,
+        elements: [],
+      })
+    }
+    setAiDesignOptions(updated)
+    if (selectedDesignId) {
+      const selIdx = prevOptions.findIndex((opt) => opt.id === selectedDesignId)
+      setSelectedDesignId(selIdx >= 0 ? (updated[selIdx]?.id ?? null) : (updated[0]?.id ?? null))
+    } else {
       setSelectedDesignId(updated[0]?.id ?? null)
-      return updated
-    })
+    }
   };
 
   const handleExport = (type: 'csv' | 'html' | 'print') => {
@@ -786,7 +803,7 @@ export function Dashboard() {
 
           {/* Main content area */}
           <div className="relative flex flex-1 flex-col overflow-hidden bg-[var(--bg-primary)]">
-            {(['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'] as StageId[]).includes(activeView as StageId) ? (
+            {(['brief', 'concept', 'design', 'bim', 'docs-bim', 'budget', 'budget-engineered'] as StageId[]).includes(activeView as StageId) ? (
               <>
                 {activeStageId === 'brief' && (
                   <Suspense fallback={<PageLoader />}>
@@ -853,32 +870,16 @@ export function Dashboard() {
                     />
                   </Suspense>
                 )}
-                {activeStageId === 'site-analysis' && (
-                  <Suspense fallback={<PageLoader />}>
-                    <SiteAnalysisStage
-                      activePlan={activePlan}
-                      selectedDesign={selectedDesign}
-                    />
-                  </Suspense>
-                )}
-                {activeStageId === 'engineering' && (
-                  <Suspense fallback={<PageLoader />}>
-                    <EngineeringStage
-                      selectedDesign={selectedDesign}
-                      activePlan={activePlan}
-                      boq={currentBoq}
-                      onDesignOptionsGenerated={handleAiDesignOptions}
-                      onParsed={(result: ParseResult) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
-                      onTier3Plans={handleTier3Plans}
-                      onBuildingTypeChange={setSelectedBuildingType}
-                    />
-                  </Suspense>
-                )}
                 {activeStageId === 'bim' && (
                   <Suspense fallback={<PageLoader />}>
                     <BimStage
                       activePlan={activePlan}
                       selectedDesign={selectedDesign}
+                      boq={currentBoq}
+                      onDesignOptionsGenerated={handleAiDesignOptions}
+                      onParsed={(result: ParseResult) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
+                      onTier3Plans={handleTier3Plans}
+                      onBuildingTypeChange={setSelectedBuildingType}
                     />
                   </Suspense>
                 )}

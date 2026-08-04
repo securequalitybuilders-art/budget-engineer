@@ -6,8 +6,6 @@ import {
   Box,
   DollarSign,
   FileSpreadsheet,
-  Globe,
-  Activity,
   BookOpen,
 } from 'lucide-react';
 import type { DisciplineId } from '@/lib/studio/discipline';
@@ -15,9 +13,7 @@ import type { DisciplineId } from '@/lib/studio/discipline';
 export type StageId =
   | 'brief'
   | 'concept'
-  | 'site-analysis'
   | 'design'
-  | 'engineering'
   | 'bim'
   | 'docs-bim'
   | 'budget'
@@ -47,13 +43,6 @@ export const ALL_STAGES: StageDef[] = [
     icon: FileText,
   },
   {
-    id: 'site-analysis',
-    label: 'Site Analysis',
-    shortLabel: 'Site',
-    description: 'Heliodon, shadow casting, wind rose, and environmental analysis.',
-    icon: Globe,
-  },
-  {
     id: 'design',
     label: 'Design',
     shortLabel: 'Design',
@@ -61,17 +50,10 @@ export const ALL_STAGES: StageDef[] = [
     icon: PenTool,
   },
   {
-    id: 'engineering',
-    label: 'Engineering & Compliance',
-    shortLabel: 'Engineer',
-    description: 'Structural, MEP, code review, and compliance sign-off.',
-    icon: Activity,
-  },
-  {
     id: 'bim',
     label: 'BIM',
     shortLabel: 'BIM',
-    description: '3D Model, 4D Construction Sequencing, Layered Visual Assembly.',
+    description: '3D Model, Site Analysis, Engineering & Compliance, 4D Sequencing, Layered Assembly.',
     icon: Box,
   },
   {
@@ -116,14 +98,14 @@ export function getDefaultStage(discipline: DisciplineId): StageId {
 }
 
 const STAGE_ORDER: Record<DisciplineId, StageId[]> = {
-  ARCH: ['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
-  STR: ['brief', 'concept', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
-  MEP: ['brief', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
-  ELEC: ['brief', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
-  PLUM: ['brief', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
-  INT: ['brief', 'concept', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
-  LAND: ['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
-  CIVIL: ['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
+  ARCH: ['brief', 'concept', 'design', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
+  STR: ['brief', 'concept', 'design', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
+  MEP: ['brief', 'design', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
+  ELEC: ['brief', 'design', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
+  PLUM: ['brief', 'design', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
+  INT: ['brief', 'concept', 'design', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
+  LAND: ['brief', 'concept', 'design', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
+  CIVIL: ['brief', 'concept', 'design', 'bim', 'docs-bim', 'budget', 'budget-engineered'],
 };
 
 export function isStageInDiscipline(stage: StageId, discipline: DisciplineId): boolean {

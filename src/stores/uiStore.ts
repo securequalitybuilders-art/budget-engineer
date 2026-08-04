@@ -6,8 +6,8 @@ import type { StageId } from '@/lib/studio/stageRegistry';
 
 export type ActiveView = number | StageId | 'history' | 'governance' | 'snapshots' | 'properties' | 'execution';
 
-/** Converts numeric stage (1-9) to semantic StageId for the ARCH discipline order */
-const NUM_TO_STAGE_ID: StageId[] = ['brief', 'concept', 'site-analysis', 'design', 'engineering', 'bim', 'docs-bim', 'budget', 'budget-engineered'];
+/** Converts numeric stage (1-7) to semantic StageId for the ARCH discipline order */
+const NUM_TO_STAGE_ID: StageId[] = ['brief', 'concept', 'design', 'bim', 'docs-bim', 'budget', 'budget-engineered'];
 
 function numericToStageId(n: number): StageId {
   return NUM_TO_STAGE_ID[n - 1] ?? 'brief';
@@ -144,7 +144,12 @@ export const useUIStore = create<UIState>()(
           state.resolvedTheme = resolved;
           if (state.activeStageId) {
             const idx = NUM_TO_STAGE_ID.indexOf(state.activeStageId);
-            state.activeStage = idx >= 0 ? idx + 1 : 1;
+            if (idx < 0) {
+              state.activeStageId = 'brief' as StageId;
+              state.activeStage = 1;
+            } else {
+              state.activeStage = idx + 1;
+            }
           }
         },
       }

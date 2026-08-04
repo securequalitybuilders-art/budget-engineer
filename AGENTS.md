@@ -670,3 +670,32 @@ Removed the 5 construction rail stages (`rough-in`, `substrates`, `millwork`, `f
 - `npx vitest run`: 4054/4054 tests (187 files)
 - `npx vite build`: success in ~17s (PWA precache 123 entries, 5123.46 KiB); chunk-size warnings are pre-existing lazy chunks (opencv/three/useGlbExport)
 - Git sync: parent HEAD + submodule `budget-engineer-canonical` both at `28ddcda`, pushed to `origin/test/deploy-workflow`; parent submodule pointer updated to match
+
+
+## Concept→Design transfer fix + Site Analysis & Engineering folded into BIM hub (Current)
+
+### What was done
+Fixed the Concept → Design data handoff and removed `site-analysis` + `engineering` from the stage rail/pipeline, folding both into the BIM hub. Workflow is now 7 stages: Brief → Concept → Design → BIM → Docs & BIM → Budget → Budget Engineered. The BIM hub gains a full Site Analysis sub-view (previously the standalone stage) and an Engineering & Compliance sub-view (EngineeringStudioPanel + EngineeringAnalysisPanel, with BOQ + pipeline callbacks threaded through). Remaining reference-model unions (SelfAssessmentPanel, productPackagingModel, referenceCaseModel, ProjectStatus) are independent of stageRegistry and were left untouched.
+
+### Concept→Design transfer bug (root cause + fix)
+The design selection could silently desync from the option list, so the Design page fell back to the first option while the store kept a stale id:
+- `handleGenerate`/`handleTier3Plans` renamed option ids with a `-t3-N` suffix without updating `selectedDesignId` → selection lost after any regeneration. Both refactored to compute the rename outside the state updater (also removing a setState-in-updater side effect) and remap the selection to the renamed option.
+- Added a selection-sync effect: if `selectedDesignId` no longer matches any visible option, snap to the first option (Concept "Selected" state and Design page stay consistent in every path).
+- Mount persistence effect no longer clobbers a valid persisted `selectedDesignId` with `saved.designs[0].id`.
+- Race-condition guards (cancelled-flag cleanup) on the `loadedPlan` and persisted-CAD loaders so a fast design switch can no longer land the wrong design's plan on the Design page; removed the `loadedCadRef` guard (blocked A→B→A reload).
+- `uiStore.onRehydrateStorage` now resets a stale persisted `activeStageId` (e.g. old `site-analysis`/`engineering`) to `brief` instead of leaving an unrenderable stage.
+
+### Files modified (8) + deleted (5)
+- `src/pages/Dashboard.tsx` — transfer-bug fixes above; removed SiteAnalysisStage/EngineeringStage lazy imports + render blocks; stage filter array now 7 ids; BimStage now receives `boq`, `onDesignOptionsGenerated`, `onParsed`, `onTier3Plans`, `onBuildingTypeChange`
+- `src/components/dashboard/stages/BimStage.tsx` — BimView now `model | site-analysis | drawings | 4d-sequence | construction | engineering`; "Site" tab → full SiteAnalysisStage; new Engineering tab; toolbar + props threaded
+- `src/lib/studio/stageRegistry.ts` — StageId union, ALL_STAGES, STAGE_ORDER all 7 stages (removed `site-analysis`, `engineering`); BIM description updated
+- `src/stores/uiStore.ts` + `src/components/dashboard/stages.ts` — NUM_TO_STAGE_ID 9→7; uiStore rehydrate guard
+- `src/__tests__/disciplineSystem.test.tsx` — counts (ARCH/STR/INT/LAND/CIVIL 7, MEP/ELEC/PLUM 6), ARCH id list, nextStage/isStageInDiscipline assertions
+- Deleted (obsolete 5 construction rail wrappers, superseded by BimStage ConstructionPhaseView, unreferenced): `RoughInStage.tsx`, `SubstratesStage.tsx`, `MillworkStage.tsx`, `FinishesStage.tsx`, `AppliancesStage.tsx`
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run`: 4054/4054 tests (187 files) — `useGlbExportStrictMode.test.tsx` flaked once under full parallel load (100ms flush vs real three.js export), passes in isolation and on rerun
+- `npx vite build`: success in ~25s (PWA precache 118 entries, 5122.04 KiB); chunk warnings unchanged (opencv/three/useGlbExport lazy)
+- Note: 5 stage-file deletions were present in the working tree (both parent + submodule) before this session; they are consistent with the earlier construction-stage removal and are committed with this change

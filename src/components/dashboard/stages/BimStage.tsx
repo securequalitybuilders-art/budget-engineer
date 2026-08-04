@@ -1,20 +1,23 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { GlbViewer } from '@/components/bim/GlbViewer'
-import { GlbSiteViewer } from '@/components/bim/GlbSiteViewer'
 import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
 import { Button } from '@/components/ui/Button'
-import { Box, LayoutGrid, Boxes, Globe, Wrench, Layers, LayoutPanelTop, Palette, Plug, Clock } from 'lucide-react'
+import { Box, LayoutGrid, Boxes, Globe, Wrench, Layers, LayoutPanelTop, Palette, Plug, Clock, ShieldCheck } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { useGlbExport } from '@/hooks/useGlbExport'
-import { loadSiteContext } from '@/lib/site/siteContextReader'
 import type { PlanModel } from '@/domain/plan'
 import type { DesignOption } from '@/domain/boq'
+import type { BOQ } from '@/lib/boq/boq-types'
+import type { ParseResult } from '@/lib/ai/ai-provider'
+import type { FloorPlan } from '@/engine/tier3/layoutEngine'
 import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
 import { ConstructionPhaseView } from '@/components/construction/ConstructionPhaseView'
 import { ROUGH_IN_PHASE, SUBSTRATES_PHASE, MILLWORK_PHASE, FINISHES_PHASE, APPLIANCES_PHASE } from '@/engine/construction/constructionPhases'
+import { SiteAnalysisStage } from './SiteAnalysisStage'
+import { EngineeringStage } from './EngineeringStage'
 
-type BimView = 'model' | 'site' | 'drawings' | '4d-sequence' | 'construction'
+type BimView = 'model' | 'site-analysis' | 'drawings' | '4d-sequence' | 'construction' | 'engineering'
 
 /** Construction sub-tab within BIM */
 type ConstructionPhaseTab = 'rough-in' | 'substrates' | 'millwork' | 'finishes' | 'appliances'
@@ -38,9 +41,14 @@ const PHASE_MAP = {
 interface BimStageProps {
   activePlan: PlanModel | null
   selectedDesign: DesignOption | null
+  boq?: BOQ | null
+  onDesignOptionsGenerated?: (options: DesignOption[]) => void
+  onParsed?: (result: ParseResult) => void
+  onTier3Plans?: (plans: FloorPlan[]) => void
+  onBuildingTypeChange?: (bt: string) => void
 }
 
-export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
+export function BimStage({ activePlan, selectedDesign, boq, onDesignOptionsGenerated, onParsed, onTier3Plans, onBuildingTypeChange }: BimStageProps) {
   const [view, setView] = useState<BimView>('model')
   const [constructionTab, setConstructionTab] = useState<ConstructionPhaseTab>('rough-in')
   const { glbUrl, isExporting, error: exportError, generate, download } = useGlbExport()
@@ -48,10 +56,6 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
   const initializeRegister = useDrawingRegisterStore((s) => s.initialize)
   const [glbReady, setGlbReady] = useState(false)
   const [glbFailed, setGlbFailed] = useState(false)
-
-  const projectId = selectedDesign?.id
-
-  const siteContext = projectId ? loadSiteContext(projectId) : null
 
   useEffect(() => {
     if (selectedDesign && selectedDesign.floors > 0 && registerSheets.length === 0) {
@@ -113,11 +117,11 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
           <Boxes size={14} className="mr-1" /> 3D Model
         </Button>
         <Button
-          variant={view === 'site' ? 'brand' : 'ghost'}
+          variant={view === 'site-analysis' ? 'brand' : 'ghost'}
           size="sm"
-          onClick={() => setView('site')}
+          onClick={() => setView('site-analysis')}
         >
-          <Globe size={14} className="mr-1" /> Site
+          <Globe size={14} className="mr-1" /> Site Analysis
         </Button>
         <Button
           variant={view === 'drawings' ? 'brand' : 'ghost'}
@@ -142,6 +146,16 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
           onClick={() => setView('construction')}
         >
           <Wrench size={14} className="mr-1" /> Construction
+        </Button>
+
+        <div className="mx-1 h-5 w-px bg-stone-700/60 shrink-0" />
+
+        <Button
+          variant={view === 'engineering' ? 'brand' : 'ghost'}
+          size="sm"
+          onClick={() => setView('engineering')}
+        >
+          <ShieldCheck size={14} className="mr-1" /> Engineering
         </Button>
       </div>
 
@@ -175,17 +189,10 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
               </ErrorBoundary>
             </div>
           )}
-          {view === 'site' && (
+          {view === 'site-analysis' && (
             <div className="flex-1">
               <ErrorBoundary>
-                <GlbSiteViewer
-                  glbUrl={glbUrl}
-                  site={siteContext}
-                  height="100%"
-                  onExportClick={() => download(activePlan, selectedDesign)}
-                  isExporting={isExporting}
-                  exportError={exportError}
-                />
+                <SiteAnalysisStage activePlan={activePlan} selectedDesign={selectedDesign} />
               </ErrorBoundary>
             </div>
           )}
@@ -239,6 +246,23 @@ export function BimStage({ activePlan, selectedDesign }: BimStageProps) {
               <div className="flex-1 overflow-auto">
                 <ConstructionPhaseView phase={PHASE_MAP[constructionTab]} />
               </div>
+            </div>
+          )}
+
+          {/* Engineering & Compliance */}
+          {view === 'engineering' && (
+            <div className="flex-1">
+              <ErrorBoundary>
+                <EngineeringStage
+                  selectedDesign={selectedDesign}
+                  activePlan={activePlan}
+                  boq={boq ?? null}
+                  onDesignOptionsGenerated={onDesignOptionsGenerated}
+                  onParsed={onParsed}
+                  onTier3Plans={onTier3Plans}
+                  onBuildingTypeChange={onBuildingTypeChange}
+                />
+              </ErrorBoundary>
             </div>
           )}
         </div>
