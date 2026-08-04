@@ -626,6 +626,11 @@ Fixed the 2 real app-owned color-contrast failures from the Lighthouse audit of 
 - Best Practices/SEO fails unchanged: Vercel preview SSO manifest rewrite + vercel.live feedback.js CSP blocks (preview-only), x-robots-tag: noindex (preview-only).
 - Performance 68: 4 long tasks (Sider content-all.js 595ms + 85ms, all-frames.js 75ms; app document 496ms), 40 script requests with 2818ms longest chain (react-vendor -> Dashboard -> 17 lazy chunks), ~103 KiB unused Tailwind CSS (95.8%), ui-vendor 59% unused. Remaining drag is ~80% extension load variance + preview artifacts; next step is a clean headless production audit.
 
+### Clean headless production audits (no extensions, production URL `.../project/a7552727-27f4-42f6-ae9e-ac23e9348409`, measured at `487c520`; app code unchanged since)
+- **Desktop (Lighthouse, no extensions): Performance 98 / Accessibility 100 / Best Practices 100 / SEO 100** - FCP 0.5s, LCP 1.0s, TBT 60ms, CLS 0.029. No app-owned a11y/BP/SEO failures.
+- **Mobile (explicit `--form-factor=mobile --throttling-method=simulate --throttling.cpuSlowdownMultiplier=4` + screen emulation; `--preset=mobile` is invalid): Performance 82 / a11y 100 / BP 100 / SEO 100** - FCP 1.9s, LCP 4.0s (the only sub-0.8 score), SI 3.7s, TBT 100ms, CLS 0.085, TTI 4.0s. 30 requests; max long task 105ms; payloads react-vendor 103 kB / ui-vendor 56 kB / Inter woff2 48 kB / state-vendor 37 kB / index 31 kB.
+- Chrome launch workaround: `TMP/TEMP=<opencode temp dir>` + `--user-data-dir` to dodge the EPERM cleanup error; audited `http://127.0.0.1:4173` (production preview build) with a valid host header via `--extra-headers` when the real host is proxied, otherwise the production URL directly.
+
 ## Verification session - construction lifecycle workflow (Current)
 
 ### What was done
