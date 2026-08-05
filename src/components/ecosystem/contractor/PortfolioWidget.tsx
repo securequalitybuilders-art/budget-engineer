@@ -8,10 +8,12 @@ const STAGE_TONE: Record<ProjectStage, 'neutral' | 'accent' | 'good'> = {
   closed: 'good',
 };
 
-export function PortfolioWidget({ projects, escrows, onStartProcurement }: {
+export function PortfolioWidget({ projects, escrows, onStartProcurement, onCloseProject, onReopenProject }: {
   projects: EcosystemData['projects'];
   escrows: EcosystemData['escrows'];
   onStartProcurement: (projectId: string) => void;
+  onCloseProject?: (projectId: string) => void;
+  onReopenProject?: (projectId: string) => void;
 }) {
   const stats = lifecycleStats(projects, escrows);
 
@@ -57,6 +59,24 @@ export function PortfolioWidget({ projects, escrows, onStartProcurement }: {
                         className="rounded-lg border border-brand/30 px-2 py-1 text-[11px] font-medium text-brand-accent hover:bg-brand/5"
                       >
                         Procure →
+                      </button>
+                    ) : null}
+                    {stage !== 'closed' && onCloseProject ? (
+                      <button
+                        onClick={() => onCloseProject(p.id)}
+                        className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-400 hover:bg-slate-50"
+                        title="Close out this project"
+                      >
+                        Close
+                      </button>
+                    ) : null}
+                    {stage === 'closed' && onReopenProject ? (
+                      <button
+                        onClick={() => onReopenProject(p.id)}
+                        className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-400 hover:bg-slate-50"
+                        title="Reopen this project"
+                      >
+                        Reopen
                       </button>
                     ) : null}
                   </div>

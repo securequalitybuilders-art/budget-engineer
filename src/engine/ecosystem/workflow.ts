@@ -283,6 +283,64 @@ export function confirmDelivery(purchaseOrder: PurchaseOrder, escrow: EscrowAgre
   }
 }
 
+export interface RejectDeliveryResult {
+  delivery: DeliveryRecord
+  purchaseOrder: PurchaseOrder
+  escrowMilestone: EscrowMilestone
+}
+
+export function rejectDelivery(params: {
+  purchaseOrder: PurchaseOrder
+  escrow: EscrowAgreement
+  delivery: DeliveryRecord
+  quantityRejected: number
+  reason: string
+}): RejectDeliveryResult {
+  const { purchaseOrder, escrow, delivery } = params
+  const now = nowIso()
+  const rejected = Math.min(Math.max(Math.round(params.quantityRejected), 0), delivery.items[0]?.quantityDelivered ?? 1)
+  const accepted = Math.max((delivery.items[0]?.quantityDelivered ?? 1) - rejected, 0)
+  const partiallyRejected = accepted > 0 && rejected > 0
+  const items: DeliveryLineItem[] = delivery.items.map((i, idx) => {
+    if (idx === 0) {
+      return {
+        ...i,
+        quantityRejected: rejected,
+        quantityAccepted: Math.min(accepted, i.quantityAccepted),
+        rejectionReason: rejected > 0 ? params.reason : i.rejectionReason,
+      }
+    }
+    return i
+  })
+  const updatedDelivery: DeliveryRecord = {
+    ...delivery,
+    status: partiallyRejected ? 'partially-delivered' : 'delivered',
+    items,
+    notes: rejected > 0 ? `${delivery.notes} · ${rejected} rejected: ${params.reason}` : delivery.notes,
+  }
+  const milestone = escrow.milestones[0]
+    ? { ...escrow.milestones[0], status: 'disputed' as const, disputedReason: params.reason, releasedAt: now }
+    : null
+  return {
+    delivery: updatedDelivery,
+    purchaseOrder: {
+      ...purchaseOrder,
+      status: partiallyRejected ? 'partially-delivered' : 'delivered',
+      updatedAt: now,
+    },
+    escrowMilestone: milestone ?? {
+      id: uid('ESCM'),
+      escrowId: escrow.id,
+      title: 'Delivery & acceptance',
+      description: `Disputed delivery: ${params.reason}`,
+      amount: escrow.totalAmount,
+      dueDate: now,
+      status: 'disputed',
+      disputedReason: params.reason,
+    },
+  }
+}
+
 // ── Pipeline summary ──
 
 export interface WorkflowStepSummary {

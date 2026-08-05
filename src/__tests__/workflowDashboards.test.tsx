@@ -14,7 +14,7 @@ import { PipelineWidget } from '@/components/ecosystem/supplier/PipelineWidget'
 import { FleetWidget } from '@/components/ecosystem/supplier/FleetWidget'
 import { EscrowLinkWidget } from '@/components/ecosystem/supplier/EscrowLinkWidget'
 import { WorkflowPipeline } from '@/components/ecosystem/WorkflowPipeline'
-import { saveRfq, saveQuote, saveAward } from '@/lib/ecosystem/workflowActions'
+import { saveRfq, saveQuote, saveAward, saveDelivery } from '@/lib/ecosystem/workflowActions'
 
 afterEach(cleanup)
 
@@ -96,6 +96,30 @@ describe('contractor workflow widgets', () => {
     expect(proc).toHaveBeenCalledWith('p2')
   })
 
+  it('portfolio widget offers close and reopen actions', () => {
+    const proc = vi.fn()
+    const close = vi.fn()
+    const reopen = vi.fn()
+    wrap(<PortfolioWidget
+      projects={[project, { ...project, id: 'p2' }, { ...project, id: 'p3', isArchived: true }]}
+      escrows={[]}
+      onStartProcurement={proc}
+      onCloseProject={close}
+      onReopenProject={reopen}
+    />)
+    const closeButtons = screen.getAllByRole('button', { name: 'Close' })
+    expect(closeButtons.length).toBe(2)
+    fireEvent.click(closeButtons[0])
+    expect(close).toHaveBeenCalledWith('p1')
+    fireEvent.click(screen.getByRole('button', { name: 'Reopen' }))
+    expect(reopen).toHaveBeenCalledWith('p3')
+  })
+
+  it('portfolio widget renders without close handlers (defaults)', () => {
+    wrap(<PortfolioWidget projects={[project]} escrows={[]} onStartProcurement={vi.fn()} />)
+    expect(screen.queryByRole('button', { name: 'Close' })).toBeNull()
+  })
+
   it('rfq create widget issues a request into the db', async () => {
     const refresh = vi.fn()
     wrap(<RfqCreateWidget projects={[project]} onCreated={refresh} />)
@@ -171,6 +195,26 @@ describe('supplier workflow widgets', () => {
     expect(po?.status).toBe('delivered')
     const updated = await db.escrows.get(escrow.id)
     expect(updated?.milestones[0].status).toBe('released')
+    expect(refresh).toHaveBeenCalled()
+  })
+
+  it('fleet widget raises a dispute on a rejected delivery', async () => {
+    const rfq = await saveRfq({ projectId: 'p1', projectName: 'Test House', title: 'Cement', category: 'Cement & masonry', budgetCents: 50_000_00 })
+    const quote = await saveQuote(rfq.id, { supplierId: 's1', supplierName: 'Cement Co', totalCents: 44_000_00, deliveryDays: 4 })
+    const { purchaseOrder, escrow } = await saveAward({ rfqId: rfq.id, quoteId: quote.id })
+    const delivery = await saveDelivery(purchaseOrder.id)
+    const refresh = vi.fn()
+    wrap(<FleetWidget deliveryRecords={[delivery]} purchaseOrders={[purchaseOrder]} onChanged={refresh} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Dispute delivery' }))
+    fireEvent.change(screen.getByLabelText('Rejection reason'), { target: { value: 'Damp bags' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Raise dispute' }))
+    await vi.waitFor(async () => {
+      const row = await db.deliveryRecords.get(delivery.id)
+      expect(row?.items[0].quantityRejected).toBe(1)
+      expect(row?.items[0].rejectionReason).toBe('Damp bags')
+    })
+    const disputedEscrow = await db.escrows.get(escrow.id)
+    expect(disputedEscrow?.milestones[0].status).toBe('disputed')
     expect(refresh).toHaveBeenCalled()
   })
 })

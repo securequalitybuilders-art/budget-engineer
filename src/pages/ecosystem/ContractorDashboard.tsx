@@ -12,6 +12,7 @@ import { LogisticsWidget } from '@/components/ecosystem/contractor/LogisticsWidg
 import { WipaaWidget } from '@/components/ecosystem/contractor/WipaaWidget';
 import { ResourceHubsWidget } from '@/components/ecosystem/contractor/ResourceHubsWidget';
 import { PendingAlertsWidget } from '@/components/ecosystem/contractor/PendingAlertsWidget';
+import { closeProject, reopenProject } from '@/lib/ecosystem/workflowActions';
 
 export default function ContractorDashboard() {
   const data = useEcosystemData();
@@ -41,7 +42,13 @@ export default function ContractorDashboard() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <PortfolioWidget projects={data.projects} escrows={data.escrows} onStartProcurement={setRfqProjectId} />
+        <PortfolioWidget
+          projects={data.projects}
+          escrows={data.escrows}
+          onStartProcurement={setRfqProjectId}
+          onCloseProject={(id) => closeProject(id).then(data.refresh)}
+          onReopenProject={(id) => reopenProject(id).then(data.refresh)}
+        />
         <RfqCreateWidget projects={data.projects} defaultProjectId={rfqProjectId} onCreated={data.refresh} />
         <PnLWidget milestones={data.milestones} purchaseOrders={data.purchaseOrders} procurementRequests={data.procurementRequests} />
         <P4pWidget milestones={data.milestones} />

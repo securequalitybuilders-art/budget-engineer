@@ -6,6 +6,7 @@ import {
   submitQuote,
   awardQuote,
   confirmDelivery,
+  rejectDelivery,
   type CreateRfqInput,
   type SubmitQuoteInput,
 } from '@/engine/ecosystem/workflow'
@@ -65,6 +66,38 @@ export async function saveDelivery(purchaseOrderId: string): Promise<DeliveryRec
 
 export async function closeProject(projectId: string): Promise<void> {
   await db.projects.update(projectId, { isArchived: true, updatedAt: new Date().toISOString() })
+}
+
+export async function reopenProject(projectId: string): Promise<void> {
+  await db.projects.update(projectId, { isArchived: false, updatedAt: new Date().toISOString() })
+}
+
+export async function saveRejectedDelivery(params: {
+  purchaseOrderId: string
+  quantityRejected: number
+  reason: string
+}): Promise<DeliveryRecord> {
+  const po = await db.purchaseOrders.get(params.purchaseOrderId)
+  if (!po) throw new Error(`PO ${params.purchaseOrderId} not found`)
+  const delivery = await db.deliveryRecords.where('purchaseOrderId').equals(po.id).first()
+  if (!delivery) throw new Error('No delivery record to dispute')
+  const escrow = (await db.escrows.toArray()).find((e) => e.contractReference === po.poNumber)
+  const { delivery: updatedDelivery, purchaseOrder, escrowMilestone } = rejectDelivery({
+    purchaseOrder: po,
+    escrow: escrow ?? buildPlaceholderEscrow(po),
+    delivery,
+    quantityRejected: params.quantityRejected,
+    reason: params.reason,
+  })
+  await db.deliveryRecords.put(updatedDelivery)
+  await db.purchaseOrders.update(po.id, { status: purchaseOrder.status, updatedAt: purchaseOrder.updatedAt })
+  if (escrow) {
+    const nextMilestones = escrow.milestones.map((m) =>
+      m.id === escrowMilestone.id ? escrowMilestone : m
+    )
+    await db.escrows.update(escrow.id, { milestones: nextMilestones, updatedAt: escrowMilestone.releasedAt ?? new Date().toISOString() })
+  }
+  return updatedDelivery
 }
 
 function buildPlaceholderEscrow(po: PurchaseOrder): EscrowAgreement {

@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { db } from '@/db/db'
-import { saveRfq, saveQuote, saveAward, saveDelivery, closeProject } from '@/lib/ecosystem/workflowActions'
+import { saveRfq, saveQuote, saveAward, saveDelivery, saveRejectedDelivery, closeProject, reopenProject } from '@/lib/ecosystem/workflowActions'
 import type { Project } from '@/types'
 
 const project: Project = {
@@ -75,6 +75,33 @@ describe('workflow actions (Dexie)', () => {
     await db.projects.add(project)
     await closeProject('p1')
     expect((await db.projects.get('p1'))?.isArchived).toBe(true)
+  })
+
+  it('reopenProject restores an archived project', async () => {
+    await db.projects.add({ ...project, isArchived: true })
+    await reopenProject('p1')
+    expect((await db.projects.get('p1'))?.isArchived).toBe(false)
+  })
+
+  it('saveRejectedDelivery flags the delivery, PO and escrow milestone as disputed', async () => {
+    const rfq = await saveRfq({ projectId: project.id, projectName: project.name, title: 'Steel', category: 'Steel & fixings', budgetCents: 30_000_00 })
+    const quote = await saveQuote(rfq.id, { supplierId: 's1', supplierName: 'Steel Mart', totalCents: 27_000_00, deliveryDays: 6 })
+    const { purchaseOrder, escrow } = await saveAward({ rfqId: rfq.id, quoteId: quote.id })
+    await saveDelivery(purchaseOrder.id)
+    const disputed = await saveRejectedDelivery({ purchaseOrderId: purchaseOrder.id, quantityRejected: 1, reason: 'Rusty rebars' })
+    expect(disputed.items[0].quantityRejected).toBe(1)
+    expect(disputed.items[0].rejectionReason).toBe('Rusty rebars')
+    expect((await db.purchaseOrders.get(purchaseOrder.id))?.status).toBe('delivered')
+    const updatedEscrow = await db.escrows.get(escrow.id)
+    expect(updatedEscrow?.milestones[0].status).toBe('disputed')
+    expect(updatedEscrow?.milestones[0].disputedReason).toBe('Rusty rebars')
+  })
+
+  it('saveRejectedDelivery throws when there is no delivery record', async () => {
+    const rfq = await saveRfq({ projectId: project.id, projectName: project.name, title: 'Steel', category: 'Steel & fixings', budgetCents: 30_000_00 })
+    const quote = await saveQuote(rfq.id, { supplierId: 's1', supplierName: 'Steel Mart', totalCents: 27_000_00, deliveryDays: 6 })
+    const { purchaseOrder } = await saveAward({ rfqId: rfq.id, quoteId: quote.id })
+    await expect(saveRejectedDelivery({ purchaseOrderId: purchaseOrder.id, quantityRejected: 1, reason: 'X' })).rejects.toThrow('No delivery record')
   })
 
   it('saveQuote throws for a missing rfq', async () => {

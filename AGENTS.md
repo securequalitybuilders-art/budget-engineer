@@ -955,3 +955,34 @@ Made the ecosystem dashboards transactional: the contractor/supplier workflow is
 - `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
 - `npx vitest run --maxWorkers=4`: 4224/4224 tests (203 files) - +29 new tests
 - `npx vite build`: success in ~7.4s (PWA precache 121 entries, 4855.63 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+## Priority #8 continued — Close-out + dispute loop closed (Current)
+
+### What was done
+Closed the RFQ→Quote→Award→Escrow→Delivery→Dispute pipeline end-to-end: disputed deliveries now freeze escrow, and projects can be closed/reopened from the Contractor seat.
+
+### Engine added (1)
+- `src/engine/ecosystem/workflow.ts` — `rejectDelivery({ purchaseOrder, escrow, delivery, quantityRejected, reason })`: clamps rejected qty, computes accepted = delivered − rejected, sets delivery + PO to `partially-delivered` when accepted>0 and rejected>0 (else `delivered`), records `rejectionReason` on the line item and in delivery notes, marks the first escrow milestone `status: 'disputed'` + `disputedReason` (fallback literal milestone if none). Returns `{ delivery, purchaseOrder, escrowMilestone }`. The Dispute step of `pipelineSummary` is now driven by these disputed records.
+
+### Actions added (2)
+- `src/lib/ecosystem/workflowActions.ts` — `reopenProject(projectId)` (clears `isArchived`) and `saveRejectedDelivery({ purchaseOrderId, quantityRejected, reason })` (loads PO → finds first delivery by `purchaseOrderId` → throws `'No delivery record to dispute'` if missing → matches escrow by `contractReference === po.poNumber` (placeholder fallback) → persists disputed delivery via `put`, PO status, disputed milestone). Kept `closeProject` as the archive action.
+
+### UI wired (2)
+- `ContractorDashboard.tsx` — passes `onCloseProject={closeProject}` + `onReopenProject={reopenProject}` (both `data.refresh`-wrapped) to `PortfolioWidget`.
+- `PortfolioWidget.tsx` — per-row "Close" (any non-closed project) and "Reopen" (closed projects) buttons; "Procure →" still bidding-only; buttons render only when the matching callback is supplied.
+- `FleetWidget.tsx` — "Dispute delivery" toggle per non-disputed delivery; inline form (rejected qty capped at `quantityDelivered`, rejection reason) → `saveRejectedDelivery`; row shows `disputed` pill once any `items[].quantityRejected > 0`.
+
+### Tests (+8)
+- `workflowEngine.test.ts` — rejectDelivery milestone `disputed` + `disputedReason`, PO `delivered` vs `partially-delivered`, rejection clamp, dispute step count/active
+- `workflowActions.test.ts` — saveRejectedDelivery persists disputed delivery/PO/escrow milestone, throws without a delivery record, reopenProject
+- `workflowDashboards.test.tsx` — PortfolioWidget Close/Reopen invoke callbacks + render without handlers, FleetWidget raise-dispute flow updates the db milestone
+
+### Notes
+- Dexie `Table.update` cannot accept an array-of-objects field (`UpdateSpec` wants key paths like `'items.0.x'`) — `saveRejectedDelivery` uses `put()` on the full delivery record instead.
+- A disputed escrow milestone is NOT released (money is held while the dispute resolves), matching the credit-note flow in the existing DisputeWidget.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4232/4232 tests (203 files) - +8 new tests
+- `npx vite build`: success in ~6.8s (PWA precache 121 entries, 4859.61 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)

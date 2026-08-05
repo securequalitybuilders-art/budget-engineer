@@ -7,6 +7,7 @@ import {
   submitQuote,
   awardQuote,
   confirmDelivery,
+  rejectDelivery,
   pipelineSummary,
 } from '@/engine/ecosystem/workflow'
 import type { Project } from '@/types'
@@ -148,6 +149,53 @@ describe('RFQ → quote → award → delivery', () => {
     expect(delivery.items[0].quantityAccepted).toBe(1)
     expect(poUpdated.status).toBe('delivered')
     expect(escrowMilestone.status).toBe('released')
+  })
+
+  it('rejectDelivery flags rejected qty, disputes the milestone and feeds the dispute step', () => {
+    const { quote } = submitQuote(rfq, { supplierId: 's1', supplierName: 'Brick Co', totalCents: 44_000_00, deliveryDays: 10 })
+    const { purchaseOrder, escrow } = awardQuote(rfq, quote)
+    const { delivery } = confirmDelivery(purchaseOrder, escrow)
+    const { delivery: disputed, purchaseOrder: poUpdated, escrowMilestone } = rejectDelivery({
+      purchaseOrder,
+      escrow,
+      delivery,
+      quantityRejected: 1,
+      reason: 'Cracked bricks',
+    })
+    expect(disputed.items[0].quantityRejected).toBe(1)
+    expect(disputed.items[0].quantityAccepted).toBe(0)
+    expect(disputed.items[0].rejectionReason).toBe('Cracked bricks')
+    expect(poUpdated.status).toBe('delivered')
+    expect(escrowMilestone.status).toBe('disputed')
+    expect(escrowMilestone.disputedReason).toBe('Cracked bricks')
+    const steps = pipelineSummary({
+      procurementRequests: [],
+      supplierQuotes: [],
+      purchaseOrders: [poUpdated],
+      deliveryRecords: [disputed],
+      escrows: [{ ...escrow, milestones: [escrowMilestone] }],
+    })
+    expect(steps.find((s) => s.step === 'dispute')?.count).toBe(1)
+    expect(steps.find((s) => s.step === 'dispute')?.active).toBe(true)
+  })
+
+  it('rejectDelivery clamps partial rejection to partially-delivered', () => {
+    const { quote } = submitQuote(rfq, { supplierId: 's1', supplierName: 'Brick Co', totalCents: 44_000_00, deliveryDays: 10 })
+    const { purchaseOrder, escrow } = awardQuote(rfq, quote)
+    const line = { ...purchaseOrder.lineItems[0], quantity: 10, deliveredQuantity: 10 }
+    const po = { ...purchaseOrder, lineItems: [line] }
+    const { delivery } = confirmDelivery(po, escrow)
+    const partial = { ...delivery, items: [{ ...delivery.items[0], quantityDelivered: 10 }] }
+    const { delivery: disputed, purchaseOrder: poUpdated } = rejectDelivery({
+      purchaseOrder: po,
+      escrow,
+      delivery: partial,
+      quantityRejected: 3,
+      reason: 'Damaged units',
+    })
+    expect(disputed.status).toBe('partially-delivered')
+    expect(disputed.items[0].quantityAccepted).toBe(7)
+    expect(poUpdated.status).toBe('partially-delivered')
   })
 })
 
