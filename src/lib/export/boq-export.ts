@@ -6,6 +6,7 @@ import { buildElevationSvg } from '@/lib/drawings/elevation-svg';
 import { buildScheduleSvg } from '@/lib/drawings/disciplines/schedule-svg';
 import { buildPresentationSvg } from '@/lib/drawings/disciplines/presentation-svg';
 import { buildDrawingRegister, type DrawingRegisterSheet } from '@/lib/drawings/drawing-register';
+import { buildInfoSheetSvg } from '@/lib/drawings/info-sheet-svg';
 
 function csvCell(v: string | number): string {
   const s = String(v);
@@ -91,7 +92,7 @@ export function buildBoqDossierHtml(boq: BOQ, cad: CadDocument, project: Project
     } else if (['plan', 'site-plan', 'foundation', 'roof', 'ceiling', 'electrical', 'plumbing', 'hvac'].includes(s.viewId || '')) {
       svgContent = buildPlanSvg(cad, floorId, meta, sectionConfig, s.viewId || 'plan');
     } else {
-      svgContent = `<svg width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" fill="#0b1220"/><text x="400" y="300" fill="#94a3b8" text-anchor="middle">Drawing generation for ${s.viewId} coming soon</text></svg>`;
+      svgContent = buildInfoSheetSvg(cad, meta, s);
     }
 
     return `

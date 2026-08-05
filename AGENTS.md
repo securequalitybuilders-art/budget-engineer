@@ -862,3 +862,46 @@ PipelineWidget, ScorecardWidget, QuotingToolWidget, EscrowLinkWidget, ProofOfFun
 - `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
 - `npx vitest run --maxWorkers=4`: 4170/4170 tests (197 files) - +32 new tests (15 engines + 17 dashboards)
 - `npx vite build`: success (PWA precache 121 entries, 4824.78 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+
+## Priority #7 — 4D Construction Sequencing + BOQ export fallback (Current)
+
+### What was done
+Closed the two remaining feature stubs in the repo: the 4D Sequencing placeholder in the BIM hub now renders a real milestone-driven construction timeline over an isometric plan build-up, and the BOQ export's dead "coming soon" fallback was replaced with a metadata info-sheet SVG generator.
+
+### 4D Construction Sequencing (2 files created + 3 wired)
+
+#### `src/lib/construction/sequence.ts` (pure helpers, no React — react-refresh rule)
+- `SequenceItem`, `PhaseStage`, `PHASE_LIST`, `PHASE_IDS` (rough-in/substrates/millwork/finishes/appliances), `PHASE_COLORS` + `phaseColor()` (fallback `#64748b`)
+- `buildSequence()` — back-to-back phase scheduling → `{ items, totalDays }` (14+10+8+12+5 = 49 days)
+- `phaseStageAt()` (pending/in-progress/completed), `progressAtDay()` (clamped %), `activePhaseIndex()`
+- `materialsArrived()` — BOM slice proportional to progress %
+- `mergeMilestoneProgress()` — maps milestone `order` → `releaseState`/progress onto sequence items
+- `planFootprint()`, `buildIsoTransform()` (bounds-aware isometric scale/offset, pan-proof), `isoPoint()`, `roomIsoPoints()` (4-corner SVG polygon)
+
+#### `src/components/bim/ConstructionSequenceView.tsx`
+- Milestone-driven 4D view: play/pause (1×/2×/4× speed), scrubber, isometric SVG elevation that stacks rooms per phase (`data-layer`/`data-stage` attributes), materials-on-site tray (`data-material` per BOM item), sequence list with progress bars + milestone releaseState
+- Data source: `useMilestonePlan(projectId, budgetCents)` (auto-seeds from `PHASES` via `seedMilestonesFromPhases`); static top-level `import { PHASES }` (a throwaway dynamic-import slice-replace was removed)
+- Empty state when no `activePlan`; a11y-compliant (`text-stone-400`, not `text-stone-500`)
+
+#### Wiring
+- `BimStage.tsx` — replaced the `4d-sequence` placeholder div with `<ConstructionSequenceView>`; added `projectId?`/`budgetCents?` props
+- `Dashboard.tsx` — passes `projectId={id}` into BimStage
+
+### BOQ export fallback (1 file created + 1 modified)
+- `src/lib/drawings/info-sheet-svg.ts` — `buildInfoSheetSvg()` renders a styled metadata sheet (title, sheet number, discipline, scale, revision, date, project, sheet type, floors/walls/openings counts, provenance) for any sheet the export can't fully render. `InfoSheetSheet` loosens `viewId` to `string | null` so future register types (details/schedule-room/standards/package) degrade gracefully.
+- `boq-export.ts` — the `else` branch that emitted `Drawing generation for X coming soon` now calls `buildInfoSheetSvg`. Also removed the dead `'side'` comparison (not part of `DrawingTabId`, so it was a TS2367 no-overlap error).
+
+### Tests (+25)
+- `src/__tests__/constructionSequence.test.ts` (13): buildSequence totals, PHASE_LIST/PHASE_IDS parity, phaseStageAt, progressAtDay clamping, activePhaseIndex, materialsArrived slicing, mergeMilestoneProgress, phaseColor, planFootprint, buildIsoTransform null/scaling, isoPoint/roomIsoPoints
+- `src/__tests__/constructionSequenceView.test.tsx` (7, jsdom): empty state, header/play + 5 phases, all-pending at day 0, scrub to substrates (rough-in completed), iso layer groups, materials arriving, fake-timer play/pause/reset, all 5 layers at day 49
+- `src/__tests__/boqExportDossier.test.ts` (6): CSV build, no "coming soon" for every registered sheet, register/revision tables, plan SVG in planbox, full HTML wrapper, `buildInfoSheetSvg` for unknown viewIds
+
+### Notes
+- The register's `DrawingTabId` covers all 17 exported sheet types, so the old "coming soon" fallback was genuinely unreachable dead code — the info-sheet is defense-in-depth for future register additions.
+- `buildDrawingRegister` requires `@/domain/cad.CadDocument` (not ws6-types) — the test casts the fixture like `boq-export.ts` does.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4195/4195 tests (200 files) - +25 new tests
+- `npx vite build`: success in ~11s (PWA precache 121 entries, 4834.01 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)

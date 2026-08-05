@@ -16,6 +16,7 @@ import { ConstructionPhaseView } from '@/components/construction/ConstructionPha
 import { ROUGH_IN_PHASE, SUBSTRATES_PHASE, MILLWORK_PHASE, FINISHES_PHASE, APPLIANCES_PHASE } from '@/engine/construction/constructionPhases'
 import { SiteAnalysisStage } from './SiteAnalysisStage'
 import { EngineeringStage } from './EngineeringStage'
+import { ConstructionSequenceView } from '@/components/bim/ConstructionSequenceView'
 
 type BimView = 'model' | 'site-analysis' | 'drawings' | '4d-sequence' | 'construction' | 'engineering'
 
@@ -42,13 +43,15 @@ interface BimStageProps {
   activePlan: PlanModel | null
   selectedDesign: DesignOption | null
   boq?: BOQ | null
+  projectId?: string
+  budgetCents?: number
   onDesignOptionsGenerated?: (options: DesignOption[]) => void
   onParsed?: (result: ParseResult) => void
   onTier3Plans?: (plans: FloorPlan[]) => void
   onBuildingTypeChange?: (bt: string) => void
 }
 
-export function BimStage({ activePlan, selectedDesign, boq, onDesignOptionsGenerated, onParsed, onTier3Plans, onBuildingTypeChange }: BimStageProps) {
+export function BimStage({ activePlan, selectedDesign, boq, projectId, budgetCents, onDesignOptionsGenerated, onParsed, onTier3Plans, onBuildingTypeChange }: BimStageProps) {
   const [view, setView] = useState<BimView>('model')
   const [constructionTab, setConstructionTab] = useState<ConstructionPhaseTab>('rough-in')
   const { glbUrl, isExporting, error: exportError, generate, download } = useGlbExport()
@@ -204,17 +207,13 @@ export function BimStage({ activePlan, selectedDesign, boq, onDesignOptionsGener
 
           {/* 4D Construction Sequencing */}
           {view === '4d-sequence' && (
-            <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-stone-900/50 rounded-lg border border-stone-800 p-8">
-              <Clock size={48} className="text-cyan-500/60" />
-              <h3 className="text-lg font-semibold text-stone-200">4D Construction Sequencing</h3>
-              <p className="text-sm text-stone-400 max-w-lg text-center">
-                Visualise the build timeline overlaid on the 3D model. Each construction phase (foundation → superstructure → roof → services → finishes)
-                is animated in order, showing materials arriving on-site and being installed.
-              </p>
-              <div className="text-xs text-stone-400 bg-stone-800/60 px-3 py-1.5 rounded">
-                Coming soon — connects to Execution Monitor milestones
-              </div>
-            </div>
+            <ErrorBoundary>
+              <ConstructionSequenceView
+                activePlan={activePlan}
+                projectId={projectId}
+                budgetCents={budgetCents}
+              />
+            </ErrorBoundary>
           )}
 
           {/* Layered Construction Assembly — 5 sub-tabs */}

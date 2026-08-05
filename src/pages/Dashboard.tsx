@@ -716,6 +716,7 @@ export function Dashboard() {
                       activePlan={activePlan}
                       selectedDesign={selectedDesign}
                       boq={currentBoq}
+                      projectId={id}
                       onDesignOptionsGenerated={handleAiDesignOptions}
                       onParsed={(result: ParseResult) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
                       onTier3Plans={handleTier3Plans}
