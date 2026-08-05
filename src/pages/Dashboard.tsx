@@ -758,7 +758,10 @@ export function Dashboard() {
                 <LazyBOQPanel />
               </>
             ) : activeView === 'execution' ? (
-              <ExecutionPanel />
+              <ExecutionPanel
+                projectId={id}
+                budgetCents={currentBoq ? Math.round(currentBoq.summary.grandTotal * 100) : undefined}
+              />
             ) : activeView === 'history' ? (
               <TransactionPanel variant="full" />
             ) : activeView === 'governance' ? (
