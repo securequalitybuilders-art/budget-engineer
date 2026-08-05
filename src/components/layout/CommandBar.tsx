@@ -10,6 +10,7 @@ import { Menu, Save, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getStagesForDiscipline, type StageId } from '@/lib/studio/stageRegistry';
 import { DisciplineSwitcher } from '@/components/studio/DisciplineSwitcher';
+import { MobileStageRail } from './MobileStageRail';
 
 export function CommandBar() {
   const currentProject = useProjectStore((s) => s.currentProject);
@@ -26,8 +27,9 @@ export function CommandBar() {
   }
 
   return (
-    <header className="glass-strong sticky top-0 z-40 flex h-14 items-center justify-between border-b border-[var(--border-default)] px-4">
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-40">
+      <div className="glass-strong flex h-14 items-center justify-between border-b border-[var(--border-default)] px-4">
+        <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="Toggle sidebar">
           <Menu size={18} />
         </Button>
@@ -86,6 +88,8 @@ export function CommandBar() {
         <DisciplineSwitcher compact />
         <ThemeToggleSimple />
       </div>
+      </div>
+      <MobileStageRail />
       <OfflineIndicator />
     </header>
   );

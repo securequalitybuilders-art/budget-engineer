@@ -774,3 +774,41 @@ Added the two payment-calculation engines and wired them into the Execution Moni
 - `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
 - `npx vitest run --maxWorkers=4`: 4101/4101 tests (191 files) — +18 new payment calculator tests
 - `npx vite build`: success in ~18s (PWA precache 111 entries, 4748.71 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+
+## Priority #5 — Local-first API layer + mobile UX polish + offline hardening (Current)
+
+### What was done
+Delivered all three Priority #5 tracks together: a typed, REST-shaped client facade backed by IndexedDB (with a swappable transport for a future HTTP backend), a mobile PWA polish pass (install prompt + mobile stage navigation), and offline-first storage hardening (quota health banner + one-click backup). Keeps the no-backend constitution — the app only ever constructs the local transport.
+
+### A. Local-first API layer (`src/lib/api/`)
+- `src/lib/api/types.ts` — `HttpMethod`, `ApiRequest`, `ApiResponse`, `ApiError` (status + code).
+- `src/lib/api/transport.ts` — `ApiTransport` interface + `LocalIndexedDbTransport` (REST router over Dexie: `GET/POST/PUT/DELETE /projects`, `GET/POST /projects/:id/milestones`, `GET/PUT /milestones/:id`, `GET/POST /projects/:id/escrow`, `PUT /escrow/:id`, `GET /projects/:id/approvals`, `POST /approvals/:id/decision`; cascade delete on `DELETE /projects/:id`; approvals derived from milestones exactly like ClientPortal) + `HttpTransport` (fetch-backed drop-in adapter — never constructed by the app, documented as the future backend swap point).
+- `src/lib/api/client.ts` — `createApiClient(transport)` typed facade: `projects` (list/get/create/update/remove), `milestones` (listByProject/get/create/update), `escrow` (getByProject/create/save/releaseMilestone/summary — release routed through `releaseFunds`, summary through `getEscrowSummary`), `approvals` (list/decide — routed through `makeReleaseDecision`).
+- `src/lib/api/index.ts` — exports `api` (default instance over `LocalIndexedDbTransport`).
+- `src/db/db.ts` — **Dexie schema v7**: added persistent `escrows` table (`id,projectId,providerId,status,updatedAt`) so escrow agreements are stored; v7 repeats all v6 stores additively (safe migration).
+
+### B. Mobile UX polish
+- `src/components/layout/PwaInstallPrompt.tsx` + `src/types/pwa.ts` — `BeforeInstallPromptEvent` type; dismissible install banner on `beforeinstallprompt`, calls `prompt()`/`userChoice`, hides on `appinstalled`, persists dismissal in localStorage. Mounted in `GlobalLayout`.
+- `src/components/layout/MobileStageRail.tsx` — horizontally-scrollable stage rail shown only below `lg` (`lg:hidden`), 40px touch targets, locked-stage states, active `aria-current`. Wired into `CommandBar` (header now sticky flex-col; rail renders under the title row so mobile users reach the stage pipeline).
+- `index.html` already had `viewport-fit=cover`; no change needed.
+
+### C. Offline sync/backup hardening
+- `src/lib/offline/storageHealth.ts` — `getStorageEstimate()` (graceful null on unsupported), `classifyStorage()` (ok/warning ≥80% / critical ≥95%), `getStorageHealth()`, `formatBytes()`.
+- `src/components/layout/StorageHealthBanner.tsx` — polls estimate on mount + `visibilitychange`, shows amber warning / rose critical banner with usage %, one-click "Back up" (default handler exports the current project via `exportProjectPackage`/`downloadBlob`), dismiss persisted. Mounted in `GlobalLayout`.
+
+### Tests (+37)
+- `src/__tests__/apiLayer.test.ts` (15) — project CRUD, cascade delete, milestone create/list/update + immutable projectId, escrow create/summary/release flow, approvals derive + pass/fail decisions, 404s, unknown-route 404, `HttpTransport` drop-in surface, `ApiError` shape.
+- `src/__tests__/mobilePolish.test.tsx` (8) — install prompt show/hide/accept/dismiss-persist/appinstalled; mobile rail chips/labels, active state + navigation, design-stage lock.
+- `src/__tests__/storageHealth.test.ts` (9) — threshold classification, unsupported/denied degradation, decimal byte formatting.
+- `src/__tests__/storageHealthBanner.test.tsx` (5) — low-usage hidden, warning + critical banners, backup callback, dismiss persistence.
+
+### Notes
+- The PWA install prompt and storage banner are fixed overlays (below the sticky header / above the offline indicator) — no layout shift on desktop.
+- `HttpTransport` is exported but intentionally never wired; the app instantiates only `LocalIndexedDbTransport`, preserving the offline-first/no-third-party-server constitution.
+- Approval derivation in the transport mirrors `ClientPortal.tsx` (proofArtifacts > 0 and not released/rejected → pending; released/rejected map to approved/rejected).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4138/4138 tests (195 files) — +37 new tests
+- `npx vite build`: success in ~18s (PWA precache 111 entries, 4756.48 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)

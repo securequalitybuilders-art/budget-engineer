@@ -6,6 +6,8 @@ import {
   Outlet,
 } from 'react-router-dom';
 import { CommandBar } from '@/components/layout/CommandBar';
+import { PwaInstallPrompt } from '@/components/layout/PwaInstallPrompt';
+import { StorageHealthBanner } from '@/components/layout/StorageHealthBanner';
 import { CommandPalette } from '@/components/layout/CommandPalette';
 import { ShortcutsHelp } from '@/components/layout/ShortcutsHelp';
 import { PageLoader } from '@/components/layout/PageLoader';
@@ -76,6 +78,8 @@ function GlobalLayout() {
       </a>
       <main id="main-content">
         <CommandBar />
+        <PwaInstallPrompt />
+        <StorageHealthBanner />
         <Outlet />
         <CommandPalette />
         <ShortcutsHelp />
