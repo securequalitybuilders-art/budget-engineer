@@ -8,6 +8,7 @@ export interface ApprovalRequest {
   providerName: string;
   status: 'pending' | 'approved' | 'rejected';
   dateRequested: string;
+  currency?: string;
 }
 
 interface ApprovalInboxProps {
@@ -20,8 +21,8 @@ export default function ApprovalInbox({ requests, onApprove, onReject }: Approva
   const pendingRequests = requests.filter(r => r.status === 'pending');
   const pastRequests = requests.filter(r => r.status !== 'pending');
 
-  const formatMoney = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+  const formatMoney = (amount: number, currency: string) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount);
   };
 
   return (
@@ -45,7 +46,7 @@ export default function ApprovalInbox({ requests, onApprove, onReject }: Approva
                     <h3 className="font-semibold text-stone-200">{req.title}</h3>
                     <p className="text-sm text-stone-400 mt-1">{req.providerName}</p>
                   </div>
-                  <div className="text-lg font-bold text-emerald-400">{formatMoney(req.amount)}</div>
+                  <div className="text-lg font-bold text-emerald-400">{formatMoney(req.amount, req.currency ?? 'USD')}</div>
                 </div>
                 
                 <p className="text-sm text-stone-300 bg-stone-950 p-3 rounded">{req.description}</p>
@@ -95,7 +96,7 @@ export default function ApprovalInbox({ requests, onApprove, onReject }: Approva
                     <td className="p-3 whitespace-nowrap text-stone-400">{req.dateRequested}</td>
                     <td className="p-3">{req.title}</td>
                     <td className="p-3">{req.providerName}</td>
-                    <td className="p-3">{formatMoney(req.amount)}</td>
+                    <td className="p-3">{formatMoney(req.amount, req.currency ?? 'USD')}</td>
                     <td className="p-3">
                       {req.status === 'approved' ? (
                         <span className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded text-xs font-medium">

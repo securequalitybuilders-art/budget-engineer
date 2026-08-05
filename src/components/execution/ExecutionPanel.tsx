@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import GanttChart from './GanttChart';
 import BudgetVsActual from './BudgetVsActual';
-import { useMilestoneStore } from '@/stores/milestoneStore';
+import { useMilestonePlan } from '@/hooks/useMilestonePlan';
 import { PHASES } from '@/engine/construction/constructionPhases';
 import {
-  seedMilestonesFromPhases,
   milestonesToGanttTasks,
   milestonesToBudgetCategories,
   deriveEscrowFromMilestones,
@@ -14,7 +13,6 @@ import { getEscrowSummary } from '@/engine/marketplace/escrowEngine';
 import { Play, Calendar, DollarSign, Users, Loader2, Lock, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 
 const PHASE_LIST = Object.values(PHASES);
-const DEFAULT_BUDGET_CENTS = 100_000_00;
 
 interface ExecutionPanelProps {
   projectId?: string;
@@ -24,30 +22,7 @@ interface ExecutionPanelProps {
 export default function ExecutionPanel({ projectId, budgetCents }: ExecutionPanelProps) {
   const [activeTab, setActiveTab] = useState<'schedule' | 'financials' | 'resources'>('schedule');
 
-  const milestones = useMilestoneStore((s) => s.milestones);
-  const isLoading = useMilestoneStore((s) => s.isLoading);
-  const loadForProject = useMilestoneStore((s) => s.loadForProject);
-  const addMilestone = useMilestoneStore((s) => s.addMilestone);
-
-  useEffect(() => {
-    if (!projectId) return;
-    let cancelled = false;
-    void (async () => {
-      await loadForProject(projectId);
-      if (cancelled) return;
-      if (useMilestoneStore.getState().milestones.length > 0) return;
-      const seed = seedMilestonesFromPhases({
-        projectId,
-        phases: PHASE_LIST,
-        totalBudgetCents: budgetCents ?? DEFAULT_BUDGET_CENTS,
-      });
-      for (const milestone of seed) {
-        if (cancelled) return;
-        await addMilestone(milestone);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [projectId, budgetCents, loadForProject, addMilestone]);
+  const { milestones, isLoading } = useMilestonePlan(projectId, budgetCents);
 
   const ganttTasks = useMemo(() => milestonesToGanttTasks(milestones, PHASE_LIST), [milestones]);
   const budgetCategories = useMemo(() => milestonesToBudgetCategories(milestones), [milestones]);
