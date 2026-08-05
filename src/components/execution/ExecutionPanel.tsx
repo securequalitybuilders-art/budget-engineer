@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import GanttChart from './GanttChart';
 import BudgetVsActual from './BudgetVsActual';
+import PaymentsPanel from './PaymentsPanel';
 import { useMilestonePlan } from '@/hooks/useMilestonePlan';
 import { PHASES } from '@/engine/construction/constructionPhases';
 import {
@@ -10,7 +11,7 @@ import {
   totalDaysForPhases,
 } from '@/engine/construction/executionSync';
 import { getEscrowSummary } from '@/engine/marketplace/escrowEngine';
-import { Play, Calendar, DollarSign, Users, Loader2, Lock, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Play, Calendar, DollarSign, Users, Receipt, Loader2, Lock, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 
 const PHASE_LIST = Object.values(PHASES);
 
@@ -20,7 +21,7 @@ interface ExecutionPanelProps {
 }
 
 export default function ExecutionPanel({ projectId, budgetCents }: ExecutionPanelProps) {
-  const [activeTab, setActiveTab] = useState<'schedule' | 'financials' | 'resources'>('schedule');
+  const [activeTab, setActiveTab] = useState<'schedule' | 'financials' | 'resources' | 'payments'>('schedule');
 
   const { milestones, isLoading } = useMilestonePlan(projectId, budgetCents);
 
@@ -82,6 +83,12 @@ export default function ExecutionPanel({ projectId, budgetCents }: ExecutionPane
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'resources' ? 'bg-stone-800 text-stone-200 shadow' : 'text-stone-400 hover:text-stone-300 hover:bg-stone-800/50'}`}
           >
             <Users size={16} /> Resources
+          </button>
+          <button
+            onClick={() => setActiveTab('payments')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'payments' ? 'bg-stone-800 text-stone-200 shadow' : 'text-stone-400 hover:text-stone-300 hover:bg-stone-800/50'}`}
+          >
+            <Receipt size={16} /> Payments
           </button>
         </div>
       </div>
@@ -181,6 +188,14 @@ export default function ExecutionPanel({ projectId, budgetCents }: ExecutionPane
                 </div>
               ))}
             </div>
+          )}
+
+          {activeTab === 'payments' && (
+            <PaymentsPanel
+              milestones={milestones}
+              contractValue={escrowSummary.total}
+              billedToDate={escrowSummary.released}
+            />
           )}
         </div>
       )}

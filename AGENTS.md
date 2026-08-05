@@ -750,3 +750,27 @@ Added the two main Zimbabwean indigenous languages to the i18n system. The local
 - `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
 - `npx vitest run --maxWorkers=4`: 4083/4083 tests (190 files) — +11 new i18n tests
 - `npx vite build`: success in ~18s (PWA precache 111 entries, 4739.83 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static import note)
+
+## Priority #4 — P4P + WIPAA payment calculators (Current)
+
+### What was done
+Added the two payment-calculation engines and wired them into the Execution Monitor as a new Payments tab. **P4P** (Payment for Progress) computes interim payment certificates from verified work-package progress with retention withholding/release; **WIPAA** (Work-in-Progress Accounting Adjustment) does cost-to-cost revenue recognition to flag under/over-billing.
+
+### Files created (3)
+- `src/engine/payment/paymentCalculators.ts` — `calculateP4pCertificate` (per line item: earned value = contractValue × progress%, retention accumulated at configurable rate, release 0% / retentionReleasePct% at practical completion / 100% on defects-liability expiry, net certificate value, amount due = net − previous payments clamped ≥ 0, progress clamped 0–100), `calculateWipaa` (costPctComplete = incurred/estimated, revenueEarned = contractValue × %, grossProfitEarned, overUnderBilled = earned − billed, billingStatus under/over/on-track, projected profit), `calculateWipSchedule` (multi-contract rows + totals), adapters `milestonesToP4pLineItems` (uses `calculateMilestoneProgress`), `buildP4pCertificate`, `escrowToWipaaInput` (contractValue/billedToDate from escrow state).
+- `src/components/execution/PaymentsPanel.tsx` — self-contained Payments panel: editable retention %, release-at-PC %, previous payments, practical-completion + defects-liability toggles; certificate summary cards (gross earned / retention held / retention released / amount due), per-work-package line table, WIPAA inputs (costs incurred, estimated costs, billed-to-date read-only from escrow), summary cards + over/under-billed status badge.
+- `src/__tests__/paymentCalculators.test.tsx` — 18 tests (7 P4P, 5 WIPAA, 1 WIP schedule, 3 adapters, PaymentsPanel render, ExecutionPanel payments-tab integration).
+
+### Files modified (1)
+- `src/components/execution/ExecutionPanel.tsx` — added `payments` to the tab union + a Payments button; renders `<PaymentsPanel milestones contractValue={escrowSummary.total} billedToDate={escrowSummary.released} />`.
+
+### Notes
+- Money stays currency-units at the payment layer (certificates/WIPAA are currency values); milestone `plannedCostCents` converted via `/100` in the adapter.
+- a11y guard caught `text-stone-500` in hint text — replaced with `text-stone-400` (repo rule).
+- WIPAA `totalEstimatedCosts` default = contract value; `costsIncurredToDate` is user-supplied (WIPAA needs actual incurred costs, which milestones don't carry).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4101/4101 tests (191 files) — +18 new payment calculator tests
+- `npx vite build`: success in ~18s (PWA precache 111 entries, 4748.71 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
