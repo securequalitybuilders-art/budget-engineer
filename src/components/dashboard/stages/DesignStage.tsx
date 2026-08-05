@@ -1,52 +1,19 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useRef, useCallback, useEffect } from 'react'
 import { PlanCanvas } from '@/components/cad/PlanCanvas'
-import { LazyBimModel3D } from '@/components/bim/LazyBimModel3D'
-import { DrawingsPanel } from '@/components/drawings/DrawingsPanel'
-import { UnifiedComponentPanel } from '@/components/furniture/UnifiedComponentPanel'
-import { CadSyncControls } from '@/components/dashboard/CadSyncControls'
 import { Button } from '@/components/ui/Button'
-import { PlanLegend } from '@/components/cad/PlanLegend'
-import { ReferenceCasePanel } from '@/components/reference/ReferenceCasePanel'
-import { Box, Layers, Ruler, Wand2, Upload, LayoutGrid, Boxes, Sofa, Download, Table2, FolderOpen } from 'lucide-react'
+import { Box, Wand2, Upload } from 'lucide-react'
 import { useFurnitureStore } from '@/stores/furnitureStore'
 import { motion } from 'framer-motion'
-import { segmentsToPlan, detectWallsFromImage } from '@/lib/import/wallDetection'
-import { convertPlanModelToCadDocument } from '@/adapters/planModelToCadAdapter'
-import { generateDxf, downloadDxf } from '@/lib/export/dxfWriter'
 import type { PlanModel } from '@/domain/plan'
-import { CirculationWarningsPanel } from '@/components/cad/CirculationWarningsPanel'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import type { DesignOption } from '@/domain/boq'
 import type { BackdropState } from '@/lib/import/backdropUtils'
-import type { ComplianceReport } from '@/engine/compliance/types'
-import type { AnalysisResult } from '@/engine/calculators/analysisAssembly'
-
-interface BackgroundIntel {
-  compliance: ComplianceReport | null
-  structural: { beams: number; columns: number; footings: number }
-  mep: { fixtures: number; points: number; hvacUnits: number }
-  analysis: AnalysisResult | null
-  rooms: { total: number; habitable: number }
-  grossFloorArea: number
-  totalFloors: number
-  costEstimate: number
-  loading: boolean
-}
 
 export interface DesignStageProps {
   projectId: string | null
   selectedDesign: DesignOption | null
   activePlan: PlanModel | null
   handleSavePlan: (projectId: string, designId: string, plan: PlanModel) => Promise<void>
-  cadSyncSource: string
-  lastSavedAt: string | null
-  isManualSaving: boolean
-  statusMessage: string | null
-  statusType: 'success' | 'error' | 'info' | null
-  onManualSavePlan: () => Promise<void>
-  onRestoreSavedPlan: () => Promise<void>
-  onResetToGeneratedPlan: () => void
   handleGenerate: () => Promise<void>
   isGenerating: boolean
   backdrop: BackdropState | null
@@ -56,7 +23,6 @@ export interface DesignStageProps {
   onImportFile: (file: File) => void
   onDesignCreated: (projectId: string, plan: PlanModel) => void
   onOpenImportWorkflow?: () => void
-  backgroundIntel?: BackgroundIntel
 }
 
 export function DesignStage({
@@ -64,14 +30,6 @@ export function DesignStage({
   selectedDesign,
   activePlan,
   handleSavePlan,
-  cadSyncSource,
-  lastSavedAt,
-  isManualSaving,
-  statusMessage,
-  statusType,
-  onManualSavePlan,
-  onRestoreSavedPlan,
-  onResetToGeneratedPlan,
   handleGenerate,
   isGenerating,
   backdrop,
@@ -81,16 +39,7 @@ export function DesignStage({
   onImportFile,
   onDesignCreated,
   onOpenImportWorkflow,
-  backgroundIntel,
 }: DesignStageProps) {
-  const [canvasView, setCanvasView] = useState<'plan' | 'bim' | 'drawings'>('plan')
-  const [detecting, setDetecting] = useState(false)
-  const [detectMessage, setDetectMessage] = useState<string | null>(null)
-  const [detectError, setDetectError] = useState(false)
-  const [showComponentPanel, setShowComponentPanel] = useState(false)
-  const [showPlanLegend, setShowPlanLegend] = useState(false)
-  const [showReferenceCases, setShowReferenceCases] = useState(false)
-  const { id: projectIdParam } = useParams<{ id: string }>()
   const importInputRef = useRef<HTMLInputElement>(null)
   const furnitureBlocks = useFurnitureStore((s) => s.blocks)
 
@@ -109,50 +58,12 @@ export function DesignStage({
   const removeBlock = useFurnitureStore((s) => s.removeBlock)
   const rotateBlock = useFurnitureStore((s) => s.rotateBlock)
 
-  const handleExportDxf = useCallback(() => {
-    if (!activePlan) return
-    const result = convertPlanModelToCadDocument({ plan: activePlan, designId: selectedDesign?.id })
-    if (!result.cad) return
-    const dxf = generateDxf(result.cad, { title: selectedDesign?.name ?? 'floor-plan' })
-    const name = (selectedDesign?.name ?? 'floor-plan').toLowerCase().replace(/\s+/g, '-')
-    downloadDxf(dxf, `${name}.dxf`)
-  }, [activePlan, selectedDesign])
-
   const handleImportChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     onImportFile(file)
     if (e.target) e.target.value = ''
   }, [onImportFile])
-
-  const handleDetectWalls = useCallback(async () => {
-    if (!backdrop?.imageDataUrl || !backdrop.pxPerMetre || !projectId) return
-    setDetecting(true)
-    setDetectMessage('Detecting walls...')
-    setDetectError(false)
-    try {
-      const result = await detectWallsFromImage(backdrop.imageDataUrl, backdrop.pxPerMetre)
-      if (result.walls.length > 0) {
-        const plan = segmentsToPlan(result.walls, backdrop.pxPerMetre)
-        if (plan) {
-          plan.id = `detected-${Date.now()}`
-          onDesignCreated(projectId, plan)
-          setDetectMessage(`Auto-detected ${result.detectedLines} walls (confidence: ${result.confidence}) — review and correct.`)
-        } else {
-          setDetectMessage('No walls could be derived from detection.')
-          setDetectError(true)
-        }
-      } else {
-        setDetectMessage(result.message || 'No walls detected. Try adjusting image contrast or trace manually.')
-        setDetectError(true)
-      }
-    } catch {
-      setDetectMessage('Wall detection failed. Trace manually over the backdrop.')
-      setDetectError(true)
-    } finally {
-      setDetecting(false)
-    }
-  }, [backdrop, projectId, onDesignCreated])
 
   if (!selectedDesign && !backdrop?.imageDataUrl) {
     return (
@@ -165,7 +76,7 @@ export function DesignStage({
           <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-2xl border border-[var(--border-default)] bg-[var(--bg-secondary)] shadow-lg">
             <Box size={40} className="text-[var(--brand-accent)]" />
           </div>
-          <h2 className="font-display text-2xl font-bold text-[var(--text-primary)]">2D / 3D Design Canvas</h2>
+          <h2 className="font-display text-2xl font-bold text-[var(--text-primary)]">2D CAD Canvas</h2>
           <p className="mt-2 max-w-md text-sm text-[var(--text-secondary)]">
             Select a design option in the Concept stage first, or import an image as a tracing backdrop.
           </p>
@@ -200,334 +111,25 @@ export function DesignStage({
   }
 
   return (
-    <div className="relative flex flex-1 flex-col overflow-hidden">
-      {/* Toolbar */}
-      <div className="absolute left-0 top-4 z-10 w-full overflow-x-auto px-4 scrollbar-none">
-        <div className="inline-flex items-center gap-1 rounded-full glass px-2 py-1 whitespace-nowrap">
-        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-[var(--brand-accent)]" aria-label="Select">
-          <Box size={16} />
-        </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" aria-label="Wall tool">
-          <Layers size={16} />
-        </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" aria-label="Measure">
-          <Ruler size={16} />
-        </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" aria-label="AI design">
-          <Wand2 size={16} />
-        </Button>
-
-        <span className="mx-1 h-5 w-px bg-white/10" />
-
-        <CadSyncControls
-          sourceLabel={
-            cadSyncSource === 'persisted-cad' ? 'Edited CAD' :
-            cadSyncSource === 'fallback-generated' ? 'Fallback' :
-            'Generated'
-          }
-          lastSavedAt={lastSavedAt}
-          isSaving={isManualSaving}
-          disabled={!projectId || !selectedDesign?.id}
-          statusMessage={statusMessage}
-          statusType={statusType}
-          onSave={onManualSavePlan}
-          onRestore={onRestoreSavedPlan}
-          onReset={onResetToGeneratedPlan}
+    <div className="relative flex flex-1 flex-col overflow-hidden p-4">
+      <ErrorBoundary>
+        <PlanCanvas
+          projectId={projectId}
+          design={selectedDesign}
+          persistedPlan={activePlan}
+          onSavePlan={handleSavePlan}
+          backdrop={backdrop}
+          onBackdropUpdate={onBackdropUpdate}
+          onBackdropSetScale={onBackdropSetScale}
+          onBackdropClear={onBackdropClear}
+          onDesignCreated={onDesignCreated}
+          furnitureBlocks={furnitureBlocks}
+          activeBlockDefId={activeBlockDefId}
+          onPlaceBlock={placeBlock}
+          onRemoveBlock={removeBlock}
+          onRotateBlock={rotateBlock}
         />
-
-        <span className="mx-1 h-5 w-px bg-white/10" />
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 rounded-full"
-          aria-label="Import DXF, image, or PDF"
-          title="Import DXF, image, or PDF"
-          onClick={() => importInputRef.current?.click()}
-        >
-          <Upload size={16} />
-        </Button>
-
-        {onOpenImportWorkflow && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            aria-label="Guided import with AI wall detection"
-            title="Guided import with AI wall detection"
-            onClick={onOpenImportWorkflow}
-          >
-            <Wand2 size={16} />
-          </Button>
-        )}
-
-        {backdrop?.imageDataUrl && backdrop.pxPerMetre !== null && (
-          <>
-            <span className="mx-1 h-5 w-px bg-white/10" />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
-              onClick={handleDetectWalls}
-              disabled={detecting}
-              aria-label="Auto-detect walls from backdrop image"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="3" y="3" width="7" height="7" />
-                <rect x="14" y="3" width="7" height="7" />
-                <rect x="14" y="14" width="7" height="7" />
-                <rect x="3" y="14" width="7" height="7" />
-              </svg>
-              {detecting ? 'Detecting...' : 'Detect walls'}
-            </Button>
-          </>
-        )}
-
-        <span className="mx-1 h-5 w-px bg-white/10" />
-
-        <Button
-          variant={canvasView === 'plan' ? 'default' : 'ghost'}
-          size="sm"
-          className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
-          aria-label="2D Plan View"
-          title="View 2D floor plan"
-          onClick={() => setCanvasView('plan')}
-        >
-          <LayoutGrid size={14} />
-          <span className="hidden sm:inline">2D</span>
-        </Button>
-        <Button
-          variant={canvasView === 'drawings' ? 'default' : 'ghost'}
-          size="sm"
-          className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
-          aria-label="Elevations and Sections"
-          title="View elevations and section drawings"
-          onClick={() => setCanvasView('drawings')}
-        >
-          <LayoutGrid size={14} />
-          <span className="hidden sm:inline">Drawings</span>
-        </Button>
-        <Button
-          variant={canvasView === 'bim' ? 'default' : 'ghost'}
-          size="sm"
-          className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
-          aria-label="3D BIM View"
-          title="View 3D BIM model"
-          onClick={() => setCanvasView('bim')}
-        >
-          <Boxes size={14} />
-          <span className="hidden sm:inline">3D</span>
-        </Button>
-
-        <span className="mx-1 h-5 w-px bg-white/10" />
-
-        {projectIdParam && (
-          <Link
-            to={`/project/${projectIdParam}/studio/interior`}
-            className="inline-flex h-8 items-center gap-1 rounded-full px-2 text-[11px] font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
-            aria-label="Open Interior Studio"
-            title="Open Interior Studio"
-          >
-            <Sofa size={14} />
-            <span className="hidden sm:inline">Interior</span>
-          </Link>
-        )}
-
-        <span className="mx-1 h-5 w-px bg-white/10" />
-
-        <Button
-          variant={showComponentPanel ? 'default' : 'ghost'}
-          size="sm"
-          className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
-          aria-label="Open Component Library"
-          title="Open Component Library"
-          onClick={() => setShowComponentPanel((v) => !v)}
-        >
-          <Table2 size={14} />
-          <span className="hidden sm:inline">Components</span>
-        </Button>
-
-        <span className="mx-1 h-5 w-px bg-white/10" />
-
-        <Button
-          variant={showPlanLegend ? 'default' : 'ghost'}
-          size="sm"
-          className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
-          aria-label="Plan Metadata"
-          title="Plan Metadata"
-          onClick={() => setShowPlanLegend(v => !v)}
-        >
-          <Ruler size={14} />
-          <span className="hidden sm:inline">Plan Info</span>
-        </Button>
-
-        <Button
-          variant={showReferenceCases ? 'default' : 'ghost'}
-          size="sm"
-          className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
-          aria-label="Reference Cases"
-          title="Reference Cases"
-          onClick={() => setShowReferenceCases(v => !v)}
-        >
-          <FolderOpen size={14} />
-          <span className="hidden sm:inline">References</span>
-        </Button>
-
-        {activePlan && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1 rounded-full px-2 text-[11px] font-semibold"
-            aria-label="Export DXF"
-            title="Export plan as DXF"
-            onClick={handleExportDxf}
-          >
-            <Download size={14} />
-            <span className="hidden sm:inline">DXF</span>
-          </Button>
-        )}
-        </div>
-      </div>
-
-      {/* Detection status bar */}
-      {detectMessage && (
-        <div className={`absolute left-4 right-4 z-10 mt-2 rounded-lg px-3 py-1.5 text-[11px] ${
-          detectError
-            ? 'border border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.1)] text-[#ef4444]'
-            : 'border border-[rgba(6,182,212,0.3)] bg-[rgba(6,182,212,0.1)] text-[#06B6D4]'
-        }`}>
-          {detectMessage}
-        </div>
-      )}
-
-      {/* Background Intelligence bar */}
-      {backgroundIntel && !backgroundIntel.loading && (
-        <div className="absolute left-4 right-4 z-10 mt-2 rounded-lg border border-[rgba(99,102,241,0.2)] bg-[rgba(99,102,241,0.08)] px-3 py-1.5 text-[11px] text-[var(--text-secondary)]">
-          <span className="mr-2 font-semibold text-[var(--brand-accent)]">Background Intel</span>
-          {backgroundIntel.compliance && (
-            <span className="mr-3">
-              <span className="text-[var(--text-primary)]">Compliance:</span> {backgroundIntel.compliance.score}% ({backgroundIntel.compliance.passedRules}✓{backgroundIntel.compliance.results.filter(r => r.status === 'warn').length > 0 && <span className="text-[#f59e0b]"> {backgroundIntel.compliance.results.filter(r => r.status === 'warn').length}~</span>}{backgroundIntel.compliance.results.filter(r => r.status === 'fail').length > 0 && <span className="text-red-400"> {backgroundIntel.compliance.results.filter(r => r.status === 'fail').length}✗</span>})
-            </span>
-          )}
-          <span className="mr-3">
-            <span className="text-[var(--text-primary)]">Rooms:</span> {backgroundIntel.rooms.habitable}/{backgroundIntel.rooms.total}
-          </span>
-          <span className="mr-3">
-            <span className="text-[var(--text-primary)]">Area:</span> {backgroundIntel.grossFloorArea} m²
-          </span>
-          <span className="mr-3">
-            <span className="text-[var(--text-primary)]">Floors:</span> {backgroundIntel.totalFloors}
-          </span>
-          <span className="mr-3">
-            <span className="text-[var(--text-primary)]">Str:</span> {backgroundIntel.structural.beams}B {backgroundIntel.structural.columns}C {backgroundIntel.structural.footings}F
-          </span>
-          <span className="mr-3">
-            <span className="text-[var(--text-primary)]">MEP:</span> {backgroundIntel.mep.fixtures}P {backgroundIntel.mep.points}E {backgroundIntel.mep.hvacUnits}H
-          </span>
-          {backgroundIntel.costEstimate > 0 && (
-            <span className="mr-3">
-              <span className="text-[var(--text-primary)]">Est:</span> ${(backgroundIntel.costEstimate / 100).toLocaleString()}
-            </span>
-          )}
-          {backgroundIntel.analysis?.warnings && backgroundIntel.analysis.warnings.length > 0 && (
-            <span className="text-[#f59e0b]" title={backgroundIntel.analysis.warnings.join('; ')}>
-              {backgroundIntel.analysis.warnings.length}⚠
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Circulation warnings */}
-      {activePlan && activePlan.adjacencyWarnings && activePlan.adjacencyWarnings.length > 0 && (
-        <div className="absolute left-4 right-4 z-10 mt-14">
-          <CirculationWarningsPanel
-            adjacencyWarnings={activePlan.adjacencyWarnings}
-            maxTravelDistance={activePlan.maxTravelDistance}
-            egressCompliant={activePlan.egressCompliant}
-          />
-        </div>
-      )}
-
-      {/* Canvas area */}
-      <div className="flex flex-1 flex-row overflow-hidden">
-        <div className="flex flex-1 flex-col overflow-auto p-4 pt-20">
-        {canvasView === 'plan' ? (
-          <ErrorBoundary><PlanCanvas
-            projectId={projectId}
-            design={selectedDesign}
-            persistedPlan={activePlan}
-            onSavePlan={handleSavePlan}
-            backdrop={backdrop}
-            onBackdropUpdate={onBackdropUpdate}
-            onBackdropSetScale={onBackdropSetScale}
-            onBackdropClear={onBackdropClear}
-            onDesignCreated={onDesignCreated}
-            furnitureBlocks={furnitureBlocks}
-            activeBlockDefId={activeBlockDefId}
-            onPlaceBlock={placeBlock}
-            onRemoveBlock={removeBlock}
-            onRotateBlock={rotateBlock}
-          /></ErrorBoundary>
-        ) : canvasView === 'bim' ? (
-          <ErrorBoundary>
-            <LazyBimModel3D plan={activePlan} design={selectedDesign} height={480} />
-            {activePlan && (
-              <p className="mt-2 max-w-md text-[10px] text-stone-400 leading-relaxed">
-                3D BIM model — walls, slabs, storeys, doors, windows and roof generated from your floor plan.
-                Storey height 3.0&nbsp;m, wall thickness {(activePlan.wallThickness || 0.23).toFixed(2)}&nbsp;m.
-                Model downloadable as .glb for use in Blender, Windows 3D Viewer, and other 3D tools.
-              </p>
-            )}
-          </ErrorBoundary>
-        ) : (
-          activePlan && (
-            <DrawingsPanel
-              activePlan={activePlan}
-              design={selectedDesign}
-              floors={selectedDesign?.floors ?? 1}
-            />
-          )
-        )}
-        <p className="mt-4 max-w-xs text-[10px] text-stone-400">
-          Mobile: review, estimates, exports supported. For best CAD editing, use a tablet or desktop.
-        </p>
-      </div>
-
-      {showComponentPanel && (
-        <UnifiedComponentPanel onClose={() => setShowComponentPanel(false)} />
-      )}
-      {showPlanLegend && selectedDesign && (
-        <div className="absolute right-4 top-20 z-20 w-72 rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] shadow-xl">
-          <div className="flex items-center justify-between border-b border-[var(--border-default)] px-3 py-2">
-            <span className="text-xs font-semibold text-[var(--text-primary)]">Plan Metadata</span>
-            <button onClick={() => setShowPlanLegend(false)} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">✕</button>
-          </div>
-          <div className="p-3">
-            <PlanLegend design={selectedDesign} plan={activePlan} />
-          </div>
-        </div>
-      )}
-      {showReferenceCases && (
-        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/40">
-          <div className="h-[80vh] w-[80vw] overflow-auto rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[var(--border-default)] px-4 py-2">
-              <span className="text-sm font-semibold text-[var(--text-primary)]">Reference Cases</span>
-              <button onClick={() => setShowReferenceCases(false)} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">✕</button>
-            </div>
-            <ReferenceCasePanel />
-          </div>
-        </div>
-      )}
-
-      <input
-        ref={importInputRef}
-        type="file"
-        accept=".dxf,image/*,application/pdf"
-        onChange={handleImportChange}
-        className="hidden"
-        aria-label="Select a DXF, image, or PDF file to import"
-      />
-      </div>
+      </ErrorBoundary>
     </div>
   )
 }

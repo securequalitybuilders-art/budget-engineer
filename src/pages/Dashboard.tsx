@@ -37,7 +37,7 @@ import { useChangeStore } from '@/stores/changeStore';
 import { Box, FileSpreadsheet, Bug } from 'lucide-react';
 import type { FloorPlan } from '@/engine/tier3/layoutEngine';
 import { persistDesigns, persistBimModel, persistBoq, logTransaction, loadPersistedProjectWork } from '@/services/projectPersistenceService';
-import { savePlanModel, loadPlanModel, loadPlanModelMeta, deletePlanModel } from '@/services/cadPersistenceService';
+import { savePlanModel, loadPlanModel } from '@/services/cadPersistenceService';
 import type { DesignOption } from '@/domain/boq';
 import type { PlanModel, PlanSource } from '@/domain/plan';
 import type { GeometrySource } from '@/adapters/cadToDesignSyncAdapter';
@@ -45,34 +45,8 @@ import type { BoqResult } from '@/adapters/designToBoq';
 import type { BimModel } from '@/domain/bim';
 import type { BackdropState } from '@/lib/import/backdropUtils';
 import { createInitialBackdropState, computeScaleCalibration } from '@/lib/import/backdropUtils';
-import type { ComplianceReport } from '@/engine/compliance/types';
 import type { ParseResult } from '@/lib/ai/ai-provider';
 import type { PipelineResult } from '@/engine/pipeline/generativeDesignPipeline';
-import type { AnalysisResult } from '@/engine/calculators/analysisAssembly';
-
-type BackgroundIntel = {
-  compliance: ComplianceReport | null
-  structural: { beams: number; columns: number; footings: number }
-  mep: { fixtures: number; points: number; hvacUnits: number }
-  analysis: AnalysisResult | null
-  rooms: { total: number; habitable: number }
-  grossFloorArea: number
-  totalFloors: number
-  costEstimate: number
-  loading: boolean
-}
-
-const EMPTY_BACKGROUND_INTEL: BackgroundIntel = {
-  compliance: null,
-  structural: { beams: 0, columns: 0, footings: 0 },
-  mep: { fixtures: 0, points: 0, hvacUnits: 0 },
-  analysis: null,
-  rooms: { total: 0, habitable: 0 },
-  grossFloorArea: 0,
-  totalFloors: 1,
-  costEstimate: 0,
-  loading: false,
-}
 
 export function Dashboard() {
   const { id } = useParams<{ id: string }>();
@@ -103,28 +77,11 @@ export function Dashboard() {
   const [selectedBuildingType, setSelectedBuildingType] = useState('auto');
   const [persistedPlan, setPersistedPlan] = useState<PlanModel | null>(null);
   const [cadSyncSource, setCadSyncSource] = useState<GeometrySource>('generated-design');
-  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [statusType, setStatusType] = useState<'success' | 'error' | 'info' | null>(null);
-  const [isManualSaving, setIsManualSaving] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [backdrop, setBackdrop] = useState<BackdropState>(createInitialBackdropState());
-  const [computedIntel, setComputedIntel] = useState<BackgroundIntel | null>(null);
-  const [intelKey, setIntelKey] = useState('');
-  const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadedPersistenceRef = useRef(false);
   const loggedBimRef = useRef<string | null>(null);
   const loggedBoqRef = useRef<string | null>(null);
-
-  function showStatus(msg: string, type: 'success' | 'error' | 'info') {
-    if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
-    setStatusMessage(msg);
-    setStatusType(type);
-    statusTimerRef.current = setTimeout(() => {
-      setStatusMessage(null);
-      setStatusType(null);
-    }, 3000);
-  }
 
   const buildingType = latestBuildingType ?? currentBrief?.parsed?.buildingType ?? 'house'
 
@@ -223,51 +180,6 @@ export function Dashboard() {
     import('@/adapters/designToBim').then(m => setLoadedBimModel(m.designOptionToBimModel(selectedDesign)));
   }, [selectedDesign]);
 
-  // ── Background Intelligence: compliance + structural + MEP + analysis ──
-  const hasIntelSource = !!activePlan && !!selectedDesign;
-  const intelSourceKey = `${activePlan?.id ?? ''}|${selectedDesign?.id ?? ''}|${currentBoq?.id ?? ''}|${currentBoq?.summary.grandTotal ?? 0}|${currentProject?.region ?? ''}|${latestBuildingType ?? ''}`;
-  if (intelSourceKey !== intelKey) {
-    setIntelKey(intelSourceKey);
-    setComputedIntel(null);
-  }
-  const backgroundIntel: BackgroundIntel = computedIntel ?? (hasIntelSource ? { ...EMPTY_BACKGROUND_INTEL, loading: true } : EMPTY_BACKGROUND_INTEL);
-  useEffect(() => {
-    if (!activePlan || !selectedDesign) {
-      return
-    }
-    const run = async () => {
-      try {
-        const [{ planModelToBuildingGraph }, { assembleAnalysis }, { runCompliance }, { computeStructuralPreDesign }, { computeMepPreDesign }] = await Promise.all([
-          import('@/adapters/canonical'),
-          import('@/engine/calculators/analysisAssembly'),
-          import('@/engine/compliance'),
-          import('@/engine/structural/structuralPreDesignEngine'),
-          import('@/engine/mep/mepPreDesignEngine'),
-        ])
-        const graph = planModelToBuildingGraph(activePlan).graph
-        const analysis = assembleAnalysis({ plan: activePlan, design: selectedDesign, boq: currentBoq, buildingType: latestBuildingType ?? 'residential' })
-        const compliance = runCompliance(currentProject?.region ?? 'zimbabwe', { plan: activePlan, design: selectedDesign, analysis, buildingType: latestBuildingType ?? 'residential' })
-        const structural = computeStructuralPreDesign(graph)
-        const mep = computeMepPreDesign(graph)
-        const habitableCount = activePlan.rooms.filter(r => !['hallway', 'landing', 'foyer', 'entry', 'circulation', 'storage', 'pantry', 'laundry', 'balcony', 'porch', 'garage'].includes(r.name.toLowerCase())).length
-        setComputedIntel({
-          compliance,
-          structural: { beams: structural.beams.length, columns: structural.columns.length, footings: structural.footings.length },
-          mep: { fixtures: mep.plumbing.fixtures.length, points: mep.electrical.points.length, hvacUnits: mep.hvac.units.length },
-          analysis,
-          rooms: { total: activePlan.rooms.length, habitable: habitableCount },
-          grossFloorArea: selectedDesign.grossFloorArea,
-          totalFloors: selectedDesign.floors,
-          costEstimate: analysis.cost.grandTotal,
-          loading: false,
-        })
-      } catch {
-        setComputedIntel(prev => prev ? { ...prev, loading: false } : { ...EMPTY_BACKGROUND_INTEL, loading: false })
-      }
-    }
-    run()
-  }, [activePlan, selectedDesign, currentBoq, currentProject?.region, latestBuildingType])
-
   const loadAssurance = useAssuranceStore((s) => s.loadForProject);
   const loadMilestones = useMilestoneStore((s) => s.loadForProject);
   const loadChanges = useChangeStore((s) => s.loadForProject);
@@ -317,9 +229,6 @@ export function Dashboard() {
       const syncMeta = buildCadSyncMetadata(!!plan, false);
       setCadSyncSource(syncMeta.source);
     });
-    loadPlanModelMeta(id, selectedDesign.id).then((meta) => {
-      if (!cancelled) setLastSavedAt(meta.savedAt);
-    });
     return () => { cancelled = true; };
   }, [id, selectedDesign?.id]);
 
@@ -338,55 +247,6 @@ export function Dashboard() {
     },
     [],
   );
-
-  // ── CAD Persistence: manual save/restore/reset ──
-  const handleManualSavePlan = useCallback(async () => {
-    if (!id || !selectedDesign?.id || !persistedPlan) {
-      showStatus('Nothing to save — no edits made', 'error')
-      return
-    }
-    setIsManualSaving(true)
-    try {
-      await savePlanModel(id, selectedDesign.id, persistedPlan)
-      setLastSavedAt(new Date().toISOString())
-      setCadSyncSource('persisted-cad')
-      logTransaction(id, 'UPDATE', 'design', selectedDesign.id, 'CAD plan manually saved')
-      showStatus('Saved successfully', 'success')
-    } catch {
-      showStatus('Save failed — please try again', 'error')
-    } finally {
-      setIsManualSaving(false)
-    }
-  }, [id, selectedDesign?.id, persistedPlan])
-
-  const handleRestoreSavedPlan = useCallback(async () => {
-    if (!id || !selectedDesign?.id) return
-    try {
-      const plan = await loadPlanModel(id, selectedDesign.id)
-      if (plan) {
-        setPersistedPlan(plan)
-        setCadSyncSource('persisted-cad')
-        const meta = await loadPlanModelMeta(id, selectedDesign.id)
-        setLastSavedAt(meta.savedAt)
-        logTransaction(id, 'UPDATE', 'design', selectedDesign.id, 'CAD plan restored from saved')
-        showStatus('Restored saved CAD', 'success')
-      } else {
-        showStatus('No saved CAD found', 'info')
-      }
-    } catch {
-      showStatus('Restore failed — please try again', 'error')
-    }
-  }, [id, selectedDesign?.id])
-
-  const handleResetToGeneratedPlan = useCallback(() => {
-    if (!id || !selectedDesign?.id) return
-    setPersistedPlan(null)
-    setCadSyncSource('generated-design')
-    setLastSavedAt(null)
-    deletePlanModel(id, selectedDesign.id).catch(() => {})
-    logTransaction(id, 'UPDATE', 'design', selectedDesign.id, 'CAD plan reset to generated design')
-    showStatus('Reset to generated design', 'info')
-  }, [id, selectedDesign?.id])
 
   // ── Persistence: save BIM model when it changes ──
   useEffect(() => {
@@ -440,7 +300,6 @@ export function Dashboard() {
     savePlanModel(projectId, tracedDesign.id, plan)
     setPersistedPlan(plan)
     logTransaction(projectId, 'CREATE', 'design', tracedDesign.id, 'Traced plan created from backdrop')
-    showStatus('First room placed — traced plan created. Continue tracing or edit rooms.', 'success')
   }
 
   const handleImportFile = useCallback(async (file: File) => {
@@ -467,12 +326,11 @@ export function Dashboard() {
           setPersistedPlan(plan)
           logTransaction(id, 'CREATE', 'design', dxfDesignOption.id, 'DXF imported — verify scale')
           setActiveView(3)
-          showStatus('DXF imported — verify scale', 'success')
         } else {
-          showStatus('Could not read this DXF file.', 'error')
+          return
         }
       } catch {
-        showStatus('Could not read this DXF file.', 'error')
+        return
       }
       return
     }
@@ -500,20 +358,14 @@ export function Dashboard() {
           naturalHeight: img.naturalHeight,
         })
         setActiveView(3)
-        showStatus('Image loaded as traceable backdrop. Set the scale for accurate tracing.', 'success')
       } catch {
-        showStatus('Could not load this image.', 'error')
+        return
       }
       return
     }
 
     if (result.type === 'pdf') {
-      showStatus('PDF import as backdrop is not yet available. Take a screenshot or export your PDF page as an image, then import that.', 'info')
       return
-    }
-
-    if (result.type === 'unsupported') {
-      showStatus(result.message, 'info')
     }
   }, [id, setSelectedDesignId, setActiveView])
 
@@ -534,7 +386,6 @@ export function Dashboard() {
     setPersistedPlan(plan);
     logTransaction(id, 'CREATE', 'design', dxfDesignOption.id, 'DXF imported — verify scale');
     setActiveView(3);
-    showStatus('DXF imported — verify scale', 'success');
   }, [id, setSelectedDesignId, setActiveView]);
 
   const handlePipelineGenerate = async () => {
@@ -568,14 +419,11 @@ export function Dashboard() {
         }
         logTransaction(id, 'AI_GENERATE', 'design', pipelineDesign.id, 'Pipeline-generated design option')
         setPipelineResult(result)
-        showStatus('Pipeline design generated successfully', 'success')
       } else {
         setPipelineResult(result)
-        const msg = result.errors.join('; ') || 'Pipeline produced no valid design'
-        showStatus(msg, 'error')
       }
     } catch {
-      showStatus('Pipeline generation failed', 'error')
+      return
     } finally {
       setIsPipelineRunning(false);
       setPipelineStatus(null);
@@ -850,14 +698,6 @@ export function Dashboard() {
                       selectedDesign={selectedDesign}
                       activePlan={activePlan}
                       handleSavePlan={handleSavePlan}
-                      cadSyncSource={cadSyncSource}
-                      lastSavedAt={lastSavedAt}
-                      isManualSaving={isManualSaving}
-                      statusMessage={statusMessage}
-                      statusType={statusType}
-                      onManualSavePlan={handleManualSavePlan}
-                      onRestoreSavedPlan={handleRestoreSavedPlan}
-                      onResetToGeneratedPlan={handleResetToGeneratedPlan}
                       handleGenerate={handleGenerate}
                       isGenerating={isGenerating}
                       backdrop={backdrop.imageDataUrl ? backdrop : null}
@@ -867,7 +707,6 @@ export function Dashboard() {
                       onImportFile={handleImportFile}
                       onDesignCreated={handleDesignCreated}
                       onOpenImportWorkflow={() => setImportWorkflowOpen(true)}
-                      backgroundIntel={backgroundIntel}
                     />
                   </Suspense>
                 )}
@@ -1041,7 +880,6 @@ export function Dashboard() {
                 projectId={id}
                 onComplete={() => {
                   setImportWorkflowOpen(false);
-                  showStatus('Import completed — review the resulting plan', 'success');
                 }}
                 onCancel={() => setImportWorkflowOpen(false)}
               />

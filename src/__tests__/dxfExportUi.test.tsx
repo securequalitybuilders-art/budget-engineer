@@ -6,7 +6,6 @@ import { MemoryRouter } from 'react-router-dom'
 import type { DesignOption } from '@/domain/boq'
 import type { PlanModel } from '@/domain/plan'
 import type { DrawingsPanelProps } from '@/components/drawings/DrawingsPanel'
-import type { DesignStageProps } from '@/components/dashboard/stages/DesignStage'
 import { useDrawingRegisterStore } from '@/stores/drawingRegisterStore'
 afterEach(() => {
   cleanup()
@@ -75,13 +74,10 @@ vi.mock('@/components/drawings/DrawingRegisterPanel', () => ({
 }))
 
 let DrawingsPanel: React.ComponentType<DrawingsPanelProps>
-let DesignStage: React.ComponentType<DesignStageProps>
 
 beforeAll(async () => {
   const dp = await import('@/components/drawings/DrawingsPanel')
   DrawingsPanel = dp.DrawingsPanel
-  const ds = await import('@/components/dashboard/stages/DesignStage')
-  DesignStage = ds.DesignStage
 })
 
 describe('DXF export via DrawingsPanel', () => {
@@ -128,40 +124,5 @@ describe('DXF export via DrawingsPanel', () => {
     const exportBtn = await screen.findByLabelText('Export DXF')
     expect(exportBtn).toBeTruthy()
     expect(exportBtn.tagName).toBe('BUTTON')
-  })
-})
-
-describe('DXF export via DesignStage', () => {
-  it('renders DXF button in DesignStage toolbar when activePlan exists', async () => {
-    const design = { id: 'd1', name: 'Test' } as unknown as DesignOption
-    const plan = { id: 'plan1', width: 10, height: 10 } as unknown as PlanModel
-    render(
-      <MemoryRouter initialEntries={['/project/p1']}>
-        <DesignStage
-          projectId="p1"
-          selectedDesign={design}
-          activePlan={plan}
-          handleSavePlan={vi.fn()}
-          cadSyncSource="generated"
-          lastSavedAt={null}
-          isManualSaving={false}
-          statusMessage={null}
-          statusType={null}
-          onManualSavePlan={vi.fn()}
-          onRestoreSavedPlan={vi.fn()}
-          onResetToGeneratedPlan={vi.fn()}
-          handleGenerate={vi.fn()}
-          isGenerating={false}
-          backdrop={null}
-          onBackdropUpdate={vi.fn()}
-          onBackdropSetScale={vi.fn()}
-          onBackdropClear={vi.fn()}
-          onImportFile={vi.fn()}
-          onDesignCreated={vi.fn()}
-          onOpenImportWorkflow={vi.fn()}
-        />
-      </MemoryRouter>
-    )
-    expect(await screen.findByLabelText('Export DXF')).toBeTruthy()
   })
 })
