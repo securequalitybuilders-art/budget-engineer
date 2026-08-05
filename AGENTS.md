@@ -812,3 +812,53 @@ Delivered all three Priority #5 tracks together: a typed, REST-shaped client fac
 - `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
 - `npx vitest run --maxWorkers=4`: 4138/4138 tests (195 files) — +37 new tests
 - `npx vite build`: success in ~18s (PWA precache 111 entries, 4756.48 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+
+## Priority #6 - Role-based ecosystem dashboards (Builder / Contractor / Supplier) (Current)
+
+### What was done
+Added three role-based ecosystem dashboards (Builder B2C, Contractor B2B, Supplier B2B) covering 20+ spec widgets, each computing real values from new engines, persisted stores, and existing Dexie/provider/payment engines. Entry points: home-page "Build Ecosystem" cards + a sidebar "Ecosystem" nav group, all via lazy routes.
+
+### Engines created (5, `src/engine/ecosystem/`)
+- `walletToWall.ts` - `assessCashVsScope()` with verdict `proceed|cautions|white-elephant`, affordabilityRatio, requiredCashCents, fundingGapCents, shortfallCents, reasons
+- `groupBuy.ts` - `aggregateMaterialDemand()`, `estimateBulkDiscount()` tiers 0/3/6/9/12%, `aggregateDemandSummary()`
+- `tco.ts` - `calculateTco()` (price + freight + downtime via lateProbability + defect cost with REWORK_MULTIPLIER=2), `compareSuppliers()` with rank + priceRank
+- `priceIndex.ts` - deterministic per-symbol/day index series, FX_USD_TO_ZWG=26, `fxConvert()`, `buildMarketIndex()`
+- `creditNote.ts` - `generateCreditNote()` 90/10 split, `settleCreditNote()`, `creditNoteTotals()`
+
+### Stores created (2)
+- `src/stores/selectionsStore.ts` (persisted must-haves)
+- `src/stores/flashDealStore.ts` (persisted flash deals with active toggle)
+
+### Shared layer
+- `src/components/ecosystem/useEcosystemData.ts` - `useEcosystemData()` hook pulling projects/boqs/milestones/escrows/procurementRequests/supplierQuotes/purchaseOrders/deliveryRecords/changeOrders/rfis/rates from Dexie + providers from providerStore; `fmtCents`, `fmtPct`, `fmtDate`, `projectById`
+- `src/components/ecosystem/ui.tsx` - `EcoCard`, `Stat`, `Pill`, `EmptyState`, `Bar`, `LinkButton`
+- `src/lib/ecosystem/scorecard.ts` - `supplierScore` helper (kept out of component file for react-refresh rule)
+
+### Builder dashboard (B2C) - `src/pages/ecosystem/BuilderDashboard.tsx` + 9 widgets
+RoadmapWidget (phases + digital-twin timeline), BudgetDial (conic-gradient committed vs remaining), FeasibilityWidget (cash-on-hand/income/months + verdict), EscrowWidget (escrow milestone status counts), FindAProWidget (verified providers), DeliveryTrackerWidget, RedPenAuditWidget (BOQ rate vs rate-catalogue, >15% flagged), GroupBuyWidget, MustHavesWidget
+
+### Contractor dashboard (B2B) - `src/pages/ecosystem/ContractorDashboard.tsx` + 8 widgets
+PortfolioWidget, PnLWidget, P4pWidget (via `buildP4pCertificate`), PriceIndexWidget, ProcurementTcoWidget, LogisticsWidget, WipaaWidget (via `escrowToWipaaInput`), ResourceHubsWidget, PendingAlertsWidget
+
+### Supplier dashboard (B2B) - `src/pages/ecosystem/SupplierDashboard.tsx` + 9 widgets
+PipelineWidget, ScorecardWidget, QuotingToolWidget, EscrowLinkWidget, ProofOfFundsWidget, FleetWidget (SVG geofence map), DemandRadarWidget, FlashDealsWidget, DisputeWidget
+
+### Wiring
+- `src/pages/ecosystem/EcosystemLanding.tsx` + lazy routes in `src/app/router.tsx` for `/ecosystem`, `/ecosystem/builder`, `/ecosystem/contractor`, `/ecosystem/supplier`
+- `src/components/layout/Sidebar.tsx` - Ecosystem nav group (Store/Home/BarChart3/ShoppingCart icons)
+- `src/pages/Home.tsx` - "Build Ecosystem" section with 4 cards
+
+### Tests
+- `src/__tests__/ecosystemEngines.test.ts`: 15 engine tests (walletToWall, groupBuy, tco, priceIndex, creditNote)
+- `src/__tests__/ecosystemDashboards.test.tsx`: 17 dashboard/widget tests; required `afterEach(cleanup)` (vitest globals off, RTL does not auto-cleanup)
+
+### Notes
+- Money in integer cents internally; `fmtCents` converts for display. `EscrowAgreement.totalAmount` is in dollars (not cents) - milestone escrow multiplies by 100.
+- A11y rule forbids `text-slate-500` - all ecosystem files use `text-slate-400`.
+- Avoided strict-union mismatches: `ProviderType` (no designer/engineer), `ProjectStatus` (no active/completed), `EscrowStatus` (locked/released/refunded/disputed).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4170/4170 tests (197 files) - +32 new tests (15 engines + 17 dashboards)
+- `npx vite build`: success (PWA precache 121 entries, 4824.78 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)

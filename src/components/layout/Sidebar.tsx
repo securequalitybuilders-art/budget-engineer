@@ -193,6 +193,52 @@ export function Sidebar() {
       <RoleSwitcher />
       <LocaleSwitcher />
 
+      <div className="mb-1 mt-3 px-3 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">
+        Ecosystem
+      </div>
+      <div className="space-y-0.5">
+        <Link
+          to="/ecosystem"
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+        >
+          <Store size={16} />
+          <div className="flex flex-col">
+            <span>Ecosystem Hub</span>
+            <span className="text-[9px] text-[var(--text-tertiary)]">Builder · Contractor · Supplier</span>
+          </div>
+        </Link>
+        <Link
+          to="/ecosystem/builder"
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+        >
+          <Home size={16} />
+          <div className="flex flex-col">
+            <span>Builder Dashboard</span>
+            <span className="text-[9px] text-[var(--text-tertiary)]">Homeowner view</span>
+          </div>
+        </Link>
+        <Link
+          to="/ecosystem/contractor"
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+        >
+          <BarChart3 size={16} />
+          <div className="flex flex-col">
+            <span>Contractor Dashboard</span>
+            <span className="text-[9px] text-[var(--text-tertiary)]">Builder B2B view</span>
+          </div>
+        </Link>
+        <Link
+          to="/ecosystem/supplier"
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+        >
+          <ShoppingCart size={16} />
+          <div className="flex flex-col">
+            <span>Supplier Dashboard</span>
+            <span className="text-[9px] text-[var(--text-tertiary)]">Supplier B2B view</span>
+          </div>
+        </Link>
+      </div>
+
       <Link
         to="/showcase"
         className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"

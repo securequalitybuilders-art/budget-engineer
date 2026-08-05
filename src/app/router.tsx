@@ -37,6 +37,10 @@ const MarketplaceStudio = lazy(() => import('@/components/marketplace/ProviderDa
 const PilotReviewPage = lazy(() => import('@/pages/pilot/PilotReviewPage').then((m) => ({ default: m.PilotReviewPage })));
 const Showcase = lazy(() => import('@/pages/Showcase').then((m) => ({ default: m.Showcase })));
 const ClientPortal = lazy(() => import('@/pages/ClientPortal'));
+const EcosystemLanding = lazy(() => import('@/pages/ecosystem/EcosystemLanding'));
+const BuilderDashboard = lazy(() => import('@/pages/ecosystem/BuilderDashboard'));
+const ContractorDashboard = lazy(() => import('@/pages/ecosystem/ContractorDashboard'));
+const SupplierDashboard = lazy(() => import('@/pages/ecosystem/SupplierDashboard'));
 
 function SafeRoute({ children }: { children: React.ReactNode }) {
   return <ErrorBoundary><Suspense fallback={<PageLoader />}>{children}</Suspense></ErrorBoundary>;
@@ -195,6 +199,22 @@ const router = createBrowserRouter([
       {
         path: '/portal',
         element: <SafeRoute><ClientPortal /></SafeRoute>,
+      },
+      {
+        path: '/ecosystem',
+        element: <SafeRoute><EcosystemLanding /></SafeRoute>,
+      },
+      {
+        path: '/ecosystem/builder',
+        element: <SafeRoute><BuilderDashboard /></SafeRoute>,
+      },
+      {
+        path: '/ecosystem/contractor',
+        element: <SafeRoute><ContractorDashboard /></SafeRoute>,
+      },
+      {
+        path: '/ecosystem/supplier',
+        element: <SafeRoute><SupplierDashboard /></SafeRoute>,
       },
       {
         path: '*',

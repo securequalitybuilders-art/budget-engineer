@@ -399,6 +399,41 @@ export function Home() {
           </div>
         </section>
 
+        {/* Ecosystem section */}
+        <section aria-labelledby="ecosystem-heading" className="mt-12">
+          <h2 id="ecosystem-heading" className="mb-1 text-xl font-bold text-[var(--text-primary)]">Build Ecosystem</h2>
+          <p className="mb-6 max-w-2xl text-sm text-[var(--text-secondary)]">
+            Role-based dashboards that connect homeowners, contractors, and suppliers across one build marketplace.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { icon: Boxes, label: 'Ecosystem Hub', desc: 'Pick the seat that matches how you work.', to: '/ecosystem' },
+              { icon: HardHat, label: 'Builder', desc: 'Roadmap, budget dial, escrow, find-a-pro, group buying.', to: '/ecosystem/builder' },
+              { icon: BarChart3, label: 'Contractor', desc: 'P&L, P4P certificates, SADC index, WIPAA, logistics.', to: '/ecosystem/contractor' },
+              { icon: Activity, label: 'Supplier', desc: 'Pipeline, TCO quoting, flash deals, fleet, demand radar.', to: '/ecosystem/supplier' },
+            ].map((ecosystem) => {
+              const EcosystemIcon = ecosystem.icon;
+              return (
+                <Link key={ecosystem.label} to={ecosystem.to}>
+                  <Card className="group h-full transition-all hover:shadow-lg">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-accent)]/10">
+                          <EcosystemIcon size={20} className="text-[var(--brand-accent)]" />
+                        </div>
+                        <CardTitle className="text-base group-hover:text-[var(--brand-accent)]">{ecosystem.label}</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-[var(--text-secondary)]">{ecosystem.desc}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
         {/* Feedback link */}
         <div className="mt-10 text-center">
           <Link to="/feedback">
