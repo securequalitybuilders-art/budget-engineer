@@ -1,16 +1,18 @@
 import { useState } from 'react'
-import { setLocale, getLocale, t } from '@/lib/i18n/i18n'
+import { setLocale, getLocale, t, type Locale } from '@/lib/i18n/i18n'
 import { Globe, ChevronDown } from 'lucide-react'
 
-const LOCALES = [
+const LOCALES: ReadonlyArray<{ code: Locale; label: string }> = [
   { code: 'en', label: 'English' },
-] as const
+  { code: 'sn', label: 'Shona' },
+  { code: 'nd', label: 'Ndebele' },
+]
 
 export function LocaleSwitcher() {
   const [open, setOpen] = useState(false)
   const current = getLocale()
 
-  const handleSwitch = (code: 'en') => {
+  const handleSwitch = (code: Locale) => {
     setLocale(code)
     setOpen(false)
     window.location.reload()

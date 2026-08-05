@@ -50,6 +50,7 @@ export const en = {
     filter: 'Filter',
     noResults: 'No results found.',
     noProjects: 'No projects yet. Create one to start.',
+    language: 'Language',
   },
 }
 

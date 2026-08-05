@@ -1,0 +1,57 @@
+import type { TranslationKeys } from './en'
+
+export const sn: TranslationKeys = {
+  app: {
+    name: 'Budget Engineer',
+    tagline: 'Kugadzira kwedhizaini neAI → 2D CAD → 3D BIM → kuyerwa kwemainjiniya → BOQ',
+    subtitle: 'Zvese mubrowser yako, offline-inotanga.',
+  },
+  nav: {
+    home: 'Kumba',
+    portfolio: 'Dashboard Yemapurojekiti',
+    academy: 'Chikoro',
+    settings: 'Zvirongwa',
+    diagnostics: 'Kuongorora',
+    newProject: 'Tanga Purojekiti Nyowani',
+    importDxf: 'Pinza (DXF / mufananidzo / PDF)',
+    loadDemo: 'Isa Purojekiti Yedemo',
+    exportAll: 'Tumira Zvese',
+    importBackup: 'Pinza Backup',
+  },
+  project: {
+    name: 'Zita Repurojekiti',
+    status: 'Mamiriro',
+    region: 'Dunhu',
+    currency: 'Mari',
+    createdAt: 'Yakagadzirwa',
+    updatedAt: 'Yakagadziridzwa',
+  },
+  studio: {
+    interior: 'Dhizaini Yemukati',
+    presentation: 'Mabhodhi Ekuratidza',
+    siteAnalysis: 'Kuongorora Saiti',
+  },
+  role: {
+    label: 'Basa',
+    owner: 'Muridzi',
+    reviewer: 'Muongorori',
+    viewer: 'Muoni',
+    switchRole: 'Shandura Basa',
+  },
+  common: {
+    loading: 'Kurisa...',
+    error: 'Pane chakaitika chisina kufanira.',
+    retry: 'Edza Zvakare',
+    close: 'Vhara',
+    save: 'Chengeta',
+    cancel: 'Kanzura',
+    delete: 'Dzima',
+    export: 'Tumira',
+    import: 'Pinza',
+    search: 'Tsvaga',
+    filter: 'Sefa',
+    noResults: 'Hapana mhinduro dzakawanikwa.',
+    noProjects: 'Hapana mapurojekiti. Tanga imwe kuti utange.',
+    language: 'Mutauro',
+  },
+}

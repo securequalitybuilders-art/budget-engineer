@@ -724,3 +724,29 @@ Reworked the Brief/Concept split so the generated concepts are showcased where t
 - `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
 - `npx vitest run`: 4054/4054 tests (187 files)
 - `npx vite build`: success in ~10s (PWA precache 119 entries, 5122.93 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+
+## Priority #3 — Shona + Ndebele locales (Current)
+
+### What was done
+Added the two main Zimbabwean indigenous languages to the i18n system. The locale switcher now offers English / Shona / Ndebele; the stored locale is persisted and restored across sessions.
+
+### Files created (3)
+- `src/lib/i18n/sn.ts` — Shona translation file, structurally typed `TranslationKeys` (compile-time parity with English): nav.home "Kumba", common.language "Mutauro", project.name "Zita Repurojekiti", etc.
+- `src/lib/i18n/nd.ts` — Ndebele translation file: nav.home "Ekhaya", common.language "Ulimi", project.name "Ibizo Lephrojekthi", etc.
+- `src/__tests__/i18n.test.tsx` — 11 tests (`// @vitest-environment jsdom`): locale switching for sn/nd/en, key-set parity across all three locales, unknown-key fallback to the path itself, `initI18n` restore for stored sn/nd + fallback to en for unknown/unset, and LocaleSwitcher dropdown listing all three languages.
+
+### Files modified (3)
+- `src/lib/i18n/en.ts` — added missing `common.language: 'Language'` (LocaleSwitcher previously relied on a `|| 'English'` fallback).
+- `src/lib/i18n/i18n.ts` — `Locale` union `'en'` → `'en' | 'sn' | 'nd'` (now exported), `locales` record includes sn/nd, `initI18n` accepts any known stored locale and falls back to en otherwise (also now sets `currentLocale`, not just `currentTranslations`).
+- `src/components/common/LocaleSwitcher.tsx` — `LOCALES` adds Shona + Ndebele; `handleSwitch` param typed `Locale` (imported type).
+
+### Notes
+- `app.name` stays "Budget Engineer" untranslated (product name); technical terms (AI, CAD, BIM, BOQ) kept as loanwords in taglines.
+- Test environment is `node` by default; this file opts into jsdom. `@testing-library/jest-dom` is NOT installed — plain `.toBeTruthy()` assertions used.
+- No `common.language` key existed before; adding it is safe because `TranslationKeys` is a fresh derived type and `t()` falls back to the path for missing keys.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4083/4083 tests (190 files) — +11 new i18n tests
+- `npx vite build`: success in ~18s (PWA precache 111 entries, 4739.83 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static import note)

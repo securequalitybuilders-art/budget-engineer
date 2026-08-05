@@ -1,8 +1,10 @@
 import { en, type TranslationKeys } from './en'
+import { sn } from './sn'
+import { nd } from './nd'
 
-type Locale = 'en'
+export type Locale = 'en' | 'sn' | 'nd'
 
-const locales: Record<Locale, TranslationKeys> = { en }
+const locales: Record<Locale, TranslationKeys> = { en, sn, nd }
 
 let currentLocale: Locale = 'en'
 let currentTranslations: TranslationKeys = en
@@ -39,8 +41,8 @@ export function t(path: string, params?: Record<string, string | number>): strin
 export function initI18n() {
   try {
     const stored = localStorage.getItem('budget-engineer-locale')
-    if (stored === 'en' || stored === null) {
-      currentTranslations = en
+    if (stored === 'en' || stored === 'sn' || stored === 'nd') {
+      setLocale(stored)
     } else {
       setLocale('en')
     }

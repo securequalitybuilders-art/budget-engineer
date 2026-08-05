@@ -1,0 +1,57 @@
+import type { TranslationKeys } from './en'
+
+export const nd: TranslationKeys = {
+  app: {
+    name: 'Budget Engineer',
+    tagline: 'Ukudizayina nge-AI → 2D CAD → 3D BIM → ukukala kobunjiniyela → BOQ',
+    subtitle: 'Konke kubrowser yakho, offline-kuqala.',
+  },
+  nav: {
+    home: 'Ekhaya',
+    portfolio: 'Idashboard Yeprojekthi',
+    academy: 'Isikole',
+    settings: 'Ukusetha',
+    diagnostics: 'Ukuhlola',
+    newProject: 'Qala Iprojekthi Etsha',
+    importDxf: 'Ngenisa (DXF / isithombe / PDF)',
+    loadDemo: 'Layisha Iprojekthi Yedemo',
+    exportAll: 'Thumela Konke',
+    importBackup: 'Ngenisa iBackup',
+  },
+  project: {
+    name: 'Ibizo Lephrojekthi',
+    status: 'Isimo',
+    region: 'Isifunda',
+    currency: 'Imali',
+    createdAt: 'Yakhiwe',
+    updatedAt: 'Yathuthukiswa',
+  },
+  studio: {
+    interior: 'Umdwebo Wangaphakathi',
+    presentation: 'Amabhodi Okwethula',
+    siteAnalysis: 'Ukuhlaziya Indawo',
+  },
+  role: {
+    label: 'Indima',
+    owner: 'Umnikazi',
+    reviewer: 'Umhlaziyi',
+    viewer: 'Umbukeli',
+    switchRole: 'Shintsha Indima',
+  },
+  common: {
+    loading: 'Iyalayisha...',
+    error: 'Kukhona okonakeleyo okwenzekileyo.',
+    retry: 'Zama Futhi',
+    close: 'Vala',
+    save: 'Londoloza',
+    cancel: 'Khansela',
+    delete: 'Sula',
+    export: 'Thumela',
+    import: 'Ngenisa',
+    search: 'Funa',
+    filter: 'Hlunga',
+    noResults: 'Akukho miphumela etholakeleyo.',
+    noProjects: 'Akukho maprojekthi okwamanje. Qala omunye ukuqala.',
+    language: 'Ulimi',
+  },
+}
