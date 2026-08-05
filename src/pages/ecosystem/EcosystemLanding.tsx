@@ -24,6 +24,15 @@ const HUBS = [
   },
 ];
 
+const WORKFLOW = [
+  { step: 'RFQ', owner: 'Contractor', icon: '📋', hint: 'Issue a request for pricing on a project' },
+  { step: 'Quote', owner: 'Supplier', icon: '💬', hint: 'Price it with delivery days' },
+  { step: 'Award', owner: 'Contractor', icon: '🏆', hint: 'Best TCO wins the PO' },
+  { step: 'Escrow', owner: 'Contractor', icon: '🔒', hint: 'Funds ring-fenced per milestone' },
+  { step: 'Delivery', owner: 'Supplier', icon: '🚚', hint: 'Geo-fenced drop confirmed' },
+  { step: 'Settle', owner: 'Both', icon: '✅', hint: 'Escrow releases · credit notes for defects' },
+];
+
 export default function EcosystemLanding() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -46,6 +55,26 @@ export default function EcosystemLanding() {
             </span>
           </Link>
         ))}
+      </div>
+
+      <div className="mt-10 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-slate-800">How a deal flows</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          One escrowed pipeline across both seats — RFQ through settlement, with funds held in trust until delivery is accepted.
+        </p>
+        <ol className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+          {WORKFLOW.map((w, i) => (
+            <li key={w.step} className="relative rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-3">
+              <div className="flex items-center justify-between">
+                <span aria-hidden className="text-lg">{w.icon}</span>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand/10 text-[11px] font-bold text-brand-accent">{i + 1}</span>
+              </div>
+              <div className="mt-1.5 text-sm font-semibold text-slate-700">{w.step}</div>
+              <div className="text-[11px] font-medium text-brand-accent">{w.owner}</div>
+              <div className="mt-0.5 text-[11px] leading-tight text-slate-400">{w.hint}</div>
+            </li>
+          ))}
+        </ol>
       </div>
     </div>
   );

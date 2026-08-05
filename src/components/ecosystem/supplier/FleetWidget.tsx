@@ -1,17 +1,58 @@
+import { useState } from 'react';
 import { EcoCard, Pill, EmptyState } from '@/components/ecosystem/ui';
-import { fmtDate, type EcosystemData } from '@/components/ecosystem/useEcosystemData';
+import { fmtCents, fmtDate, type EcosystemData } from '@/components/ecosystem/useEcosystemData';
+import { saveDelivery } from '@/lib/ecosystem/workflowActions';
 
-export function FleetWidget({ deliveryRecords, purchaseOrders }: {
+export function FleetWidget({ deliveryRecords, purchaseOrders, onChanged }: {
   deliveryRecords: EcosystemData['deliveryRecords'];
   purchaseOrders: EcosystemData['purchaseOrders'];
+  onChanged: () => Promise<void>;
 }) {
   const poById = new Map(purchaseOrders.map((p) => [p.id, p]));
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const inFlight = purchaseOrders.filter(
+    (p) => p.status === 'issued' || p.status === 'acknowledged' || p.status === 'in-transit'
+  );
   const mapRows = deliveryRecords.slice(0, 6);
 
+  const confirm = async (poId: string) => {
+    setBusyId(poId);
+    try {
+      await saveDelivery(poId);
+      await onChanged();
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   return (
-    <EcoCard title="Delivery fleet · geofence" subtitle="Track drops by site zone" icon={<span aria-hidden>🚚</span>}>
+    <EcoCard title="Delivery fleet · geofence" subtitle="Confirm drops to release escrow" icon={<span aria-hidden>🚚</span>}>
+      {inFlight.length > 0 ? (
+        <div className="mb-3">
+          <div className="mb-1.5 text-[11px] font-medium text-slate-400">AWAITING CONFIRMATION</div>
+          <ul className="space-y-1.5">
+            {inFlight.slice(0, 4).map((po) => (
+              <li key={po.id} className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2">
+                <div>
+                  <div className="text-sm font-medium text-slate-700">{po.title}</div>
+                  <div className="text-[11px] text-slate-400">{fmtCents(po.totalCents)} · {po.poNumber} · due {fmtDate(po.deliveryDate)}</div>
+                </div>
+                <button
+                  onClick={() => confirm(po.id)}
+                  disabled={busyId === po.id}
+                  className="rounded-lg bg-brand-accent px-2 py-1 text-[11px] font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                >
+                  {busyId === po.id ? 'Confirming…' : 'Confirm drop'}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       {mapRows.length === 0 ? (
-        <EmptyState message="No fleet movements logged yet." />
+        <EmptyState message={inFlight.length > 0 ? 'Confirm a drop above to release its escrow.' : 'No fleet movements logged yet.'} />
       ) : (
         <>
           <div className="mb-3 rounded-lg border border-slate-100 bg-slate-50 p-3">

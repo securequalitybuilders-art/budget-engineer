@@ -1,5 +1,6 @@
 import { useEcosystemData, fmtCents } from '@/components/ecosystem/useEcosystemData';
 import { Stat } from '@/components/ecosystem/ui';
+import { WorkflowPipeline } from '@/components/ecosystem/WorkflowPipeline';
 import { PipelineWidget } from '@/components/ecosystem/supplier/PipelineWidget';
 import { ScorecardWidget } from '@/components/ecosystem/supplier/ScorecardWidget';
 import { QuotingToolWidget } from '@/components/ecosystem/supplier/QuotingToolWidget';
@@ -30,13 +31,17 @@ export default function SupplierDashboard() {
         <Stat label="Live RFQs" value={String(data.procurementRequests.filter((r) => r.status === 'quotes-sought').length)} tone="accent" />
       </div>
 
+      <div className="mb-6">
+        <WorkflowPipeline data={data} />
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-2">
-        <PipelineWidget supplierQuotes={data.supplierQuotes} procurementRequests={data.procurementRequests} />
+        <PipelineWidget supplierQuotes={data.supplierQuotes} procurementRequests={data.procurementRequests} providers={data.providers} onChanged={data.refresh} />
         <ScorecardWidget providers={data.providers} />
         <QuotingToolWidget />
         <EscrowLinkWidget escrows={data.escrows} />
         <ProofOfFundsWidget providers={data.providers} />
-        <FleetWidget deliveryRecords={data.deliveryRecords} purchaseOrders={data.purchaseOrders} />
+        <FleetWidget deliveryRecords={data.deliveryRecords} purchaseOrders={data.purchaseOrders} onChanged={data.refresh} />
         <DemandRadarWidget boqs={data.boqs} procurementRequests={data.procurementRequests} />
         <FlashDealsWidget />
         <DisputeWidget />

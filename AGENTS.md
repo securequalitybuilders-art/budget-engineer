@@ -905,3 +905,53 @@ Closed the two remaining feature stubs in the repo: the 4D Sequencing placeholde
 - `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
 - `npx vitest run --maxWorkers=4`: 4195/4195 tests (200 files) - +25 new tests
 - `npx vite build`: success in ~11s (PWA precache 121 entries, 4834.01 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+
+## Priority #8 — Ecosystem workflow actions (RFQ → Quote → Award → Escrow → Delivery) (Current)
+
+### What was done
+Made the ecosystem dashboards transactional: the contractor/supplier workflow is now a single handoff pipeline (RFQ → Quote → Award → Escrow → Delivery → Dispute) with real Dexie-persisted actions on both seats. A shared stepper shows the pipeline state and cross-links each step to its seat.
+
+### Engine created (1)
+- `src/engine/ecosystem/workflow.ts` — pure helpers, no React (react-refresh rule):
+  - `ProjectStage` (`bidding|active|closed`), `projectStage()` (archived → closed; no escrow → bidding; all-released/refunded → closed), `nextStage()`, `lifecycleStats()`
+  - `createRfq()` → `ProcurementRequest` status `quotes-sought`, sequential `requestNumber` (RFQ-001), `estimatedCostCents` = 85% of budget
+  - `submitQuote()` → `SupplierQuote` status `received` (subtotal = total − shipping), rfq flips to `quotes-received`
+  - `awardQuote()` → PO status `issued` + escrow status `locked` (single milestone pending, `totalAmount` = quote cents/100 → dollars, `contractReference` = PO number)
+  - `confirmDelivery()` → `DeliveryRecord` delivered (accepted qty) + PO `delivered` + escrow milestone `released`
+  - `pipelineSummary()` → per-step counts/active flags (rfq = open requests, quote = in-flight quotes, award = POs ≠ cancelled, escrow = locked, delivery = in-transit/delivered POs, dispute = deliveries with rejected qty)
+- Money: engine works in cents for RFQ/quote/PO; escrow `totalAmount` is dollars (existing domain convention, `/100`).
+
+### Actions created (1)
+- `src/lib/ecosystem/workflowActions.ts` — Dexie layer: `saveRfq`, `saveQuote` (throws for missing rfq), `saveAward` (PO + escrow in one call), `saveDelivery` (works with a placeholder escrow if none linked), `closeProject` (archives). Uses `db.procurementRequests/supplierQuotes/purchaseOrders/deliveryRecords/escrows`.
+
+### Shared UI (1)
+- `src/components/ecosystem/WorkflowPipeline.tsx` — 6-step stepper (`data-workflow-step` + `data-active` attributes for tests), count badges, owner hint, handoff `<Link>` per step (contractor vs supplier seats). Rendered on both Contractor + Supplier dashboards and driven by `pipelineSummary`.
+
+### Widget changes (6)
+- `PortfolioWidget.tsx` — lifecycle bucketing (`projectStage` + `lifecycleStats`), per-project stage pill, "Procure →" button on bidding projects
+- `RfqCreateWidget.tsx` (new) — RFQ form (project/category/title/budget/priority/delivery site) → `saveRfq` → refresh
+- `ProcurementTcoWidget.tsx` — per-quote "Award" button → `saveAward` → "Awarded" pill (local set seeded from already-awarded quotes)
+- `PipelineWidget.tsx` (supplier) — "Open RFQs you can price" list, inline quote form (total/shipping/lead days) → `saveQuote`, confirmation banner outside the form (the `quoteRfqId` clears on submit)
+- `EscrowLinkWidget.tsx` — proof-of-funds badges per status (locked → "Proof of funds ✓", released → "Settled", refunded → "Refunded", disputed → "Disputed") + held-in-trust subtitle
+- `FleetWidget.tsx` — "AWAITING CONFIRMATION" list of issued/in-transit POs with "Confirm drop" → `saveDelivery` (releases escrow milestone)
+
+### Wiring
+- `ContractorDashboard.tsx` — `WorkflowPipeline` above the grid; `rfqProjectId` state so PortfolioWidget "Procure →" preselects the RfqCreateWidget project
+- `SupplierDashboard.tsx` — `WorkflowPipeline`; passes `providers` + `onChanged={data.refresh}` to PipelineWidget/FleetWidget
+- `EcosystemLanding.tsx` — "How a deal flows" 6-step workflow map section
+
+### Tests (+29)
+- `src/__tests__/workflowEngine.test.ts` (13): lifecycle (archived/no-escrow/locked/settled/nextStage/lifecycleStats), createRfq, submitQuote, awardQuote (escrow dollars + PO ref), confirmDelivery, pipelineSummary counts/active/dispute
+- `src/__tests__/workflowActions.test.ts` (7, node + fake-indexeddb): saveRfq/saveQuote/saveAward/saveDelivery persistence, no-escrow delivery fallback, closeProject, missing-rfq throw
+- `src/__tests__/workflowDashboards.test.tsx` (9, jsdom + fake-indexeddb): portfolio lifecycle + Procure callback, RFQ issue into db, TCO award (PO+escrow created), pipeline quote submission, escrow proof badges, fleet confirm + milestone release, workflow stepper links + active flags
+
+### Notes
+- escrow `totalAmount` dollars vs cents: `saveAward` converts via `/100`; widget subtitles convert back with `* 100` before `fmtCents`.
+- Dexie tests share a singleton `db`; each file clears only the tables it seeds.
+- A11y: new UI uses `text-slate-400` (no `text-slate-500`).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4224/4224 tests (203 files) - +29 new tests
+- `npx vite build`: success in ~7.4s (PWA precache 121 entries, 4855.63 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
