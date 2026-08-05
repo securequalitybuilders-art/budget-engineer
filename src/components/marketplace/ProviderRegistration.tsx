@@ -1,24 +1,24 @@
 import React, { useState, useCallback } from 'react';
 import { useProviderStore } from '../../stores/providerStore';
-import { ProviderType } from '../../domain/marketplace';
-import { Building2, Briefcase, Package, MapPin, ChevronRight, ChevronLeft, Check, AlertCircle, Globe, Phone, Mail, Building, Users, Award, Shield, Sparkles, Clock } from 'lucide-react';
+import {
+  PROVIDER_CATEGORIES,
+  PROVIDER_SPECIALTIES,
+  categoryInfo,
+  providerTypeForCategory,
+  specialtyLabel,
+} from '../../domain/providerTaxonomy';
+import type { ProviderCategory, ProviderSpecialty } from '../../domain/providerTaxonomy';
+import { Building2, Briefcase, MapPin, ChevronRight, ChevronLeft, Check, AlertCircle, Globe, Phone, Mail, Building, Award, Shield, Sparkles, Clock, Wrench, HardHat, FlaskConical } from 'lucide-react';
 
-const PROVIDER_TYPES: { value: ProviderType; label: string; description: string; longDesc: string; icon: React.ReactNode }[] = [
-  { value: 'contractor', label: 'General Contractor', description: 'Full construction project management', longDesc: 'Manages entire builds from groundbreak to handover. Subcontracts specialist trades.', icon: <Building2 size={22} /> },
-  { value: 'supplier', label: 'Material Supplier', description: 'Building materials and equipment', longDesc: 'Supplies cement, steel, roofing, plumbing, electrical, finishes, and plant hire.', icon: <Package size={22} /> },
-  { value: 'professional', label: 'Professional Consultant', description: 'Architect, Engineer, Quantity Surveyor', longDesc: 'Registered professionals offering design, structural, civil, mechanical, electrical engineering.', icon: <Briefcase size={22} /> },
-  { value: 'subcontractor', label: 'Specialist Subcontractor', description: 'Electrical, Plumbing, Roofing, etc.', longDesc: 'Specialised trades — electrical, plumbing, HVAC, fire, joinery, waterproofing, steel.', icon: <Users size={22} /> },
-  { value: 'consultant', label: 'Advisory Consultant', description: 'PM, BIM, Environmental, H&S', longDesc: 'Project management, BIM coordination, environmental impact, health & safety, compliance.', icon: <Globe size={22} /> },
-];
+const CATEGORY_ICONS: Record<ProviderCategory, React.ReactNode> = {
+  'professional-consultant': <Briefcase size={22} />,
+  'general-contractor': <Building2 size={22} />,
+  'subcontracting-firm': <Wrench size={22} />,
+  'skilled-artisan': <HardHat size={22} />,
+  'testing-qa': <FlaskConical size={22} />,
+};
 
 const COUNTRIES = ['Zimbabwe', 'South Africa', 'Botswana', 'Zambia', 'Malawi', 'Mozambique', 'Namibia', 'Lesotho', 'Eswatini', 'Angola', 'DRC', 'Tanzania'];
-const SPECIALIZATIONS: Record<string, string[]> = {
-  contractor: ['Residential', 'Commercial', 'Industrial', 'Infrastructure', 'Mixed-Use', 'Renovation'],
-  supplier: ['Cement & Concrete', 'Steel & Reinforcement', 'Roofing & Cladding', 'Plumbing & Drainage', 'Electrical & Lighting', 'Finishes & Tiles', 'Paint & Coatings', 'Timber & Joinery', 'Glass & Glazing', 'Plant & Equipment'],
-  professional: ['Architecture', 'Structural Engineering', 'Civil Engineering', 'MEP Engineering', 'Quantity Surveying', 'BIM Coordination', 'Land Surveying'],
-  subcontractor: ['Electrical', 'Plumbing', 'HVAC', 'Fire Protection', 'Joinery & Carpentry', 'Waterproofing', 'Steel Fixing', 'Plastering & Tiling', 'Painting & Decorating'],
-  consultant: ['Project Management', 'Environmental Assessment', 'Health & Safety', 'BIM Management', 'Sustainability', 'Risk Management'],
-};
 
 export default function ProviderRegistration({ onComplete }: { onComplete?: () => void }) {
   const addProvider = useProviderStore(s => s.addProvider);
@@ -26,22 +26,27 @@ export default function ProviderRegistration({ onComplete }: { onComplete?: () =
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
-    name: '', tradingAs: '', type: 'contractor' as ProviderType, email: '', phone: '', alternativePhone: '', website: '',
+    name: '', tradingAs: '', category: '' as ProviderCategory | '', email: '', phone: '', alternativePhone: '', website: '',
     address: '', city: '', province: '', country: 'Zimbabwe', postalCode: '', registrationNumber: '', taxId: '',
-    yearEstablished: '', employeeCount: '', description: '', specialties: '', regions: '', serviceRadius: '', insuranceType: '', insuranceExpiry: '',
+    yearEstablished: '', employeeCount: '', description: '', specialties: [] as ProviderSpecialty[], regions: '', serviceRadius: '', insuranceType: '', insuranceExpiry: '',
     acceptsPO: false, acceptsRetention: false,
   });
 
-  const update = useCallback((field: string, value: string | boolean) => {
+  const update = useCallback((field: string, value: string | boolean | ProviderCategory | ProviderSpecialty[]) => {
     setForm(f => ({ ...f, [field]: value }));
     setErrors(e => { const next = { ...e }; delete next[field]; return next; });
   }, []);
 
-  const selectedSpecializations = SPECIALIZATIONS[form.type] ?? [];
+  const toggleSpecialty = useCallback((s: ProviderSpecialty) => {
+    setForm(f => ({ ...f, specialties: f.specialties.includes(s) ? f.specialties.filter(x => x !== s) : [...f.specialties, s] }));
+    setErrors(e => { const next = { ...e }; delete next.specialties; return next; });
+  }, []);
+
+  const availableSpecialties = form.category ? PROVIDER_SPECIALTIES[form.category] : [];
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
-    if (step === 0) { if (!form.name.trim()) errs.name = 'Business name is required'; if (!form.type) errs.type = 'Select a provider type'; }
+    if (step === 0) { if (!form.name.trim()) errs.name = 'Business name is required'; if (!form.category) errs.category = 'Select a provider category'; }
     if (step === 1) {
       if (!form.email.trim()) errs.email = 'Email is required';
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Invalid email format';
@@ -50,7 +55,7 @@ export default function ProviderRegistration({ onComplete }: { onComplete?: () =
       if (form.website && !/^https?:\/\/.+/.test(form.website)) errs.website = 'Must start with http:// or https://';
     }
     if (step === 2) { if (!form.address.trim()) errs.address = 'Address is required'; if (!form.city.trim()) errs.city = 'City is required'; if (!form.country) errs.country = 'Country is required'; }
-    if (step === 3 && !form.specialties.trim()) errs.specialties = 'Select at least one specialty';
+    if (step === 3 && form.specialties.length === 0) errs.specialties = 'Select at least one specialty';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -59,14 +64,16 @@ export default function ProviderRegistration({ onComplete }: { onComplete?: () =
   const handleBack = () => { setErrors({}); setStep(s => Math.max(0, s - 1)); };
 
   const handleSubmit = () => {
+    if (!form.category) return;
+    const category = form.category;
     addProvider({
-      name: form.name, type: form.type, email: form.email, phone: form.phone,
+      name: form.name, type: providerTypeForCategory(category), category, specialties: form.specialties, email: form.email, phone: form.phone,
       alternativePhone: form.alternativePhone || undefined, website: form.website || undefined,
       registrationNumber: form.registrationNumber || undefined, taxId: form.taxId || undefined,
       yearEstablished: form.yearEstablished ? parseInt(form.yearEstablished) : undefined,
       employeeCount: form.employeeCount ? parseInt(form.employeeCount) : undefined,
       location: { address: form.address, city: form.city, province: form.province || undefined, country: form.country },
-      availability: { regions: form.regions.split(',').map(r => r.trim()).filter(Boolean), preferredProjectTypes: form.specialties.split(',').map(s => s.trim()).filter(Boolean) },
+      availability: { regions: form.regions.split(',').map(r => r.trim()).filter(Boolean), preferredProjectTypes: form.specialties.map(specialtyLabel) },
     });
     setSubmitted(true);
     setTimeout(() => onComplete?.(), 2000);
@@ -102,14 +109,14 @@ export default function ProviderRegistration({ onComplete }: { onComplete?: () =
         <div className="space-y-5">
           <div><label className={labelClass}>Registered Business Name *</label><div className="relative mt-1"><Building size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" /><input value={form.name} onChange={e => update('name', e.target.value)} placeholder="e.g. DzeNhare Earthworks (Pvt) Ltd" className={`${inputClass('name')} pl-10`} /></div>{errors.name && <p className="text-rose-400 text-xs mt-1 flex items-center gap-1"><AlertCircle size={12} />{errors.name}</p>}</div>
           <div><label className={labelClass}>Trading As (if different)</label><input value={form.tradingAs} onChange={e => update('tradingAs', e.target.value)} placeholder="e.g. DzeNhare Earthworks" className={inputClass('tradingAs')} /></div>
-          <div><label className={labelClass}>Business Type *</label><div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
-            {PROVIDER_TYPES.map(pt => (
-              <button key={pt.value} onClick={() => update('type', pt.value)} className={`flex items-start gap-3 p-4 rounded-lg border transition-all ${form.type === pt.value ? 'border-cyan-500 bg-cyan-500/10 ring-1 ring-cyan-500/30' : 'border-stone-800 bg-stone-950 hover:border-stone-700'}`}>
-                <span className={form.type === pt.value ? 'text-cyan-400' : 'text-stone-400'}>{pt.icon}</span>
-                <div className="text-left"><div className={`text-sm font-medium ${form.type === pt.value ? 'text-cyan-300' : 'text-stone-200'}`}>{pt.label}</div><div className="text-xs text-stone-400 mt-0.5">{pt.longDesc}</div></div>
+          <div><label className={labelClass}>Service Provider Category *</label><div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+            {PROVIDER_CATEGORIES.map(cat => (
+              <button key={cat.value} onClick={() => update('category', cat.value)} className={`flex items-start gap-3 p-4 rounded-lg border transition-all ${form.category === cat.value ? 'border-cyan-500 bg-cyan-500/10 ring-1 ring-cyan-500/30' : 'border-stone-800 bg-stone-950 hover:border-stone-700'}`}>
+                <span className={form.category === cat.value ? 'text-cyan-400' : 'text-stone-400'}>{CATEGORY_ICONS[cat.value]}</span>
+                <div className="text-left"><div className={`text-sm font-medium ${form.category === cat.value ? 'text-cyan-300' : 'text-stone-200'}`}>{cat.label}</div><div className="text-xs text-stone-400 mt-0.5">{cat.description}</div></div>
               </button>
             ))}
-          </div></div>
+          </div>{errors.category && <p className="text-rose-400 text-xs mt-1 flex items-center gap-1"><AlertCircle size={12} />{errors.category}</p>}</div>
           <div className="grid grid-cols-2 gap-4">
             <div><label className={labelClass}>Year Established</label><input value={form.yearEstablished} onChange={e => update('yearEstablished', e.target.value)} placeholder="e.g. 2015" type="number" min="1900" max="2026" className={inputClass('yearEstablished')} /></div>
             <div><label className={labelClass}>Number of Employees</label><input value={form.employeeCount} onChange={e => update('employeeCount', e.target.value)} placeholder="e.g. 50" type="number" min="0" className={inputClass('employeeCount')} /></div>
@@ -159,9 +166,9 @@ export default function ProviderRegistration({ onComplete }: { onComplete?: () =
       {step === 3 && (
         <div className="space-y-5">
           <div className="flex items-center gap-2 text-stone-400 mb-1"><Award size={16} /> Specializations & Insurance</div>
-          <div><label className={labelClass}>Select Your Specializations *</label><div className="flex flex-wrap gap-2 mt-2">{selectedSpecializations.map(s => {
-            const selected = form.specialties.includes(s);
-            return (<button key={s} onClick={() => { const list = form.specialties.split(',').map(x => x.trim()).filter(Boolean); update('specialties', selected ? list.filter(x => x !== s).join(', ') : [...list, s].join(', ')); }} className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${selected ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300' : 'bg-stone-950 border-stone-800 text-stone-400 hover:border-stone-700'}`}>{s}</button>);
+          <div><label className={labelClass}>Select Your Specializations *</label><div className="flex flex-wrap gap-2 mt-2">{availableSpecialties.map(s => {
+            const selected = form.specialties.includes(s.value);
+            return (<button key={s.value} onClick={() => toggleSpecialty(s.value)} className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${selected ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300' : 'bg-stone-950 border-stone-800 text-stone-400 hover:border-stone-700'}`}>{s.label}{s.trades ? ` · ${s.trades.join(' · ')}` : ''}</button>);
           })}</div>{errors.specialties && <p className="text-rose-400 text-xs mt-1 flex items-center gap-1"><AlertCircle size={12} />{errors.specialties}</p>}</div>
           <div className="grid grid-cols-2 gap-4"><div><label className={labelClass}>Insurance Type</label><select value={form.insuranceType} onChange={e => update('insuranceType', e.target.value)} className={inputClass('insuranceType')}><option value="">Select insurance type</option><option value="public_liability">Public Liability</option><option value="professional_indemnity">Professional Indemnity</option><option value="contractors_all_risk">Contractor's All Risk</option><option value="worker_comp">Workers Compensation</option></select></div>
             <div><label className={labelClass}>Insurance Expiry</label><input value={form.insuranceExpiry} onChange={e => update('insuranceExpiry', e.target.value)} type="date" className={inputClass('insuranceExpiry')} /></div></div>
@@ -174,7 +181,7 @@ export default function ProviderRegistration({ onComplete }: { onComplete?: () =
           <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto"><Check className="text-emerald-400" size={32} /></div>
           <div><h3 className="text-lg font-semibold text-stone-200">Review Your Registration</h3><p className="text-stone-400 text-sm mt-1">You can add catalog items, credentials, and portfolio after registering.</p></div>
           <div className="bg-stone-950 rounded-xl p-5 text-left space-y-2 text-sm border border-stone-800/50">
-            {[{ label: 'Business Name', value: form.name }, { label: 'Trading As', value: form.tradingAs || '—' }, { label: 'Type', value: PROVIDER_TYPES.find(t => t.value === form.type)?.label }, { label: 'Email', value: form.email }, { label: 'Phone', value: form.phone }, { label: 'Location', value: `${form.city}, ${form.country}` }, { label: 'Year Established', value: form.yearEstablished || '—' }, { label: 'Employees', value: form.employeeCount ? `${form.employeeCount}` : '—' }, { label: 'Specializations', value: form.specialties.split(',').filter(Boolean).join(', ') || '—' }, { label: 'Service Regions', value: form.regions || '—' }].map(r => (
+            {[{ label: 'Business Name', value: form.name }, { label: 'Trading As', value: form.tradingAs || '—' }, { label: 'Category', value: form.category ? categoryInfo(form.category)?.label ?? '—' : '—' }, { label: 'Email', value: form.email }, { label: 'Phone', value: form.phone }, { label: 'Location', value: `${form.city}, ${form.country}` }, { label: 'Year Established', value: form.yearEstablished || '—' }, { label: 'Employees', value: form.employeeCount ? `${form.employeeCount}` : '—' }, { label: 'Specializations', value: form.specialties.map(specialtyLabel).join(', ') || '—' }, { label: 'Service Regions', value: form.regions || '—' }].map(r => (
               <div key={r.label} className="flex justify-between items-center"><span className="text-stone-400">{r.label}</span><span className="text-stone-200 font-medium text-right max-w-[60%] truncate">{r.value}</span></div>
             ))}
           </div>

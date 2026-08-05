@@ -1,3 +1,5 @@
+import type { ProviderCategory, ProviderSpecialty } from './providerTaxonomy';
+
 export type ProviderType = 'contractor' | 'supplier' | 'professional' | 'subcontractor' | 'consultant';
 
 export type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'flagged';
@@ -10,6 +12,8 @@ export interface Provider {
   id: string;
   name: string;
   type: ProviderType;
+  category?: ProviderCategory;
+  specialties?: ProviderSpecialty[];
   email: string;
   phone: string;
   alternativePhone?: string;

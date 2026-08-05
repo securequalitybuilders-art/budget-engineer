@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useProviderStore } from '../../stores/providerStore';
 import type { ServiceOffering } from '../../domain/marketplace';
+import { PROVIDER_CATEGORIES, categoryLabel, specialtyLabel } from '../../domain/providerTaxonomy';
+import type { ProviderCategory } from '../../domain/providerTaxonomy';
 import ProviderRegistration from './ProviderRegistration';
 import CatalogManager from './CatalogManager';
 import CredentialManager from './CredentialManager';
@@ -218,16 +220,27 @@ export default function ProviderDashboard() {
         <aside className="w-full md:w-72 shrink-0 flex flex-col gap-3">
           <div className="relative"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" /><input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search providers..." aria-label="Search providers" className="w-full bg-stone-950 border border-stone-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-stone-200 outline-none focus:border-stone-600" /></div>
           <div className="flex flex-wrap gap-1 mb-2">
-            {[{ key: 'all', label: 'All' }, { key: 'contractor', label: 'Contractor' }, { key: 'supplier', label: 'Supplier' }, { key: 'professional', label: 'Professional' }, { key: 'subcontractor', label: 'Sub' }].map(t => (
-              <button key={t.key} onClick={() => setFilters({ type: t.key === 'all' ? undefined : t.key })} className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${(t.key === 'all' && !filters.type) || filters.type === t.key ? 'bg-cyan-500/10 text-cyan-400' : 'text-stone-400 hover:text-stone-300'}`}>{t.label}</button>
-            ))}
+            {[
+              { key: 'all', label: 'All' },
+              ...PROVIDER_CATEGORIES.map(c => ({ key: c.value, label: c.shortLabel })),
+              { key: 'supplier', label: 'Suppliers' },
+            ].map(t => {
+              const active = t.key === 'all' ? !filters.type && !filters.category : t.key === 'supplier' ? filters.type === 'supplier' : filters.category === t.key;
+              return (
+                <button key={t.key} onClick={() => {
+                  if (t.key === 'all') setFilters({ type: undefined, category: undefined });
+                  else if (t.key === 'supplier') setFilters({ type: 'supplier', category: undefined });
+                  else setFilters({ type: undefined, category: t.key as ProviderCategory });
+                }} className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${active ? 'bg-cyan-500/10 text-cyan-400' : 'text-stone-400 hover:text-stone-300'}`}>{t.label}</button>
+              );
+            })}
           </div>
           <div className="flex items-center justify-between px-1"><span className="text-xs text-stone-400">{filteredProviders.length} providers</span><button onClick={() => { setSort(sortBy === 'name' ? 'date' : sortBy === 'date' ? 'rating' : 'name'); }} className="text-xs text-stone-400 hover:text-stone-300 flex items-center gap-1"><ArrowUpDown size={10} /> {sortBy}</button></div>
           <div className="flex flex-col gap-2 overflow-y-auto flex-1 pr-1">
             {filteredProviders.map(p => (
               <button key={p.id} onClick={() => { selectProvider(p.id); setActiveTab('overview'); }} className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-all ${p.id === selectedProviderId ? 'bg-cyan-500/10 border-cyan-500/20' : 'bg-stone-900 border-stone-800 hover:border-stone-700'}`}>
                 <div className="w-10 h-10 bg-stone-800 rounded-lg flex items-center justify-center text-stone-300 font-bold text-sm shrink-0">{p.name.charAt(0)}</div>
-                <div className="flex-1 min-w-0"><div className="text-sm font-medium text-stone-200 truncate">{p.name}</div><div className="flex items-center gap-2 text-xs text-stone-400"><span>{p.type}</span><span className={`w-1.5 h-1.5 rounded-full ${p.verificationStatus === 'verified' ? 'bg-emerald-500' : p.verificationStatus === 'pending' ? 'bg-amber-500' : 'bg-stone-600'}`} /></div></div>
+                <div className="flex-1 min-w-0"><div className="text-sm font-medium text-stone-200 truncate">{p.name}</div><div className="flex items-center gap-2 text-xs text-stone-400"><span>{p.specialties?.length ? specialtyLabel(p.specialties[0]) : p.type}</span><span className={`w-1.5 h-1.5 rounded-full ${p.verificationStatus === 'verified' ? 'bg-emerald-500' : p.verificationStatus === 'pending' ? 'bg-amber-500' : 'bg-stone-600'}`} /></div></div>
                 <div className="text-right"><div className="text-xs text-amber-500 flex items-center gap-0.5"><Star size={10} />{p.rating.toFixed(1)}</div><div className="text-xs text-stone-400">{p.completedProjects}</div></div>
               </button>
             ))}
@@ -241,7 +254,7 @@ export default function ProviderDashboard() {
               <div className="flex flex-col md:flex-row items-start gap-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-stone-800 to-stone-700 rounded-xl flex items-center justify-center text-stone-200 font-bold text-2xl shrink-0">{provider.name.charAt(0)}</div>
                 <div className="flex-1"><h3 className="text-xl font-bold text-stone-100 flex items-center gap-2">{provider.name}<span className={`px-2 py-0.5 rounded-full text-xs font-medium ${provider.verificationStatus === 'verified' ? 'bg-emerald-500/10 text-emerald-400' : provider.verificationStatus === 'pending' ? 'bg-amber-500/10 text-amber-400' : 'bg-stone-800 text-stone-400'}`}>{provider.verificationStatus}</span></h3>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-sm text-stone-400"><span className="flex items-center gap-1"><MapPin size={14} />{provider.location.city}, {provider.location.country}</span><span className="flex items-center gap-1"><Star size={14} className="text-amber-500" />{provider.rating.toFixed(1)}</span><span className="flex items-center gap-1"><Users size={14} />{provider.completedProjects} projects</span><span className="flex items-center gap-1"><Briefcase size={14} />{provider.type}</span></div>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-sm text-stone-400"><span className="flex items-center gap-1"><MapPin size={14} />{provider.location.city}, {provider.location.country}</span><span className="flex items-center gap-1"><Star size={14} className="text-amber-500" />{provider.rating.toFixed(1)}</span><span className="flex items-center gap-1"><Users size={14} />{provider.completedProjects} projects</span><span className="flex items-center gap-1"><Briefcase size={14} />{provider.category ? categoryLabel(provider.category) : provider.type}</span></div>
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <div className="bg-stone-950 border border-stone-800 rounded-lg px-4 py-2 text-center"><div className="text-2xl font-bold text-cyan-400">{provider.catalog.length}</div><div className="text-xs text-stone-400">Catalog</div></div>

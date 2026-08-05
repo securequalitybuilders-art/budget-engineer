@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { Provider, CatalogItem, Credential, ServiceOffering, Portfolio, Review, InsuranceCoverage, ProviderAvailability } from '../domain/marketplace';
+import type { ProviderCategory } from '../domain/providerTaxonomy';
 
 interface ProviderFilters {
-  type?: string; verificationStatus?: string; ratingMin?: number;
+  type?: string; category?: ProviderCategory; verificationStatus?: string; ratingMin?: number;
   location?: string; search?: string; hasCatalog?: boolean;
 }
 
@@ -80,6 +81,7 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
     const { providers, filters, sortBy, sortAsc } = get();
     let filtered = [...providers];
     if (filters.type) filtered = filtered.filter(p => p.type === filters.type);
+    if (filters.category) filtered = filtered.filter(p => p.category === filters.category);
     if (filters.verificationStatus) filtered = filtered.filter(p => p.verificationStatus === filters.verificationStatus);
     if (filters.ratingMin) filtered = filtered.filter(p => p.rating >= filters.ratingMin!);
     if (filters.location) filtered = filtered.filter(p => p.location.city.toLowerCase().includes(filters.location!.toLowerCase()) || p.location.country.toLowerCase().includes(filters.location!.toLowerCase()));

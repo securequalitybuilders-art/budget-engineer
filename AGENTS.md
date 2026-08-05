@@ -986,3 +986,32 @@ Closed the RFQ→Quote→Award→Escrow→Delivery→Dispute pipeline end-to-end
 - `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
 - `npx vitest run --maxWorkers=4`: 4232/4232 tests (203 files) - +8 new tests
 - `npx vite build`: success in ~6.8s (PWA precache 121 entries, 4859.61 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+
+## Priority — Service Provider Matrix taxonomy (Current)
+
+### What was done
+Granularized the provider catalog into the "Specialized Construction Personnel & Service Providers Matrix" (5 matrix groups, 24 roles/trade classifications). Kept the coarse 5-value `ProviderType` union (`contractor | supplier | professional | subcontractor | consultant`) fully intact so every existing filter/test keeps working, and layered a two-level taxonomy on top. Suppliers are intentionally NOT part of the matrix — they keep the coarse `supplier` type only (service providers are now the focus).
+
+### Files created (3)
+- `src/domain/providerTaxonomy.ts` — matrix taxonomy:
+  - `ProviderCategory` (5 groups): `professional-consultant` (7 roles: QS & Budget Engineer, Civil & Structural Engineer, Architect & Spatial Designer, MEP Engineer, Geotechnical Engineer & Soil Scientist, PM/CM, HSE Officer), `general-contractor` (3: General Building, Civil Infrastructure, Design-Build Turnkey), `subcontracting-firm` (7: Structural & Earthworks, Facade & Fenestration, Specialist Mechanical & HVAC, Renewable Energy & High Voltage, Finishing & Fit-Out, Protection & Waterproofing, Specialist Systems & Automation), `skilled-artisan` (4 trade groups with full trade rosters: Civil & Structural / MEP / Interior & Exterior Finishing / Heavy Equipment & Plant), `testing-qa` (3: Material Testing Lab, Land & Topographic Surveyor, Acoustic & Thermal Consultant)
+  - `PROVIDER_CATEGORIES`, `PROVIDER_SPECIALTIES` (24 with labels + descriptions + artisan `trades[]` rosters), `ALL_SPECIALTIES`
+  - Mappings: `providerTypeForCategory(cat)` (never 'supplier'), `providerCategoryForType(type)` (returns undefined for supplier), `specialtiesForCategory`, `specialtyInfo`, `specialtyLabel`, `categoryInfo`, `categoryLabel`
+- `src/__tests__/providerTaxonomy.test.ts` (8 tests) — 5 group definitions, metadata, 24 specialties + per-category counts, unique ids, artisan trade rosters, category→type mapping (non-supplier), reverse mapping (supplier→undefined), helper lookups
+- `src/__tests__/providerRegistration.test.tsx` (4 tests, jsdom) — 5 matrix categories on step 0, category required before continuing, submit derives coarse type + persists category/specialties, artisan trade roster chips
+
+### Files modified (4)
+- `src/domain/marketplace.ts` — `Provider` gains optional `category?: ProviderCategory` and `specialties?: ProviderSpecialty[]` (non-breaking; existing `addProvider` calls compile unchanged)
+- `src/stores/providerStore.ts` — `ProviderFilters` gains `category?: ProviderCategory`; `getFilteredProviders` filters by it
+- `src/components/marketplace/ProviderRegistration.tsx` — step 0 "Business Type" (5 generic cards) → "Service Provider Category" (5 matrix cards); step 3 free-text specializations → matrix specialty chips (with artisan trade rosters shown); submit derives coarse `type` via `providerTypeForCategory`, stores `category` + `specialties`, maps specialty labels into `availability.preferredProjectTypes`; review step shows Category + Specializations
+- `src/components/marketplace/ProviderDashboard.tsx` — filter chips now All / 5 matrix categories / Suppliers (category-aware via store filter, supplier kept as a type chip); list cards show the primary specialty label, detail header shows the category label
+
+### Notes
+- `budget-engineer-canonical/` submodule (v4.1.0-119) is a separate published mirror and was intentionally NOT touched — the app consumes the parent `src/` only.
+- A11y rule kept: new UI uses `text-stone-400`/`text-cyan-*`, no `text-slate-500`.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4244/4244 tests (205 files) - +12 new tests
+- `npx vite build`: success in ~11s (PWA precache 121 entries, 4865.43 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
