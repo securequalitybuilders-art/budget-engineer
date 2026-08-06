@@ -1015,3 +1015,42 @@ Granularized the provider catalog into the "Specialized Construction Personnel &
 - `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
 - `npx vitest run --maxWorkers=4`: 4244/4244 tests (205 files) - +12 new tests
 - `npx vite build`: success in ~11s (PWA precache 121 entries, 4865.43 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+
+
+## Priority — Bulk Procurement dashboard: BOQ → JIT dispatch (Uber for construction) (Current)
+
+### What was done
+Replaced the ecosystem Supplier seat with a **Bulk Procurement** dispatch hub that streamlines procurement straight from the Bill of Quantities using the DzeNhare JIT-Dispatch ("Uber for construction") model: nearest-supplier matching, GPS-simulated delivery tracking, and escrow-gated payment release.
+
+### New files (5 + 4 widgets)
+- `src/lib/dispatch/dispatchActions.ts` — Dexie↔JIT-engine bridge: `boqToDispatchLines(boq)`, `providerToMatchable`, `suppliersToMatchable`, `siteGeofenceAround`, `estimateRouteKm`, `createDispatchFromBoq` (creates order + holds escrow in one call), `transitionOrder`, `cancelDispatch`, `simulateGps`, `leaveSupplierYard`/`enterSiteGeofence`, `verifyAndRelease` (GPS verify + engineer sign-off + release, completes order), `disputeHold`/`resolveHold`, `isActive`, `dispatchSummary`. `DEFAULT_SITE` = Harare (−17.8292, 31.0522), default trigger 90%.
+- `src/pages/ecosystem/BulkProcurementDashboard.tsx` — new hub (header, 4 stats, WorkflowPipeline, widget grid); loads `dispatchOrders`/`dispatchHolds` from Dexie.
+- `src/components/ecosystem/procurement/BoqDispatchIntake.tsx` — project→BOQ→supplier form; dispatches the BOQ (searches default geofence) and holds escrow; shows `forecastBulkDemand` group-buy savings on live orders.
+- `src/components/ecosystem/procurement/SupplierMatch.tsx` — `rankSuppliers` table (price/distance/rating/reliability), best-match banner with ETA + route km.
+- `src/components/ecosystem/procurement/DispatchBoard.tsx` — live tracking list with state pills, progress bar, and per-state actions: Accept, Simulate leave yard (→en-route), Simulate enter site (→arrived), Mark delivered, Verify GPS + release escrow, Cancel, Dispute hold / Resolve dispute.
+- `src/components/ecosystem/procurement/EscrowGatewayWidget.tsx` — `escrowSummary` cards (held/released) + hold list with GPS ✓/✗ and sign-off ✓/✗ flags.
+
+### Files modified (6)
+- `src/pages/ecosystem/SupplierDashboard.tsx` — now `export { default } from './BulkProcurementDashboard'` (keeps `/ecosystem/supplier` + WorkflowPipeline links working).
+- `src/app/router.tsx` — added `/ecosystem/bulk` route → BulkProcurementDashboard; `/ecosystem/supplier` kept as alias.
+- `src/pages/ecosystem/EcosystemLanding.tsx` — third hub card renamed to "Bulk Procurement" (Dispatch · B2B) with Uber-JIT description, pointing at `/ecosystem/bulk`.
+- `src/pages/Home.tsx` — ecosystem card updated to Bulk Procurement → `/ecosystem/bulk`.
+- `src/engine/dispatch/jitDispatchEngine.ts` — `(next as Record)` → `(next as unknown as Record)` (TS2352 fix).
+- `src/engine/dispatch/escrowGateway.ts` — unused `now` param → `_now` (TS6133 fix).
+- `eslint.config.js` — added `budget-engineer-canonical` to ignores (published mirror carries its own committed lint debt; repo convention is to not touch it).
+
+### Tests (+22)
+- `src/__tests__/dispatchActions.test.ts` (13, node): BOQ→lines mapping, order+escrow creation, empty-BOQ rejection, accept/illegal-transition/cancel, GPS en-route→arrived, verify+release→completed, dispute freeze + resolve, summary counts, geofence polygon, route estimation.
+- `src/__tests__/bulkProcurementDashboard.test.tsx` (9, jsdom): dashboard headers/empty states, end-to-end BOQ dispatch (seeds db + providerStore), full JIT lifecycle click-through (pending→accepted→en-route→arrived→delivered→completed + escrow released), dispute raise, supplier-match ranking + empty state, escrow gateway flags, board/intake empty states.
+- `src/__tests__/ecosystemDashboards.test.tsx` — landing hub heading `Supplier`→`Bulk Procurement`; supplier-dashboard header assertion → `Streamline procurement from the BOQ` + `Dispatch from BOQ`.
+
+### Notes
+- Supplier widgets under `src/components/ecosystem/supplier/` are retained — still exercised directly by `ecosystemDashboards`/`workflowDashboards` tests and `ScorecardWidget` is used by ContractorDashboard.
+- `providerStore` has no persist middleware, so tests seed providers via `useProviderStore.setState`.
+- Escrow money is integer cents; escrow hold amount = order total from the BOQ.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run`: 4266/4266 tests (207 files) — +22 new tests
+- `npx vite build`: success in ~14s (PWA precache 122 entries, 4863.07 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)

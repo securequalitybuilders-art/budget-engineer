@@ -16,10 +16,10 @@ const HUBS = [
     accent: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   },
   {
-    to: '/ecosystem/supplier',
-    label: 'Supplier',
-    audience: 'Suppliers · B2B',
-    description: 'Sales pipeline, scorecards, TCO quoting, escrow-backed contracts, proof of funds, fleet geofence, demand radar, flash deals and dispute credit notes.',
+    to: '/ecosystem/bulk',
+    label: 'Bulk Procurement',
+    audience: 'Dispatch · B2B',
+    description: 'Uber-style JIT dispatch straight from the bill of quantities — nearest-supplier matching, GPS-verified deliveries and escrow-gated payments.',
     accent: 'bg-amber-50 text-amber-700 border-amber-200',
   },
 ];

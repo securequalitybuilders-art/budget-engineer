@@ -410,7 +410,7 @@ export function Home() {
               { icon: Boxes, label: 'Ecosystem Hub', desc: 'Pick the seat that matches how you work.', to: '/ecosystem' },
               { icon: HardHat, label: 'Builder', desc: 'Roadmap, budget dial, escrow, find-a-pro, group buying.', to: '/ecosystem/builder' },
               { icon: BarChart3, label: 'Contractor', desc: 'P&L, P4P certificates, SADC index, WIPAA, logistics.', to: '/ecosystem/contractor' },
-              { icon: Activity, label: 'Supplier', desc: 'Pipeline, TCO quoting, flash deals, fleet, demand radar.', to: '/ecosystem/supplier' },
+              { icon: Activity, label: 'Bulk Procurement', desc: 'BOQ → JIT dispatch, GPS-verified, escrow-gated.', to: '/ecosystem/bulk' },
             ].map((ecosystem) => {
               const EcosystemIcon = ecosystem.icon;
               return (

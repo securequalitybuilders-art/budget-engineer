@@ -31,7 +31,7 @@ describe('ecosystem landing + dashboards', () => {
     wrap(<EcosystemLanding />)
     expect(screen.getByRole('heading', { name: 'Builder' })).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'Contractor' })).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'Supplier' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Bulk Procurement' })).toBeTruthy()
   })
 
   it('builder dashboard renders with empty-state widgets', async () => {
@@ -48,8 +48,8 @@ describe('ecosystem landing + dashboards', () => {
 
   it('supplier dashboard renders its headers', async () => {
     wrap(<SupplierDashboard />)
-    expect(await screen.findByText(/Sell to the build market/)).toBeTruthy()
-    expect(await screen.findByText(/Sales pipeline/)).toBeTruthy()
+    expect(await screen.findByText(/Streamline procurement from the BOQ/)).toBeTruthy()
+    expect(await screen.findByText(/Dispatch from BOQ/)).toBeTruthy()
   })
 })
 
