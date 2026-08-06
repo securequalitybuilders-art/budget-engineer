@@ -7,6 +7,7 @@ import { createDefaultSiteContext } from '@/engine/analysis/siteAnalysisEngine'
 import { SiteAnalysisPanel } from '@/components/analysis/SiteAnalysisPanel'
 import { HeliodonView } from '@/components/analysis/HeliodonView'
 import { SixDiagramView } from '@/components/analysis/SixDiagramView'
+import { generateAllSiteDiagrams } from '@/engine/analysis/sixDiagrams'
 import { GlbSiteViewer } from '@/components/bim/GlbSiteViewer'
 import { useGlbExport } from '@/hooks/useGlbExport'
 import type { PlanModel } from '@/domain/plan'
@@ -33,6 +34,8 @@ export function SiteAnalysisStage({ selectedDesign, activePlan }: SiteAnalysisSt
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, siteKey])
+
+  const diagrams = useMemo(() => (site ? generateAllSiteDiagrams(site) : []), [site])
 
   const stageMountedRef = useRef(true)
   useEffect(() => {
@@ -119,7 +122,7 @@ export function SiteAnalysisStage({ selectedDesign, activePlan }: SiteAnalysisSt
           </button>
         </div>
 
-        {showDiagrams && <SixDiagramView diagrams={[]} />}
+        {showDiagrams && <SixDiagramView diagrams={diagrams} />}
       </div>
     </div>
   )

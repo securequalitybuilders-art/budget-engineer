@@ -9,3 +9,9 @@ export function loadSiteContext(projectId: string): SiteContext | null {
   } catch { /* ignore */ }
   return null
 }
+
+export function persistSiteContext(projectId: string, site: SiteContext): void {
+  try {
+    localStorage.setItem(STORAGE_KEY(projectId), JSON.stringify(site))
+  } catch { /* ignore */ }
+}

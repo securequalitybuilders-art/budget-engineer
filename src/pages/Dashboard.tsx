@@ -717,6 +717,7 @@ export function Dashboard() {
                       selectedDesign={selectedDesign}
                       boq={currentBoq}
                       projectId={id}
+                      budgetCents={currentBoq ? Math.round(currentBoq.summary.grandTotal * 100) : undefined}
                       onDesignOptionsGenerated={handleAiDesignOptions}
                       onParsed={(result: ParseResult) => { if (result?.buildingType) setLatestBuildingType(result.buildingType) }}
                       onTier3Plans={handleTier3Plans}

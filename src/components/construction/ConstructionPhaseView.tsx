@@ -4,20 +4,50 @@ import { CheckCircle2, Circle, Clock } from 'lucide-react'
 
 interface ConstructionPhaseViewProps {
   phase: ConstructionPhase
+  projectId?: string
 }
 
 type Tab = 'work' | 'materials' | 'bom'
 
-export function ConstructionPhaseView({ phase }: ConstructionPhaseViewProps) {
+const STATUS_STORAGE_KEY = (projectId: string, phaseId: string) => `construction-phase-${projectId}-${phaseId}`
+
+function loadPersistedStatus(projectId: string | undefined, phase: ConstructionPhase): WorkItem[] {
+  if (!projectId) return phase.workItems
+  try {
+    const raw = localStorage.getItem(STATUS_STORAGE_KEY(projectId, phase.id))
+    if (!raw) return phase.workItems
+    const statuses = JSON.parse(raw) as Record<string, WorkItem['status']>
+    return phase.workItems.map((w) => ({
+      ...w,
+      status: statuses[w.id] ?? w.status,
+    }))
+  } catch { /* ignore */ }
+  return phase.workItems
+}
+
+export function ConstructionPhaseView({ phase, projectId }: ConstructionPhaseViewProps) {
   const [tab, setTab] = useState<Tab>('work')
-  const [workItems, setWorkItems] = useState<WorkItem[]>(phase.workItems)
+  const [workItems, setWorkItems] = useState<WorkItem[]>(() => loadPersistedStatus(projectId, phase))
+
+  const persistStatus = (items: WorkItem[]) => {
+    if (!projectId) return
+    try {
+      const statuses: Record<string, WorkItem['status']> = {}
+      for (const w of items) statuses[w.id] = w.status
+      localStorage.setItem(STATUS_STORAGE_KEY(projectId, phase.id), JSON.stringify(statuses))
+    } catch { /* ignore */ }
+  }
 
   const toggleStatus = (id: string) => {
-    setWorkItems(prev => prev.map(w => {
-      if (w.id !== id) return w
-      const next = w.status === 'pending' ? 'in-progress' : w.status === 'in-progress' ? 'completed' : 'pending'
-      return { ...w, status: next }
-    }))
+    setWorkItems(prev => {
+      const next = prev.map(w => {
+        if (w.id !== id) return w
+        const status: WorkItem['status'] = w.status === 'pending' ? 'in-progress' : w.status === 'in-progress' ? 'completed' : 'pending'
+        return { ...w, status }
+      })
+      persistStatus(next)
+      return next
+    })
   }
 
   const completed = workItems.filter(w => w.status === 'completed').length

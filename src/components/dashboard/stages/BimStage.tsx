@@ -243,7 +243,7 @@ export function BimStage({ activePlan, selectedDesign, boq, projectId, budgetCen
 
               {/* Active phase content */}
               <div className="flex-1 overflow-auto">
-                <ConstructionPhaseView phase={PHASE_MAP[constructionTab]} />
+                <ConstructionPhaseView phase={PHASE_MAP[constructionTab]} projectId={projectId} />
               </div>
             </div>
           )}

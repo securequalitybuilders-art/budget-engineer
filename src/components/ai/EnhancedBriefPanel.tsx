@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { detectClimateZone, generateSiteContext, generateWindRose } from '@/engine/site/locationIntelligence';
 import { Compass, Sun, Wind, MapPin, DollarSign, Layers, Palette } from 'lucide-react';
+import { persistSiteContext } from '@/lib/site/siteContextReader';
 import type { SiteContext } from '@/domain/site';
 import type { BriefQuestionnaire } from '@/lib/ai/briefQuestionnaire';
 
@@ -124,8 +125,12 @@ export function EnhancedBriefPanel({ projectId, onGenerate }: {
   }, [climate])
 
   const handleGenerate = useCallback(() => {
+    if (projectId && (q.lat !== 0 || q.lng !== 0)) {
+      const site = generateSiteContext(projectId, q.lat, q.lng, q.siteWidth, q.siteDepth)
+      persistSiteContext(projectId, site)
+    }
     onGenerate?.(q)
-  }, [q, onGenerate])
+  }, [q, onGenerate, projectId])
 
 
 

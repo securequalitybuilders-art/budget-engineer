@@ -19,13 +19,18 @@ const WINDOW_FRAME_MAT = new THREE.MeshStandardMaterial({ color: '#cbd5e1', roug
 const ROOF_MAT = new THREE.MeshStandardMaterial({ color: '#a0522d', roughness: 0.85, metalness: 0.0 })
 const CEILING_MAT = new THREE.MeshStandardMaterial({ color: '#334155', roughness: 0.9, metalness: 0.0 })
 
+/** Coerce a dimension to a finite positive value so BoxGeometry never throws on NaN/0. */
+function dim(n: number): number {
+  return Number.isFinite(n) && n > 0 ? n : 0.01
+}
+
 function buildScene(result: PlanTo3dResult): THREE.Group {
   const group = new THREE.Group()
 
   for (const slab of result.slabs) {
-    const geo = new THREE.BoxGeometry(slab.width, slab.thickness, slab.depth)
+    const geo = new THREE.BoxGeometry(dim(slab.width), dim(slab.thickness), dim(slab.depth))
     const mesh = new THREE.Mesh(geo, SLAB_MAT)
-    mesh.position.set(slab.centerX, slab.yOffset, slab.centerZ)
+    mesh.position.set(Number.isFinite(slab.centerX) ? slab.centerX : 0, slab.yOffset, Number.isFinite(slab.centerZ) ? slab.centerZ : 0)
     mesh.userData.type = 'slab'
     mesh.userData.storeyIndex = slab.storeyIndex
     group.add(mesh)
@@ -34,16 +39,16 @@ function buildScene(result: PlanTo3dResult): THREE.Group {
   for (const pier of result.walls) {
     const dx = pier.endX - pier.startX
     const dz = pier.endZ - pier.startZ
-    const length = Math.hypot(dx, dz) || 0.001
+    const length = dim(Math.hypot(dx, dz))
     const midX = (pier.startX + pier.endX) / 2
     const midZ = (pier.startZ + pier.endZ) / 2
     const midY = pier.height / 2 + pier.storeyIndex * DEFAULT_STOREY_HEIGHT
     const angle = Math.atan2(dz, dx)
 
-    const geo = new THREE.BoxGeometry(length, pier.height, pier.thickness)
+    const geo = new THREE.BoxGeometry(length, dim(pier.height), dim(pier.thickness))
     const mat = pier.type === 'external' ? WALL_EXT_MAT : WALL_INT_MAT
     const mesh = new THREE.Mesh(geo, mat)
-    mesh.position.set(midX, midY, midZ)
+    mesh.position.set(Number.isFinite(midX) ? midX : 0, Number.isFinite(midY) ? midY : 0, Number.isFinite(midZ) ? midZ : 0)
     mesh.rotation.y = -angle
     mesh.userData.type = 'wall'
     mesh.userData.storeyIndex = pier.storeyIndex
@@ -51,9 +56,9 @@ function buildScene(result: PlanTo3dResult): THREE.Group {
   }
 
   for (const ceil of result.ceilings) {
-    const geo = new THREE.BoxGeometry(ceil.width, 0.1, ceil.depth)
+    const geo = new THREE.BoxGeometry(dim(ceil.width), 0.1, dim(ceil.depth))
     const mesh = new THREE.Mesh(geo, CEILING_MAT)
-    mesh.position.set(ceil.centerX, ceil.yOffset, ceil.centerZ)
+    mesh.position.set(Number.isFinite(ceil.centerX) ? ceil.centerX : 0, ceil.yOffset, Number.isFinite(ceil.centerZ) ? ceil.centerZ : 0)
     mesh.userData.type = 'ceiling'
     mesh.userData.storeyIndex = ceil.storeyIndex
     group.add(mesh)
@@ -217,6 +222,9 @@ export function useGlbExport() {
 
     try {
       const result = planTo3d(plan, design.floors)
+      if (result.walls.length === 0 && result.slabs.length === 0) {
+        throw new Error('The plan has no walls or slabs to display in 3D. Generate a design first.')
+      }
       const scene = buildScene(result)
 
       const { GLTFExporter } = await import('three/examples/jsm/exporters/GLTFExporter')
