@@ -1054,3 +1054,27 @@ Replaced the ecosystem Supplier seat with a **Bulk Procurement** dispatch hub th
 - `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
 - `npx vitest run`: 4266/4266 tests (207 files) — +22 new tests
 - `npx vite build`: success in ~14s (PWA precache 122 entries, 4863.07 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+
+## BIM hub completeness — 3D / Site Analysis / Drawings / 4D / Construction (Current, Commit: `7f3e7bf`)
+
+### What was done
+Closed the five "NOT FULLY FUNCTIONAL" BIM hub areas reported on the live app: the 3D viewer now fails loudly instead of going blank, the site-analysis tab renders the six real analysis diagrams, brief generation persists its computed site context so the site tab is actually populated, construction phase work-item statuses persist per project, and the 4D sequencing timeline is driven by the real project BOQ budget instead of a hardcoded $100k default.
+
+### Files modified (7) + created (1)
+- `src/hooks/useGlbExport.ts` — hardened `buildScene` against NaN/zero geometry (new `dim(n)` helper coercing non-finite/≤0 dims to 0.01; `Number.isFinite` guards on slab/wall/ceiling center coordinates) so `BoxGeometry` never throws and the 3D view never goes blank; added empty-scene guard in `generate` (plan with no walls/slabs → clear error "The plan has no walls or slabs to display in 3D. Generate a design first." instead of a blank `model-viewer`).
+- `src/components/dashboard/stages/SiteAnalysisStage.tsx` — wired `SixDiagramView` to the real `generateAllSiteDiagrams(site)` engine (was hardcoded `diagrams={[]}`, so the diagrams toggle always showed the empty-state).
+- `src/components/ai/EnhancedBriefPanel.tsx` + `src/lib/site/siteContextReader.ts` — `handleGenerate` now calls `generateSiteContext` + new `persistSiteContext` when a project and lat/lng exist, writing to `site-analysis-{projectId}` so the Site Analysis tab is populated from the brief (previously the computed `SiteContext` was never persisted).
+- `src/components/construction/ConstructionPhaseView.tsx` — status toggles now persist to `construction-phase-{projectId}-{phaseId}` and restore on remount (was component-state only, lost on tab switch); new `projectId` prop.
+- `src/components/dashboard/stages/BimStage.tsx` — passes `projectId` to `ConstructionPhaseView`.
+- `src/pages/Dashboard.tsx` — passes `budgetCents={Math.round(currentBoq.summary.grandTotal * 100)}` into BimStage; `ConstructionSequenceView` was falling back to its hardcoded $100k budget in `useMilestonePlan`.
+- `src/__tests__/bimHubCompleteness.test.tsx` (new, 7 tests) — SiteAnalysisStage empty state + Quick Setup persistence + all six real diagrams render; Brief→site-context localStorage persistence on Generate; ConstructionPhaseView toggle persistence + restore on remount + no writes without projectId; GLB `generate` returns a clear error on an empty plan instead of a blank viewer.
+
+### Notes
+- The diagram SVG embeds its own label text (e.g. `sixDiagrams.ts` writes 'Sun & Wind Path' into the SVG), so the test asserts on the card `<h3>` labels, not `getByText`.
+- TS note: moving the work-item status ternary into a block-scoped `const` widened its type to `string`; fixed with an explicit `WorkItem['status']` annotation (the shorthand-property refactor, not the original inline form, loses the literal union).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run`: 4273/4273 tests (208 files) — +7 new tests
+- `npx vite build`: success in ~22s (PWA precache 122 entries, 4864.19 KiB); chunk warnings unchanged (pre-existing: opencv/GLTFExporter lazy chunks)
