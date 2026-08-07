@@ -1157,3 +1157,31 @@ Eliminated all 16 circular dependencies reported by madge (`npx madge --circular
 - `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
 - `npx vitest run --maxWorkers=4`: 4282/4283 (1 infra flake, passes in isolation); `npx vitest run src/__tests__/ecosystemDashboards.test.tsx`: 17/17
 - `npx vite build`: success in ~9s (PWA precache 125 entries, 4900.91 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+## Free-tier LLM providers (gemini.md §7.1 gap) — Gemini / Groq / GitHub Models / OpenRouter (Current)
+
+### What was done
+Closed the "Free LLM integration" gap from the gemini.md audit (only `local-rules` + an uninstalled WebLLM path existed). Added 4 real free-tier remote providers behind the existing `parseWithEngine` facade, a persisted settings store for engine selection + API keys, and an API-key UI in the AI panel. Keys live only in the browser (localStorage via the persisted store) — no backend, no server-side key storage.
+
+### Files created (4)
+- `src/lib/ai/remote-providers.ts` — `REMOTE_PROVIDERS` registry (Gemini `gemini-2.0-flash`, Groq `llama-3.3-70b-versatile`, GitHub Models `gpt-4o-mini`, OpenRouter `meta-llama/llama-3.3-70b-instruct:free`) with `baseUrl`, `rateLimit`, `signupUrl`, `kind` (gemini vs openai-compatible); `completeChat` (30s abort timeout, bearer-auth for OpenAI-compatible, `?key=` query for Gemini), `parseWithRemoteProvider` (BRIEF_PROMPT → extractJson → coerceBrief).
+- `src/stores/aiSettingsStore.ts` — persisted zustand store (`be-ai-settings`): `engine` + `apiKeys` (per-provider), `setEngine`/`setApiKey`/`clearApiKey`.
+- `src/__tests__/aiRemoteProviders.test.ts` — 11 tests (registry/model/rate-limit/signup, OpenAI-compatible + Gemini request shaping, non-OK error, missing-key throw, store-key routing, explicit-key override, fallback on missing key / network error).
+- `src/__tests__/aiBriefPanel.test.tsx` — 5 tests (provider buttons, local-rules default, API-key block on remote select, key save to store, engine persistence, WebLLM disabled).
+
+### Files modified (3)
+- `src/lib/ai/ai-types.ts` — added `AiRemoteProvider` union + `AiEngine` = `'local-rules' | 'webllm' | AiRemoteProvider`.
+- `src/lib/ai/ai-provider.ts` — routes remote engines through `parseWithRemoteProvider`, reads key from `aiSettingsStore` (or explicit `opts.apiKey`), falls back to `local-rules` with `fellBack`/`fallbackReason` when key missing or request fails; re-exports `REMOTE_PROVIDERS`/`completeChat`/`RemoteProviderConfig`/types (external imports unchanged).
+- `src/components/ai/AiBriefPanel.tsx` — ENGINES list now includes all 4 providers; remote selection shows free-tier rate limit + "Add API key" / "Get a free key →" (signup link) / saved state; status line reflects actual `engineUsed` + fallback reason; engine choice persisted to store.
+
+### Notes
+- Provider endpoints are the documented free tiers (Gemini AI Studio key, Groq console key, GitHub PAT for Models, OpenRouter key). No credit card required on any.
+- `AiEngine` type moved to the `ai-types.ts` leaf (re-exported from ai-provider) so both the store and provider can import it without a cycle.
+- All new UI uses `text-stone-400`/`text-cyan-*` (repo a11y rule, no `text-stone-500`).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4328/4328 tests (212 files) — +16 new tests
+- `npx vite build`: success (~4905.76 KiB precache, 124 entries); chunk warnings unchanged (pre-existing lazy chunks)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found

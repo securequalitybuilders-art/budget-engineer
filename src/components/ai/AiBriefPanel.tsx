@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { AiEngine, ParseResult, parseWithEngine } from '@/lib/ai/ai-provider';
+import { AiEngine, ParseResult, parseWithEngine, REMOTE_PROVIDERS } from '@/lib/ai/ai-provider';
+import { useAiSettingsStore } from '@/stores/aiSettingsStore';
 import { generateDesignOptionsFromBriefText } from '@/adapters/aiDesignAdapter';
 import { composeDesignConstraints } from '@/adapters/designConstraints';
 import { loadSiteContext } from '@/lib/site/siteContextReader';
@@ -31,6 +32,7 @@ const BUILDING_TYPE_OPTIONS: { value: string; label: string }[] = [
 const ENGINES: { id: AiEngine; label: string; disabled?: boolean; hint?: string }[] = [
   { id: 'local-rules', label: 'Rules (instant)' },
   { id: 'webllm', label: 'WebLLM — not installed', disabled: true, hint: 'npm install @mlc-ai/web-llm' },
+  ...REMOTE_PROVIDERS.map((p) => ({ id: p.id as AiEngine, label: p.label, hint: p.rateLimit })),
 ];
 
 interface AiBriefPanelProps {
@@ -43,7 +45,10 @@ interface AiBriefPanelProps {
 
 export function AiBriefPanel({ projectId, onParsed, onDesignOptionsGenerated, onTier3Plans, onBuildingTypeChange }: AiBriefPanelProps) {
   const [briefText, setBriefText] = useState('');
-  const [aiEngine, setAiEngine] = useState<AiEngine>('local-rules');
+  const { engine, apiKeys, setEngine, setApiKey } = useAiSettingsStore();
+  const [aiEngine, setAiEngine] = useState<AiEngine>(engine);
+  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [buildingType, setBuildingType] = useState('auto');
   // useRef avoids stale closure in async handleGenerate (Sprint 39C)
   const buildingTypeRef = useRef(buildingType);
@@ -52,16 +57,38 @@ export function AiBriefPanel({ projectId, onParsed, onDesignOptionsGenerated, on
   const [tier1Parsed, setTier1Parsed] = useState<Tier1ParsedBrief | null>(null);
   const [tier2Concept, setTier2Concept] = useState<DesignConcept | null>(null);
 
+  const isRemote = (e: AiEngine) => REMOTE_PROVIDERS.some((p) => p.id === e);
+  const remoteConfig = REMOTE_PROVIDERS.find((p) => p.id === aiEngine);
+
+  const selectEngine = (e: AiEngine) => {
+    setAiEngine(e);
+    setEngine(e);
+    setShowApiKeyInput(false);
+  };
+
+  const saveApiKey = () => {
+    if (!apiKeyInput.trim() || !remoteConfig) return;
+    setApiKey(remoteConfig.id, apiKeyInput.trim());
+    setApiKeyInput('');
+    setShowApiKeyInput(false);
+  };
+
   const handleGenerate = async () => {
     if (!briefText.trim()) return;
     setAiStatus('Parsing…');
     setTier2Concept(null);
     try {
-      const result = await parseWithEngine(briefText, aiEngine);
+      const apiKey = aiEngine !== 'local-rules' && aiEngine !== 'webllm' ? apiKeys[aiEngine] : undefined;
+      const result = await parseWithEngine(briefText, aiEngine, { apiKey });
       const optionsResult = generateDesignOptionsFromBriefText(briefText, 'zimbabwe', buildingTypeRef.current);
       const count = optionsResult.designOptions.length;
+      const engineLabel = isRemote(result.engineUsed)
+        ? REMOTE_PROVIDERS.find((p) => p.id === result.engineUsed)?.label ?? result.engineUsed
+        : result.engineUsed;
       setAiStatus(
-        `✅ Generated ${count} design option${count > 1 ? 's' : ''} via local rules`
+        result.fellBack
+          ? `⚠ Generated ${count} option${count > 1 ? 's' : ''} — fell back to ${engineLabel}: ${result.fallbackReason}`
+          : `✅ Generated ${count} design option${count > 1 ? 's' : ''} via ${engineLabel}`
       );
       onParsed?.(result);
       onDesignOptionsGenerated?.(optionsResult.designOptions);
@@ -105,7 +132,7 @@ export function AiBriefPanel({ projectId, onParsed, onDesignOptionsGenerated, on
   return (
     <div className="rounded-lg border border-stone-700/60 bg-stone-900/80 p-4">
       <h3 className="font-semibold text-stone-100">Enterprise AI — Brief to Design</h3>
-      <p className="mb-3 text-xs text-stone-400">Local &amp; offline · no paid API</p>
+      <p className="mb-3 text-xs text-stone-400">Local-first · free-tier LLM providers optional</p>
 
       <label htmlFor="building-type" className="mb-1 block text-xs font-medium text-stone-400">Building type</label>
       <select
@@ -120,12 +147,12 @@ export function AiBriefPanel({ projectId, onParsed, onDesignOptionsGenerated, on
       </select>
 
       <label className="mb-1 block text-xs font-medium text-stone-400">AI engine</label>
-      <div className="mb-3 flex gap-2">
+      <div className="mb-3 flex flex-wrap gap-2">
         {ENGINES.map((e) => (
           <button
             key={e.id}
             disabled={e.disabled}
-            onClick={() => setAiEngine(e.id)}
+            onClick={() => selectEngine(e.id)}
             className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
               e.disabled
                 ? 'cursor-not-allowed bg-stone-800/50 text-stone-400 line-through'
@@ -139,6 +166,66 @@ export function AiBriefPanel({ projectId, onParsed, onDesignOptionsGenerated, on
           </button>
         ))}
       </div>
+
+      {remoteConfig && (
+        <div className="mb-3 rounded border border-stone-700/60 bg-stone-800/60 p-3">
+          <p className="mb-1 text-xs font-medium text-stone-300">
+            {remoteConfig.label} — free tier · {remoteConfig.rateLimit}
+          </p>
+          {apiKeys[remoteConfig.id] ? (
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs text-emerald-400">API key saved ✓</p>
+              <button
+                onClick={() => setShowApiKeyInput(true)}
+                className="rounded bg-stone-700 px-2 py-1 text-xs text-stone-300 hover:bg-stone-600"
+              >
+                Replace key
+              </button>
+            </div>
+          ) : showApiKeyInput ? (
+            <div className="flex flex-col gap-2">
+              <input
+                type="password"
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+                placeholder={`Paste your ${remoteConfig.label} API key`}
+                className="w-full rounded border border-stone-700 bg-stone-900 p-2 text-sm text-stone-200 focus:border-cyan-600 focus:outline-none"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={saveApiKey}
+                  className="rounded bg-cyan-700 px-3 py-1 text-xs font-semibold text-white hover:bg-cyan-500"
+                >
+                  Save key
+                </button>
+                <button
+                  onClick={() => setShowApiKeyInput(false)}
+                  className="rounded bg-stone-700 px-3 py-1 text-xs text-stone-300 hover:bg-stone-600"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setShowApiKeyInput(true)}
+                className="rounded bg-cyan-700 px-3 py-1 text-xs font-semibold text-white hover:bg-cyan-500"
+              >
+                Add API key
+              </button>
+              <a
+                href={remoteConfig.signupUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-cyan-400 hover:text-cyan-300"
+              >
+                Get a free key →
+              </a>
+            </div>
+          )}
+        </div>
+      )}
 
       <label className="mb-1 block text-xs font-medium text-stone-400">Design brief (natural language)</label>
       <textarea
@@ -168,7 +255,8 @@ export function AiBriefPanel({ projectId, onParsed, onDesignOptionsGenerated, on
 
       <p className="mt-2 text-xs text-stone-400">
         <span className="text-emerald-400">✅ Local rules active by default</span> — instant, offline, no dependencies.
-        WebLLM requires <code className="text-amber-400">npm install @mlc-ai/web-llm</code>.
+        Opt-in free-tier LLM providers (Gemini, Groq, GitHub Models, OpenRouter) parse richer briefs —
+        keys stay in your browser.
         Select a building type above or let the parser detect it from your text. The
         parametric engine then builds the 2D plan → BIM → BOQ for that type.
       </p>
