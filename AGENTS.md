@@ -1533,3 +1533,32 @@ Audited the 7-stage workflow + 6 Project Tools against the brief/gemini.md and f
 - `npx vitest run --maxWorkers=4`: 4437/4437 tests (219 files) — no new test files, existing suites unchanged
 - `npx vite build`: success (PWA precache 134 entries, 4952.03 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+
+## Workflow gap-fill regression tests (18 tests, Commit: `385d13f` follow-up)
+
+### What was done
+Locked in the 5 workflow/project-tools gaps from commit `385d13f` with a dedicated regression suite. Also extracted the pipeline's site-dimension derivation into a pure, testable helper so the site-aware behavior is unit-covered instead of living inline in `Dashboard.tsx`.
+
+### Files created (1)
+- `src/__tests__/workflowGapFill.test.tsx` — 18 tests across all 5 gaps:
+  - **deriveSiteDimensions (4)**: null → 15×20 fallback, empty `plotBoundary` fallback, max-extent derivation from a 4-corner plot (18×26), degenerate zero-only boundary falls back (helper now guards `!isFinite || <= 0` per axis).
+  - **DrawingsPanel rear/left tabs (3)**: all 4 elevation tabs render (Front/Rear/Left/Side); clicking Rear renders `REAR ELEVATION` content; clicking Left renders `LEFT ELEVATION`.
+  - **DesignStage views (4)**: plan view default (PlanCanvas testid); Elevations view shows the 4-face selector + ElevationView; face switch updates the elevation title; Site Analysis view mounts SiteAnalysisStage.
+  - **BudgetEngineeredStage honesty (3)**: empty state says "Presentation sheet and export reports." and no longer claims "Complete documentation set"; region renders in empty state; buildingType + region render in the filled header (`house · Bulawayo`) with the PresentationSheetView.
+  - **DesignOptionsPanel (4)**: empty state Generate button; option cards render previews and select; Regenerate + Refine in Concept callbacks; PlanComparison table renders.
+
+### Files modified (2)
+- `src/lib/site/siteContextReader.ts` — added `deriveSiteDimensions(site: SiteContext | null): SiteDimensions` (pure helper: `plotBoundary` max x/max y with 15×20 fallback + per-axis `!isFinite || <= 0` guard). This is the single source for pipeline site dims.
+- `src/pages/Dashboard.tsx` — `handlePipelineGenerate` now calls `deriveSiteDimensions(siteContext)` instead of inline `Math.max(...)` logic; import updated.
+
+### Notes
+- Test file reuses the `dxfExportUi.test.tsx` mocking pattern (mock all heavy drawing views + ElevationView that renders its `title` prop so tab switches are assertable). `generatePlanModel` mocked to a minimal plan so `MiniFloorPlanPreview`/`PlanComparison` stay light.
+- `DesignOption`/`PlanModel` fixtures cast through `as unknown as T` where only a subset of fields is needed (same convention as `dxfExportUi.test.tsx`).
+- `budget-engineer-canonical` submodule intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4455/4455 tests (220 files) — +18 new tests
+- `npx vite build`: success (PWA precache 134 entries, 4952.19 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found

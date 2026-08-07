@@ -29,7 +29,7 @@ const LazyImportWorkflow = lazy(() => import('@/components/import/ImportWorkflow
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
 import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
-import { loadSiteContext } from '@/lib/site/siteContextReader';
+import { loadSiteContext, deriveSiteDimensions } from '@/lib/site/siteContextReader';
 import { composeDesignConstraints } from '@/adapters/designConstraints';
 import { ProjectHealthSummaryCard } from '@/components/lifecycle/ProjectHealthSummaryCard';
 import { useAssuranceStore } from '@/stores/assuranceStore';
@@ -398,9 +398,7 @@ export function Dashboard() {
       const text = brief?.rawText || ''
       setPipelineStatus('Running generative design pipeline...');
       const siteContext = loadSiteContext(id)
-      const plot = siteContext?.plotBoundary ?? []
-      const siteWidthM = plot.length > 0 ? Math.max(...plot.map((p) => p.x)) : 15
-      const siteDepthM = plot.length > 0 ? Math.max(...plot.map((p) => p.y)) : 20
+      const { siteWidthM, siteDepthM } = deriveSiteDimensions(siteContext)
       setPipelineStatus('Running generative design pipeline (site-aware)...');
       const { runPipeline: execPipeline } = await import('@/engine/pipeline/generativeDesignPipeline')
       const result = await execPipeline({
