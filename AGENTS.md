@@ -1078,3 +1078,43 @@ Closed the five "NOT FULLY FUNCTIONAL" BIM hub areas reported on the live app: t
 - `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
 - `npx vitest run`: 4273/4273 tests (208 files) — +7 new tests
 - `npx vite build`: success in ~22s (PWA precache 122 entries, 4864.19 KiB); chunk warnings unchanged (pre-existing: opencv/GLTFExporter lazy chunks)
+
+## Phase-5 Closeout suite + SI 56 ACZ bid gate (Current, Commit: `02e7412`)
+
+### What was done
+Added the full closeout workflow (Schedule of Values, Financial Closeout, Gain/Fade, Historical Cost/ROM, Lessons Learned) as a new studio + panel, and wired an SI 56/2025 architect-registry gate into the Contractor seat's P4P widget that blocks awarding payments to unregistered structural designers.
+
+### Engines created (6)
+- `src/domain/closeout.ts` - `SoVCategory`, `ScheduleOfValues`, `SoVLine`, `FinalAccount`, `LienWaiver`, `GainFadeResult`, `HistoricalCostRecord`, `LessonsLearnedRecord`, `LessonCategory` types
+- `src/engine/closeout/scheduleOfValues.ts` - `scheduleOfValuesFromMilestones` (adds a GFA line when milestone values + retention != contract), `scheduleOfValuesFromBoq` (classifies BOQ sections via title keywords into SoV categories), `sovTotals`, `sovReleasedCents`
+- `src/engine/closeout/financialCloseout.ts` - `prepareFinalAccount` (gross = contract + approved variations, retention releasable/withheld per release pct, balance due, status `fully-paid|retention-owing|balance-due`), `createLienWaiver`, `acknowledgeLienWaiver`
+- `src/engine/closeout/gainFade.ts` - `analyzeGainFade` (verdict gain/fade/on-target per line + lineTotal, project total), `analyzeGainFadeTrend`
+- `src/engine/closeout/historicalCost.ts` - `recordHistoricalCost`, `romCostPerM2`, `estimateRomCost`, `applyRomToBudget`, `summarizeHistorical`
+- `src/engine/closeout/lessonsLearned.ts` - `logCostRecord`, `logLesson`, `applyLessonToSov`, `summarizeLessons`
+- `src/engine/compliance/architectRegistry.ts` - SI_56_2025, `ARCHITECT_REGISTRY` (4 registered ACZ architects: G. Maseko, T. Ncube, R. Makoni, S. Ndlovu), `lookupArchitect`, `validatePlanAgainstRegistry`, `gateP4pBid` (verified/architect-not-registered/invalid-reg-number/unverified-plan), `planValidationStatus`
+
+### Files created (5)
+- `src/components/closeout/CloseoutPanel.tsx` - 5-tab panel: SOV (build from milestones/BOQ, editable contract value, totals + released bar), Financial (compute final account, lien waiver issue + acknowledge with note), Gain/Fade (per-line verdict grid + Save analysis), Historical (cost/ROM calculator), Lessons (log lessons + apply to SOV)
+- `src/pages/studio/CloseoutStudio.tsx` - studio wrapper gating on `isLoading`, renders panel
+- `src/stores/closeoutStore.ts` - zustand + immer + persist: 7 collections + `loadForProject` + 6 set actions, all writing to Dexie v9
+- `src/domain/architect.ts` - `ArchitectRegistryEntry`, `PlanValidationStatus` types
+- Tests: `src/__tests__/closeoutEngines.test.ts` (30 engine/registry tests), `src/__tests__/closeoutPanel.test.tsx` (9 panel tests)
+
+### Files modified (5)
+- `src/db/db.ts` - Dexie v9: `sovs`, `finalAccounts` (keyed `projectId`), `lienWaivers`, `gainFades`, `historicalCosts`, `lessons`, `planValidations` (keyed `planId`)
+- `src/app/router.tsx` - lazy route `/project/:id/studio/closeout`
+- `src/lib/lifecycle/studioLinks.tsx` - `Wallet` icon added; Closeout link in HandoverPanel cross-links
+- `src/components/handover/HandoverPanel.tsx` - closeout cross-link
+- `src/components/ecosystem/contractor/P4pWidget.tsx` - SI 56/2025 banner: `gateP4pBid` verdict + amber warning when structural design architect is unregistered (test gotcha: `findByText(/SI 56\/2025/)` matches twice, needs `getAllByText`)
+
+### Notes
+- BOQ has NO `title`/`version` fields - it has `generatedAt: string` and `estimateDepth?: 'shell' | 'shell-with-allowances' | 'detailed'` (caused a TS2322 fix).
+- Milestone `category` aligns 1:1 with `SoVCategory`, so `scheduleOfValuesFromMilestones` casts it directly.
+- `CloseoutPanel` sync effect (setFinInput/setActualByCode in useEffect) was flagged by `react-hooks/set-state-in-effect` - replaced with the render-phase prev-id tracker pattern + initial-state init; the `useMemo` on `analyzeGainFade` was removed for `preserve-manual-memoization` (mutable `sov` dep).
+- Test fixes: waiver test now awaits the actual row text (`final lien waiver ·`) since `/final lien waiver/` also matches the issue button; gain/fade test wraps the post-save store assertion in `waitFor` (fireEvent doesn't await async handlers).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run`: 4312/4312 tests (210 files) - +39 new tests
+- `npx vite build`: success in ~24s (PWA precache 124 entries, 4900.80 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport); CloseoutStudio lazy chunk 31 kB
