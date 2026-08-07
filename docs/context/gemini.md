@@ -42,9 +42,9 @@ bills of quantities — all without paid APIs, backend servers, or cloud depende
 ### Build Constraints
 
 - `NODE_OPTIONS=--max-old-space-size=4096` required for Vercel build
-- 700+ source files, ~124,000 lines
-- 38+ IndexedDB tables, 6 schema versions
-- 19 routes with lazy loading, 22 Zustand stores
+- 987 source files, ~150,000 lines
+- 50 IndexedDB tables, 9 schema versions
+- 26 lazy-loaded routes, 26 Zustand stores
 - Smoke test: `/dashboard` doesn't exist — use `/portfolio`
 - `metresToMm()` formats with space separator ("10 000" not "10000")
 - `FILL_CUT_WALL` is #000000 (solid black)
