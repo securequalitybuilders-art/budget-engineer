@@ -91,14 +91,21 @@ describe('councilPackageAssembler', () => {
       expect(pkg.complianceCertificate).toBeNull()
     })
 
-    it('generates 18+ sheets across multiple disciplines', () => {
+    it('assembles the exact 18-sheet SADC council package', () => {
       const pkg = assembleCouncilPackage(makePlanModel(), makeDesignOption(), makeEnhancedBrief(), makeCandidate(), null)
-      expect(pkg.sheets.length).toBeGreaterThanOrEqual(18)
+      expect(pkg.sheets.length).toBe(18)
+      const numbers = pkg.sheets.map((s) => s.sheetNumber)
+      expect(numbers).toEqual([
+        'A-001', 'A-101', 'A-102', 'A-103', 'A-104', 'A-105',
+        'A-201', 'A-202', 'A-203', 'A-204',
+        'A-301', 'A-302',
+        'A-401', 'A-402',
+        'A-501', 'A-502',
+        'A-601', 'A-701',
+      ])
       const disciplines = new Set(pkg.sheets.map((s) => s.discipline))
       expect(disciplines.has('A')).toBe(true)
-      expect(disciplines.has('S')).toBe(true)
-      expect(disciplines.has('E')).toBe(true)
-      expect(disciplines.has('P')).toBe(true)
+      expect(disciplines.size).toBe(1)
     })
 
     it('each sheet has required fields', () => {
@@ -171,6 +178,66 @@ describe('councilPackageAssembler', () => {
       const pkg = assembleCouncilPackage(makePlanModel(), makeDesignOption(), brief, makeCandidate(), null)
       expect(pkg.projectName).toContain('House')
       expect(pkg.projectName).toContain('15m')
+    })
+
+    it('register sheet A-001 lists all 18 sheets', () => {
+      const pkg = assembleCouncilPackage(makePlanModel(), makeDesignOption(), makeEnhancedBrief(), makeCandidate(), null)
+      const register = pkg.sheets.find((s) => s.sheetNumber === 'A-001')!
+      const table = register.generateContent().tableData ?? []
+      expect(table.length).toBe(18)
+      expect(table[0].sheetNumber).toBe('A-001')
+      expect(table[17].sheetNumber).toBe('A-701')
+    })
+
+    it('all four elevation sheets produce SVG content', () => {
+      const pkg = assembleCouncilPackage(makePlanModel(), makeDesignOption(), makeEnhancedBrief(), makeCandidate(), null)
+      const elevations = pkg.sheets.filter((s) => s.sheetNumber.startsWith('A-2'))
+      expect(elevations.length).toBe(4)
+      for (const e of elevations) {
+        const content = e.generateContent()
+        expect(content.svgContent).toBeTruthy()
+        expect(content.svgContent!).toContain('<svg')
+      }
+    })
+
+    it('section sheets produce SVG content', () => {
+      const pkg = assembleCouncilPackage(makePlanModel(), makeDesignOption(), makeEnhancedBrief(), makeCandidate(), null)
+      const sections = pkg.sheets.filter((s) => s.sheetNumber.startsWith('A-3'))
+      for (const s of sections) {
+        expect(s.generateContent().svgContent).toContain('<svg')
+      }
+    })
+
+    it('A-601 construction details sheet renders detail cards', () => {
+      const pkg = assembleCouncilPackage(makePlanModel(), makeDesignOption(), makeEnhancedBrief(), makeCandidate(), null)
+      const sheet = pkg.sheets.find((s) => s.sheetNumber === 'A-601')!
+      const svg = sheet.generateContent().svgContent ?? ''
+      expect(svg).toContain('Construction Details')
+      expect(svg).toContain('<svg')
+    })
+
+    it('A-701 compliance certificate renders score when report provided', () => {
+      const complianceReport = {
+        jurisdiction: 'south-africa',
+        score: 85,
+        passedRules: 17,
+        totalRules: 20,
+        warnings: ['Minor setback issue'],
+        results: [],
+      }
+      const pkg = assembleCouncilPackage(makePlanModel(), makeDesignOption(), makeEnhancedBrief(), makeCandidate(), complianceReport)
+      const sheet = pkg.sheets.find((s) => s.sheetNumber === 'A-701')!
+      const svg = sheet.generateContent().svgContent ?? ''
+      expect(svg).toContain('COMPLIANCE CERTIFICATE')
+      expect(svg).toContain('85%')
+      expect(svg).toContain('17 of 20')
+    })
+
+    it('A-701 renders placeholder when no compliance report', () => {
+      const pkg = assembleCouncilPackage(makePlanModel(), makeDesignOption(), makeEnhancedBrief(), makeCandidate(), null)
+      const sheet = pkg.sheets.find((s) => s.sheetNumber === 'A-701')!
+      const svg = sheet.generateContent().svgContent ?? ''
+      expect(svg).toContain('No compliance report available')
     })
   })
 

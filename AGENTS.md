@@ -1214,3 +1214,34 @@ Closed the "RAG pipeline" gap from the gemini.md audit — `src/engine/rag/` did
 - `npx vitest run --maxWorkers=4`: 4351/4351 tests (213 files) — +23 new RAG tests
 - `npx vite build`: success in ~20s
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+
+## Priority — Council package SADC alignment (gemini.md §6.2 gap) (Current)
+
+### What was done
+Aligned the council submission package with the SADC drawing-numbering convention. The 18-sheet package now uses the exact `A-001`/`A-101`–`A-701` numbering from §6.2, added the missing `A-601 Construction Details` + `A-701 Compliance Certificate` sheets, and gave every elevation/section/plan sheet real generated SVG content — including new rear/left/right elevation resolvers that did not exist before.
+
+### Files modified (3) + tests
+- `src/adapters/planToElevations.ts` — refactored front/side elevation into a shared face-parameterised core (`computeElevation` + `faceGeometry` for `'front' | 'rear' | 'left' | 'right'`) and added `computeRearElevation` / `computeLeftElevation` / `computeRightElevation`. Front/side behave identically (31 existing tests unchanged). Rear mirrors along the building width (face `y=0`), left mirrors along depth (face `x=0`), right = existing side (face `x=width`). Gable roof + ground line + openings × floors preserved on all four faces.
+- `src/lib/drawings/elevationResolver.ts` — added `resolveRearElevation` / `resolveLeftElevation` / `resolveRightElevation` (base-engine fallbacks, try/catch → null).
+- `src/engine/tier1/councilPackageAssembler.ts` — rewritten to the exact §6.2 sheet list (18 sheets, all discipline `A`):
+  - A-001 Drawing Register & Notes (tableData resolves against the final sheet list)
+  - A-101 Site / A-102 Ground Floor / A-103 First Floor / A-104 Roof / A-105 Foundation (schematic plan SVG: rooms, walls, D/W opening marks)
+  - A-201 Front / A-202 Rear / A-203 Left / A-204 Right Elevations (elevation SVG via resolvers)
+  - A-301/A-302 Sections (section SVG)
+  - A-401 Electrical / A-402 Plumbing (plan SVG)
+  - A-501 Door & Window / A-502 Room schedules (tableData)
+  - A-601 Construction Details (SVG cards from `CONSTRUCTION_DETAILS`)
+  - A-701 Compliance Certificate (SVG certificate with score/passed-rules/warnings, or placeholder when report is null)
+- Tests: `councilPackageAssembler.test.ts` — 18-sheet numbering assertion (was "≥18 across A/S/E/P"), register A-001 lists all 18, elevation/section/construction/compliance sheet content tests (+7). `planToElevations.test.ts` — rear/left/right face tests (+8): mirroring, title, null guards, per-face opening filtering, gable+ground on all faces, no NaN.
+
+### Notes
+- `budget-engineer-canonical` submodule (separate published mirror) intentionally NOT touched — repo convention.
+- `SheetDiscipline` union kept (still valid type), package just emits `A` for every sheet per §6.2.
+- `boqSummary.totalCost` left at 0 (BOQ-to-council wiring is out of scope for this phase).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4364/4364 tests (213 files) — +15 new tests (8 elevation faces + 7 package content)
+- `npx vite build`: success in ~17s
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found

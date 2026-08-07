@@ -66,127 +66,62 @@ function wallLen2D(sx: number, sy: number, ex: number, ey: number): number {
   return Math.hypot(ex - sx, ey - sy)
 }
 
-export function computeFrontElevation(
-  plan: PlanModel,
-  floors: number,
-  storeyHeight: number = DEFAULT_STOREY_HEIGHT,
-  pitchHeight: number = ROOF_PITCH_HEIGHT,
-  levelLabels?: string[],
-): ElevationDrawing | null {
-  if (!plan || plan.width <= 0 || plan.height <= 0 || floors < 1) return null
+export type ElevationFace = 'front' | 'rear' | 'left' | 'right'
 
-  const bw = plan.width
-  const wallH = floors * storeyHeight
-  const totalH = wallH + pitchHeight
-  const svgW = bw + PADDING * 2
-  const svgH = totalH + PADDING * 2
-
-  const groundY = svgH - PADDING
-  const eaveY = groundY - wallH
-  const ridgeY = eaveY - pitchHeight
-  const ridgeCx = PADDING + bw / 2
-
-  const lines: ElevationLine[] = []
-  const rects: ElevationRect[] = []
-  const polygons: ElevationPolygon[] = []
-  const texts: ElevationText[] = []
-
-  // Ground line
-  lines.push({ x1: 0, y1: groundY, x2: svgW, y2: groundY, stroke: GROUND_STROKE, strokeWidth: GROUND_WIDTH })
-
-  // Building walls outline
-  lines.push({ x1: PADDING, y1: eaveY, x2: PADDING + bw, y2: eaveY, stroke: WALL_STROKE, strokeWidth: WALL_WIDTH })
-  lines.push({ x1: PADDING, y1: groundY, x2: PADDING, y2: eaveY, stroke: WALL_STROKE, strokeWidth: WALL_WIDTH })
-  lines.push({ x1: PADDING + bw, y1: groundY, x2: PADDING + bw, y2: eaveY, stroke: WALL_STROKE, strokeWidth: WALL_WIDTH })
-
-  // Gable roof triangle (front face: ridge along X → full triangle visible)
-  const roofOverhang = ROOF_OVERHANG
-  polygons.push({
-    points: [
-      { x: PADDING - roofOverhang, y: eaveY },
-      { x: ridgeCx, y: ridgeY },
-      { x: PADDING + bw + roofOverhang, y: eaveY },
-    ],
-    fill: ROOF_FILL,
-    stroke: ROOF_STROKE,
-    strokeWidth: WALL_WIDTH,
-  })
-
-  // Front-facing walls (y = plan.height)
-  const frontWalls = plan.walls.filter(w =>
-    Math.abs(w.start.y - plan.height) < 0.05 && Math.abs(w.end.y - plan.height) < 0.05,
-  )
-
-  for (const op of plan.openings) {
-    const wall = frontWalls.find(w => w.id === op.wallId)
-    if (!wall) continue
-    const wl = wallLen2D(wall.start.x, wall.start.y, wall.end.x, wall.end.y)
-    if (wl < 0.01) continue
-    const centreX = wall.start.x + (wall.end.x - wall.start.x) * Math.max(0, Math.min(1, op.offset))
-    const halfW = op.width / 2
-    const x1 = PADDING + centreX - halfW
-    const x2 = PADDING + centreX + halfW
-    const opH = opHeight(op)
-    const opS = opSill(op)
-
-    for (let si = 0; si < floors; si++) {
-      const floorBaseY = groundY - si * storeyHeight
-      const topY = floorBaseY - opS - opH
-      const botY = floorBaseY - opS
-      rects.push({
-        x: x1, y: topY, w: x2 - x1, h: botY - topY,
-        fill: op.kind === 'door' ? OPENING_FILL_DOOR : OPENING_FILL_WINDOW,
-        stroke: op.kind === 'door' ? OPENING_STROKE_DOOR : OPENING_STROKE_WINDOW,
-        strokeWidth: 0.08,
-      })
-    }
-  }
-
-  // Level labels on the right side
-  for (let si = 0; si < floors; si++) {
-    const midY = groundY - si * storeyHeight - storeyHeight / 2
-    const label = levelLabels?.[si] ?? `Fl ${si + 1}`
-    texts.push({
-      x: PADDING + bw + 0.3, y: midY + 0.15,
-      text: label,
-      fontSize: 0.3, fill: DIM_COLOR, anchor: 'start',
-    })
-  }
-
-  // Dimension: building width
-  texts.push({
-    x: PADDING + bw / 2, y: groundY + 0.6,
-    text: `${bw.toFixed(1)} m`,
-    fontSize: 0.4, fill: DIM_COLOR, anchor: 'middle',
-  })
-
-  // Dimension: wall height (left side)
-  texts.push({
-    x: PADDING - 0.7, y: (groundY + eaveY) / 2 + 0.15,
-    text: `${wallH.toFixed(1)} m`,
-    fontSize: 0.4, fill: DIM_COLOR, anchor: 'end',
-  })
-
-  // Dimension: ridge height
-  texts.push({
-    x: ridgeCx, y: ridgeY - 0.4,
-    text: `RL ${(wallH + pitchHeight).toFixed(2)}`,
-    fontSize: 0.35, fill: DIM_COLOR, anchor: 'middle',
-  })
-
-  return { lines, rects, polygons, texts, viewBox: `0 0 ${svgW.toFixed(2)} ${svgH.toFixed(2)}`, title: 'FRONT ELEVATION' }
+interface FaceGeometry {
+  bd: number
+  wallMatch: (w: PlanModel['walls'][number]) => boolean
+  openingCentre: (w: PlanModel['walls'][number], op: Opening) => number
+  title: string
 }
 
-export function computeSideElevation(
+function faceGeometry(face: ElevationFace, plan: PlanModel): FaceGeometry {
+  const eps = 0.05
+  const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
+  switch (face) {
+    case 'front':
+      return {
+        bd: plan.width,
+        wallMatch: (w) => Math.abs(w.start.y - plan.height) < eps && Math.abs(w.end.y - plan.height) < eps,
+        openingCentre: (w, op) => w.start.x + (w.end.x - w.start.x) * clamp01(op.offset),
+        title: 'FRONT ELEVATION',
+      }
+    case 'rear':
+      return {
+        bd: plan.width,
+        wallMatch: (w) => Math.abs(w.start.y) < eps && Math.abs(w.end.y) < eps,
+        openingCentre: (w, op) => plan.width - (w.start.x + (w.end.x - w.start.x) * clamp01(op.offset)),
+        title: 'REAR ELEVATION',
+      }
+    case 'left':
+      return {
+        bd: plan.height,
+        wallMatch: (w) => Math.abs(w.start.x) < eps && Math.abs(w.end.x) < eps,
+        openingCentre: (w, op) => plan.height - (w.start.y + (w.end.y - w.start.y) * clamp01(op.offset)),
+        title: 'LEFT ELEVATION',
+      }
+    case 'right':
+      return {
+        bd: plan.height,
+        wallMatch: (w) => Math.abs(w.start.x - plan.width) < eps && Math.abs(w.end.x - plan.width) < eps,
+        openingCentre: (w, op) => w.start.y + (w.end.y - w.start.y) * clamp01(op.offset),
+        title: 'SIDE ELEVATION',
+      }
+  }
+}
+
+function computeElevation(
   plan: PlanModel,
   floors: number,
-  storeyHeight: number = DEFAULT_STOREY_HEIGHT,
-  pitchHeight: number = ROOF_PITCH_HEIGHT,
-  levelLabels?: string[],
+  storeyHeight: number,
+  pitchHeight: number,
+  levelLabels: string[] | undefined,
+  face: ElevationFace,
 ): ElevationDrawing | null {
   if (!plan || plan.width <= 0 || plan.height <= 0 || floors < 1) return null
 
-  const bd = plan.height
+  const geo = faceGeometry(face, plan)
+  const bd = geo.bd
   const wallH = floors * storeyHeight
   const totalH = wallH + pitchHeight
   const svgW = bd + PADDING * 2
@@ -205,38 +140,35 @@ export function computeSideElevation(
   // Ground line
   lines.push({ x1: 0, y1: groundY, x2: svgW, y2: groundY, stroke: GROUND_STROKE, strokeWidth: GROUND_WIDTH })
 
-  // Building outline
+  // Building walls outline
   lines.push({ x1: PADDING, y1: eaveY, x2: PADDING + bd, y2: eaveY, stroke: WALL_STROKE, strokeWidth: WALL_WIDTH })
   lines.push({ x1: PADDING, y1: groundY, x2: PADDING, y2: eaveY, stroke: WALL_STROKE, strokeWidth: WALL_WIDTH })
   lines.push({ x1: PADDING + bd, y1: groundY, x2: PADDING + bd, y2: eaveY, stroke: WALL_STROKE, strokeWidth: WALL_WIDTH })
 
-  // Side roof profile: ridge along X → side view shows triangle centred on depth
+  // Gable roof triangle (gable faces see the full triangle; side faces see the half-span profile)
+  const roofOverhang = ROOF_OVERHANG
   polygons.push({
     points: [
-      { x: PADDING, y: eaveY },
+      { x: PADDING - roofOverhang, y: eaveY },
       { x: ridgeCx, y: ridgeY },
-      { x: PADDING + bd, y: eaveY },
+      { x: PADDING + bd + roofOverhang, y: eaveY },
     ],
     fill: ROOF_FILL,
     stroke: ROOF_STROKE,
     strokeWidth: WALL_WIDTH,
   })
 
-  // Side-facing walls (x = plan.width)
-  const sideWalls = plan.walls.filter(w =>
-    Math.abs(w.start.x - plan.width) < 0.05 && Math.abs(w.end.x - plan.width) < 0.05,
-  )
+  const faceWalls = plan.walls.filter(geo.wallMatch)
 
   for (const op of plan.openings) {
-    const wall = sideWalls.find(w => w.id === op.wallId)
+    const wall = faceWalls.find(w => w.id === op.wallId)
     if (!wall) continue
     const wl = wallLen2D(wall.start.x, wall.start.y, wall.end.x, wall.end.y)
     if (wl < 0.01) continue
-    // On side walls, the opening offset runs along Y
-    const centreY = wall.start.y + (wall.end.y - wall.start.y) * Math.max(0, Math.min(1, op.offset))
+    const centreX = geo.openingCentre(wall, op)
     const halfW = op.width / 2
-    const x1 = PADDING + centreY - halfW
-    const x2 = PADDING + centreY + halfW
+    const x1 = PADDING + centreX - halfW
+    const x2 = PADDING + centreX + halfW
     const opH = opHeight(op)
     const opS = opSill(op)
 
@@ -264,24 +196,78 @@ export function computeSideElevation(
     })
   }
 
-  // Dimension notes
+  // Dimension: building face width
   texts.push({
     x: PADDING + bd / 2, y: groundY + 0.6,
     text: `${bd.toFixed(1)} m`,
     fontSize: 0.4, fill: DIM_COLOR, anchor: 'middle',
   })
+
+  // Dimension: wall height (left side)
   texts.push({
     x: PADDING - 0.7, y: (groundY + eaveY) / 2 + 0.15,
     text: `${wallH.toFixed(1)} m`,
     fontSize: 0.4, fill: DIM_COLOR, anchor: 'end',
   })
+
+  // Dimension: ridge height
   texts.push({
     x: ridgeCx, y: ridgeY - 0.4,
     text: `RL ${(wallH + pitchHeight).toFixed(2)}`,
     fontSize: 0.35, fill: DIM_COLOR, anchor: 'middle',
   })
 
-  return { lines, rects, polygons, texts, viewBox: `0 0 ${svgW.toFixed(2)} ${svgH.toFixed(2)}`, title: 'SIDE ELEVATION' }
+  return { lines, rects, polygons, texts, viewBox: `0 0 ${svgW.toFixed(2)} ${svgH.toFixed(2)}`, title: geo.title }
+}
+
+export function computeFrontElevation(
+  plan: PlanModel,
+  floors: number,
+  storeyHeight: number = DEFAULT_STOREY_HEIGHT,
+  pitchHeight: number = ROOF_PITCH_HEIGHT,
+  levelLabels?: string[],
+): ElevationDrawing | null {
+  return computeElevation(plan, floors, storeyHeight, pitchHeight, levelLabels, 'front')
+}
+
+export function computeSideElevation(
+  plan: PlanModel,
+  floors: number,
+  storeyHeight: number = DEFAULT_STOREY_HEIGHT,
+  pitchHeight: number = ROOF_PITCH_HEIGHT,
+  levelLabels?: string[],
+): ElevationDrawing | null {
+  return computeElevation(plan, floors, storeyHeight, pitchHeight, levelLabels, 'right')
+}
+
+export function computeRearElevation(
+  plan: PlanModel,
+  floors: number,
+  storeyHeight: number = DEFAULT_STOREY_HEIGHT,
+  pitchHeight: number = ROOF_PITCH_HEIGHT,
+  levelLabels?: string[],
+): ElevationDrawing | null {
+  return computeElevation(plan, floors, storeyHeight, pitchHeight, levelLabels, 'rear')
+}
+
+export function computeLeftElevation(
+  plan: PlanModel,
+  floors: number,
+  storeyHeight: number = DEFAULT_STOREY_HEIGHT,
+  pitchHeight: number = ROOF_PITCH_HEIGHT,
+  levelLabels?: string[],
+): ElevationDrawing | null {
+  return computeElevation(plan, floors, storeyHeight, pitchHeight, levelLabels, 'left')
+}
+
+export function computeRightElevation(
+  plan: PlanModel,
+  floors: number,
+  storeyHeight: number = DEFAULT_STOREY_HEIGHT,
+  pitchHeight: number = ROOF_PITCH_HEIGHT,
+  levelLabels?: string[],
+): ElevationDrawing | null {
+  return computeElevation(plan, floors, storeyHeight, pitchHeight, levelLabels, 'right')
 }
 
 export function computeSection(

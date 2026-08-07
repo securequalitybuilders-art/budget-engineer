@@ -7,6 +7,9 @@ import {
   computeFrontElevation,
   computeSideElevation,
   computeSection,
+  computeRearElevation,
+  computeLeftElevation,
+  computeRightElevation,
 } from '@/adapters/planToElevations'
 import type { ElevationDrawing } from '@/adapters/planToElevations'
 
@@ -35,6 +38,45 @@ export function resolveSideElevation(
   try {
     return computeEnhancedSideElevation(plan, floors, storeyHeight, pitchHeight, undefined, buildingType)
       ?? computeSideElevation(plan, floors, storeyHeight, pitchHeight)
+  } catch {
+    return null
+  }
+}
+
+export function resolveRearElevation(
+  plan: Parameters<typeof computeFrontElevation>[0],
+  floors: number,
+  storeyHeight: number,
+  pitchHeight: number,
+): ElevationDrawing | null {
+  try {
+    return computeRearElevation(plan, floors, storeyHeight, pitchHeight)
+  } catch {
+    return null
+  }
+}
+
+export function resolveLeftElevation(
+  plan: Parameters<typeof computeFrontElevation>[0],
+  floors: number,
+  storeyHeight: number,
+  pitchHeight: number,
+): ElevationDrawing | null {
+  try {
+    return computeLeftElevation(plan, floors, storeyHeight, pitchHeight)
+  } catch {
+    return null
+  }
+}
+
+export function resolveRightElevation(
+  plan: Parameters<typeof computeFrontElevation>[0],
+  floors: number,
+  storeyHeight: number,
+  pitchHeight: number,
+): ElevationDrawing | null {
+  try {
+    return computeRightElevation(plan, floors, storeyHeight, pitchHeight)
   } catch {
     return null
   }

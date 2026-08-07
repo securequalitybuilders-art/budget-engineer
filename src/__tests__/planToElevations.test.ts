@@ -4,6 +4,9 @@ import {
   computeFrontElevation,
   computeSideElevation,
   computeSection,
+  computeRearElevation,
+  computeLeftElevation,
+  computeRightElevation,
   emptyDrawing,
 } from '@/adapters/planToElevations'
 
@@ -271,6 +274,73 @@ describe('opening positioning — side elevation', () => {
     const result = computeSideElevation(plan, 2)
     // w-right has 1 opening → 1 rect per floor × 2 floors = 2
     expect(result!.rects.length).toBe(2)
+  })
+})
+
+describe('face elevations — rear / left / right', () => {
+  it('rear elevation returns null for empty plan and mirrors front-width viewBox', () => {
+    expect(computeRearElevation(null as unknown as PlanModel, 1)).toBeNull()
+    const result = computeRearElevation(makePlan(), 1)
+    expect(result).not.toBeNull()
+    const [,, w] = result!.viewBox.split(' ').map(Number)
+    expect(w).toBeCloseTo(makePlan().width + 4, 0)
+    expect(result!.title).toBe('REAR ELEVATION')
+  })
+
+  it('left elevation returns null for empty plan and mirrors side-width viewBox', () => {
+    expect(computeLeftElevation(null as unknown as PlanModel, 1)).toBeNull()
+    const result = computeLeftElevation(makePlan(), 1)
+    expect(result).not.toBeNull()
+    const [,, w] = result!.viewBox.split(' ').map(Number)
+    expect(w).toBeCloseTo(makePlan().height + 4, 0)
+    expect(result!.title).toBe('LEFT ELEVATION')
+  })
+
+  it('right elevation matches side elevation geometry', () => {
+    expect(computeRightElevation(null as unknown as PlanModel, 1)).toBeNull()
+    const side = computeSideElevation(makePlan(), 2)!
+    const right = computeRightElevation(makePlan(), 2)!
+    expect(right.viewBox).toBe(side.viewBox)
+    expect(right.rects.length).toBe(side.rects.length)
+    expect(right.title).toBe('SIDE ELEVATION')
+  })
+
+  it('rear elevation shows openings on the y=0 wall only', () => {
+    const plan = makePlan()
+    // No openings on w-top (y=0), so rear has 0 opening rects
+    const result = computeRearElevation(plan, 2)
+    expect(result!.rects.length).toBe(0)
+  })
+
+  it('left elevation shows openings on the x=0 wall only', () => {
+    const plan = makePlan()
+    // No openings on w-left (x=0), so left has 0 opening rects
+    const result = computeLeftElevation(plan, 2)
+    expect(result!.rects.length).toBe(0)
+  })
+
+  it('all four faces contain a gable roof polygon and ground line', () => {
+    for (const fn of [computeFrontElevation, computeRearElevation, computeLeftElevation, computeRightElevation]) {
+      const result = fn(makePlan(), 1)
+      expect(result!.polygons.length).toBeGreaterThanOrEqual(1)
+      const groundLines = result!.lines.filter((l) => l.strokeWidth && l.strokeWidth >= 0.06)
+      expect(groundLines.length).toBeGreaterThanOrEqual(1)
+    }
+  })
+
+  it('no NaN or negative coordinates on any face', () => {
+    for (const fn of [computeFrontElevation, computeRearElevation, computeLeftElevation, computeRightElevation]) {
+      const result = fn(makePlan(), 2)!
+      const allCoords = [
+        ...result.lines.flatMap((l) => [l.x1, l.y1, l.x2, l.y2]),
+        ...result.rects.flatMap((r) => [r.x, r.y, r.w, r.h]),
+        ...result.polygons.flatMap((p) => p.points.flatMap((pt) => [pt.x, pt.y])),
+      ]
+      for (const c of allCoords) {
+        expect(c).not.toBeNaN()
+        expect(c).toBeGreaterThanOrEqual(0)
+      }
+    }
   })
 })
 
