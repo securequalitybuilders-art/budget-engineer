@@ -31,6 +31,7 @@ const SiteAnalysisStudio = lazy(() => import('@/pages/studio/SiteAnalysisStudio'
 const AssuranceStudio = lazy(() => import('@/pages/studio/AssuranceStudio').then((m) => ({ default: m.AssuranceStudio })));
 const DeliveryStudio = lazy(() => import('@/pages/studio/DeliveryStudio').then((m) => ({ default: m.DeliveryStudio })));
 const HandoverStudio = lazy(() => import('@/pages/studio/HandoverStudio').then((m) => ({ default: m.HandoverStudio })));
+const CloseoutStudio = lazy(() => import('@/pages/studio/CloseoutStudio').then((m) => ({ default: m.CloseoutStudio })));
 const ProcurementStudio = lazy(() => import('@/pages/studio/ProcurementStudio').then((m) => ({ default: m.ProcurementStudio })));
 const ProjectControlsStudio = lazy(() => import('@/pages/studio/ProjectControlsStudio').then((m) => ({ default: m.ProjectControlsStudio })));
 const MarketplaceStudio = lazy(() => import('@/components/marketplace/ProviderDashboard'));
@@ -164,6 +165,10 @@ const router = createBrowserRouter([
       {
         path: '/project/:id/studio/handover',
         element: <SafeRoute><HandoverStudio /></SafeRoute>,
+      },
+      {
+        path: '/project/:id/studio/closeout',
+        element: <SafeRoute><CloseoutStudio /></SafeRoute>,
       },
       {
         path: '/project/:id/studio/procurement',

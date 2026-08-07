@@ -15,6 +15,15 @@ import type { CompletionStage, SnagList, HandoverPackage, AssetRegisterItem, War
 import type { ProjectControlsBaseline, ProjectControlsSnapshot } from '@/domain/projectControls';
 import type { EscrowAgreement } from '@/domain/marketplace';
 import type { DispatchOrder, EscrowHold } from '@/domain/dispatch';
+import type {
+  ScheduleOfValues,
+  FinalAccountResult,
+  LienWaiver,
+  GainFadeResult,
+  HistoricalCostRecord,
+  LessonLearned,
+} from '@/domain/closeout';
+import type { PlanValidation } from '@/domain/architect';
 
 export class BudgetEngineerDB extends Dexie {
   projects!: Table<Project, string>;
@@ -61,6 +70,13 @@ export class BudgetEngineerDB extends Dexie {
   escrows!: Table<EscrowAgreement, string>;
   dispatchOrders!: Table<DispatchOrder, string>;
   dispatchHolds!: Table<EscrowHold, string>;
+  sovs!: Table<ScheduleOfValues, string>;
+  finalAccounts!: Table<FinalAccountResult, string>;
+  lienWaivers!: Table<LienWaiver, string>;
+  gainFades!: Table<GainFadeResult, string>;
+  historicalCosts!: Table<HistoricalCostRecord, string>;
+  lessons!: Table<LessonLearned, string>;
+  planValidations!: Table<PlanValidation, string>;
 
   constructor() {
     super('BudgetEngineerDB');
@@ -277,6 +293,58 @@ export class BudgetEngineerDB extends Dexie {
       escrows: 'id,projectId,providerId,status,updatedAt',
       dispatchOrders: 'id,projectId,supplierId,state',
       dispatchHolds: 'id,orderId,projectId,supplierId,status',
+    });
+    this.version(9).stores({
+      projects: 'id, [ownerId+status], updatedAt',
+      briefs: 'projectId',
+      designs: 'id, projectId, [projectId+optionIndex]',
+      boqs: 'id, projectId, designId',
+      transactions: 'id, [projectId+createdAt], entityType',
+      rates: 'id, [region+code], source',
+      cadDocs: 'id,name,projectId',
+      bimModels: 'id,name,projectId',
+      governance: 'projectId,approvalState,lastUpdated',
+      snapshots: 'id,timestamp,name,projectId',
+      planModels: 'id,projectId,designId,savedAt',
+      projectIntakes: 'id,projectId,status',
+      feasibilityAssessments: 'id,projectId',
+      riskGates: 'id,projectId,gateType,status',
+      riskRegister: 'id,projectId,category,status',
+      solvencyChecks: 'id,projectId',
+      milestones: 'id,projectId,releaseState,category',
+      contractorProfiles: 'id,projectId,trade,verificationState',
+      subcontractorProfiles: 'id,projectId,contractorId',
+      supplierProfiles: 'id,projectId,category,verificationState',
+      consultantProfiles: 'id,projectId,discipline',
+      procurementRequests: 'id,projectId,status',
+      supplierQuotes: 'id,projectId,procurementRequestId,supplierId',
+      purchaseOrders: 'id,projectId,status',
+      deliveryRecords: 'id,projectId,purchaseOrderId',
+      deliveryProjects: 'id,projectId',
+      changeOrders: 'id,projectId,status,category',
+      rfis: 'id,projectId,status,assignedTo',
+      submittals: 'id,projectId,status',
+      siteInspections: 'id,projectId,status,inspectionType',
+      ncrs: 'id,projectId,severity,status',
+      snagItems: 'id,projectId,priority,status',
+      completionStages: 'id,projectId,stage,status',
+      snagLists: 'id,projectId',
+      handoverPackages: 'id,projectId,status',
+      assetRegister: 'id,projectId,category,status',
+      warrantyRecords: 'id,projectId,warrantyType,status',
+      oAndMRecords: 'id,projectId',
+      projectControlsBaselines: 'id,projectId',
+      projectControlsSnapshots: 'id,projectId,snapshotDate',
+      escrows: 'id,projectId,providerId,status,updatedAt',
+      dispatchOrders: 'id,projectId,supplierId,state',
+      dispatchHolds: 'id,orderId,projectId,supplierId,status',
+      sovs: 'id,projectId',
+      finalAccounts: 'projectId',
+      lienWaivers: 'id,projectId,status',
+      gainFades: 'id,projectId',
+      historicalCosts: 'id,projectId,category,region',
+      lessons: 'id,projectId,category,severity',
+      planValidations: 'planId',
     });
   }
 }

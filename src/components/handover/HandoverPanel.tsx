@@ -84,6 +84,7 @@ export function HandoverPanel({ projectId }: HandoverPanelProps) {
   const crossLinks = useMemo(() => {
     const links = [
       buildStudioLink(projectId, 'delivery', 'Delivery', 'View delivery workflow and milestones'),
+      buildStudioLink(projectId, 'closeout', 'Closeout', 'SOV, final account, gain/fade and lessons'),
     ];
     if (readiness.blockers.some((b) => b.category === 'ncr')) {
       links.push(buildStudioLink(projectId, 'project-controls', 'Project Controls', 'See NCR and issue status', 'warning'));
