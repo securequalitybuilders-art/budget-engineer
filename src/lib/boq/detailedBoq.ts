@@ -3,7 +3,6 @@ import type { BOQ, BOQLineItem, EstimateDepth } from './boq-types'
 import { extractGeometryQuantities, type GeometryQuantities } from '@/adapters/geometryQuantitiesAdapter'
 import { resolveBoqRate, getContingencyRate, getFeesRate, getVatRate, getRegionRateCard } from '@/adapters/rateCardAdapter'
 import type { RateAssumption } from '@/adapters/rateCardAdapter'
-import { buildDesignGeometry } from '@/adapters/designGeometryAdapter'
 import type { RoofType } from '@/adapters/designToBoq'
 import { generateProgramme, dayToDate } from '@/lib/planning/gantt'
 import { computeCashflow } from '@/lib/planning/cashflow'
@@ -59,11 +58,6 @@ export function generateDetailedBoq(design: DesignOption, config: DetailedBoqCon
   const floors = config.floorCount ?? design.floors ?? 1
   const gfa = config.areaM2 ?? qty.grossFloorArea
 
-  const geo = buildDesignGeometry(design)
-  const roomTypes = new Map<string, number>()
-  for (const room of geo.rooms) {
-    roomTypes.set(room.type, (roomTypes.get(room.type) ?? 0) + 1)
-  }
   const wetRooms = qty.wetRoomCount
   const kitchens = qty.kitchenCount
   const bedrooms = qty.bedroomCount

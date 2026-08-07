@@ -326,23 +326,41 @@ Advanced RAG features:
 
 ```
 src/
-├── app/                    # Router, layout
+├── app/                    # Router, layout (GlobalLayout, lazy routes)
+├── adapters/               # Design→BOQ/CAD/BIM/analysis bridges
+├── ai/                     # BOQ engine, brief parse, AI features
 ├── components/
-│   ├── dashboard/          # Stage panels
-│   ├── drawings/           # CAD rendering
-│   ├── plan-generator/     # Interactive visualizer
+│   ├── bim/                # 3D model viewer (GLTF), construction sequencing
+│   ├── cad/                # Interactive PlanCanvas / WallFirstCanvas
+│   ├── dashboard/          # Stage panels (Brief…Budget Engineered)
+│   ├── drawings/           # CAD rendering, presentation sheets, paper space
+│   ├── ecosystem/          # Builder/Contractor/Bulk Procurement dashboards
 │   └── ui/                 # Shared UI components
-├── engine/
-│   ├── bim/                # IFC/BIM data extraction
-│   ├── compliance/         # SANS 10400/10160 rules
-│   ├── council/            # Council package assembly
-│   ├── parametric/         # Wall graph, dimensions
-│   ├── rag/                # RAG pipeline, Zimbabwe codes
-│   └── tier3/              # Layout engine, constraint solver
+├── db/                     # Dexie/IndexedDB schema
 ├── domain/                 # TypeScript types
-├── lib/                    # Utilities, exports
+├── engine/
+│   ├── compliance/         # SANS 10400/10160 rules, ZBC, legislation, RAG
+│   ├── parametric/         # Wall graph, dimensions, component registry
+│   ├── rag/                # RAG pipeline, Zimbabwe codes
+│   ├── tier1/              # Council package assembly (18-sheet SADC)
+│   ├── tier2/              # Generation + typology routing
+│   ├── tier3/              # Layout engine, constraint solver
+│   ├── standards/          # Room standards authority (§5)
+│   ├── closeout/           # SOV, final account, gain/fade, lessons
+│   ├── payment/            # P4P + WIPAA calculators
+│   ├── dispatch/           # JIT-dispatch procurement engine
+│   └── ecosystem/          # Wallet-to-wall, group-buy, TCO, credit notes
+├── hooks/                  # Shared React hooks (GLB export, plans)
+├── lib/
+│   ├── drawings/           # Renderers: plans, elevations, schedules
+│   ├── boq/                # Detailed BOQ engine
+│   ├── api/                # Local-first API layer (IndexedDB transport)
+│   ├── layout/             # Typology router, grid packer, templates
+│   ├── geometry/           # Plan transforms, room roles
+│   └── i18n/               # Locales (en / sn / nd)
+├── pages/                  # Dashboard, ecosystem pages
 ├── stores/                 # Zustand stores
-└── styles/                 # CSS, fonts
+└── styles/                 # CSS, fonts, brand tokens
 ```
 
 ## 9. Code Conventions

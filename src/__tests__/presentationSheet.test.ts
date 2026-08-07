@@ -123,6 +123,23 @@ describe('PresentationSheetView', () => {
     expect(found.length).toBeGreaterThanOrEqual(3)
   })
 
+  it('renders without NaN attributes when elevation data contains NaN', () => {
+    const nanPlan = makePlan({
+      width: 0,
+      height: 0,
+      openings: [{ id: 'nan-o1', wallId: 'w1', kind: 'door', offset: Number.NaN, width: Number.NaN }],
+    })
+    const { container } = render(React.createElement(PresentationSheetView, {
+      activePlan: nanPlan,
+      design: null,
+      floors: 1,
+      storeyHeight: 3,
+      pitchHeight: 1.5,
+    }))
+    expect(container.querySelector('svg')).not.toBeNull()
+    expect(container.innerHTML).not.toMatch(/NaN/)
+  })
+
   it('renders export buttons with accessible labels', () => {
     const { container } = render(React.createElement(PresentationSheetView, {
       activePlan: makePlan(),

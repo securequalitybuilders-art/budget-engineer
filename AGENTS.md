@@ -192,10 +192,10 @@ Closed the remaining stage-pipeline gap (SiteAnalysisStage) and fixed 6 drawing-
 - `presentationSheet.test.ts` (2) â€” RoomTag flattened text â†’ fixed in `5c9b36d`
 
 ### Remaining cosmetic issues
-- **NaN for `x` attribute warning** in `presentationSheet.test.ts` â€” originates from elevation engine data (non-rendering), not from PresentationSheetView logic. React renders fine; warning only visible in test stderr.
+- **NaN for `x` attribute warning** in `presentationSheet.test.ts` â€” originates from elevation engine data (non-rendering), not from PresentationSheetView logic. React renders fine; warning only visible in test stderr. (RESOLVED in cleanup commit `ca01c11` follow-up: all NaN paths guarded in `PresentationSheetView.tsx` + regression test added.)
 
 ### Skipped (intentional)
-- BOQ double-compute in `boq-engine` â€” kept as-is (data is consumed by two unrelated pipelines)
+- BOQ double-compute in `boq-engine` â€” kept as-is (data is consumed by two unrelated pipelines). (RESOLVED in cleanup commit: removed dead `buildDesignGeometry` + unused `roomTypes` map in `generateDetailedBoq` — geometry now built exactly once.)
 
 ## Phase 5 â€” Marketplace Engine Integration + P48 Shoulder Stabilization (Current)
 
@@ -1360,6 +1360,27 @@ Closed the last three un-encoded §4.2 sub-parts of the SANS 10400 series: Part 
 - `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
 - `npx vitest run --maxWorkers=4`: 4422/4422 tests (217 files) — +14 new compliancePhase6 tests
 - `npx vite build`: success in ~8.1s (PWA precache 127 entries, 4937.75 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+
+## Cleanup — stale audit items closed (NaN warning, BOQ double-compute, §8 doc) (Current)
+
+### What was done
+Closed the three leftover items from the spec audit: the stale "NaN x-attribute warning" note (already fixed by the Phase 6 guard patch, now locked in with a regression test), the "intentional" BOQ double-compute (removed dead geometry rebuild), and the stale gemini.md §8 project-structure tree.
+
+### NaN warning — verified fixed + regression test
+- **`src/__tests__/presentationSheet.test.ts`** — new test renders `PresentationSheetView` with a NaN-polluted plan (zero-dim plan + NaN opening offset/width) and asserts the rendered SVG contains no `NaN` attribute. Confirmed the note was already resolved by the Phase 6 `isFinite` guards in `PresentationSheetView.tsx` (lines 242/262/271/279/287/444-447); the AGENTS.md "Remaining cosmetic issues" note is updated with a RESOLVED marker instead of removed.
+
+### BOQ double-compute — dead geometry rebuild removed
+- **`src/lib/boq/detailedBoq.ts`** — `generateDetailedBoq` was calling `buildDesignGeometry(design)` (a 652-line geometry build) a second time solely to populate a `roomTypes` map that was never read (dead code). Geometry is already built once inside `extractGeometryQuantities` (via `buildBoqFromDesignOption`) and passed through as `overriddenQty`. Removed the dead `geo`/`roomTypes` block + the now-unused `buildDesignGeometry` import. `buildBoqFromDesignOption` → `generateDetailedBoq` now constructs design geometry exactly once. All 127 BOQ/cost/adapter tests still pass.
+
+### gemini.md §8 — project structure tree refreshed
+- **`docs/context/gemini.md`** — replaced the stale §8 tree (referenced nonexistent `components/plan-generator/`, `engine/council/`, `engine/bim/`, `engine/parametric/`) with the actual layout: `adapters/`, `db/`, `hooks/`, `pages/ecosystem/`, `components/bim|cad|dashboard|drawings|ecosystem`, `engine/compliance|parametric|rag|tier1|tier2|tier3|standards|closeout|payment|dispatch|ecosystem`, `lib/drawings|boq|api|layout|geometry|i18n`, `stores/`. All referenced paths verified to exist.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4432/4432 tests (218 files) — +1 new NaN regression test
+- `npx vite build`: success
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
 
 ## Spec audit — gemini.md + brandguidelines.md adherence (Current)
