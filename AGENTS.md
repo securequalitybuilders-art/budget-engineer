@@ -1488,3 +1488,48 @@ Closed the audit's final open item: the two independent SANS 10400-A sources —
 - `npx vitest run --maxWorkers=4`: 4437/4437 tests (219 files) — +5 new tests
 - `npx vite build`: success in ~8s (PWA precache 127 entries, 4941.43 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+
+## Workflow + Project Tools gap-fill (5 gaps closed) (Current)
+
+### What was done
+Audited the 7-stage workflow + 6 Project Tools against the brief/gemini.md and fixed all 5 gaps found. The Design stage now truly delivers "View all architectural elevations and edit 2D plans. Site analysis integrated."; the pipeline consumes the captured site context instead of hardcoded dims; the Drawings panel surfaces all 4 elevation faces; Budget Engineered is honest about its scope; and "Design Options" is a first-class Project Tool.
+
+### Gap 1 — Pipeline site-awareness (prior session, verified)
+- `src/pages/Dashboard.tsx` `handlePipelineGenerate` loads `loadSiteContext(id)`, derives `siteWidthM`/`siteDepthM` from `plotBoundary` (max x / max y, fallback 15/20), sets status "Running generative design pipeline (site-aware)...", and passes `jurisdiction: siteContext ? 'zimbabwe' : 'south-africa'`.
+
+### Gap 2 — DrawingsPanel all 4 elevations (edited)
+- `src/components/drawings/DrawingsPanel.tsx` — `DrawingTab` union extended with `'rear' | 'left'`; `TAB_DEFS` gained `{ id: 'rear', label: 'Rear Elevation' }` + `{ id: 'left', label: 'Left Elevation' }` between front and side; new `rearDrawing`/`leftDrawing` memos (via `resolveRearElevation`/`resolveLeftElevation`, 4-arg); SVG computation refactored into `elevationSvgFor(orientation, label)` callback producing all 4 (`front`/`rear`/`left`/`right`); `elevationOrientation` now derives per-tab (side→right); per-tab `isRichActive`/`fallbackReason`; render blocks for rear + left added (ElevationDiagnostics + SVG-or-fallback ElevationView).
+
+### Gap 3 — DesignStage view toggle (edited)
+- `src/components/dashboard/stages/DesignStage.tsx` — added a `'plan' | 'elevations' | 'site'` view switcher (Edit 2D Plan / Elevations / Site Analysis) above the content.
+  - **Elevations**: face selector (Front/Rear/Left/Right) reusing `resolveFrontElevation`/`resolveRearElevation`/`resolveLeftElevation`/`resolveSideElevation` + `ElevationView`, with `DEFAULT_STOREY_HEIGHT` (3) / `ROOF_PITCH_HEIGHT` (1.5) from `planTo3d`.
+  - **Site**: mounts `<SiteAnalysisStage selectedDesign={selectedDesign} activePlan={activePlan} />` inside an ErrorBoundary (same usage pattern as BimStage).
+- DesignStage empty state + existing tests unaffected (toggle only renders in the design-present branch).
+
+### Gap 4 — Budget Engineered honesty (edited)
+- `src/lib/studio/stageRegistry.ts` — description trimmed from "Complete documentation set, presentation sheet, export reports." to "Presentation sheet and export reports."
+- `src/components/dashboard/stages/BudgetEngineeredStage.tsx` — `buildingType`/`projectRegion` are now used (sub-header badge in filled state, region line in empty state) instead of discarded as `_`-prefixed props.
+
+### Gap 5 — Design Options Project Tool (new + wired)
+- `src/components/dashboard/DesignOptionsPanel.tsx` (new) — compare/select/regenerate/import view with `MiniFloorPlanPreview` option cards, "Refine in Concept" CTA, `PlanComparison` table, empty state with Generate + Import.
+- `src/stores/uiStore.ts` — `ActiveView` union gained `'design-options'`.
+- `src/components/dashboard/StageRail.tsx` + `src/components/dashboard/MobileNavDrawer.tsx` — `PROJECT_TOOLS` gained `{ key: 'design-options', label: 'Design Options', icon: LayoutGrid }`; `onToolChange` prop types extended.
+- `src/pages/Dashboard.tsx` — lazy `LazyDesignOptionsPanel` import + `activeView === 'design-options'` render branch (wire handleGenerate/isGenerating/generationStatus/handleImportFile/onOpenInConcept→concept).
+
+### Files created (1)
+- `src/components/dashboard/DesignOptionsPanel.tsx`
+
+### Files modified (7)
+- `src/components/drawings/DrawingsPanel.tsx`, `src/components/dashboard/stages/DesignStage.tsx`, `src/components/dashboard/stages/BudgetEngineeredStage.tsx`, `src/lib/studio/stageRegistry.ts`, `src/stores/uiStore.ts`, `src/components/dashboard/StageRail.tsx`, `src/components/dashboard/MobileNavDrawer.tsx`, `src/pages/Dashboard.tsx`
+
+### Notes
+- `resolveRearElevation`/`resolveLeftElevation` take 4 args (no `buildingType`) vs front/side 5 — kept as-is, verified against `elevationResolver.ts`.
+- DrawingsPanel front/side behavior unchanged (existing tests green); rear/left are additive.
+- `budget-engineer-canonical` submodule intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4437/4437 tests (219 files) — no new test files, existing suites unchanged
+- `npx vite build`: success (PWA precache 134 entries, 4952.03 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found

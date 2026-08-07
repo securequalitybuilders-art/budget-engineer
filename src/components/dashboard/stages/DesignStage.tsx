@@ -1,13 +1,28 @@
-import { useRef, useCallback, useEffect } from 'react'
+import { useRef, useCallback, useEffect, useState, useMemo } from 'react'
 import { PlanCanvas } from '@/components/cad/PlanCanvas'
 import { Button } from '@/components/ui/Button'
-import { Box, Wand2, Upload } from 'lucide-react'
+import { Box, Wand2, Upload, PenTool, Building2, MapPinned } from 'lucide-react'
 import { useFurnitureStore } from '@/stores/furnitureStore'
 import { motion } from 'framer-motion'
 import type { PlanModel } from '@/domain/plan'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import type { DesignOption } from '@/domain/boq'
 import type { BackdropState } from '@/lib/import/backdropUtils'
+import { ElevationView } from '@/components/drawings/ElevationView'
+import { resolveFrontElevation, resolveRearElevation, resolveLeftElevation, resolveSideElevation } from '@/lib/drawings/elevationResolver'
+import { DEFAULT_STOREY_HEIGHT, ROOF_PITCH_HEIGHT } from '@/adapters/planTo3d'
+import { SiteAnalysisStage } from '@/components/dashboard/stages/SiteAnalysisStage'
+import { cn } from '@/lib/utils'
+
+type DesignView = 'plan' | 'elevations' | 'site'
+type ElevationFace = 'front' | 'rear' | 'left' | 'right'
+
+const ELEVATION_FACES: { id: ElevationFace; label: string }[] = [
+  { id: 'front', label: 'Front' },
+  { id: 'rear', label: 'Rear' },
+  { id: 'left', label: 'Left' },
+  { id: 'right', label: 'Right' },
+]
 
 export interface DesignStageProps {
   projectId: string | null
@@ -42,6 +57,23 @@ export function DesignStage({
 }: DesignStageProps) {
   const importInputRef = useRef<HTMLInputElement>(null)
   const furnitureBlocks = useFurnitureStore((s) => s.blocks)
+  const [view, setView] = useState<DesignView>('plan')
+  const [elevationFace, setElevationFace] = useState<ElevationFace>('front')
+
+  const storeyHeight = DEFAULT_STOREY_HEIGHT
+  const pitchHeight = ROOF_PITCH_HEIGHT
+  const floors = selectedDesign?.floors ?? 1
+
+  const elevationDrawing = useMemo(() => {
+    if (!activePlan) return null
+    switch (elevationFace) {
+      case 'rear': return resolveRearElevation(activePlan, floors, storeyHeight, pitchHeight)
+      case 'left': return resolveLeftElevation(activePlan, floors, storeyHeight, pitchHeight)
+      case 'right': return resolveSideElevation(activePlan, floors, storeyHeight, pitchHeight, selectedDesign?.buildingType)
+      case 'front':
+      default: return resolveFrontElevation(activePlan, floors, storeyHeight, pitchHeight, selectedDesign?.buildingType)
+    }
+  }, [activePlan, floors, storeyHeight, pitchHeight, elevationFace, selectedDesign?.buildingType])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -112,24 +144,95 @@ export function DesignStage({
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden p-4">
-      <ErrorBoundary>
-        <PlanCanvas
-          projectId={projectId}
-          design={selectedDesign}
-          persistedPlan={activePlan}
-          onSavePlan={handleSavePlan}
-          backdrop={backdrop}
-          onBackdropUpdate={onBackdropUpdate}
-          onBackdropSetScale={onBackdropSetScale}
-          onBackdropClear={onBackdropClear}
-          onDesignCreated={onDesignCreated}
-          furnitureBlocks={furnitureBlocks}
-          activeBlockDefId={activeBlockDefId}
-          onPlaceBlock={placeBlock}
-          onRemoveBlock={removeBlock}
-          onRotateBlock={rotateBlock}
-        />
-      </ErrorBoundary>
+      <div className="mb-3 flex flex-wrap items-center gap-1 rounded-lg border border-stone-700/60 bg-stone-900/80 p-1">
+        <button
+          onClick={() => setView('plan')}
+          className={cn(
+            'flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition-colors',
+            view === 'plan' ? 'bg-cyan-600/20 text-cyan-300' : 'text-stone-400 hover:bg-stone-800 hover:text-stone-300',
+          )}
+        >
+          <PenTool size={13} />
+          Edit 2D Plan
+        </button>
+        <button
+          onClick={() => setView('elevations')}
+          className={cn(
+            'flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition-colors',
+            view === 'elevations' ? 'bg-cyan-600/20 text-cyan-300' : 'text-stone-400 hover:bg-stone-800 hover:text-stone-300',
+          )}
+        >
+          <Building2 size={13} />
+          Elevations
+        </button>
+        <button
+          onClick={() => setView('site')}
+          className={cn(
+            'flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition-colors',
+            view === 'site' ? 'bg-cyan-600/20 text-cyan-300' : 'text-stone-400 hover:bg-stone-800 hover:text-stone-300',
+          )}
+        >
+          <MapPinned size={13} />
+          Site Analysis
+        </button>
+      </div>
+
+      {view === 'plan' && (
+        <ErrorBoundary>
+          <PlanCanvas
+            projectId={projectId}
+            design={selectedDesign}
+            persistedPlan={activePlan}
+            onSavePlan={handleSavePlan}
+            backdrop={backdrop}
+            onBackdropUpdate={onBackdropUpdate}
+            onBackdropSetScale={onBackdropSetScale}
+            onBackdropClear={onBackdropClear}
+            onDesignCreated={onDesignCreated}
+            furnitureBlocks={furnitureBlocks}
+            activeBlockDefId={activeBlockDefId}
+            onPlaceBlock={placeBlock}
+            onRemoveBlock={removeBlock}
+            onRotateBlock={rotateBlock}
+          />
+        </ErrorBoundary>
+      )}
+
+      {view === 'elevations' && (
+        <div className="flex flex-1 flex-col gap-3 overflow-auto">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">Face</span>
+            {ELEVATION_FACES.map((face) => (
+              <button
+                key={face.id}
+                onClick={() => setElevationFace(face.id)}
+                className={cn(
+                  'rounded px-2.5 py-1 text-[11px] font-medium transition-colors',
+                  elevationFace === face.id
+                    ? 'bg-cyan-600/20 text-cyan-300'
+                    : 'text-stone-400 hover:bg-stone-800 hover:text-stone-300',
+                )}
+              >
+                {face.label}
+              </button>
+            ))}
+          </div>
+          <ElevationView
+            drawing={elevationDrawing}
+            activePlan={activePlan}
+            floors={floors}
+            storeyHeight={storeyHeight}
+            pitchHeight={pitchHeight}
+            title={`${elevationFace.toUpperCase()} ELEVATION`}
+          />
+        </div>
+      )}
+
+      {view === 'site' && (
+        <ErrorBoundary>
+          <SiteAnalysisStage selectedDesign={selectedDesign} activePlan={activePlan} />
+        </ErrorBoundary>
+      )}
     </div>
   )
 }

@@ -11,7 +11,7 @@ interface BudgetEngineeredStageProps {
   projectRegion?: string
 }
 
-export function BudgetEngineeredStage({ activePlan, selectedDesign, buildingType: _buildingType, projectRegion: _projectRegion }: BudgetEngineeredStageProps) {
+export function BudgetEngineeredStage({ activePlan, selectedDesign, buildingType, projectRegion }: BudgetEngineeredStageProps) {
   if (!selectedDesign || !activePlan) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center p-4">
@@ -25,8 +25,11 @@ export function BudgetEngineeredStage({ activePlan, selectedDesign, buildingType
           </div>
           <h2 className="font-display text-2xl font-bold text-[var(--text-primary)]">Budget Engineered</h2>
           <p className="mt-2 max-w-md text-sm text-[var(--text-secondary)]">
-            Complete documentation set, presentation sheet, export reports.
+            Presentation sheet and export reports.
           </p>
+          {projectRegion && (
+            <p className="mt-1 text-xs text-[var(--text-muted)]">Region: {projectRegion}</p>
+          )}
         </motion.div>
       </div>
     )
@@ -36,7 +39,13 @@ export function BudgetEngineeredStage({ activePlan, selectedDesign, buildingType
     <div className="flex h-full flex-col">
       <div className="border-b border-[var(--border-default)] px-4 py-2">
         <h2 className="font-display text-lg font-bold text-[var(--text-primary)]">Budget Engineered</h2>
-        <p className="text-xs text-[var(--text-muted)]">Complete documentation set, presentation sheet, export reports</p>
+        <p className="text-xs text-[var(--text-muted)]">Presentation sheet and export reports</p>
+        {buildingType && (
+          <p className="mt-0.5 text-[10px] text-[var(--text-muted)]">
+            {buildingType}
+            {projectRegion ? ` · ${projectRegion}` : ''}
+          </p>
+        )}
       </div>
       <div className="flex-1 overflow-auto">
         <PresentationSheetView

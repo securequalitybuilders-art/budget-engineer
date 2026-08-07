@@ -20,6 +20,8 @@ import { ScheduleView } from '@/components/drawings/ScheduleView'
 import { DrawingRegisterPanel } from '@/components/drawings/DrawingRegisterPanel'
 import {
   resolveFrontElevation,
+  resolveRearElevation,
+  resolveLeftElevation,
   resolveSideElevation,
   resolveSection,
 } from '@/lib/drawings/elevationResolver'
@@ -45,7 +47,7 @@ import { assemblePackage } from '@/lib/drawings/package-assembly'
 import { useDisciplineStore } from '@/stores/disciplineStore'
 import type { DisciplineId } from '@/lib/studio/discipline'
 
-type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'side' | 'section' | 'schedule-door' | 'schedule-window' | 'schedule-structural' | 'presentation' | 'register' | 'details' | 'schedule-room' | 'standards' | 'package'
+type DrawingTab = 'plan' | 'site-plan' | 'foundation' | 'roof' | 'ceiling' | 'electrical' | 'plumbing' | 'hvac' | 'front' | 'rear' | 'left' | 'side' | 'section' | 'schedule-door' | 'schedule-window' | 'schedule-structural' | 'presentation' | 'register' | 'details' | 'schedule-room' | 'standards' | 'package'
 
 interface TabDef {
   id: DrawingTab
@@ -63,6 +65,8 @@ const TAB_DEFS: TabDef[] = [
   { id: 'plumbing', label: 'Plumbing', disciplines: ['PLUM', 'MEP'] },
   { id: 'hvac', label: 'HVAC', disciplines: ['MEP'] },
   { id: 'front', label: 'Front Elevation', disciplines: ['ARCH'] },
+  { id: 'rear', label: 'Rear Elevation', disciplines: ['ARCH'] },
+  { id: 'left', label: 'Left Elevation', disciplines: ['ARCH'] },
   { id: 'side', label: 'Side Elevation', disciplines: ['ARCH'] },
   { id: 'section', label: 'Section A-A', disciplines: ['ARCH', 'STR'] },
   { id: 'schedule-door', label: 'Door Sch.', disciplines: ['ARCH'] },
@@ -144,6 +148,14 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
     return resolveFrontElevation(activePlan!, floors, storeyHeight, pitchHeight, design?.buildingType)
   }, [activePlan, floors, storeyHeight, pitchHeight, design?.buildingType])
 
+  const rearDrawing = useMemo(() => {
+    return resolveRearElevation(activePlan!, floors, storeyHeight, pitchHeight)
+  }, [activePlan, floors, storeyHeight, pitchHeight])
+
+  const leftDrawing = useMemo(() => {
+    return resolveLeftElevation(activePlan!, floors, storeyHeight, pitchHeight)
+  }, [activePlan, floors, storeyHeight, pitchHeight])
+
   const sideDrawing = useMemo(() => {
     return resolveSideElevation(activePlan!, floors, storeyHeight, pitchHeight, design?.buildingType)
   }, [activePlan, floors, storeyHeight, pitchHeight, design?.buildingType])
@@ -157,28 +169,26 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
 
   const projectName = design?.name ?? 'Budget Engineer'
 
-  const frontElevationSvg = useMemo(() => {
+  const elevationSvgFor = useCallback((orientation: 'front' | 'rear' | 'left' | 'right', label: string) => {
     if (!ws6CadDoc) return null
     try {
-      const titleMeta: TitleBlockMeta = { project: projectName, drawing: 'FRONT ELEVATION', scale: '1:100' }
-      return buildElevationSvg(ws6CadDoc, 'front', titleMeta)
+      const titleMeta: TitleBlockMeta = { project: projectName, drawing: label, scale: '1:100' }
+      return buildElevationSvg(ws6CadDoc, orientation, titleMeta)
     } catch { return null }
   }, [ws6CadDoc, projectName])
 
-  const sideElevationSvg = useMemo(() => {
-    if (!ws6CadDoc) return null
-    try {
-      const titleMeta: TitleBlockMeta = { project: projectName, drawing: 'RIGHT SIDE ELEVATION', scale: '1:100' }
-      return buildElevationSvg(ws6CadDoc, 'right', titleMeta)
-    } catch { return null }
-  }, [ws6CadDoc, projectName])
+  const frontElevationSvg = useMemo(() => elevationSvgFor('front', 'FRONT ELEVATION'), [elevationSvgFor])
+  const rearElevationSvg = useMemo(() => elevationSvgFor('rear', 'REAR ELEVATION'), [elevationSvgFor])
+  const leftElevationSvg = useMemo(() => elevationSvgFor('left', 'LEFT SIDE ELEVATION'), [elevationSvgFor])
+  const sideElevationSvg = useMemo(() => elevationSvgFor('right', 'RIGHT SIDE ELEVATION'), [elevationSvgFor])
 
   const sectionDrawing = useMemo(() => {
     return resolveSection(activePlan!, floors, storeyHeight, pitchHeight, design?.buildingType)
   }, [activePlan, floors, storeyHeight, pitchHeight, design?.buildingType])
 
   // ── Runtime diagnostics ──
-  const elevationOrientation = activeTab === 'side' ? 'right' : 'front'
+  const elevationOrientation: 'front' | 'rear' | 'left' | 'right' =
+    activeTab === 'rear' ? 'rear' : activeTab === 'left' ? 'left' : activeTab === 'side' ? 'right' : 'front'
 
   const roomCount = activePlan?.rooms?.length ?? 0
 
@@ -198,7 +208,11 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
     } catch { return 0 }
   }, [ws6CadDoc, elevationOrientation])
 
-  const isRichActive = activeTab === 'front' ? !!frontElevationSvg : !!sideElevationSvg
+  const isRichActive =
+    activeTab === 'rear' ? !!rearElevationSvg
+    : activeTab === 'left' ? !!leftElevationSvg
+    : activeTab === 'side' ? !!sideElevationSvg
+    : !!frontElevationSvg
   const ws6ConversionOk = !!ws6CadDoc
 
   const pipeline: 'rich-svg' | 'legacy-fallback' | 'none' = isRichActive ? 'rich-svg' : (ws6ConversionOk ? 'legacy-fallback' : 'none')
@@ -210,10 +224,12 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
     } catch { return 'Façade composition threw' }
     try {
       if (elevationOrientation === 'front' && !frontElevationSvg) return 'buildElevationSvg(front) returned null'
+      if (elevationOrientation === 'rear' && !rearElevationSvg) return 'buildElevationSvg(rear) returned null'
+      if (elevationOrientation === 'left' && !leftElevationSvg) return 'buildElevationSvg(left) returned null'
       if (elevationOrientation === 'right' && !sideElevationSvg) return 'buildElevationSvg(right) returned null'
     } catch { return 'buildElevationSvg threw' }
     return 'Unknown fallback reason'
-  }, [ws6ConversionOk, isRichActive, ws6CadDoc, elevationOrientation, frontElevationSvg, sideElevationSvg])
+  }, [ws6ConversionOk, isRichActive, ws6CadDoc, elevationOrientation, frontElevationSvg, rearElevationSvg, leftElevationSvg, sideElevationSvg])
 
   if (fallbackReason && ws6ConversionOk && import.meta.env.DEV) {
     console.warn(`[DrawingsPanel] Rich SVG eligible but fallback active: ${fallbackReason} (orientation=${elevationOrientation}, segments=${segmentCount}, openings=${openingCountOnFace}, rooms=${roomCount})`)
@@ -294,6 +310,56 @@ export function DrawingsPanel({ activePlan, design, floors, storeyHeight = DEFAU
               storeyHeight={storeyHeight}
               pitchHeight={pitchHeight}
               title="FRONT ELEVATION"
+            />
+          )}
+        </div>
+      )}
+      {activeTab === 'rear' && (
+        <div className="flex flex-col gap-2">
+          <ElevationDiagnostics
+            pipeline={pipeline}
+            fallbackReason={fallbackReason}
+            roomCount={roomCount}
+            openingCountOnFace={openingCountOnFace}
+            floorCount={floors}
+            segmentCount={segmentCount}
+            conversionOk={ws6ConversionOk}
+          />
+          {rearElevationSvg ? (
+            <SvgElevationView svgContent={rearElevationSvg} title="REAR ELEVATION" />
+          ) : (
+            <ElevationView
+              drawing={rearDrawing}
+              activePlan={activePlan}
+              floors={floors}
+              storeyHeight={storeyHeight}
+              pitchHeight={pitchHeight}
+              title="REAR ELEVATION"
+            />
+          )}
+        </div>
+      )}
+      {activeTab === 'left' && (
+        <div className="flex flex-col gap-2">
+          <ElevationDiagnostics
+            pipeline={pipeline}
+            fallbackReason={fallbackReason}
+            roomCount={roomCount}
+            openingCountOnFace={openingCountOnFace}
+            floorCount={floors}
+            segmentCount={segmentCount}
+            conversionOk={ws6ConversionOk}
+          />
+          {leftElevationSvg ? (
+            <SvgElevationView svgContent={leftElevationSvg} title="LEFT SIDE ELEVATION" />
+          ) : (
+            <ElevationView
+              drawing={leftDrawing}
+              activePlan={activePlan}
+              floors={floors}
+              storeyHeight={storeyHeight}
+              pitchHeight={pitchHeight}
+              title="LEFT ELEVATION"
             />
           )}
         </div>

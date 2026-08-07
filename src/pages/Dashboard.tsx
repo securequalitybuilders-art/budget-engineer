@@ -24,6 +24,7 @@ const BimStage = lazy(() => import('@/components/dashboard/stages/BimStage').the
 const CostDeliverStage = lazy(() => import('@/components/dashboard/stages/CostDeliverStage').then(m => ({ default: m.CostDeliverStage })));
 const BudgetEngineeredStage = lazy(() => import('@/components/dashboard/stages/BudgetEngineeredStage').then(m => ({ default: m.BudgetEngineeredStage })));
 const DocsBimStage = lazy(() => import('@/components/dashboard/stages/DocsBimStage').then(m => ({ default: m.DocsBimStage })));
+const LazyDesignOptionsPanel = lazy(() => import('@/components/dashboard/DesignOptionsPanel').then(m => ({ default: m.DesignOptionsPanel })));
 const LazyImportWorkflow = lazy(() => import('@/components/import/ImportWorkflow').then(m => ({ default: m.ImportWorkflow })));
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
 import { SnapshotHistoryPanel } from '@/components/dashboard/SnapshotHistoryPanel';
@@ -396,12 +397,18 @@ export function Dashboard() {
       const brief = (await import('@/stores/projectStore')).useProjectStore.getState().currentBrief
       const text = brief?.rawText || ''
       setPipelineStatus('Running generative design pipeline...');
+      const siteContext = loadSiteContext(id)
+      const plot = siteContext?.plotBoundary ?? []
+      const siteWidthM = plot.length > 0 ? Math.max(...plot.map((p) => p.x)) : 15
+      const siteDepthM = plot.length > 0 ? Math.max(...plot.map((p) => p.y)) : 20
+      setPipelineStatus('Running generative design pipeline (site-aware)...');
       const { runPipeline: execPipeline } = await import('@/engine/pipeline/generativeDesignPipeline')
       const result = await execPipeline({
         rawBriefText: text,
         projectName: currentProject?.name,
-        siteWidthM: 15,
-        siteDepthM: 20,
+        siteWidthM,
+        siteDepthM,
+        jurisdiction: siteContext ? 'zimbabwe' : 'south-africa',
       })
       if (result.success && result.planModel && result.designOption) {
         setPipelineStatus('Adding pipeline result...');
@@ -784,6 +791,19 @@ export function Dashboard() {
               />
             ) : activeView === 'properties' ? (
               <PropertiesPanel variant="full" />
+            ) : activeView === 'design-options' ? (
+              <Suspense fallback={<PageLoader />}>
+                <LazyDesignOptionsPanel
+                  visibleDesignOptions={visibleDesignOptions}
+                  selectedDesignId={selectedDesignId}
+                  setSelectedDesignId={setSelectedDesignId}
+                  handleGenerate={handleGenerate}
+                  isGenerating={isGenerating}
+                  generationStatus={generationStatus}
+                  onImportFile={handleImportFile}
+                  onOpenInConcept={() => { setActiveStage('concept'); setActiveView('concept') }}
+                />
+              </Suspense>
             ) : null}
           </div>
 

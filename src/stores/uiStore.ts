@@ -4,7 +4,7 @@ import { immer } from 'zustand/middleware/immer';
 import type { AppTheme } from '@/types';
 import type { StageId } from '@/lib/studio/stageRegistry';
 
-export type ActiveView = number | StageId | 'history' | 'governance' | 'snapshots' | 'properties' | 'execution';
+export type ActiveView = number | StageId | 'history' | 'governance' | 'snapshots' | 'properties' | 'execution' | 'design-options';
 
 /** Converts numeric stage (1-7) to semantic StageId for the ARCH discipline order */
 const NUM_TO_STAGE_ID: StageId[] = ['brief', 'concept', 'design', 'bim', 'docs-bim', 'budget', 'budget-engineered'];

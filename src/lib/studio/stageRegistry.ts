@@ -74,7 +74,7 @@ export const ALL_STAGES: StageDef[] = [
     id: 'budget-engineered',
     label: 'Budget Engineered',
     shortLabel: 'Engineered',
-    description: 'Complete documentation set, presentation sheet, export reports.',
+    description: 'Presentation sheet and export reports.',
     icon: FileSpreadsheet,
   },
 ];

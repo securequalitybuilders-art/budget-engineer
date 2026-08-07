@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { useDisciplineStore } from '@/stores/disciplineStore'
 import { getStagesForDiscipline, type StageId } from '@/lib/studio/stageRegistry'
-import { Check, History, Shield, Camera, FileText, Menu, X, Play } from 'lucide-react'
+import { Check, History, Shield, Camera, FileText, Menu, X, Play, LayoutGrid } from 'lucide-react'
 
 interface MobileNavDrawerProps {
   open: boolean
@@ -11,7 +11,7 @@ interface MobileNavDrawerProps {
   onStageChange: (stageId: StageId) => void
   stageStatus?: Partial<Record<StageId, 'done' | 'active' | 'upcoming' | 'blocked'>>
   activeTool?: string | null
-  onToolChange?: (tool: 'history' | 'governance' | 'snapshots' | 'properties' | 'execution') => void
+  onToolChange?: (tool: 'history' | 'governance' | 'snapshots' | 'properties' | 'execution' | 'design-options') => void
   currentStageLabel: string
 }
 
@@ -28,6 +28,7 @@ const PROJECT_TOOLS = [
   { key: 'governance' as const, label: 'Governance', icon: Shield },
   { key: 'snapshots' as const, label: 'Snapshots', icon: Camera },
   { key: 'properties' as const, label: 'Properties', icon: FileText },
+  { key: 'design-options' as const, label: 'Design Options', icon: LayoutGrid },
 ]
 
 export function MobileNavDrawer({
@@ -96,7 +97,7 @@ export function MobileNavDrawer({
     handleClose()
   }
 
-  function handleToolClick(tool: 'history' | 'governance' | 'snapshots' | 'properties' | 'execution') {
+  function handleToolClick(tool: 'history' | 'governance' | 'snapshots' | 'properties' | 'execution' | 'design-options') {
     onToolChange?.(tool)
     handleClose()
   }
