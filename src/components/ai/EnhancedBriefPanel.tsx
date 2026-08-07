@@ -30,6 +30,8 @@ const DEFAULT_QUESTIONNAIRE: BriefQuestionnaire = {
 
 const BUILDING_TYPES = [
   { value: 'house-residential', label: 'House / Residential' },
+  { value: 'duplex', label: 'Duplex / Semi-Detached' },
+  { value: 'townhouse', label: 'Townhouse / Terraced' },
   { value: 'apartment-multi', label: 'Apartment / Flat' },
   { value: 'clinic-health', label: 'Clinic / Health Centre' },
   { value: 'school-classroom', label: 'School / Classroom Block' },

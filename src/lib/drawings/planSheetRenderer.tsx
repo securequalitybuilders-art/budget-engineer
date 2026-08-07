@@ -5,6 +5,7 @@ import { DimensionLineH, DimensionLineV, GridBubble, LevelMarker, TitleBlock, Ha
 import { renderOpeningSymbol } from '@/lib/drawings/openingSymbolRenderer'
 import { renderRoomFixtures } from '@/components/drawings/roomFixtures'
 import { RoomTag } from '@/components/drawings/annotationTags'
+import { zoneColorsForRoom } from '@/lib/drawings/roomZoneColors'
 
 const DIM_RED = '#cc3333'
 const DIM_TICK_EXT = 3
@@ -155,13 +156,14 @@ export function renderFloorPlanSheet(plan: PlanModel): { sheetW: number; sheetH:
     }
   }
 
-  // Room rectangles (semi-transparent fill) + annotation tags + fixtures
+  // Room rectangles (zone-coloured fills per brand §2.6) + annotation tags + fixtures
   for (let ri = 0; ri < plan.rooms.length; ri++) {
     const room = plan.rooms[ri]
     const rx = ox + s(room.x)
     const ry = oy - s(room.y + room.height)
     const rw = s(room.width)
     const rh = s(room.height)
+    const zone = zoneColorsForRoom(room.name)
 
     elements.push(
       <rect
@@ -170,9 +172,10 @@ export function renderFloorPlanSheet(plan: PlanModel): { sheetW: number; sheetH:
         y={ry}
         width={rw}
         height={rh}
-        fill={PAPER}
-        stroke="none"
-        opacity={0.3}
+        fill={zone.fill}
+        stroke={zone.stroke}
+        strokeWidth={0.5}
+        fillOpacity={0.45}
       />,
     )
 

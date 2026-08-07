@@ -13,6 +13,7 @@ import {
   resolveSection,
 } from '../../lib/drawings/elevationResolver'
 import { CONSTRUCTION_DETAILS } from '../construction/constructionDetails'
+import { zoneColorsForRoom } from '../../lib/drawings/roomZoneColors'
 
 export interface Iso7200TitleBlock {
   drawingTitle: string
@@ -114,18 +115,16 @@ function planToSvg(plan: PlanModel, title: string): string {
   const ox = M + (W - M * 2 - bw * s) / 2
   const oy = M + 70 + (H - M * 2 - 70 - bh * s) / 2
 
-  const roomFills = ['#eef2ff', '#ecfeff', '#fef3c7', '#fce7f3', '#f0fdf4', '#fff7ed', '#f8fafc', '#fef9c3']
-
   const rooms = plan.rooms
-    .map((r, i) => {
+    .map((r) => {
       const x = ox + r.x * s
       const y = oy + r.y * s
       const w = r.width * s
       const h = r.height * s
-      const fill = roomFills[i % roomFills.length]
+      const zone = zoneColorsForRoom(r.name)
       return `<g>
-        <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" fill="${fill}" fill-opacity="0.55" stroke="#cbd5e1" stroke-width="1"/>
-        <text x="${(x + w / 2).toFixed(1)}" y="${(y + h / 2 + 5).toFixed(1)}" font-size="13" fill="#334155" text-anchor="middle">${esc(r.name)}</text>
+        <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" fill="${zone.fill}" fill-opacity="0.55" stroke="${zone.stroke}" stroke-width="1"/>
+        <text x="${(x + w / 2).toFixed(1)}" y="${(y + h / 2 + 5).toFixed(1)}" font-size="13" fill="${zone.text}" text-anchor="middle">${esc(r.name)}</text>
       </g>`
     })
     .join('\n')

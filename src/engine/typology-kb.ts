@@ -326,6 +326,32 @@ const TYPOLOGIES: Typology[] = [
     maxStructuralSpan: 5.0,
     notes: 'Two mirror-image units sharing a party wall. Common in Zim high-density suburbs. Ground floor: living/kitchen/WC. Upper: bedrooms/bathroom.',
   },
+  {
+    id: 'townhouse',
+    displayName: 'Townhouse / Terraced',
+    aliases: ['townhouse', 'town house', 'row house', 'terraced', 'terrace house'],
+    sans10400Class: 'Class 1 – Single-unit dwelling (attached)',
+    zbcClass: 'Part 1 – Small Buildings (attached residential)',
+    defaultStoreys: 2,
+    defaultProgram: [
+      { name: 'Living / Dining', count: 1, areaM2: 18 },
+      { name: 'Kitchen', count: 1, areaM2: 9 },
+      { name: 'Master Bedroom', count: 1, areaM2: 14 },
+      { name: 'Bedroom', count: 2, areaM2: 11 },
+      { name: 'Bathroom', count: 1, areaM2: 5 },
+      { name: 'Toilet', count: 1, areaM2: 2 },
+      { name: 'Stair Hall', count: 1, areaM2: 4 },
+    ],
+    minRoomDimensions: {
+      'Living / Dining': { minWidth: 3.5, minDepth: 4.5 },
+      'Master Bedroom': { minWidth: 3.5, minDepth: 3.5 },
+      'Bedroom': { minWidth: 3.0, minDepth: 3.2 },
+      'Kitchen': { minWidth: 2.5, minDepth: 3.0 },
+      'Bathroom': { minWidth: 1.8, minDepth: 2.0 },
+    },
+    maxStructuralSpan: 5.0,
+    notes: 'Attached terraced unit with party walls and zero side setback. Common in Zim cluster/housing schemes. Ground floor: living/kitchen/WC. Upper: bedrooms/bathroom.',
+  },
 ]
 
 const TYPOLOGY_MAP = new Map(TYPOLOGIES.map((t) => [t.id, t]))

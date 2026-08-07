@@ -14,6 +14,8 @@ import { ConceptPanel } from '@/components/dashboard/ConceptPanel';
 const BUILDING_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: 'auto', label: 'Auto-detect from brief' },
   { value: 'house-residential', label: 'House / Residential' },
+  { value: 'duplex', label: 'Duplex / Semi-Detached' },
+  { value: 'townhouse', label: 'Townhouse / Terraced' },
   { value: 'apartment-multi', label: 'Apartment / Flat' },
   { value: 'clinic-health', label: 'Clinic / Health Centre' },
   { value: 'school-classroom', label: 'School / Classroom Block' },

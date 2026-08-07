@@ -1361,3 +1361,42 @@ Closed the last three un-encoded §4.2 sub-parts of the SANS 10400 series: Part 
 - `npx vitest run --maxWorkers=4`: 4422/4422 tests (217 files) — +14 new compliancePhase6 tests
 - `npx vite build`: success in ~8.1s (PWA precache 127 entries, 4937.75 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+
+## Spec audit — gemini.md + brandguidelines.md adherence (Current)
+
+### What was done
+Audited the codebase against gemini.md (room standards §5, typologies §3, package numbering §6.1/§6.2, ISO 7200 §6.3, ISO 128 line weights/opening symbols) and brandguidelines.md (§2 tokens, §2.6 zone colors). Two confirmed gaps fixed; the rest verified already-shipped.
+
+### Gap fixed 1 — townhouse typology missing (§3.1)
+`typology-kb.ts` TYPOLOGIES had no `townhouse` entry even though `briefParser` returned `'townhouse'` (line 118) and `ai/schema.ts` enum contained it; `layoutEngine.ts:1061` `typologyId === 'townhouse'` branch was dead. `parseBrief.ts:325–334` matches dropdown overrides against `getAllTypologies()` (exact id → alias), so a townhouse selection silently fell back to text detection.
+- **`src/engine/typology-kb.ts`** — added `townhouse` entry: id `townhouse`, displayName "Townhouse / Terraced", aliases `['townhouse','town house','row house','terraced','terrace house']`, sans10400Class "Class 1 – Single-unit dwelling (attached)", zbcClass "Part 1 – Small Buildings (attached residential)", defaultStoreys 2, §3.1 programme (Living/Dining 18m², Kitchen 9m², Master Bedroom 14m², 2× Bedroom 11m², Bathroom 5m², Toilet 2m², Stair Hall 4m²), minRoomDimensions respecting the `roomStandards` floor, maxStructuralSpan 5.0.
+- **`src/components/ai/AiBriefPanel.tsx` + `src/components/ai/EnhancedBriefPanel.tsx`** — added `{ value: 'townhouse', label: 'Townhouse / Terraced' }` dropdown options (also added missing duplex option to both).
+
+### Gap fixed 2 — brand §2.6 room zone colors absent
+brandguidelines.md §2.6 defines Public `#E6F1FB`/`#378ADD`/`#042C53`, Private `#EAF3DE`/`#639922`/`#173404`, Service `#FAEEDA`/`#BA7517`/`#412402`, Circulation `#F1EFE8`/`#888780`/`#2C2C2A` — zero code references before this change. Interactive `PlanCanvas` used a flat `#334155` fill; print sheets used white `fill={PAPER}` opacity 0.3.
+- **`src/lib/drawings/roomZoneColors.ts`** (new) — `ROOM_ZONE_COLORS: Record<RoomZone, {fill,stroke,text}>` with the exact §2.6 hexes; `zoneColorsForRoom(name)` resolves via `getRoomStandard(name).zone` (unknown → private default); `zoneLabel(zone)`.
+- **`src/lib/drawings/planSheetRenderer.tsx`** — room `<rect>` now uses zone fill + zone stroke (fillOpacity 0.45) instead of white 0.3.
+- **`src/engine/tier1/councilPackageAssembler.ts`** — `planToSvg` replaced the arbitrary rotating `roomFills` palette with `zoneColorsForRoom` (fill/stroke/text per room).
+
+### Verified already-shipped (no change)
+- **§5 room standards** — single authority in `src/engine/standards/roomStandards.ts` (13 §5 rooms + ~90 extended; `RoomZone` classification; all consumers delegate).
+- **§6.3 ISO 7200** — `ProfessionalTitleBlock.tsx` emits project name/number, drawing title, sheet number, discipline, revision, scale, date, drawn/checked/approved.
+- **ISO 128 line weights** — `cadConstants.ts` (PEN_013…PEN_100), `src/lib/drawings/lineweights.ts` (`LW`), `src/lib/draft/pen-table.ts` (layer→ISO 128-20 map).
+- **Opening symbols** — `src/lib/drawings/openingSymbolRenderer.tsx` (`DoorSwing`/`WindowGlazing`).
+- **Brand tokens §2.1/2.2** — `src/styles/index.css` `:root` matches brandguidelines exactly (primary #1a365d, dark #0f2744, secondary #2c5282, accent #d4a574, AI #06b6d4, BIM #8b5cf6, success #10b981, warning #f59e0b, danger #ef4444, bg #0b0f19/#111827/#1e293b/#0f172a); fonts Inter/Space Grotesk/JetBrains Mono loaded.
+- **§6.2 package** — `src/engine/tier1/councilPackageAssembler.ts` full 18-sheet A-001..A-701 cross-checked against the §6.2 table (register, 5 plans, 4 elevations, 2 sections, 2 MEP, 2 schedules, construction details A-601, compliance cert A-701; all discipline `A`).
+
+### Tests (+9)
+- `src/__tests__/roomZoneColors.test.ts` (new, 7) — §2.6 exact hexes, public/private/service/circulation classification, unknown→private default, zoneLabel.
+- `src/__tests__/tier1BriefIntelligence.test.ts` — count 15→16; +2 townhouse tests (§3.1 programme fields, detectTypology("…townhouse") → id `townhouse`).
+
+### Notes
+- `typology-kb.ts` adds townhouse at array end; `getAllTypologies().length` is now 16 (updated the count assertion).
+- Zone fills use new per-room `room-bg-{id}` elements — `planDrawingUpgrade.test.ts` counts (bg/wall-ext/wall-int/room-tag/dim-overall/north-arrow/level-marker) unaffected.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4431/4431 tests (218 files) — +9 new tests (7 zone colors + 2 townhouse)
+- `npx vite build`: success (PWA precache 127 entries, 4939.17 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found

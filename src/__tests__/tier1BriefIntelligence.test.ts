@@ -5,9 +5,9 @@ import { detectHeritage } from '@/engine/heritage-kb'
 import { parseBrief } from '@/engine/parseBrief'
 
 describe('Tier 1 — Typology KB', () => {
-  it('all 15 typologies are defined with required fields', () => {
+  it('all 16 typologies are defined with required fields', () => {
     const all = getAllTypologies()
-    expect(all.length).toBe(15)
+    expect(all.length).toBe(16)
     for (const t of all) {
       expect(t.id).toBeTruthy()
       expect(t.displayName).toBeTruthy()
@@ -28,6 +28,28 @@ describe('Tier 1 — Typology KB', () => {
 
   it('getTypology returns undefined for unknown id', () => {
     expect(getTypology('nonexistent')).toBeUndefined()
+  })
+
+  it('townhouse typology exists with §3.1 programme', () => {
+    const townhouse = getTypology('townhouse')
+    expect(townhouse).toBeDefined()
+    expect(townhouse!.displayName).toContain('Townhouse')
+    expect(townhouse!.defaultStoreys).toBe(2)
+    const names = townhouse!.defaultProgram.map((p) => p.name)
+    expect(names).toContain('Living / Dining')
+    expect(names).toContain('Kitchen')
+    expect(names).toContain('Master Bedroom')
+    expect(names).toContain('Bathroom')
+    expect(names).toContain('Toilet')
+    const bed = townhouse!.defaultProgram.find((p) => p.name === 'Bedroom')
+    expect(bed!.count).toBe(2)
+  })
+
+  it('detectTypology maps "townhouse" text to the townhouse typology', () => {
+    const result = detectTypology('Build a 3 bedroom townhouse')
+    expect(result.typology).not.toBeNull()
+    expect(result.typology!.id).toBe('townhouse')
+    expect(result.confidence).toBeGreaterThanOrEqual(0.1)
   })
 
   it('detectTypology maps "clinic" text to clinic-health', () => {
