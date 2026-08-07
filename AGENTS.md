@@ -1469,3 +1469,22 @@ house (300m²/40%/5m front + masonry-230 pitched-truss strip-foundation + 30-min
 - `npx vitest run --maxWorkers=4`: 4432/4432 tests (218 files) — +1 (helper reworked, no new test files)
 - `npx vite build`: success (PWA precache 127 entries, 4941.43 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+
+## Typology KB ↔ occupancy classifier cross-check (Current, Commit: `4a84d3b`)
+
+### What was done
+Closed the audit's final open item: the two independent SANS 10400-A sources — the KB's `sans10400Class` A-codes (fixed in the prior commit) and the compliance engine's `classifyOccupancy()` in `occupancyMatrix.ts` — were never cross-checked. Confirmed all 15 single-occupancy typologies classify identically from their KB id (house/apartment/duplex/townhouse→B2, clinic/office→E1, school→A3, church/community-hall→A2, retail/market→F2, hotel→H1, warehouse→G1, petrol→J3, restaurant→F3). The only intentional divergence is `mixed-use`: gemini §3 assigns it no single class, the KB carries the explicit dual code `B2/E1 – Mixed occupancy`, and `classifyOccupancy('mixed-use')` returns the generic F1 default — documented, not fixed.
+
+### Files created (1)
+- `src/__tests__/typologyOccupancyConsistency.test.ts` — 5 cross-check tests: every KB A-code prefix is a known `OCCUPANCY_CLASSES` member (or the documented B2/E1 dual), `classifyOccupancy(typology.id)` agrees with the KB code for all 15 single-occupancy typologies, mixed-use stays dual with classifier default F1, declared `fireResistanceMin`/`maxTravelDistanceM` equal the matrix values (`fireRatingMinForClass`/`maxTravelDistanceForClass`) for typologies that carry them (house 30/25, church 120/18), and the 4 residential ids resolve to dwelling (B*) classes in both sources.
+
+### Notes
+- KB `sans10400Class` strings use en-dashes (`B2 – Medium dwelling`), so the helper parses the leading code token with `/^([A-Z]\d(?:\/[A-Z]\d)?)/` (a `split(' - ')` on ASCII hyphens failed 4 tests).
+- No production code changed — the test locks the two authorities in sync so a future KB edit cannot silently diverge from `classifyOccupancy`.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4437/4437 tests (219 files) — +5 new tests
+- `npx vite build`: success in ~8s (PWA precache 127 entries, 4941.43 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
