@@ -159,5 +159,34 @@ export function evaluateAccessibilityRules(input: ComplianceInput, prefix: strin
     `Verify there is a continuous accessible path of travel from the site boundary (parking/drop-off) to the main building entrance. Min 1200mm width, firm surface, max 1:20 cross-slope${suffix}`
   ))
 
+  // ACCESS-14: Wheelchair turning diameter (SANS 10400-S)
+  const allSpaces = [
+    ...(input.plan?.rooms ?? []).map((r) => ({ name: r.name, minDim: Math.min(r.width, r.height) })),
+    ...corridors.map((r) => ({ name: r.name, minDim: Math.min(r.width, r.height) })),
+  ]
+  if (allSpaces.length > 0) {
+    const best = allSpaces.reduce((a, b) => (b.minDim > a.minDim ? b : a))
+    results.push(r(
+      `${prefix}-access-14`, 'Wheelchair turning diameter (SANS 10400-S)',
+      best.minDim >= 1.5 ? 'pass' : 'fail',
+      `${(best.minDim * 1000).toFixed(0)} mm (largest clear space: ${best.name})`,
+      '≥ 1500 mm turning circle',
+      best.minDim >= 1.5
+        ? `Largest clear space "${best.name}" provides ${(best.minDim * 1000).toFixed(0)}mm — accommodates a 1500mm wheelchair turning circle${suffix}`
+        : `Largest clear space "${best.name}" is only ${(best.minDim * 1000).toFixed(0)}mm — below the 1500mm wheelchair turning circle required at entrances, corridors and lobbies${suffix}`
+    ))
+  } else {
+    results.push(r(`${prefix}-access-14`, 'Wheelchair turning diameter (SANS 10400-S)', 'warn', 'No rooms in plan', '≥ 1500 mm turning circle', `Verify a clear 1500mm diameter turning circle is provided at entrances, corridor ends and lobbies${suffix}`))
+  }
+
+  // ACCESS-15: Accessible WC cubicle dimensions (SANS 10400-S)
+  if (isNonRes) {
+    results.push(r(
+      `${prefix}-access-15`, 'Accessible WC cubicle (SANS 10400-S)',
+      'warn', 'Cubicle dimensions not in plan', '≥ 1800 mm × 1800 mm clear',
+      `Accessible WC cubicle must provide minimum 1800mm × 1800mm clear internal dimensions with an outward-opening door (min 900mm clear) and grab rails at 600-700mm height. Verify with accessibility consultant${suffix}`
+    ))
+  }
+
   return results
 }

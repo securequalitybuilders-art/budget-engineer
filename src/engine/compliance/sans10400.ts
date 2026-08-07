@@ -118,6 +118,25 @@ export function evaluateSans10400Rules(input: ComplianceInput, prefix: string, j
     `Provide a damp-proof course at least 150mm above ground and wall ties at max 900mm horizontal / 450mm vertical spacing in cavity walls. Full-height cavity needed where cavity construction is used${suffix}`
   ))
 
+  // SANS 10400-O — ventilation rate per person
+  const occupantLoad = input.analysis?.egress?.occupantLoad ?? 0
+  const requiredLps = occupantLoad * 5
+  if (occupantLoad > 0) {
+    results.push(r(
+      `${prefix}-s10400-o-vent-rate`, 'Ventilation rate (SANS 10400-O)',
+      'warn',
+      `~${occupantLoad} occupants → min ${requiredLps} L/s fresh air`,
+      '≥ 5 L/s per person of fresh air',
+      `SANS 10400-O requires at least 5 L/s of fresh air per person. For ${occupantLoad} occupants this is ${requiredLps} L/s, provided by natural ventilation (openable windows ≥ 5% of floor) and mechanical extract in wet rooms. Confirm fresh-air rates with the building services engineer${suffix}`
+    ))
+  } else {
+    results.push(r(
+      `${prefix}-s10400-o-vent-rate`, 'Ventilation rate (SANS 10400-O)',
+      'warn', 'No occupant load data', '≥ 5 L/s per person of fresh air',
+      `Run design to compute occupant load. Provide openable windows ≥ 5% of floor area and mechanical extract in wet rooms to meet the 5 L/s-per-person fresh-air rate${suffix}`
+    ))
+  }
+
   // SANS 10400-W — fire installation (extinguishers / hose reels)
   if (isNonRes && gfa > 0) {
     const extinguishers = Math.max(1, Math.ceil(gfa / 200))

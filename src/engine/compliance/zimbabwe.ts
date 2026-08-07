@@ -8,6 +8,7 @@ import { evaluateEnvironmentalRules } from './environmental'
 import { evaluateDrainageRules } from './drainage'
 import { evaluateLegislationRules } from './legislation'
 import { evaluateSans10160Rules } from './sans10160'
+import { evaluateSans10400Rules } from './sans10400'
 import { r, getHabitableRooms } from './helpers'
 
 export const ZBC_RULES: ComplianceRuleDef[] = [
@@ -199,6 +200,7 @@ export function evaluateZbcRules(input: ComplianceInput): ComplianceResult[] {
   const env = evaluateEnvironmentalRules(input, 'zbc', 'ZBC Part 1 / Part 11')
   const drainage = evaluateDrainageRules(input, 'zbc', 'ZBC Part 3 / Part 12')
   const legislation = evaluateLegislationRules(input, 'zbc', 'Zimbabwe statutes')
+  const s10400 = evaluateSans10400Rules(input, 'zbc', 'SANS 10400')
   const s10160 = evaluateSans10160Rules(input, 'zbc', 'SANS 10160')
-  return [...base, ...fire, ...access, ...struct, ...mep, ...typo, ...env, ...drainage, ...legislation, ...s10160]
+  return [...base, ...fire, ...access, ...struct, ...mep, ...typo, ...env, ...drainage, ...legislation, ...s10400, ...s10160]
 }

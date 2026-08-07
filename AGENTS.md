@@ -1336,3 +1336,28 @@ Encoded the full §4.4 occupancy classification matrix (16 classes A1–A3, B1�
 - `npx vitest run --maxWorkers=4`: 4408/4408 tests (216 files) — +16 new occupancyMatrix tests
 - `npx vite build`: success in ~7.0s (PWA precache 127 entries, 4933.87 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+
+## Phase 6 — SANS 10400-O/P/S sub-part gap-fill (gemini.md §4.2) (Current)
+
+### What was done
+Closed the last three un-encoded §4.2 sub-parts of the SANS 10400 series: Part P fixture-unit drain sizing, Part S wheelchair turning diameter + accessible WC cubicle, and Part O per-person ventilation rate. ISO 7200 title-block coverage (§6.3) was confirmed already present (ProfessionalTitleBlock emits project, title, sheet, scale, date, revision, drawn/checked/approved).
+
+### Files modified (4)
+- `src/engine/compliance/drainage.ts` — Added `FIXTURE_UNIT_TABLE` (7 fixture types: WC 4, basin 1, bath 2, shower 2, kitchen sink 2, laundry tub 3, urinal 2 per SANS 10400-P / SABS 0140-2), `ROOM_FIXTURE_PROFILES` (bathroom/ensuite = WC+basin+bath+shower, toilet/WC = WC, kitchen = sink, laundry = tub, urinal), `countFixtureUnits(input)` (per-room fixture-set aggregation), `suggestDrainSize(fu)` (75mm ≤30, 100mm ≤90, 150mm ≤180). New `drn-08` rule reports the estimated FU loading and recommended drain size.
+- `src/engine/compliance/accessibility.ts` — Added ACCESS-14 (wheelchair turning diameter: largest clear room/corridor min-dimension ≥ 1500mm → pass/fail) and ACCESS-15 (accessible WC cubicle 1800mm × 1800mm clear with outward-opening 900mm door + grab rails; non-residential only).
+- `src/engine/compliance/sans10400.ts` — Added `s10400-o-vent-rate` rule (SANS 10400-O: fresh air ≥ 5 L/s per person, computed from `analysis.egress.occupantLoad`, with openable-window + mechanical-extract guidance).
+- `src/engine/compliance/zimbabwe.ts` — Wired `evaluateSans10400Rules(input, 'zbc', 'SANS 10400')` into the Zimbabwe report (SANS 10400 is a shared SADC standard, same as SANS 10160; previously only South Africa ran it).
+- `src/__tests__/compliancePhase6.test.ts` (new) — 14 tests: fixture-unit table values, FU counting from room profiles, `suggestDrainSize` thresholds, drn-08 presence in both jurisdictions + null-safety, access-14 pass (spacious) / fail (tight) / null-safe, access-15 1800mm requirement + residential skip, vent-rate 5 L/s × occupantLoad + both jurisdictions + null-safety.
+
+### Notes
+- New rule IDs are additive: `{prefix}-drn-08`, `{prefix}-access-14`, `{prefix}-access-15`, `{prefix}-s10400-o-vent-rate` — no existing IDs touched (`compliance.test.ts` exact-ID contract green).
+- ACCESS-15 is non-residential only (mirrors ACCESS-05/06/10/11 policy for institutional/assembly/office occupancies); ACCESS-14 applies to all occupancies.
+- The Zimbabwe report grew by the 6 SANS 10400 rules (occupancy, matrix, sprinkler, walls, dpc, fire-install + vent-rate) — the `zimbabwe regression` test asserts only `totalRules === results.length` so it stays green.
+- `budget-engineer-canonical` submodule intentionally NOT touched.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4422/4422 tests (217 files) — +14 new compliancePhase6 tests
+- `npx vite build`: success in ~8.1s (PWA precache 127 entries, 4937.75 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
