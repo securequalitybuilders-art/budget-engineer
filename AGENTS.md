@@ -1376,6 +1376,9 @@ Closed the three leftover items from the spec audit: the stale "NaN x-attribute 
 ### gemini.md §8 — project structure tree refreshed
 - **`docs/context/gemini.md`** — replaced the stale §8 tree (referenced nonexistent `components/plan-generator/`, `engine/council/`, `engine/bim/`, `engine/parametric/`) with the actual layout: `adapters/`, `db/`, `hooks/`, `pages/ecosystem/`, `components/bim|cad|dashboard|drawings|ecosystem`, `engine/compliance|parametric|rag|tier1|tier2|tier3|standards|closeout|payment|dispatch|ecosystem`, `lib/drawings|boq|api|layout|geometry|i18n`, `stores/`. All referenced paths verified to exist.
 
+### gemini.md §2 — build constraints refreshed (follow-up, Commit: `4c99d0d`)
+- **`docs/context/gemini.md`** — updated the stale Build Constraints numbers to the current repo state: 987 source files / ~150k lines (was 700+ / ~124k), 50 IndexedDB tables / 9 schema versions (was 38+ / 6), 26 lazy-loaded routes / 26 Zustand stores (was 19 / 22). Counts verified against `src/db/db.ts` (v9 table list), `src/app/router.tsx` (`path:` entries), and `src/stores/*.ts`.
+
 ### Verification results
 - `npx tsc --noEmit --skipLibCheck`: 0 errors
 - `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
