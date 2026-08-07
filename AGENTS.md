@@ -1306,3 +1306,33 @@ Added the missing Zimbabwean legislation and SANS 10400/10160 compliance rules. 
 - `npx vitest run --maxWorkers=4`: 4392/4392 tests (215 files) — +15 new compliancePhase4 tests
 - `npx vite build`: success in ~7.4s (PWA precache 127 entries, 4929.06 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+
+## Phase 5 — SANS 10400-A occupancy classification matrix (gemini.md §4.4) (Current)
+
+### What was done
+Encoded the full §4.4 occupancy classification matrix (16 classes A1–A3, B1–B3, E1, F1–F3, G1, H1–H2, J1–J3) as a single authoritative registry and aligned the compliance engine to it. Previously `classifyOccupancy` only emitted 10 classes with several mappings that contradicted the audit §3 examples (house→A1 instead of B2, school→A2 instead of A3, hotel→A3 instead of H1, office→F1 instead of E1, church→J1 instead of A2, factory→H1 instead of J1). The per-class live-load / travel-distance / fire-rating / accessibility columns from §4.4 were not encoded anywhere.
+
+### Files created (2)
+- `src/engine/compliance/occupancyMatrix.ts` — single authority for §4.4: `OccupancyClass` union (16 codes), `OccupancyClassSpec`, `OCCUPANCY_MATRIX` (label, description, liveLoadKpa, maxTravelDistanceM, fireRatingMin, accessibilityRequired per class). `classifyOccupancy(bt)` maps building type → class using the audit §3.1–§3.4 examples (warehouse/storage→G1, petrol/fuel/filling→J3 before factory, factory/manufacturing/foundry/plant→J1, industrial→J2, workshop→J3, dormitory/hostel/boarding→H2 before school, school/classroom/education/college/university→A3, hotel/lodge/guest→H1, clinic/hospital/medical/health/care→E1, office/commercial→E1, theatre/cinema/nightclub/entertainment/concert→A1, church/chapel/mosque/temple/worship/assembly/hall→A2, restaurant/cafe/bar→F3, residential (small/cottage/studio→B3, large/mansion/executive→B1, else B2) checked BEFORE the `mall`/`shop` checks because `'small house'` contains the substring `'mall'`, then `/\bmall\b|supermarket|department/`→F1, shop/retail/store/market→F2, default→F1). Helpers: `classLabel`, `classDescription`, `liveLoadKpaForClass`, `maxTravelDistanceForClass`, `fireRatingMinForClass`, `accessibilityRequiredForClass`, `isDwellingClass` (B1–B3 only), `occupancyForClass` (primary), `compatibleOccupanciesForClass` (A2 = institutional/residential/retail, A3 = educational/institutional, E1 = office/institutional, H1/H2 = residential/institutional, J = industrial/storage, B = residential), `sprinklerThresholdForClass` (0 for B dwelling-exempt; A1/A2/A3/E1/F3/J1=500, F1/F2/H1/H2=1000, G1/J3=2000).
+- `src/__tests__/occupancyMatrix.test.ts` — 16 tests: 16-class completeness, per-class label/description, live loads, travel distances, fire ratings, accessibility, dwelling-class rule, primary occupancy, compatible occupancies, sprinkler thresholds, and classifier edge cases (small/large house→B3/B1, cottage/mansion, clinic/hospital, school/college/university, chapel/assembly hall, hotel/lodge/guest house, dormitory/hostel/boarding school, factory/manufacturing plant/foundry, petrol/filling station, workshop, theatre/cinema/nightclub, supermarket/mall/department store, storage/warehouse, unknown→F1).
+
+### Files modified (3)
+- `src/engine/compliance/sans10400.ts` — removed the old 10-class `classifyOccupancy`/`classLabel`/`occupancyForClass`/`sprinklerThreshold` inline functions (deleted ~60 lines) and now imports + re-exports `classifyOccupancy`/`classLabel` from the matrix; sprinkler rule uses `sprinklerThresholdForClass` + `isDwellingClass`; new `sans-s10400-a-matrix` rule surfaces the class live-load/travel/fire/accessibility parameters. Occupancy consistency now checks `compatibleOccupanciesForClass(occClass).includes(occupancy)` instead of exact primary match. All existing rule IDs untouched.
+- `src/engine/compliance/fireSafety.ts` — FIRE-01 travel-distance limit now `maxTravelDistanceForClass(classifyOccupancy(bt))` (was hardcoded 9/18/45 m constants); limit + status reflect the class in the required/note fields.
+- `src/engine/compliance/sans10160.ts` — new `sans-s10160-2-live-class` rule cross-checks `analysis.structural.liveLoadKnm2` against `liveLoadKpaForClass(classifyOccupancy(bt))`; existing `sans-s10160-2-live` (occupancy-based `imposedLoadKpa`) untouched.
+
+### Files modified (1 test)
+- `src/__tests__/compliancePhase4.test.ts` — classifier assertions updated to audit-correct mappings (house/apartment→B2, school→A3, hotel→H1, office→E1, factory→J1, church→A2).
+
+### Notes
+- Matrix values (gemini.md §4.4): A1 5.0 kPa/20m/120min/access, A2 5.0/18/120/yes, A3 3.0/18/60/yes, B1–B3 1.5/25/30/no, E1 2.5/18/60/yes, F1 5.0/18/120/yes, F2 4.0/18/60/yes, F3 4.0/18/60/yes, G1 7.5/25/60/no, H1–H2 2.0/18/60/yes, J1 10.0/15/240/no, J2 7.5/18/120/no, J3 5.0/25/60/no.
+- Classifier ordering traps fixed: `'small house'` contains the substring `'mall'` (would wrongly hit the F1 mall check) so residential is tested before mall; `'boarding school'` must hit the H2 dormitory check before the A3 school check; `'warehouse'` contains `'house'` so the G1 storage check comes first.
+- `compliance.test.ts` exact-ID contract still green — new rules are additive (`sans-s10400-a-matrix`, `sans-s10160-2-live-class`), no IDs removed.
+- `budget-engineer-canonical` submodule intentionally NOT touched.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4408/4408 tests (216 files) — +16 new occupancyMatrix tests
+- `npx vite build`: success in ~7.0s (PWA precache 127 entries, 4933.87 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found

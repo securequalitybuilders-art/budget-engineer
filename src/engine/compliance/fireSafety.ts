@@ -1,5 +1,6 @@
 import type { ComplianceInput, ComplianceResult, ComplianceStatus } from './types'
 import { getIsNonResidential, countStoreys } from './helpers'
+import { classifyOccupancy, maxTravelDistanceForClass } from './occupancyMatrix'
 
 function r(ruleId: string, title: string, status: ComplianceStatus, actual: string, required: string, note: string): ComplianceResult {
   return { ruleId, category: 'Fire Safety', title, status, actual, required, note }
@@ -35,22 +36,20 @@ export function evaluateFireSafetyRules(input: ComplianceInput, jurisdictionPref
   const results: ComplianceResult[] = []
 
   // FIRE-01: Travel distance to exit
-  const maxTravelResidential = 9
-  const maxTravelSprinklered = 45
-  const maxTravelUnprotected = 18
+  const occClass = classifyOccupancy(bt)
+  const maxTravelLimit = maxTravelDistanceForClass(occClass)
   const travelDist = input.analysis?.egress?.maxTravelDistanceM
   if (travelDist != null && travelDist > 0) {
-    const limit = isNonRes ? (travelDist <= maxTravelSprinklered ? maxTravelSprinklered : maxTravelUnprotected) : maxTravelResidential
     results.push(r(
       `${jurisdictionPrefix}-fire-01`, 'Travel distance to exit',
-      travelDist <= limit ? 'pass' : 'fail',
-      `${travelDist} m`, `≤ ${limit} m`,
-      travelDist <= limit ? `Travel distance ${travelDist}m within ${limit}m limit` : `Travel distance ${travelDist}m exceeds ${limit}m limit — consider additional exits or sprinklering${suffix}`
+      travelDist <= maxTravelLimit ? 'pass' : 'fail',
+      `${travelDist} m`, `≤ ${maxTravelLimit} m (class ${occClass})`,
+      travelDist <= maxTravelLimit ? `Travel distance ${travelDist}m within ${maxTravelLimit}m limit (SANS 10400-A class ${occClass})` : `Travel distance ${travelDist}m exceeds ${maxTravelLimit}m limit (class ${occClass}) — consider additional exits or sprinklering${suffix}`
     ))
   } else {
     results.push(r(
       `${jurisdictionPrefix}-fire-01`, 'Travel distance to exit',
-      'warn', 'Not computed', '≤ 9 m (residential) / ≤ 18-45 m (non-residential)',
+      'warn', 'Not computed', `≤ ${maxTravelLimit} m (class ${occClass})`,
       `Run design to compute max travel distance${suffix}`
     ))
   }

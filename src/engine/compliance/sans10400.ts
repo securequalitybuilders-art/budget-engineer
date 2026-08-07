@@ -1,5 +1,18 @@
 import type { ComplianceInput, ComplianceResult, ComplianceStatus } from './types'
 import { getIsNonResidential } from './helpers'
+import {
+  classifyOccupancy,
+  classLabel,
+  compatibleOccupanciesForClass,
+  isDwellingClass,
+  liveLoadKpaForClass,
+  maxTravelDistanceForClass,
+  fireRatingMinForClass,
+  accessibilityRequiredForClass,
+  sprinklerThresholdForClass,
+} from './occupancyMatrix'
+
+export { classifyOccupancy, classLabel }
 
 function r(ruleId: string, title: string, status: ComplianceStatus, actual: string, required: string, note: string): ComplianceResult {
   return { ruleId, category: 'SANS 10400', title, status, actual, required, note }
@@ -13,8 +26,10 @@ function getGfa(input: ComplianceInput): number {
  * SANS 10400 — Parts A (Occupancy classes), K (Walls), W (Fire installation).
  *
  * Occupancy classification drives every other requirement in the code, so a
- * plan's building type is mapped to a classification letter (A1–A3 dwelling,
- * F1–F3 business, G1 warehouse, H1–H2 factory, etc.).
+ * plan's building type is mapped to a classification letter (A1–A3 assembly /
+ * instruction, B1–B3 dwellings, E1 office, F1–F3 business, G1 storage,
+ * H1–H2 hotel/dormitory, J1–J3 industrial) via the occupancy matrix
+ * (gemini.md §4.4).
  */
 export function evaluateSans10400Rules(input: ComplianceInput, prefix: string, jurisdictionLabel: string): ComplianceResult[] {
   const bt = input.buildingType || 'house'
@@ -27,7 +42,7 @@ export function evaluateSans10400Rules(input: ComplianceInput, prefix: string, j
   // SANS 10400-A — occupancy classification
   const occClass = classifyOccupancy(bt)
   const occupancy = input.analysis?.structural?.occupancy
-  const occupancyOk = !occupancy || occupancyForClass(occClass) === occupancy
+  const occupancyOk = !occupancy || compatibleOccupanciesForClass(occClass).includes(occupancy)
   results.push(r(
     `${prefix}-s10400-a-occupancy`, 'Occupancy classification (SANS 10400-A)',
     occupancyOk ? 'pass' : 'warn',
@@ -38,9 +53,22 @@ export function evaluateSans10400Rules(input: ComplianceInput, prefix: string, j
       : `Building type "${bt}" maps to occupancy class ${occClass} but structural analysis used "${occupancy}". Re-classify so all downstream requirements use the same class${suffix}`
   ))
 
+  // SANS 10400-A — occupancy matrix parameters (live load / travel / fire / access)
+  const liveLoad = liveLoadKpaForClass(occClass)
+  const travelLimit = maxTravelDistanceForClass(occClass)
+  const fireRatingMin = fireRatingMinForClass(occClass)
+  const accessRequired = accessibilityRequiredForClass(occClass)
+  results.push(r(
+    `${prefix}-s10400-a-matrix`, 'Occupancy matrix parameters (SANS 10400-A)',
+    'warn',
+    `Class ${occClass} — ${liveLoad.toFixed(1)} kPa, ${travelLimit} m travel, ${fireRatingMin} min FRR, access ${accessRequired ? 'required' : 'not required'}`,
+    'Per SANS 10400-A occupancy matrix',
+    `For class ${occClass} (${classLabel(occClass)}): design live load ≥ ${liveLoad.toFixed(1)} kPa, max travel distance ≤ ${travelLimit} m, minimum fire resistance ${fireRatingMin} min, and ${accessRequired ? 'wheelchair accessibility required' : 'no accessibility requirement under the class matrix'}. Confirm with the design team${suffix}`
+  ))
+
   // SANS 10400-A — sprinkler triggers by occupancy
-  const sprinklerArea = sprinklerThreshold(occClass)
-  const isDwelling = ['A1', 'A2', 'A3'].includes(occClass)
+  const sprinklerArea = sprinklerThresholdForClass(occClass)
+  const isDwelling = isDwellingClass(occClass)
   if (isDwelling) {
     results.push(r(
       `${prefix}-s10400-a-sprinkler`, 'Sprinkler / fire-system trigger (SANS 10400-A/W)',
@@ -112,72 +140,4 @@ export function evaluateSans10400Rules(input: ComplianceInput, prefix: string, j
   }
 
   return results
-}
-
-/** SANS 10400-A occupancy class from a building type string. */
-export function classifyOccupancy(bt: string): string {
-  const b = bt.toLowerCase()
-  if (b.includes('warehouse')) return 'G1'
-  if (b.includes('factory') || b.includes('industrial') || b.includes('workshop') || b.includes('manufacturing')) return 'H1'
-  if (b.includes('school') || b.includes('classroom') || b.includes('education') || b.includes('college')) return 'A2'
-  if (b.includes('hotel') || b.includes('guest') || b.includes('boarding')) return 'A3'
-  if (b.includes('clinic') || b.includes('hospital') || b.includes('medical') || b.includes('health')) return 'E1'
-  if (b.includes('office')) return 'F1'
-  if (b.includes('shop') || b.includes('retail') || b.includes('store')) return 'F2'
-  if (b.includes('restaurant') || b.includes('cafe') || b.includes('bar')) return 'F3'
-  if (b.includes('church') || b.includes('hall') || b.includes('assembly') || b.includes('theatre')) return 'J1'
-  if (['house', 'apartment', 'townhouse', 'dwelling', 'flat'].some((k) => b.includes(k))) return 'A1'
-  return isNonResidentialType(b) ? 'F1' : 'A1'
-}
-
-function isNonResidentialType(b: string): boolean {
-  return !['house', 'apartment', 'townhouse', 'dwelling', 'flat'].some((k) => b.includes(k))
-}
-
-function classLabel(cls: string): string {
-  const labels: Record<string, string> = {
-    A1: 'Dwelling house (A1)',
-    A2: 'Dwelling/boarding house — educational (A2)',
-    A3: 'Dwelling/boarding house — hotel/guest (A3)',
-    E1: 'Place of care — clinic/hospital (E1)',
-    F1: 'Business & commerce — offices (F1)',
-    F2: 'Business & commerce — shops (F2)',
-    F3: 'Business & commerce — restaurants/bars (F3)',
-    G1: 'Storage — warehouse (G1)',
-    H1: 'Factory / industrial (H1)',
-    J1: 'Assembly — church/hall/theatre (J1)',
-  }
-  return labels[cls] ?? `Class ${cls}`
-}
-
-function occupancyForClass(cls: string): string {
-  const map: Record<string, string> = {
-    A1: 'residential',
-    A2: 'educational',
-    A3: 'residential',
-    E1: 'institutional',
-    F1: 'office',
-    F2: 'retail',
-    F3: 'retail',
-    G1: 'storage',
-    H1: 'industrial',
-    J1: 'institutional',
-  }
-  return map[cls] ?? 'residential'
-}
-
-function sprinklerThreshold(cls: string): number {
-  const map: Record<string, number> = {
-    A1: 0, // dwellings exempt; handled above
-    A2: 0,
-    A3: 0,
-    E1: 500,
-    F1: 1000,
-    F2: 1000,
-    F3: 500,
-    G1: 2000,
-    H1: 1000,
-    J1: 500,
-  }
-  return map[cls] ?? 1000
 }

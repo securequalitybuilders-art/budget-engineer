@@ -1,5 +1,6 @@
 import type { ComplianceInput, ComplianceResult, ComplianceStatus } from './types'
 import type { StructuralOccupancy } from '@/engine/calculators/structuralLoad'
+import { classifyOccupancy, liveLoadKpaForClass, classLabel } from './occupancyMatrix'
 
 function r(ruleId: string, title: string, status: ComplianceStatus, actual: string, required: string, note: string): ComplianceResult {
   return { ruleId, category: 'SANS 10160', title, status, actual, required, note }
@@ -42,6 +43,22 @@ export function evaluateSans10160Rules(input: ComplianceInput, prefix: string, j
         ? `Applied live load ${live.toFixed(2)} kN/m² meets the ${s10160Live.toFixed(1)} kN/m² minimum for ${occ} occupancy${suffix}`
         : `Applied live load ${live.toFixed(2)} kN/m² is below the ${s10160Live.toFixed(1)} kN/m² minimum for ${occ} occupancy under SANS 10160-2 — check the occupancy category and increase the design load${suffix}`)
       : `Run design to compute structural loads; SANS 10160-2 prescribes ${s10160Live.toFixed(1)} kN/m² for ${occ} occupancy${suffix}`
+  ))
+
+  // SANS 10160-2 — imposed loads cross-checked against the SANS 10400-A class matrix
+  const occClass = classifyOccupancy(bt)
+  const matrixLive = liveLoadKpaForClass(occClass)
+  const matrixLiveOk = live === 0 || live >= matrixLive - 0.01
+  results.push(r(
+    `${prefix}-s10160-2-live-class`, 'Imposed loads vs occupancy class matrix (SANS 10160-2 / 10400-A)',
+    matrixLiveOk ? 'pass' : 'fail',
+    live > 0 ? `${live.toFixed(2)} kN/m² used` : 'Loads not computed',
+    `≥ ${matrixLive.toFixed(1)} kN/m² for class ${occClass} (${classLabel(occClass)})`,
+    live > 0
+      ? (matrixLiveOk
+        ? `Applied live load ${live.toFixed(2)} kN/m² meets the ${matrixLive.toFixed(1)} kN/m² matrix minimum for occupancy class ${occClass} (${classLabel(occClass)})${suffix}`
+        : `Applied live load ${live.toFixed(2)} kN/m² is below the ${matrixLive.toFixed(1)} kN/m² matrix minimum for occupancy class ${occClass} (${classLabel(occClass)}) under SANS 10400-A — check the occupancy category${suffix}`)
+      : `Run design to compute structural loads; the ${occClass} occupancy matrix prescribes ${matrixLive.toFixed(1)} kN/m² live load${suffix}`
   ))
 
   // SANS 10160-2 — imposed load reduction / tributary check note
