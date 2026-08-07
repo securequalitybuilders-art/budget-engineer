@@ -1,7 +1,7 @@
 import type { WallSegment, Opening } from '../../domain/plan'
 import type { RoomPolygon } from './room-polygons'
 import type { NormalizedBoundary } from './shared-boundaries'
-import { classifyRoom, findCirculationSpine } from './plan-intelligence'
+import { classifyRoom, findCirculationSpine } from './room-roles'
 import type { RoomRect } from '../../domain/plan'
 import { findExternalWallsTouchingRoom } from './canonical-wall-graph'
 

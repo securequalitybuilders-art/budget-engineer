@@ -1,4 +1,4 @@
-import type { PlacedRoom, FloorPlan } from './layoutEngine'
+import type { PlacedRoom, FloorPlan } from './tier3-types'
 import { classifyRoom } from './roomClassifier'
 // ── Construction defaults ──
 

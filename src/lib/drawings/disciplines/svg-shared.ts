@@ -1,7 +1,7 @@
 import type { Vec2, MaterialSystem, CadWall, CadOpening, CadBlock, CadBoundary } from '@/domain/ws6-types';
 import type { DrawingProvenance } from '@/domain/drawing-provenance';
 import { TitleBlockMeta, buildTitleBlock, TITLE_BLOCK_H } from '../title-block';
-import type { SectionConfig } from '../section-svg';
+import type { SectionConfig } from '@/domain/ws6-types';
 import { LW } from '../lineweights';
 import { HATCH_PATTERNS } from '../hatch-library';
 export { HATCH_PATTERNS };

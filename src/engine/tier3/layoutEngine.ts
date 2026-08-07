@@ -3,70 +3,34 @@ import type { ConstraintReport } from '../../domain/building'
 import type { DesignConcept } from '../tier2/conceptEngine'
 import type { DesignConstraints } from '../../adapters/designConstraints'
 import { generateVerticalChassis, validateConstraintReport } from './vertical-chassis'
-import type { VerticalChassis } from './vertical-chassis'
-import { classifyRoom } from './roomClassifier'
+import { classifyRoom, dimForRoom } from './roomClassifier'
 import { analyzeCirculation, findEntryAdjacentRoom } from './circulationEngine'
-import type { EgressPoint, AdjacencyWarning } from './circulationEngine'
 import { solveConstraintPlacement } from './constraintPlacer'
 import { solveTopologyPlacement } from './topologySolver'
 import type { TopologyBoundaryParams } from './topologySolver'
 import { computeStairwellDesign, computeStairArea, enforceVerticalStacking, partitionProgramForStoreys } from './multiStoreySolver'
+import type {
+  Topology,
+  MasterChassis,
+  LayoutParameters,
+  PlacedRoom,
+  FloorPlan,
+  ExpandedProgramItem,
+  VerticalChassis,
+} from './tier3-types'
 
 export type { ProgramItem } from '../tier1-types'
-export type Topology = 'rectangle' | 'l-shape' | 'split-wing' | 'courtyard'
-
-export interface MasterChassis {
-  topology: Topology
-  buildingW: number
-  buildingD: number
-  stairwell?: { x: number; y: number; w: number; h: number }
-  wetZone?: { x: number; w: number }
-  rectangle?: { frontD: number; corridorH: number; backD: number; corridorY: number }
-  lShape?: { vertW: number; vertH: number; horizD: number; corridorW: number }
-  splitWing?: { pavW: number; leftH: number; rightH: number; galleryW: number }
-  courtyard?: { wingDepth: number; outerW: number; outerD: number }
-  verticalChassis?: VerticalChassis
-}
-
-export interface LayoutParameters {
-  topologies: Topology[]
-  siteWidth: number
-  siteDepth: number
-  wallThickness: number
-  corridorWidth: number
-  minRoomDimensions: Record<string, { minWidth: number; minDepth: number }>
-  floorCount: number
-  floorHeight: number
-  maxStructuralSpan?: number
-  constraints?: DesignConstraints
-}
-
-export interface PlacedRoom {
-  name: string
-  x: number
-  y: number
-  width: number
-  height: number
-  zone?: 'public' | 'private' | 'service' | 'circulation'
-  isWetCore?: boolean
-}
-
-export interface FloorPlan {
-  id: string
-  name: string
-  topology: Topology
-  width: number
-  height: number
-  rooms: PlacedRoom[]
-  floorIndex?: number
-  totalFloors?: number
-  stairCalculations?: { risers: number; treads: number; run: number }
-  verticalChassis?: VerticalChassis
-  egressPoints?: EgressPoint[]
-  adjacencyWarnings?: AdjacencyWarning[]
-  maxTravelDistance?: number
-  egressCompliant?: boolean
-}
+export type {
+  Topology,
+  MasterChassis,
+  LayoutParameters,
+  PlacedRoom,
+  FloorPlan,
+  ExpandedProgramItem,
+  EgressPoint,
+  AdjacencyWarning,
+  VerticalChassis,
+} from './tier3-types'
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 
@@ -111,15 +75,6 @@ function gatherMinDims(typology: Typology | null): Record<string, { minWidth: nu
   return merged
 }
 
-export function dimForRoom(name: string, minDims: Record<string, { minWidth: number; minDepth: number }>): { minWidth: number; minDepth: number } {
-  if (minDims[name]) return minDims[name]
-  for (const [key, dim] of Object.entries(minDims)) {
-    if (name.startsWith(key) || key.startsWith(name)) return dim
-  }
-  const cls = classifyRoom(name)
-  return { minWidth: cls.minWidth, minDepth: cls.minDepth }
-}
-
 function roomsIntersect(a: PlacedRoom, b: PlacedRoom): boolean {
   return (
     a.x < b.x + b.width &&
@@ -149,13 +104,6 @@ function zbcEnforce(room: PlacedRoom, minDims: Record<string, { minWidth: number
 
 function totalProgramArea(program: ProgramItem[]): number {
   return program.reduce((s, p) => s + p.areaM2 * p.count, 0)
-}
-
-export interface ExpandedProgramItem {
-  name: string
-  area: number
-  zone?: 'public' | 'private' | 'service' | 'circulation'
-  isWetCore?: boolean
 }
 
 function expandProgram(program: ProgramItem[]): ExpandedProgramItem[] {

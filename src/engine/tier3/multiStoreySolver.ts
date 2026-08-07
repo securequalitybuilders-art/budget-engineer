@@ -1,4 +1,4 @@
-import type { FloorPlan, ProgramItem } from './layoutEngine'
+import type { FloorPlan, ProgramItem } from './tier3-types'
 import type { VerticalChassis } from './vertical-chassis'
 
 export interface StairwellDesign {

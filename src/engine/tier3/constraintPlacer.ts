@@ -1,5 +1,5 @@
-import { dimForRoom } from './layoutEngine'
-import type { PlacedRoom, ExpandedProgramItem } from './layoutEngine'
+import { dimForRoom } from './roomClassifier'
+import type { PlacedRoom, ExpandedProgramItem } from './tier3-types'
 import { classifyRoom } from './roomClassifier'
 
 // ── Types ──

@@ -1,76 +1,32 @@
 import type { Tier1ParsedBrief } from '../tier1-types'
-import type { LayoutParameters } from './layoutEngine'
+import type {
+  LayoutParameters,
+  FloorPlan,
+  VerticalChassis,
+  CoreType,
+  CoreZone,
+  WetWall,
+  ServiceShaft,
+  PartyWallInfo,
+  CirculationZone,
+  StructuralAxis,
+} from './tier3-types'
 import {
   type BuildingChassis,
   type StructuralSystem,
   generateBuildingChassis as canonicalGenerateChassis,
 } from '../../lib/layout/vertical-chassis'
 
-export type CoreType = 'stair' | 'lift' | 'service' | 'combined'
-
-export interface CoreZone {
-  id: string
-  type: CoreType
-  x: number
-  y: number
-  width: number
-  depth: number
-  hasStair: boolean
-  hasLift: boolean
-  hasServiceShaft: boolean
-}
-
-export interface WetWall {
-  id: string
-  x: number
-  width: number
-  floorFrom: number
-  floorTo: number
-}
-
-export interface ServiceShaft {
-  id: string
-  x: number
-  y: number
-  width: number
-  depth: number
-  serviceTypes: string[]
-  floorFrom: number
-  floorTo: number
-}
-
-export interface PartyWallInfo {
-  x: number
-  fireRating: number
-  acousticRating: number
-  continuous: boolean
-}
-
-export interface CirculationZone {
-  type: 'public' | 'private' | 'service'
-  label: string
-}
-
-export interface StructuralAxis {
-  id: string
-  position: number
-  direction: 'x' | 'y'
-  label: string
-}
-
-export interface VerticalChassis {
-  structuralAxes: StructuralAxis[]
-  cores: CoreZone[]
-  wetWalls: WetWall[]
-  serviceShafts: ServiceShaft[]
-  partyWalls: PartyWallInfo[]
-  circulationZones: CirculationZone[]
-  storeyCount: number
-  isDuplex: boolean
-  isMixedUse: boolean
-  // Bridge to canonical chassis
-  canonicalChassis?: BuildingChassis
-}
+export type {
+  CoreType,
+  CoreZone,
+  WetWall,
+  ServiceShaft,
+  PartyWallInfo,
+  CirculationZone,
+  StructuralAxis,
+  VerticalChassis,
+} from './tier3-types'
 
 let uidCounter = 0
 function uid(prefix: string): string {
@@ -275,7 +231,7 @@ export function generateVerticalChassis(
   }
 }
 
-export function validateConstraintReport(chassis: VerticalChassis, plans: import('./layoutEngine').FloorPlan[][]): {
+export function validateConstraintReport(chassis: VerticalChassis, plans: FloorPlan[][]): {
   structuralAlignmentPass: boolean
   shaftContinuityPass: boolean
   circulationEgressPass: boolean

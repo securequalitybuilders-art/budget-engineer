@@ -1,4 +1,4 @@
-import type { BuildingTypology } from './typology-router'
+import type { BuildingTypology } from './typology-types'
 
 export type ZoneRole = 'public' | 'private' | 'wet' | 'service' | 'circulation' | 'core' | 'void'
 

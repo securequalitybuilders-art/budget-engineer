@@ -5,74 +5,13 @@ import { buildPolygons } from './room-polygons'
 import { detectSharedBoundaries } from './shared-boundaries'
 import { buildCanonicalWallGraph } from './canonical-wall-graph'
 import { resolveOpeningHosts } from './opening-hosts'
+import { classifyRoom, isHabitable, findCirculationSpine } from './room-roles'
+import type { RoomRole } from './room-roles'
+
+export type { RoomRole } from './room-roles'
+export { classifyRoom, isHabitable, isDry, findCirculationSpine } from './room-roles'
 
 const uid = () => Math.random().toString(36).slice(2, 10)
-
-export type RoomRole = 'circulation' | 'public' | 'private' | 'wet' | 'service'
-
-const ROLE_MAP: Record<string, RoomRole> = {
-  'Circulation': 'circulation',
-  'Corridor': 'circulation',
-  'Hall': 'circulation',
-  'Lobby': 'circulation',
-  'Stairwell': 'circulation',
-  'Gallery': 'circulation',
-  'Lounge / Dining': 'public',
-  'Living / Kitchen / Dining': 'public',
-  'Living Room': 'public',
-  'Lounge': 'public',
-  'Dining': 'public',
-  'Dining Room': 'public',
-  'Reception / Waiting': 'public',
-  'Reception': 'public',
-  'Reception / Lobby': 'public',
-  'Main Hall': 'public',
-  'Main Hall / Sanctuary': 'public',
-  'Sales Floor': 'public',
-  'Retail Floor': 'public',
-  'Open Plan Office': 'public',
-  'Bedroom': 'private',
-  'Master Bedroom': 'private',
-  'Bedroom 1': 'private',
-  'Bedroom 2': 'private',
-  'Bedroom 3': 'private',
-  'Guest Room': 'private',
-  'Study / Flex': 'private',
-  'Study': 'private',
-  'Bathroom': 'wet',
-  'Bathroom 1': 'wet',
-  'Bathroom 2': 'wet',
-  'Kitchen': 'wet',
-  'Kitchenette': 'wet',
-  'Laundry': 'wet',
-  'Guest WC': 'wet',
-  'Store': 'service',
-  'Store Room': 'service',
-  'Storage': 'service',
-  'Veranda': 'public',
-  'Verandah': 'public',
-  'Balcony': 'public',
-  'Roof Terrace': 'public',
-  'Courtyard': 'public',
-  'Staff Room': 'service',
-  'Office': 'service',
-  'Admin Office': 'service',
-}
-
-export function classifyRoom(name: string): RoomRole {
-  for (const [prefix, role] of Object.entries(ROLE_MAP)) {
-    if (name.startsWith(prefix) || name === prefix) return role
-  }
-  return 'private'
-}
-
-export function isHabitable(role: RoomRole): boolean {
-  return role === 'public' || role === 'private'
-}
-
-export function isDry(role: RoomRole): boolean {
-  return role === 'circulation' || role === 'public' || role === 'private'
-}
 
 export interface RoomMinimums {
   minWidth: number
@@ -255,20 +194,6 @@ export function buildWallGraphFromRooms(rooms: RoomRect[]): { walls: WallSegment
   }
 
   return { walls, adjacency: edges }
-}
-
-export function findCirculationSpine(rooms: RoomRect[]): RoomRect | null {
-  const preferred = ['Circulation', 'Hall', 'Lobby', 'Corridor']
-  for (const name of preferred) {
-    const found = rooms.find(r => r.name === name || r.name.startsWith(name))
-    if (found) return found
-  }
-  // Fallback: find the longest public room (likely Lounge/Dining)
-  const publicRooms = rooms.filter(r => classifyRoom(r.name) === 'public')
-  if (publicRooms.length > 0) {
-    return publicRooms.reduce((a, b) => (a.width * a.height > b.width * b.height ? a : b))
-  }
-  return null
 }
 
 export interface SmartOpeningsParams {

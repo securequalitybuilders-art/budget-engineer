@@ -1,18 +1,6 @@
-import type { PlacedRoom } from './layoutEngine'
+import type { PlacedRoom, EgressPoint, AdjacencyWarning } from './tier3-types'
 
-export interface EgressPoint {
-  label: string
-  x: number
-  y: number
-  type: 'main-entry' | 'secondary-exit' | 'emergency-exit'
-}
-
-export interface AdjacencyWarning {
-  roomA: string
-  roomB: string
-  distance: number
-  message: string
-}
+export type { EgressPoint, AdjacencyWarning } from './tier3-types'
 
 export interface CirculationResult {
   egressPoints: EgressPoint[]

@@ -211,3 +211,12 @@ export function classifyRoom(name: string): RoomClass {
   if (lookup.includes('Reception')) return ROOM_CLASSES['Reception']
   return { zone: 'private', isWetCore: false, minWidth: 2.0, minDepth: 2.0 }
 }
+
+export function dimForRoom(name: string, minDims: Record<string, { minWidth: number; minDepth: number }>): { minWidth: number; minDepth: number } {
+  if (minDims[name]) return minDims[name]
+  for (const [key, dim] of Object.entries(minDims)) {
+    if (name.startsWith(key) || key.startsWith(name)) return dim
+  }
+  const cls = classifyRoom(name)
+  return { minWidth: cls.minWidth, minDepth: cls.minDepth }
+}

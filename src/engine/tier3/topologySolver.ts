@@ -1,4 +1,4 @@
-import type { PlacedRoom, ExpandedProgramItem } from './layoutEngine'
+import type { PlacedRoom, ExpandedProgramItem } from './tier3-types'
 import { solveConstraintPlacement } from './constraintPlacer'
 
 export type TopologyType = 'rectangle' | 'l-shape' | 'split-wing' | 'courtyard'

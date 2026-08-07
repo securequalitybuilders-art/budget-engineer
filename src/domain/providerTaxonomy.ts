@@ -1,4 +1,4 @@
-import type { ProviderType } from './marketplace';
+export type ProviderType = 'contractor' | 'supplier' | 'professional' | 'subcontractor' | 'consultant';
 
 /**
  * Specialized Construction Personnel & Service Providers Matrix.

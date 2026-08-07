@@ -1118,3 +1118,42 @@ Added the full closeout workflow (Schedule of Values, Financial Closeout, Gain/F
 - `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
 - `npx vitest run`: 4312/4312 tests (210 files) - +39 new tests
 - `npx vite build`: success in ~24s (PWA precache 124 entries, 4900.80 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport); CloseoutStudio lazy chunk 31 kB
+
+## Circular-dependency elimination — 16 cycles → 0 (Current)
+
+### What was done
+Eliminated all 16 circular dependencies reported by madge (`npx madge --circular --extensions ts,tsx src`, 962 files). Three clusters of runtime **value cycles** and three **type-only cycles** were broken by extracting shared code into leaf modules; every moved export is re-exported from its original module so all existing imports/tests compile unchanged.
+
+### Tier3 value cycle (`layoutEngine` ↔ `constraintPlacer`/`vertical-chassis`/`circulationEngine`/`multiStoreySolver`/`topologySolver`)
+- `src/engine/tier3/tier3-types.ts` — became the single home for all shared tier3 types: `Topology`, `MasterChassis`, `LayoutParameters`, `PlacedRoom`, `FloorPlan`, `ExpandedProgramItem`, `EgressPoint`, `AdjacencyWarning`, plus the chassis types (`VerticalChassis`, `CoreType`, `CoreZone`, `WetWall`, `ServiceShaft`, `PartyWallInfo`, `CirculationZone`, `StructuralAxis`) and `Tier3Result`. Depends only on type-only `DesignConstraints` + `BuildingChassis` (both leaf). Re-exports `ProgramItem` from `../tier1-types`.
+- `src/engine/tier3/roomClassifier.ts` — gained `dimForRoom` (was in layoutEngine:114; leaf, uses local `classifyRoom`).
+- `src/engine/tier3/layoutEngine.ts` — deleted the moved types + `dimForRoom`; imports them from `tier3-types.ts`/`roomClassifier.ts`; re-exports all shared types (external consumers like `@/engine/tier3/layoutEngine` keep working).
+- `vertical-chassis.ts`, `circulationEngine.ts`, `constraintPlacer.ts`, `topologySolver.ts`, `multiStoreySolver.ts`, `standingValidator.ts`, `multiObjectiveOptimizer.ts` — type imports re-pointed to `tier3-types.ts` (or `roomClassifier.ts` for `dimForRoom`); `circulationEngine`/`vertical-chassis` re-export their moved types.
+
+### plan-intelligence ↔ opening-hosts value cycle
+- `src/lib/geometry/room-roles.ts` (new leaf, deps only on type `RoomRect` from `domain/plan`) — `RoomRole`, `ROLE_MAP`, `classifyRoom`, `isHabitable`, `isDry`, `findCirculationSpine`.
+- `plan-intelligence.ts` — imports + re-exports them (so `egress-graph`, `repair-engine`, `grid-packer`, `non-residential`, `p12_9c-review.test.ts` keep working); `opening-hosts.ts` now imports `classifyRoom`/`findCirculationSpine` from the leaf.
+
+### Layout chain cycles (`plan-intelligence`/`layout-templates`/`typology-router`/`grid-packer`/`residential`/`non-residential`)
+- `src/lib/layout/typology-types.ts` (new leaf, deps only on type `PlanningZoneMarker`) — `BuildingTypology`, `FloorContext`, `FloorLayoutResult`, `TypologyStrategy`.
+- `layout-templates.ts` now imports `BuildingTypology` from the leaf (was importing from `typology-router` — the reverse-direction value imports made this the root edge of all 6 layout cycles); `typology-router.ts` imports + re-exports the four types.
+
+### Type-only cycles (3)
+- `domain/marketplace.ts` ↔ `domain/providerTaxonomy.ts` — `ProviderType` moved into `providerTaxonomy.ts` (now a self-contained leaf); `marketplace.ts` imports it + re-exports (`export type { ProviderType } from './providerTaxonomy'`).
+- `lib/drawings/section-svg.ts` ↔ `lib/drawings/disciplines/svg-shared.ts` — `svg-shared.ts` now imports `SectionConfig` directly from `@/domain/ws6-types` (section-svg re-exports it from there; floor-plan-svg unaffected).
+- `lib/ai/ai-provider.ts` ↔ `lib/ai/webllm-parser.ts` — `BRIEF_PROMPT`, `extractJson`, `coerceBrief` moved to new leaf `src/lib/ai/brief-coercion.ts`; both ai-provider (re-export) and webllm-parser (import) point at it.
+
+### Files created (4)
+- `src/lib/geometry/room-roles.ts`, `src/lib/layout/typology-types.ts`, `src/lib/ai/brief-coercion.ts`, plus rewritten `src/engine/tier3/tier3-types.ts`
+
+### Notes
+- `isDry` has no consumer but stays re-exported from `plan-intelligence.ts` for API parity.
+- The `budget-engineer-canonical` submodule mirror was intentionally NOT touched (repo convention).
+- One vitest run showed 4282/4283 with an infra-level worker-pool timeout (`ecosystemDashboards.test.tsx`); the file passes 17/17 in isolation — flake, unrelated to these changes.
+
+### Verification results
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (was 16 cycles)
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4282/4283 (1 infra flake, passes in isolation); `npx vitest run src/__tests__/ecosystemDashboards.test.tsx`: 17/17
+- `npx vite build`: success in ~9s (PWA precache 125 entries, 4900.91 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)

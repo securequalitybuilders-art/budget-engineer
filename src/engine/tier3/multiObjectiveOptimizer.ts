@@ -1,6 +1,6 @@
 import type { Tier1ParsedBrief } from '../tier1-types'
 import type { SpatialConstraint } from '../tier1/briefEnhancer'
-import type { LayoutParameters, FloorPlan, PlacedRoom, Topology } from './layoutEngine'
+import type { LayoutParameters, FloorPlan, PlacedRoom, Topology } from './tier3-types'
 import type { DesignOption } from '../../domain/boq'
 import type { PlanModel, RoomRect } from '../../domain/plan'
 import { analyzeCirculation } from './circulationEngine'

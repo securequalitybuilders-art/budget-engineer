@@ -1,6 +1,6 @@
-import type { ProviderCategory, ProviderSpecialty } from './providerTaxonomy';
+import type { ProviderCategory, ProviderSpecialty, ProviderType } from './providerTaxonomy';
 
-export type ProviderType = 'contractor' | 'supplier' | 'professional' | 'subcontractor' | 'consultant';
+export type { ProviderType } from './providerTaxonomy';
 
 export type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'flagged';
 

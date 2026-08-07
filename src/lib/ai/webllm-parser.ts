@@ -1,5 +1,5 @@
 import { ParsedBrief } from './ai-types';
-import { BRIEF_PROMPT, extractJson, coerceBrief } from './ai-provider';
+import { BRIEF_PROMPT, extractJson, coerceBrief } from './brief-coercion';
 
 const MODEL_ID = 'Llama-3.2-1B-Instruct-q4f32_1-MLC';
 
