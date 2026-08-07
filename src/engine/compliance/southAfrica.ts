@@ -6,6 +6,8 @@ import { evaluateMepRules } from './mepServices'
 import { evaluateTypologyRules } from './typologyRules'
 import { evaluateEnvironmentalRules } from './environmental'
 import { evaluateDrainageRules } from './drainage'
+import { evaluateSans10400Rules } from './sans10400'
+import { evaluateSans10160Rules } from './sans10160'
 import { r, getHabitableRooms } from './helpers'
 
 export const SANS_RULES: ComplianceRuleDef[] = [
@@ -223,5 +225,7 @@ export function evaluateSouthAfricaRules(input: ComplianceInput): ComplianceResu
   const typo = evaluateTypologyRules(input, 'sans', 'SANS 10400')
   const env = evaluateEnvironmentalRules(input, 'sans', 'SANS 10400 Part XA / Part X')
   const drainage = evaluateDrainageRules(input, 'sans', 'SANS 10400 Part P / Part L')
-  return [...base, ...fire, ...access, ...struct, ...mep, ...typo, ...env, ...drainage]
+  const s10400 = evaluateSans10400Rules(input, 'sans', 'SANS 10400')
+  const s10160 = evaluateSans10160Rules(input, 'sans', 'SANS 10160')
+  return [...base, ...fire, ...access, ...struct, ...mep, ...typo, ...env, ...drainage, ...s10400, ...s10160]
 }

@@ -6,6 +6,8 @@ import { evaluateMepRules } from './mepServices'
 import { evaluateTypologyRules } from './typologyRules'
 import { evaluateEnvironmentalRules } from './environmental'
 import { evaluateDrainageRules } from './drainage'
+import { evaluateLegislationRules } from './legislation'
+import { evaluateSans10160Rules } from './sans10160'
 import { r, getHabitableRooms } from './helpers'
 
 export const ZBC_RULES: ComplianceRuleDef[] = [
@@ -196,5 +198,7 @@ export function evaluateZbcRules(input: ComplianceInput): ComplianceResult[] {
   const typo = evaluateTypologyRules(input, 'zbc', 'ZBC')
   const env = evaluateEnvironmentalRules(input, 'zbc', 'ZBC Part 1 / Part 11')
   const drainage = evaluateDrainageRules(input, 'zbc', 'ZBC Part 3 / Part 12')
-  return [...base, ...fire, ...access, ...struct, ...mep, ...typo, ...env, ...drainage]
+  const legislation = evaluateLegislationRules(input, 'zbc', 'Zimbabwe statutes')
+  const s10160 = evaluateSans10160Rules(input, 'zbc', 'SANS 10160')
+  return [...base, ...fire, ...access, ...struct, ...mep, ...typo, ...env, ...drainage, ...legislation, ...s10160]
 }

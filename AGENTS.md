@@ -1277,3 +1277,32 @@ Consolidated the 4+ conflicting room-minimum sources into a single authoritative
 - `npx vitest run --maxWorkers=4`: 4377/4377 tests (214 files) — +13 new roomStandards tests
 - `npx vite build`: success in ~8.5s (PWA precache 127 entries, 4914.94 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+
+## Phase 4 — Compliance legislation gap-fill (gemini.md §4.1-4.3) (Current)
+
+### What was done
+Added the missing Zimbabwean legislation and SANS 10400/10160 compliance rules. `src/engine/compliance/` previously only encoded the ZBC by-laws, SANS 10400 base rules and fire/structural/MEP/environmental/drainage shared evaluators. This closes the gemini.md audit gap for the 6 un-encoded Zimbabwean statutes (§4.1) and the SANS 10400 A/K/W + SANS 10160 parts 2-5 checks (§4.2/4.3).
+
+### Files created (4)
+- `src/engine/compliance/legislation.ts` — `evaluateLegislationRules(input, prefix, jurisdictionLabel)` (shared evaluator pattern, category 'Zimbabwean Legislation'): Model Building By-laws 1977 masonry, RT&CP Act Ch 29:12 setbacks + floor area ratio, Housing Standards & Control Act Ch 29:08 room minimums (REGISTRY-BACKED via `getRoomStandard` from `roomStandards.ts`) + ceiling heights, Urban Councils Act Ch 29:15 storey limits, Factories & Works Act Ch 14:08 workplace safety (non-residential only), EMA Ch 20:27 wetlands/watercourses + stormwater. Architects Act (SI 56/2025) intentionally NOT duplicated (already in `architectRegistry.ts`).
+- `src/engine/compliance/sans10400.ts` — `evaluateSans10400Rules(input, prefix, jurisdictionLabel)`: SANS 10400-A occupancy classification (`classifyOccupancy` maps buildingType to A1/A2/A3/E1/F1/F2/F3/G1/H1/J1) + sprinkler trigger thresholds (dwellings exempt), SANS 10400-K wall thickness ≥ 90mm + DPC/cavity provision, SANS 10400-W fire installation (extinguishers 1/200m², hose reels 1/1000m², residential extinguisher set).
+- `src/engine/compliance/sans10160.ts` — `evaluateSans10160Rules(input, prefix, jurisdictionLabel)`: SANS 10160-2 imposed loads (`imposedLoadKpa` per occupancy, compares `analysis.structural.liveLoadKnm2` against the code minimum), SANS 10160-3 wind (`zimbabweBasicWindSpeed` = 28 m/s), SANS 10160-4 seismic (zone factor 0.05, pass), SANS 10160-5 geotechnical (investigation required for non-residential or >800m²).
+- `src/__tests__/compliancePhase4.test.ts` — 15 tests: legislation rules present/fail/pass/factories-fire/null-safe/exact-ID contract; sans10400 rules present/classification matrix/dwelling-exempt-sprinkler/large-nonres-sprinkler/exact-ID contract; sans10160 rules in both jurisdictions/`imposedLoadKpa` values/wind speed/live-load rule.
+
+### Files modified (2)
+- `src/engine/compliance/zimbabwe.ts` — imported + wired `evaluateLegislationRules(input, 'zbc', 'Zimbabwe statutes')` and `evaluateSans10160Rules(input, 'zbc', 'SANS 10160')` into `evaluateZbcRules`.
+- `src/engine/compliance/southAfrica.ts` — imported + wired `evaluateSans10400Rules(input, 'sans', 'SANS 10400')` and `evaluateSans10160Rules(input, 'sans', 'SANS 10160')` into `evaluateSouthAfricaRules`.
+
+### Notes
+- Existing rule IDs untouched (compliance.test.ts exact-ID contract still green): zbc-min-room-area/-width, zbc-ceiling-height, zbc-means-of-escape, zbc-sanitary-provision, sans-min-room-area/-width, etc. New rules are additive with new IDs (`zbc-leg-*`, `zbc-s10160-*`, `sans-s10400-*`, `sans-s10160-*`).
+- `classifyOccupancy('warehouse')` must check warehouse BEFORE the dwelling `includes('house')` substring (warehouse contains 'house').
+- `sans10400` sprinkler threshold map: E1/F3/J1 = 500m², F1/F2/H1 = 1000m², G1 = 2000m²; A1-A3 dwellings exempt (pass rule, no automatic suppression required).
+- `sans10160` live-load check: passes when `analysis.structural.liveLoadKnm2` (engine defaults residential 1.92, office 2.40) ≥ SANS minimum (residential 1.5, office 2.5, retail 4.0, industrial/storage 6.0, educational/institutional 3.0).
+- `budget-engineer-canonical` submodule intentionally NOT touched.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4392/4392 tests (215 files) — +15 new compliancePhase4 tests
+- `npx vite build`: success in ~7.4s (PWA precache 127 entries, 4929.06 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
