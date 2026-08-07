@@ -1,3 +1,19 @@
+export interface TypologySite {
+  minPlotM2?: number
+  maxCoveragePct?: number
+  far?: number
+  frontSetbackM?: number
+  sideSetbackM?: number
+}
+
+export interface TypologyStructure {
+  wallSystem?: string
+  roofSystem?: string
+  foundation?: string
+  floorHeightM?: number
+  structuralFrame?: string
+}
+
 export interface Typology {
   id: string
   displayName: string
@@ -9,6 +25,10 @@ export interface Typology {
   minRoomDimensions: Record<string, { minWidth: number; minDepth: number }>
   notes: string
   maxStructuralSpan: number
+  site?: TypologySite
+  structure?: TypologyStructure
+  fireResistanceMin?: number
+  maxTravelDistanceM?: number
 }
 
 export interface ProgramItem {

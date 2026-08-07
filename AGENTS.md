@@ -1424,3 +1424,48 @@ brandguidelines.md §2.6 defines Public `#E6F1FB`/`#378ADD`/`#042C53`, Private `
 - `npx vitest run --maxWorkers=4`: 4431/4431 tests (218 files) — +9 new tests (7 zone colors + 2 townhouse)
 - `npx vite build`: success (PWA precache 127 entries, 4939.17 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+
+## Typology KB full alignment with gemini.md §3 (Current)
+
+### What was done
+Aligned all 16 `typology-kb.ts` entries with gemini.md §3 across every axis: occupancy codes converted from the legacy "Class N" scheme to SANS 10400-A codes, all 5 span conflicts corrected, programme gaps closed for 10 typologies, and site/structural/fire fields added to the `Typology` type (previously absent entirely).
+
+### Files modified (3)
+- `src/engine/tier1-types.ts` — `Typology` gains optional `site` (`TypologySite`: `minPlotM2`/`maxCoveragePct`/`far`/`frontSetbackM`/`sideSetbackM`), `structure` (`TypologyStructure`: `wallSystem`/`roofSystem`/`foundation`/`floorHeightM`/`structuralFrame`), `fireResistanceMin`, `maxTravelDistanceM`.
+- `src/engine/typology-kb.ts` — all 16 entries updated.
+- `src/__tests__/tier3LayoutEngine.test.ts` — `checkZbcMinimums` helper is now §5-registry-aware: per-room floor from `getMinimumDimensions(r.name)` clamped to the historical 1.5×2 blanket minimum (`Math.min(1.5, min.minWidth)` / `Math.min(2, min.minDepth)`), so Toilet (0.8m) and Staircase (0.9m) no longer trip a blanket check, while the pre-existing degrade-path placements stay covered by the 1.5×2 floor.
+
+### Occupancy codes (§3 → SANS 10400-A)
+house-residential B2, apartment-multi B2, duplex B2, townhouse B2, clinic-health E1, school-classroom A3, church-worship A2 (120-min FR, 18m travel), office-commercial E1, retail-shop F2, hotel-fullservice H1, warehouse-industrial G1, petrol-station J3, market F2, restaurant F3, community-hall A2, mixed-use B2/E1. `conceptEngine.ts:322` interpolates `sans10400Class` into prose — reads fine ("resolves 2-storey B2 requirements").
+
+### Span conflicts fixed (KB 6.0/10.0/12.0 → gemini)
+church-worship 10→15, office-commercial 6→8, retail-shop 6→8, warehouse-industrial 12→20, market 6→15. Layout engine reads `brief.typology?.maxStructuralSpan ?? 6.0` (`layoutEngine.ts:1072`) — no test asserts specific KB span values.
+
+### Programme gaps closed
+- **house-residential** — added Toilet/Laundry/Store/Verandah/Garage (gemini §3.1 list complete).
+- **clinic-health** — Consultation 2→3, added Corridor.
+- **school-classroom** — Classroom 48→42m², added Library + Corridor.
+- **hotel-fullservice** — Guest Room 28→18m², added Conference Room, 4× Toilet, Corridor, 2× Staircase, Lift Core.
+- **office-commercial** — Open-Plan 2×60→1×100m², Private Office 3→4, added Server Room, Corridor, 2× Staircase.
+- **retail-shop** — Sales Floor 80→50m², added Counter/Checkout + Store.
+- **warehouse-industrial** — Floor 300→500m², added Store.
+- **petrol-station** — added Pump Island + Store.
+- **market** — added Sales Floor 300m².
+- **apartment-multi** — merged `Staircase / Lift Core` split into 2× Staircase + Lift Core (gemini "Common: Corridor, 2× Staircase, Lift Core").
+- church-worship hall 150→200m², added Store + Vestibule. Townhouse/duplex unchanged (already matched §3.1, incl. the `tier1BriefIntelligence.test.ts` townhouse name/area assertions).
+
+### Site + structural fields (from gemini §3)
+house (300m²/40%/5m front + masonry-230 pitched-truss strip-foundation + 30-min FR/25m travel), duplex (400/45 + 60-min party wall), apartment (800/50/FAR 2.0 + RC frame brick infill raft), townhouse (200/50/zero side setback), clinic (500/40/6m + masonry-230 flat-parapet strip), school (2000/30/10m + 3.5m floor height), church (1000/35 + RC frame 5.0m), office (500/60/FAR 2.5 + RC frame 3.5m), retail (masonry-230 4.0m), hotel (2000/50 + RC frame raft), warehouse (2000/60 + steel frame pad 6.0m), market (1500/50 + steel frame 5.0m), petrol (steel frame RC slab), mixed-use (none in §3).
+
+### Notes
+- All new fields are optional — test fixtures that build literal `Typology` objects (conceptEngine.test, councilPackageAssembler.test, multiObjectiveOptimizer.test, tier3LayoutEngine.test) compile unchanged.
+- Adding `Toilet` to house/hotel defaultPrograms flows through `parseBrief` merge into the layout program; the §5 authority (0.8×1.2) is smaller than the old blanket 1.5×2 ZBC check, hence the registry-aware helper.
+- `getAllTypologies().length` still 16; `tier1BriefIntelligence.test.ts` count assertion untouched.
+- `budget-engineer-canonical` submodule intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4432/4432 tests (218 files) — +1 (helper reworked, no new test files)
+- `npx vite build`: success (PWA precache 127 entries, 4941.43 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found

@@ -4,6 +4,7 @@ import type { PlacedRoom, LayoutParameters, Topology } from '@/engine/tier3/layo
 import type { Tier1ParsedBrief, ProgramItem } from '@/engine/tier1-types'
 import { parseBrief } from '@/engine/parseBrief'
 import { generateDesignConcept } from '@/engine/tier2/conceptEngine'
+import { getMinimumDimensions } from '@/engine/standards/roomStandards'
 
 function roomsIntersect(a: PlacedRoom, b: PlacedRoom): boolean {
   return (
@@ -26,8 +27,11 @@ function assertNoOverlaps(rooms: PlacedRoom[], label: string) {
 
 function checkZbcMinimums(rooms: PlacedRoom[], label: string) {
   for (const r of rooms) {
-    expect(r.width, `${label}: "${r.name}" width >= 1.5`).toBeGreaterThanOrEqual(1.5)
-    expect(r.height, `${label}: "${r.name}" height >= 2`).toBeGreaterThanOrEqual(2)
+    const min = getMinimumDimensions(r.name)
+    const minWidth = Math.min(1.5, min.minWidth)
+    const minDepth = Math.min(2, min.minDepth)
+    expect(r.width, `${label}: "${r.name}" width >= ${minWidth}`).toBeGreaterThanOrEqual(minWidth)
+    expect(r.height, `${label}: "${r.name}" height >= ${minDepth}`).toBeGreaterThanOrEqual(minDepth)
   }
 }
 
