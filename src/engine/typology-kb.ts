@@ -1,4 +1,5 @@
 import type { Typology } from './tier1-types'
+import { getMinimumDimensions } from './standards/roomStandards'
 
 const TYPOLOGIES: Typology[] = [
   {
@@ -329,12 +330,31 @@ const TYPOLOGIES: Typology[] = [
 
 const TYPOLOGY_MAP = new Map(TYPOLOGIES.map((t) => [t.id, t]))
 
+/**
+ * Enforce the room-standards authority as a hard floor on every typology:
+ * a typology may only tighten the global minimum (via element-wise max), never
+ * undercut it. Returns a new Typology so the source table stays literal.
+ */
+function withFloor(t: Typology): Typology {
+  if (!t.minRoomDimensions || Object.keys(t.minRoomDimensions).length === 0) return t
+  const minRoomDimensions: Record<string, { minWidth: number; minDepth: number }> = {}
+  for (const [name, dim] of Object.entries(t.minRoomDimensions)) {
+    const base = getMinimumDimensions(name)
+    minRoomDimensions[name] = {
+      minWidth: Math.max(base.minWidth, dim.minWidth),
+      minDepth: Math.max(base.minDepth, dim.minDepth),
+    }
+  }
+  return { ...t, minRoomDimensions }
+}
+
 export function getTypology(id: string): Typology | undefined {
-  return TYPOLOGY_MAP.get(id)
+  const t = TYPOLOGY_MAP.get(id)
+  return t ? withFloor(t) : undefined
 }
 
 export function getAllTypologies(): Typology[] {
-  return TYPOLOGIES
+  return TYPOLOGIES.map(withFloor)
 }
 
 export function detectTypology(text: string): { typology: Typology | null; confidence: number } {
@@ -357,5 +377,5 @@ export function detectTypology(text: string): { typology: Typology | null; confi
     }
   }
 
-  return best
+  return { typology: best.typology ? withFloor(best.typology) : null, confidence: best.confidence }
 }

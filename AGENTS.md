@@ -1245,3 +1245,35 @@ Aligned the council submission package with the SADC drawing-numbering conventio
 - `npx vitest run --maxWorkers=4`: 4364/4364 tests (213 files) — +15 new tests (8 elevation faces + 7 package content)
 - `npx vite build`: success in ~17s
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+
+## Phase 3 — Room standards consolidation (gemini.md §5 gap) (Current)
+
+### What was done
+Consolidated the 4+ conflicting room-minimum sources into a single authoritative registry. The Zimbabwe §5 table values are now the single authority for the 13 canonical rooms; all consumers (plan intelligence, tier3 layout, typology KB, optimizer, classifier) delegate to it.
+
+### Files created (2)
+- `src/engine/standards/roomStandards.ts` — `ROOM_STANDARDS: Record<string, RoomStandard>` (13 §5 rooms with full spec values incl. natural-light m² + ventilation flags, plus ~90 extended non-§5 rooms; `RoomZone` public/private/service/circulation, `RoomMinimums`, `DEFAULT_STANDARD` 2.0×2.0 for unknown names). Lookup order: strip trailing number → exact key → `SPECIFIC_PREFIXES` → keyword alias table → default. Exports `getRoomStandard(name)`, `getMinimumDimensions(name)`, `listSpecStandards()` (explicit 13-name `SPEC_NAMES` list).
+- `src/__tests__/roomStandards.test.ts` — 13 tests: all 13 §5 rows with full values (Corridor/Staircase `ventilation: false`), `listSpecStandards()` length 13, natural-light presence rules, numbered variants, prefix/keyword generality, default fallback, plan-intelligence delegation, classifier zones, `dimForRoom` map-first, typology floor enforcement, all registry keys resolve to a canonical entry.
+
+### Files modified (5)
+- `src/lib/geometry/plan-intelligence.ts` — local `RoomMinimums`/`MINIMUM_DIMENSIONS`/inline `getMinimumDimensions` replaced by import + re-export of `getMinimumDimensions`/`getRoomStandard`/`listSpecStandards`/types from roomStandards.
+- `src/engine/tier3/roomClassifier.ts` — rewritten to delegate: `classifyRoom` = `toRoomClass(getRoomStandard(name))`; `dimForRoom` keeps explicit-map-first contract, falls back to classifier.
+- `src/engine/tier3/layoutEngine.ts` — `FALLBACK_MIN_DIMS` built from registry via `Object.fromEntries([...26 names].map(name => [name, getMinimumDimensions(name)]))`; Guest Room 3.5×5.5 → 3.5×4.5, Classroom 6.0×7.5 → 6.0×7.0 per §5.
+- `src/engine/typology-kb.ts` — new `withFloor(t)` returns a new `Typology` with element-wise `Math.max` per key (typology may tighten, never undercut the registry); applied in `getTypology`/`getAllTypologies`/`detectTypology`; fixed pre-existing bug where `detectTypology`'s custom return dropped `confidence`.
+- `src/engine/tier3/multiObjectiveOptimizer.ts` — hardcoded `minRoomDimensions` map replaced by registry-derived `Object.fromEntries([...5 names].map(...))`.
+
+### Test fix (1)
+- `src/__tests__/benchmark_stability.test.ts` — school fixture `'each classroom has minimum viable width'` site enlarged 16×10 → 26×20 (4 §5 6.0-m-wide classrooms + corridor cannot fit a 16×10 band; the `placeRoomsInBand` overflow clamp degrades the last room to 0.5).
+
+### Notes
+- §5 authority values: Bedroom 2.7×3.0, Kitchen 2.1×2.4, Bathroom 1.5×1.8, Living Room 3.0×3.5, Dining 2.7×3.0, Toilet 0.8×1.2, Corridor 0.9m (no min area), Staircase 0.9×2.4, Office 2.5×3.0, Classroom 6.0×7.0, etc. Non-§5 rooms keep historical engine values.
+- Keyword alias table extended (`Open Plan Office`, `Commercial Kitchen`, `Fuel Bay`, `Stairwell`/`Stair` → Staircase) to preserve tier3 `ROOM_CLASSES` name coverage; `'Living'` prefix is intentionally absent (falls to keyword → Living Room).
+- Toilet stays out of `SPEC_NAMES` (a §5 row but `listSpecStandards` only returns the canonical names actually read by the §5 loop).
+- `budget-engineer-canonical` submodule intentionally NOT touched.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4377/4377 tests (214 files) — +13 new roomStandards tests
+- `npx vite build`: success in ~8.5s (PWA precache 127 entries, 4914.94 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found

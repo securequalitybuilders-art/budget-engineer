@@ -81,7 +81,7 @@ describe('School typology', () => {
 
   it('each classroom has minimum viable width', () => {
     const program = makeProgram(['Classroom 1', 'Classroom 2', 'Classroom 3', 'Classroom 4', 'Corridor'])
-    const rooms = generateSchoolLayout(program, 16, 10)
+    const rooms = generateSchoolLayout(program, 26, 20)
     const classRooms = rooms.filter(r => r.name.includes('Classroom'))
     for (const cr of classRooms) {
       expect(cr.width).toBeGreaterThanOrEqual(1.5)

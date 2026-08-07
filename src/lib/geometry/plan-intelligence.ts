@@ -13,44 +13,11 @@ export { classifyRoom, isHabitable, isDry, findCirculationSpine } from './room-r
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 
-export interface RoomMinimums {
-  minWidth: number
-  minDepth: number
-}
+import { getMinimumDimensions, getRoomStandard, listSpecStandards } from '../../engine/standards/roomStandards'
+import type { RoomMinimums, RoomStandard, RoomZone } from '../../engine/standards/roomStandards'
 
-const MINIMUM_DIMENSIONS: Record<string, RoomMinimums> = {
-  'Master Bedroom': { minWidth: 3.5, minDepth: 4.0 },
-  'Bedroom': { minWidth: 3.0, minDepth: 3.5 },
-  'Bedroom 1': { minWidth: 3.0, minDepth: 3.5 },
-  'Bedroom 2': { minWidth: 3.0, minDepth: 3.5 },
-  'Bedroom 3': { minWidth: 3.0, minDepth: 3.5 },
-  'Guest Room': { minWidth: 3.0, minDepth: 3.5 },
-  'Bathroom': { minWidth: 1.8, minDepth: 2.2 },
-  'Bathroom 1': { minWidth: 1.8, minDepth: 2.2 },
-  'Bathroom 2': { minWidth: 1.8, minDepth: 2.2 },
-  'Kitchen': { minWidth: 2.5, minDepth: 3.0 },
-  'Kitchenette': { minWidth: 2.0, minDepth: 2.0 },
-  'Lounge / Dining': { minWidth: 3.5, minDepth: 4.0 },
-  'Living / Kitchen / Dining': { minWidth: 3.5, minDepth: 3.5 },
-  'Living Room': { minWidth: 3.5, minDepth: 4.0 },
-  'Dining Room': { minWidth: 3.0, minDepth: 3.5 },
-  'Reception': { minWidth: 3.0, minDepth: 3.5 },
-  'Study / Flex': { minWidth: 2.5, minDepth: 2.5 },
-  'Study': { minWidth: 2.5, minDepth: 2.5 },
-  'Circulation': { minWidth: 1.5, minDepth: 1.5 },
-  'Laundry': { minWidth: 1.8, minDepth: 2.0 },
-  'Guest WC': { minWidth: 1.5, minDepth: 1.5 },
-  'Veranda': { minWidth: 1.5, minDepth: 2.0 },
-  'Store': { minWidth: 1.5, minDepth: 1.5 },
-  'Office': { minWidth: 2.5, minDepth: 2.5 },
-}
-
-export function getMinimumDimensions(name: string): RoomMinimums {
-  for (const [prefix, dims] of Object.entries(MINIMUM_DIMENSIONS)) {
-    if (name.startsWith(prefix) || name === prefix) return dims
-  }
-  return { minWidth: 2.0, minDepth: 2.0 }
-}
+export { getMinimumDimensions, getRoomStandard, listSpecStandards }
+export type { RoomMinimums, RoomStandard, RoomZone }
 
 export interface AdjacencyEdge {
   roomAId: string

@@ -4,6 +4,7 @@ import type { DesignConcept } from '../tier2/conceptEngine'
 import type { DesignConstraints } from '../../adapters/designConstraints'
 import { generateVerticalChassis, validateConstraintReport } from './vertical-chassis'
 import { classifyRoom, dimForRoom } from './roomClassifier'
+import { getMinimumDimensions } from '../standards/roomStandards'
 import { analyzeCirculation, findEntryAdjacentRoom } from './circulationEngine'
 import { solveConstraintPlacement } from './constraintPlacer'
 import { solveTopologyPlacement } from './topologySolver'
@@ -34,33 +35,35 @@ export type {
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 
-const FALLBACK_MIN_DIMS: Record<string, { minWidth: number; minDepth: number }> = {
-  'Master Bedroom': { minWidth: 3.5, minDepth: 4.0 },
-  'Bedroom': { minWidth: 3.0, minDepth: 3.5 },
-  'Bathroom': { minWidth: 1.8, minDepth: 2.2 },
-  'Kitchen': { minWidth: 2.5, minDepth: 3.0 },
-  'Living Room': { minWidth: 3.5, minDepth: 4.0 },
-  'Reception / Waiting': { minWidth: 4.0, minDepth: 4.5 },
-  'Consultation Room': { minWidth: 3.0, minDepth: 3.5 },
-  'Treatment Room': { minWidth: 3.5, minDepth: 4.0 },
-  'Restaurant': { minWidth: 6.0, minDepth: 8.0 },
-  'Guest Room': { minWidth: 3.5, minDepth: 5.5 },
-  'Classroom': { minWidth: 6.0, minDepth: 7.5 },
-  'Staff Room': { minWidth: 4.0, minDepth: 4.5 },
-  'Open-Plan Office': { minWidth: 6.0, minDepth: 8.0 },
-  'Private Office': { minWidth: 3.0, minDepth: 3.5 },
-  'Meeting Room': { minWidth: 4.0, minDepth: 4.5 },
-  'Sales Floor': { minWidth: 5.0, minDepth: 8.0 },
-  'Dining Area': { minWidth: 5.0, minDepth: 7.0 },
-  'Commercial Kitchen': { minWidth: 4.0, minDepth: 5.0 },
-  'Main Hall': { minWidth: 8.0, minDepth: 12.0 },
-  'Main Hall / Sanctuary': { minWidth: 10.0, minDepth: 12.0 },
-  'Warehouse Floor': { minWidth: 12.0, minDepth: 20.0 },
-  'Vendor Stall': { minWidth: 2.0, minDepth: 3.0 },
-  'Shop / Convenience': { minWidth: 4.0, minDepth: 5.0 },
-  'Ground Floor Shop': { minWidth: 5.0, minDepth: 8.0 },
-  'Upper Apartment': { minWidth: 5.0, minDepth: 8.0 },
-}
+const FALLBACK_MIN_DIMS: Record<string, { minWidth: number; minDepth: number }> = Object.fromEntries(
+  [
+    'Master Bedroom',
+    'Bedroom',
+    'Bathroom',
+    'Kitchen',
+    'Living Room',
+    'Reception / Waiting',
+    'Consultation Room',
+    'Treatment Room',
+    'Restaurant',
+    'Guest Room',
+    'Classroom',
+    'Staff Room',
+    'Open-Plan Office',
+    'Private Office',
+    'Meeting Room',
+    'Sales Floor',
+    'Dining Area',
+    'Commercial Kitchen',
+    'Main Hall',
+    'Main Hall / Sanctuary',
+    'Warehouse Floor',
+    'Vendor Stall',
+    'Shop / Convenience',
+    'Ground Floor Shop',
+    'Upper Apartment',
+  ].map((name) => [name, getMinimumDimensions(name)]),
+)
 
 function gatherMinDims(typology: Typology | null): Record<string, { minWidth: number; minDepth: number }> {
   const merged: Record<string, { minWidth: number; minDepth: number }> = {}

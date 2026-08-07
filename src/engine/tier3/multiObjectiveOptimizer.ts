@@ -5,6 +5,7 @@ import type { DesignOption } from '../../domain/boq'
 import type { PlanModel, RoomRect } from '../../domain/plan'
 import { analyzeCirculation } from './circulationEngine'
 import { classifyRoom } from './roomClassifier'
+import { getMinimumDimensions } from '../standards/roomStandards'
 
 export interface ObjectiveScores {
   efficiency: number
@@ -272,13 +273,9 @@ export async function optimize(brief: Tier1ParsedBrief, designOption: DesignOpti
         siteDepth: siteD,
         wallThickness: 0.23,
         corridorWidth: 1.2,
-        minRoomDimensions: {
-          'Living Room': { minWidth: 3.6, minDepth: 3.6 },
-          'Master Bedroom': { minWidth: 3.6, minDepth: 3.6 },
-          'Bedroom': { minWidth: 3, minDepth: 3 },
-          'Kitchen': { minWidth: 2.4, minDepth: 2.4 },
-          'Bathroom': { minWidth: 1.8, minDepth: 1.8 },
-        },
+        minRoomDimensions: Object.fromEntries(
+          ['Living Room', 'Master Bedroom', 'Bedroom', 'Kitchen', 'Bathroom'].map((name) => [name, getMinimumDimensions(name)]),
+        ),
         floorCount: 1,
         floorHeight: 3,
       }
