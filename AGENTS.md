@@ -1185,3 +1185,32 @@ Closed the "Free LLM integration" gap from the gemini.md audit (only `local-rule
 - `npx vitest run --maxWorkers=4`: 4328/4328 tests (212 files) — +16 new tests
 - `npx vite build`: success (~4905.76 KiB precache, 124 entries); chunk warnings unchanged (pre-existing lazy chunks)
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+
+## Priority #1 — RAG pipeline (gemini.md §7.2 gap) (Current)
+
+### What was done
+Closed the "RAG pipeline" gap from the gemini.md audit — `src/engine/rag/` did not exist. Built the full pipeline: text extraction → table-aware chunking → vector embeddings → indexed storage → semantic search → cross-reference graph → NLP constraint extraction → LLM/local compliance analysis.
+
+### Files created (9)
+- `src/engine/rag/types.ts` — shared types (`CodeSection`, `CodeDocument`, `TextChunk`, `SearchResult`, `ConstraintRule`, `CrossReference`, `RagComplianceReport`)
+- `src/engine/rag/extraction.ts` — `extractSections` (heading/numbered-clause parser with TSV table capture), `linkSectionParents` (heading hierarchy), `parseCodeDocument` (doc-prefixed section IDs to avoid cross-doc chunk collisions)
+- `src/engine/rag/chunking.ts` — `chunkSection`/`chunkDocument` (table-aware, max-chars with overlap split), `buildPath`/`getChunkHeadingPath` (hierarchical heading paths)
+- `src/engine/rag/embeddings.ts` — deterministic dependency-free local embeddings (`tokenizeWithBigrams`, FNV-1a feature hashing to a 256-dim vector, `cosineSimilarity`, `normalize`) — no paid embedding API
+- `src/engine/rag/ragIndex.ts` — `RagIndex` class (addDocument/addChunks/removeDocument/clear/search), `RagIndex.fromJSON`/`toJSON` (IndexedDB/localStorage persistence), `createIndex`
+- `src/engine/rag/crossref.ts` — `extractCrossReferences` (clause/section/regulation/annex refs), `buildCrossReferenceGraph` (knowledge graph), `resolveRefTarget`/`findReferencedChunks` (resolve "see clause 1.1" → target section)
+- `src/engine/rag/constraints.ts` — `extractConstraintsFromText`/`extractConstraintsFromChunks` (legal text → executable `ConstraintRule` min/max/eq with units mm/m/m²/%, category classification)
+- `src/engine/rag/analysis.ts` — `analyzeCompliance(index, {query, jurisdiction, engine?, apiKey?})`; local-rules fallback + remote LLM path via `completeChat` + `COMPLIANCE_PROMPT` (reuses `extractJson`); returns structured `RagComplianceReport` with sources, fellBack/fallbackReason
+- `src/__tests__/ragPipeline.test.ts` — 23 tests across all 7 pipeline stages
+
+### Notes
+- Embeddings are local & deterministic (feature hashing) — satisfies the no-paid-API/local-first constitution without shipping a model runtime.
+- Extraction treats `1.1 <clause sentence>.` lines as clause sections carrying their text; heading-only containers (e.g. `1 General Requirements`) have empty text so they produce no chunks but still anchor the heading path.
+- Section IDs are doc-prefixed (`code:sec-2-1.1`) — an earlier collision silently dropped whole documents from the index (fire doc added 0 chunks until prefixed).
+- Chunk IDs are `<sectionId>-cN`; the LLM analysis path falls back to local constraint extraction on missing key or network error, mirroring `ai-provider`'s `fellBack` pattern.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4351/4351 tests (213 files) — +23 new RAG tests
+- `npx vite build`: success in ~20s
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
