@@ -9,6 +9,7 @@ import { useProjectControlsStore } from '@/stores/projectControlsStore';
 import { useChangeStore } from '@/stores/changeStore';
 import { useLedgerStore } from '@/stores/ledgerStore';
 import { useWipaaStore } from '@/stores/wipaaStore';
+import { useMarketIndexStore } from '@/stores/marketIndexStore';
 import { summarizeLedger } from '@/engine/ledger/trueLedger';
 import { sortSnapshotsDesc } from '@/engine/payment/wipaaAutoRun';
 import { fmtCents } from '@/components/ecosystem/useEcosystemData';
@@ -17,7 +18,7 @@ import {
   computeProcurementLifecycleSummary, computeHandoverLifecycleSummary,
   computeProjectHealthSummary, computeProjectLifecycleSummary,
 } from '@/lib/lifecycle/lifecycleSummary';
-import { ShieldCheck, Flag, ShoppingCart, FolderOpen, AlertTriangle, ArrowRight, BookOpenCheck, Scale } from 'lucide-react';
+import { ShieldCheck, Flag, ShoppingCart, FolderOpen, AlertTriangle, ArrowRight, BookOpenCheck, Scale, TrendingUp } from 'lucide-react';
 
 interface ProjectLifecycleDashboardProps {
   projectId: string;
@@ -46,11 +47,14 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
   const wipaaSnapshots = useWipaaStore((s) => s.snapshots);
   const runWipaaAutoRollover = useWipaaStore((s) => s.runAutoRollover);
   const latestWipaa = useMemo(() => sortSnapshotsDesc(wipaaSnapshots)[0], [wipaaSnapshots]);
+  const marketIndex = useMarketIndexStore((s) => s.snapshot);
+  const runMarketIndexRefresh = useMarketIndexStore((s) => s.autoRefresh);
 
   useEffect(() => {
     if (!projectId) return;
     runWipaaAutoRollover(projectId).catch(() => {});
-  }, [projectId, runWipaaAutoRollover]);
+    runMarketIndexRefresh().catch(() => {});
+  }, [projectId, runWipaaAutoRollover, runMarketIndexRefresh]);
 
   const readiness = useMemo(() => computeProjectReadiness({
     intakes, feasibilityAssessments, riskGates, riskRegister, solvencyChecks,
@@ -115,8 +119,8 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
           )}
         </div>
 
-        {/* Six module summary cards */}
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+        {/* Seven module summary cards */}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-7">
           <ModuleSummaryCard
             icon={<ShieldCheck size={14} />}
             label="Assurance"
@@ -168,6 +172,16 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
                 : `${fmtCents(Math.abs(latestWipaa.overUnderBilledCents))} ${latestWipaa.overUnderBilledCents > 0 ? 'under' : 'over'} billed`
               : 'No snapshot yet'}
             linkTo={`/project/${projectId}/studio/wipaa`}
+          />
+          <ModuleSummaryCard
+            icon={<TrendingUp size={14} />}
+            label="Market Index"
+            value={marketIndex ? String(marketIndex.symbolCount) : '—'}
+            color={marketIndex ? 'text-cyan-400' : 'text-gray-400'}
+            detail={marketIndex
+              ? `${marketIndex.currency} · ${marketIndex.dayKey}`
+              : 'Refresh on open'}
+            linkTo={`/project/${projectId}/studio/market-index`}
           />
         </div>
       </div>

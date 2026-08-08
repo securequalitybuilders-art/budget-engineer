@@ -1,4 +1,4 @@
-import { ShieldCheck, FileSpreadsheet, FolderOpen, ShoppingCart, BarChart3, Flag, Wallet, Scale, ArrowRight } from 'lucide-react'
+import { ShieldCheck, FileSpreadsheet, FolderOpen, ShoppingCart, BarChart3, Flag, Wallet, Scale, TrendingUp, ArrowRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 export interface StudioLink {
@@ -19,6 +19,7 @@ function iconForStudio(studio: string): ReactNode {
     case 'milestones': return <Flag size={12} />
     case 'closeout': return <Wallet size={12} />
     case 'wipaa': return <Scale size={12} />
+    case 'market-index': return <TrendingUp size={12} />
     default: return <ArrowRight size={12} />
   }
 }
