@@ -10,6 +10,7 @@ import { useChangeStore } from '@/stores/changeStore';
 import { useLedgerStore } from '@/stores/ledgerStore';
 import { useWipaaStore } from '@/stores/wipaaStore';
 import { useMarketIndexStore } from '@/stores/marketIndexStore';
+import { useSitePhotoStore } from '@/stores/sitePhotoStore';
 import { summarizeLedger } from '@/engine/ledger/trueLedger';
 import { sortSnapshotsDesc } from '@/engine/payment/wipaaAutoRun';
 import { fmtCents } from '@/components/ecosystem/useEcosystemData';
@@ -18,7 +19,7 @@ import {
   computeProcurementLifecycleSummary, computeHandoverLifecycleSummary,
   computeProjectHealthSummary, computeProjectLifecycleSummary,
 } from '@/lib/lifecycle/lifecycleSummary';
-import { ShieldCheck, Flag, ShoppingCart, FolderOpen, AlertTriangle, ArrowRight, BookOpenCheck, Scale, TrendingUp } from 'lucide-react';
+import { ShieldCheck, Flag, ShoppingCart, FolderOpen, AlertTriangle, ArrowRight, BookOpenCheck, Scale, TrendingUp, Camera } from 'lucide-react';
 
 interface ProjectLifecycleDashboardProps {
   projectId: string;
@@ -49,12 +50,19 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
   const latestWipaa = useMemo(() => sortSnapshotsDesc(wipaaSnapshots)[0], [wipaaSnapshots]);
   const marketIndex = useMarketIndexStore((s) => s.snapshot);
   const runMarketIndexRefresh = useMarketIndexStore((s) => s.autoRefresh);
+  const sitePhotos = useSitePhotoStore((s) => s.photos);
+  const loadSitePhotos = useSitePhotoStore((s) => s.loadForProject);
+  const sitePhotoSummary = useMemo(() => {
+    const byProject = sitePhotos.filter((p) => p.projectId === projectId);
+    return { total: byProject.length, geoTagged: byProject.filter((p) => p.geo).length };
+  }, [sitePhotos, projectId]);
 
   useEffect(() => {
     if (!projectId) return;
     runWipaaAutoRollover(projectId).catch(() => {});
     runMarketIndexRefresh().catch(() => {});
-  }, [projectId, runWipaaAutoRollover, runMarketIndexRefresh]);
+    loadSitePhotos(projectId).catch(() => {});
+  }, [projectId, runWipaaAutoRollover, runMarketIndexRefresh, loadSitePhotos]);
 
   const readiness = useMemo(() => computeProjectReadiness({
     intakes, feasibilityAssessments, riskGates, riskRegister, solvencyChecks,
@@ -119,8 +127,8 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
           )}
         </div>
 
-        {/* Seven module summary cards */}
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-7">
+        {/* Eight module summary cards */}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-8">
           <ModuleSummaryCard
             icon={<ShieldCheck size={14} />}
             label="Assurance"
@@ -182,6 +190,16 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
               ? `${marketIndex.currency} · ${marketIndex.dayKey}`
               : 'Refresh on open'}
             linkTo={`/project/${projectId}/studio/market-index`}
+          />
+          <ModuleSummaryCard
+            icon={<Camera size={14} />}
+            label="Site Photos"
+            value={sitePhotoSummary.total > 0 ? String(sitePhotoSummary.total) : '—'}
+            color={sitePhotoSummary.total > 0 ? 'text-cyan-400' : 'text-gray-400'}
+            detail={sitePhotoSummary.total > 0
+              ? `${sitePhotoSummary.geoTagged}/${sitePhotoSummary.total} geo-tagged`
+              : 'No photos yet'}
+            linkTo={`/project/${projectId}/studio/site-photos`}
           />
         </div>
       </div>
