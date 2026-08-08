@@ -1618,3 +1618,51 @@ Built the KPI3 golden-dataset regression harness (deterministic gate + promptfoo
 - `npm run test:integration`: 8/8 (3 files, includes the kpi3Promptfoo regression gate)
 - `npx vitest run src/__tests__/kpi3Golden.test.ts`: 12/12 deterministic golden gate
 - `npm run eval:kpi3:cli`: 25/25 promptfoo golden suite, exit 0; threshold trip verified (exit 100 at threshold 101)
+
+## Remaining KPI close-out - query rewrite (KPI1) + agent orchestrator (KPI2) + tracing (KPI3) (Current)
+
+### What was done
+Closed the three remaining production-RAG gaps from the gemini.md audit in dependency order: KPI1 query-rewriting layer, KPI2 deterministic LangGraph-style agent orchestrator, and KPI3 observability/tracing. All local-first: Dexie checkpointing replaces Postgres, Dexie traces replace hosted Langfuse, free-tier remote LLMs remain optional with deterministic local fallbacks.
+
+### Files created (7)
+- `src/engine/rag/queryRewrite.ts` - KPI1: `isVagueQuery` (pronoun/short/generic-ask heuristics, precise-query whitelist), `deterministicRewrite` (filler stripping, abbreviation expansion: zbc/by-laws/reqs/max/min/m², jurisdiction suffixing), `resolveHistory` (anaphora vs prior clause/term subject), `rewriteQuery` (identity/local/remote methods with rationale[]), `REWRITE_PROMPT` + remote path via `completeChat` with graceful local fallback.
+- `src/engine/rag/tracing.ts` - KPI3: `Trace`/`TraceSpan` types, `createTracer` (span collection + snapshot), `persistTrace`/`listTraces` (Dexie), `summarizeTraces` (avg ms/confidence, low-confidence/fallback/HITL counts, decisions, slowest + low-confidence queries for the golden loop), `tracesToGoldenInputs` (traced queries -> golden-dataset cases).
+- `src/engine/agents/types.ts` - KPI2: `AgentNode` (`researcher|calculator|validator|supervisor|hitl|done`), `AgentState` (fully serializable), `Interrupt`, `AgentContext` (runtime deps), `createInitialState`.
+- `src/engine/agents/tools.ts` - KPI2: typed `ToolDefinition` registry with per-node `nodes` scoping + `inputSchema` arg validation; `search-codes`/`get-code-section` (researcher), `calculate-bricks`/`calculate-concrete`/`compute-tco`/`p4p-certificate` (calculator), `validate-plan-si56` (validator, ACZ registry + gate), `gono-go-decision` (supervisor). `toolsFor(node)`, `findTool`, `validateToolArgs`.
+- `src/engine/agents/graph.ts` - KPI2: state machine runner (`runNode`/`runAgent`/`resumeAgent`), node pipeline researcher->calculator->validator->supervisor->hitl|done, span capture via ctx.onSpan, HITL interrupts (high-value >= threshold checked unconditionally; structural-deviation NO-GO vs baseline), max-step guard.
+- `src/engine/agents/checkpoint.ts` - KPI2: Dexie `agentRuns` (run metadata) + `agentCheckpoints` (per-step state) with save/load/latest/list helpers.
+- `src/engine/agents/index.ts` - KPI2+KPI3 facade `runBudgetAgent` (runs graph, checkpoints each step, persists run + KPI3 trace, returns state/interrupt/trace); `BudgetAgentInput`/`BudgetAgentResult`.
+- `src/engine/estimation/concreteCalculator.ts` - standalone concrete take-off (volume, 1:2:4 dry-volume materials, cement bags/sand/aggregate, wastage clamp) consumed by the calculator node's `calculate-concrete` tool.
+
+### Files modified (4)
+- `src/engine/rag/analysis.ts` - `AnalyzeOptions` gains optional `onTrace`; `analyzeCompliance` now emits a KPI3 trace (retrieval + rerank spans, engineUsed/fellBack, rerank confidence/threshold, citedDocIds) on every return path.
+- `src/engine/rag/index.ts` - barrel exports `queryRewrite` + `tracing`.
+- `src/db/db.ts` - Dexie schema v10 (additive over v9): `agentRuns` (`id,projectId,status,updatedAt`), `agentCheckpoints` (`id,runId,step,node,status`), `traces` (`id,projectId,runId,source,createdAt`).
+
+### KPI2 design
+1. **researcher** runs `search-codes` against the RAG index (scoped) and stores structured `retrievedDocs`; **calculator** owns quantity/cost maths; **validator** applies the SI 56/2025 ACZ gate; **supervisor** runs `gono-go-decision` vs the historical baseline.
+2. **Tool scoping is enforced at the graph boundary** - `callTool` rejects any tool whose `nodes` list does not include the current node (unit-tested).
+3. **HITL interrupts**: high-value (contract >= `valueInterruptThresholdCents`, default 5,000,000 cents = $50k, checked before baseline) and structural-deviation (NO-GO beyond `deviationThresholdPct`, default 10%) put the run in `awaiting-input` at the `hitl` node; `resumeAgent(state, 'APPROVED'|'REJECTED')` finalizes to completed/failed.
+4. **Checkpointing** (LangGraph's Postgres analogue) writes the full serializable state every step; `loadLatestCheckpoint`/`listCheckpoints` enable resume/audit.
+
+### Tests (+23)
+- `src/__tests__/ragKpiSuite.test.ts` - KPI1 (vague detection, abbreviation expansion, jurisdiction suffixing, anaphora resolution, remote rewrite + fallback, prompt shape), KPI1/KPI3 (analysis emits retrieval+rerank spans + cited doc ids), KPI3 (tracer snapshot, Dexie persist/list, summarize, golden-input conversion), KPI2 (tool scoping, out-of-scope refusal, arg validation, concrete take-off, full completion GO, high-value interrupt, HITL resume APPROVED/REJECTED, checkpoint + run persistence, trace persistence).
+
+### Bugs found and fixed during the build
+- `graph.ts` originally used a `require(...)` for the query rewrite - replaced with a static import (ESM/Vite-safe).
+- The high-value HITL interrupt was nested inside the historical-baseline branch, so a large contract with no baseline sailed through as GO - hoisted to run before the baseline comparison.
+- `resolveHistory` subject regex captured the clause number ("3.2") instead of the content after it ("boundary walls are 230 mm") - now prefers the post-clause text with a term fallback.
+- Agent-state `spans` was never populated (graph records into the tracer) - `runBudgetAgent` now copies `tracer.spans` onto the returned final state.
+- Two TS6133 unused-`result` vars in the new test; two `no-useless-escape` hits in the subject regex (`[:\-]`/`[.\-]` -> `[:-]`/`[.-]`).
+
+### Notes
+- Out-of-scope items stay deferred (local-first/no-backend constitution): hosted Langfuse, Postgres checkpointing, Vercel useChat streaming, Supabase pgvector/HNSW, self-hosted reranker GPU.
+- `budget-engineer-canonical` submodule intentionally NOT touched (repo convention).
+- A11y/zone-color/lint conventions followed; no production code changed outside the 4 modified files above.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4505/4505 tests (223 files) - +23 new KPI tests
+- `npx madge --circular --extensions ts,tsx src`: No circular dependency found
+- `npx vite build`: success in ~43s (PWA precache 134 entries, 4954.36 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)

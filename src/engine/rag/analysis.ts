@@ -8,6 +8,7 @@ import { extractJson } from '@/lib/ai/brief-coercion'
 import { getRemoteProvider, completeChat } from '@/lib/ai/remote-providers'
 import { useAiSettingsStore } from '@/stores/aiSettingsStore'
 import type { AiRemoteProvider } from '@/lib/ai/ai-types'
+import { createTracer, type Trace } from './tracing'
 
 export interface AnalyzeOptions {
   query: string
@@ -19,6 +20,7 @@ export interface AnalyzeOptions {
   rerankThreshold?: number
   engine?: AiRemoteProvider
   apiKey?: string
+  onTrace?: (trace: Trace) => void
 }
 
 export interface CompliancePromptContext {
@@ -64,15 +66,20 @@ function localFindings(_query: string, sources: SearchResult[], degraded: boolea
 }
 
 export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): Promise<RagComplianceReport> {
+  const tracer = createTracer({ source: 'rag-analysis', query: opts.query, jurisdiction: opts.jurisdiction ?? 'zimbabwe' })
   const k = opts.k ?? 5
+  const spanRetrieval = tracer.start('retrieval', { k, hybrid: opts.hybrid !== false })
   const rawSources = opts.hybrid === false
     ? index.search(opts.query, { k, minScore: opts.minScore ?? 0 })
     : hybridSearch(index, opts.query, { k, minScore: opts.minScore ?? 0 })
+  spanRetrieval()
   const sources = attachCitations(rawSources)
 
   const rerank = opts.rerank ?? true
   const threshold = opts.rerankThreshold ?? DEFAULT_RERANK_THRESHOLD
+  const spanRerank = tracer.start('rerank', { threshold })
   const outcome = rerankResults(opts.query, sources, { enabled: rerank, threshold })
+  spanRerank()
   const rankedSources = outcome.results
   const degraded = outcome.needsClarification
 
@@ -87,6 +94,21 @@ export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): 
   const providerId = opts.engine ?? useAiSettingsStore.getState().engine
   const config = providerId && providerId !== 'local-rules' && providerId !== 'webllm' ? getRemoteProvider(providerId as AiRemoteProvider) : undefined
   const apiKey = opts.apiKey ?? useAiSettingsStore.getState().apiKeys[providerId as AiRemoteProvider]
+
+  const emitTrace = (report: RagComplianceReport) => {
+    if (!opts.onTrace) return
+    const trace = tracer.snapshot()
+    opts.onTrace({
+      ...trace,
+      engineUsed: report.engineUsed,
+      fellBack: report.fellBack,
+      fallbackReason: report.fallbackReason,
+      rerankConfidence: outcome.confidence,
+      rerankThreshold: threshold,
+      needsClarification: degraded,
+      citedDocIds: rankedSources.map((s) => s.chunkId),
+    })
+  }
 
   const degradationWarning = degraded
     ? [clarificationPrompt(opts.query, outcome.confidence, threshold)]
@@ -103,7 +125,7 @@ export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): 
       const findings = Array.isArray(json.findings) ? json.findings : []
       const total = findings.length
       const passed = findings.filter((f) => f.status === 'pass').length
-      return {
+      const report: RagComplianceReport = {
         ...base,
         findings,
         score: json.score ?? (total > 0 ? Math.round((passed / total) * 100) : 0),
@@ -112,9 +134,11 @@ export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): 
         warnings: [...degradationWarning, ...(Array.isArray(json.warnings) ? json.warnings : [])],
         engineUsed: config.id,
       }
+      emitTrace(report)
+      return report
     } catch (err) {
       const local = localFindings(opts.query, rankedSources, degraded)
-      return {
+      const report: RagComplianceReport = {
         ...base,
         findings: local.findings,
         score: 0,
@@ -125,13 +149,15 @@ export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): 
         fellBack: true,
         fallbackReason: err instanceof Error ? err.message : String(err),
       }
+      emitTrace(report)
+      return report
     }
   }
 
   const local = localFindings(opts.query, rankedSources, degraded)
   const total = local.findings.length
   const passed = local.findings.filter((f) => f.status === 'pass').length
-  return {
+  const report: RagComplianceReport = {
     ...base,
     findings: local.findings,
     score: total > 0 ? Math.round((passed / total) * 100) : 0,
@@ -142,4 +168,6 @@ export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): 
     fellBack: !!(config && providerId !== 'local-rules'),
     fallbackReason: config && providerId !== 'local-rules' ? 'No API key configured — using local constraint extraction' : undefined,
   }
+  emitTrace(report)
+  return report
 }
