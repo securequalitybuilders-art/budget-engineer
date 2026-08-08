@@ -1735,3 +1735,36 @@ Closed game-plan item A4.4: WIPAA snapshots are now computed automatically on ap
 - `npx vitest run --maxWorkers=4`: 4556/4556 tests (227 files) - +18 new tests (12 engine + 6 panel)
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
 - `npx vite build`: success in ~14.7s (PWA precache 138 entries, 4993.37 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+## A4.8 - Market Price Index daily ticker + scheduler (Current, Commit: `4de080c`)
+
+### What was done
+Closed game-plan item A4.8: the market price index (cement/steel/brick with ZiG-USD volatility) is now a persisted daily snapshot computed automatically on app open when the day changes, with a marquee ticker, a studio page, and a seventh lifecycle-dashboard module card. Deterministic date-keyed prices (no network, local-first) - the exact same index values reproduce for a given calendar date, so the "ticker" shows real daily movement without a scraping backend.
+
+### Files created (5)
+- `src/engine/ecosystem/marketIndexScheduler.ts` - pure helpers (no React): `dayKeyFor(date)` (`YYYY-MM-DD`), `hashStr` (copied from priceIndex), `deterministicPctForDate(symbol, dateKey)` (stable `±5%` range `-0.05..0.05`), `valueForDate(symbol, baseCents, dateKey)`, `seriesEndingAt(symbol, baseCents, endDate, days=30)` (30 points ending inclusive for the sparkline), `buildMarketIndexSnapshot(rates, options?)` (idempotent snapshot keyed by `id = dayKey`; `changePct` = rounded to 2dp; `source: 'auto'|'manual'`; `currency`, `fx` = FX_USD_TO_ZWG, `symbolCount`), `indexRefreshDue(snapshot, now, {intervalHours=24})` (due when missing / dayKey differs / `computedAt` older than interval), `sortSnapshotsDesc`; exports `IndexSource` + `MarketIndexSnapshot`.
+- `src/stores/marketIndexStore.ts` - zustand + immer + persist (localStorage `budget-engineer-market-index`, partialize `currentProjectId`): `load()` (reads Dexie catalogue into snapshot+history), `autoRefresh(options?)` (idempotent per dayKey - `{ran:true,snapshot}` / `{ran:false,'fresh'|'no-rates'|'error'}`), `runNow(options?)` (forces a same-day `manual` recompute, upserted).
+- `src/components/ecosystem/MarketPriceTicker.tsx` - marquee ticker: static `MKT / USD / dayKey` left chip + duplicated-item track (`ticker-track` keyframes, 40s linear infinite, pause on hover), per-`data-symbol` items with `fmtCents(currentCents)/unit`, up/down arrows + `changePct`; auto-refreshes on mount; empty state "No market index yet - open a project to auto-compute."
+- `src/pages/studio/MarketIndexStudio.tsx` - studio page (`/project/:id/studio/market-index`): nav chips (True Ledger / WIPAA / Closeout), 4 stat cards (Symbols tracked / FX / Last updated / Avg 30-day move), USD/ZWG currency toggle, Run now button, price table (material/unit/base/current/30d + inline SVG sparkline, green/red per direction), snapshot history list sorted desc. Mount effect: `load()` then `autoRefresh()` with cancelled flag.
+- Tests: `src/__tests__/marketIndexScheduler.test.ts` (13: pure helpers + store) + `src/__tests__/marketIndexPanel.test.tsx` (9: ticker x3 + studio x4 + dashboard x2).
+
+### Files modified (5)
+- `src/db/db.ts` - Dexie schema v13 (additive over v12): `marketIndexSnapshots` (`id,dayKey,computedAt,source`); v13 repeats all v12 stores.
+- `src/app/router.tsx` - lazy `MarketIndexStudio` route `/project/:id/studio/market-index`.
+- `src/lib/lifecycle/studioLinks.tsx` - `'market-index'` case -> `TrendingUp` icon (lucide import added).
+- `src/components/lifecycle/ProjectLifecycleDashboard.tsx` - seventh module card "Market Index" (symbolCount + currency/dayKey, link to the studio); grid `lg:grid-cols-6` -> `lg:grid-cols-7`; dashboard mount effect now also calls `useMarketIndexStore.getState().autoRefresh()` alongside `runWipaaAutoRollover`.
+- `src/styles/index.css` - `@keyframes ticker-scroll` (translateX 0 -> -50%) + `.ticker-track` (40s linear infinite) + `:hover` pause, after the utilities layer.
+
+### Notes
+- `id = dayKey` makes `db.marketIndexSnapshots.put(snapshot)` naturally idempotent per day; `runNow` on the same day upserts a `manual` snapshot over the `auto` one (store history dedupes by id via `upsertHistory`).
+- Determinism reuses `hashStr` from `src/engine/ecosystem/priceIndex.ts` so A4.8 prices and the existing `buildMarketIndex` series share the same hashing; `deterministicPctForDate` applies a stable per-date `±5%` offset (FNV hash of `` `${symbol}:${YYYY-MM-DD}` `` scaled into `-0.05..0.05`), giving daily movement while remaining reproducible off-line.
+- The ticker doubles each item (duplicated marquee track), so tests must use `findAllByText` - a `findByText('Cement 50kg')` throws "multiple elements".
+- `Rate` rows in Dexie already carry `baseRateCents`/`unit`/`code`/`description`, so no new source of prices was needed - the snapshot engine consumes `db.rates` (or an injected `rates` array).
+- A11y/`text-slate-500` rule + `fmtCents` shared helper followed; `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally untouched (A4.8 checkbox ticked in its task_plan.md).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run`: 4582/4582 tests (229 files) - +26 new tests (13 scheduler/store + 9 panel + ticker/dashboard)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+- `npx vite build`: success in ~16.4s (PWA precache 140 entries, 5006.60 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
