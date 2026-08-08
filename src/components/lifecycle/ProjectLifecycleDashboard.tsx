@@ -7,12 +7,15 @@ import { useProcurementStore } from '@/stores/procurementStore';
 import { useHandoverStore } from '@/stores/handoverStore';
 import { useProjectControlsStore } from '@/stores/projectControlsStore';
 import { useChangeStore } from '@/stores/changeStore';
+import { useLedgerStore } from '@/stores/ledgerStore';
+import { summarizeLedger } from '@/engine/ledger/trueLedger';
+import { fmtCents } from '@/components/ecosystem/useEcosystemData';
 import {
   computeProjectReadiness, computeMilestoneLifecycleSummary,
   computeProcurementLifecycleSummary, computeHandoverLifecycleSummary,
   computeProjectHealthSummary, computeProjectLifecycleSummary,
 } from '@/lib/lifecycle/lifecycleSummary';
-import { ShieldCheck, Flag, ShoppingCart, FolderOpen, AlertTriangle, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Flag, ShoppingCart, FolderOpen, AlertTriangle, ArrowRight, BookOpenCheck } from 'lucide-react';
 
 interface ProjectLifecycleDashboardProps {
   projectId: string;
@@ -36,6 +39,8 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
   const ncrs = useChangeStore((s) => s.ncrs);
   const rfis = useChangeStore((s) => s.rfis);
   const snagItems = useChangeStore((s) => s.snagItems);
+  const ledgerEntries = useLedgerStore((s) => s.entries);
+  const ledgerSummary = useMemo(() => summarizeLedger(ledgerEntries), [ledgerEntries]);
 
   const readiness = useMemo(() => computeProjectReadiness({
     intakes, feasibilityAssessments, riskGates, riskRegister, solvencyChecks,
@@ -101,7 +106,7 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
         </div>
 
         {/* Four module summary cards */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           <ModuleSummaryCard
             icon={<ShieldCheck size={14} />}
             label="Assurance"
@@ -133,6 +138,14 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
             color={handoverSummary.isHandoverReady ? 'text-green-400' : handoverSummary.completionStagesTotal > 0 ? 'text-amber-400' : 'text-gray-400'}
             detail={`${handoverSummary.openSnagItems} open snag(s)`}
             linkTo={`/project/${projectId}/studio/handover`}
+          />
+          <ModuleSummaryCard
+            icon={<BookOpenCheck size={14} />}
+            label="True Ledger"
+            value={ledgerSummary.entryCount > 0 ? fmtCents(ledgerSummary.totalCents) : '—'}
+            color={ledgerSummary.unallocatedCents > 0 ? 'text-amber-400' : 'text-cyan-400'}
+            detail={ledgerSummary.entryCount > 0 ? `${ledgerSummary.entryCount} coded · ${fmtCents(ledgerSummary.unallocatedCents)} uncoded` : 'No entries yet'}
+            linkTo={`/project/${projectId}/studio/ledger`}
           />
         </div>
       </div>

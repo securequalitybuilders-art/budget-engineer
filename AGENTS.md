@@ -1666,3 +1666,41 @@ Closed the three remaining production-RAG gaps from the gemini.md audit in depen
 - `npx vitest run --maxWorkers=4`: 4505/4505 tests (223 files) - +23 new KPI tests
 - `npx madge --circular --extensions ts,tsx src`: No circular dependency found
 - `npx vite build`: success in ~43s (PWA precache 134 entries, 4954.36 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+
+## A4.3 + A4.5 — True Ledger auto-coding + Change Order 4-lens cost-impact engine (Current)
+
+### What was done
+Closed game-plan items A4.3 (True Ledger: PO/invoice → WBS cost-code auto-coding) and A4.5 (Change Order 4-lens analysis: Red Pen + WIPAA + True Ledger + Budget Engineer) with Dexie v11 persistence, a zustand store, a Ledger studio route + panel, and a lifecycle-dashboard summary card.
+
+### Files created (8)
+- `src/domain/ledger.ts` — `WbsCode` (code/level/name/category/restockable/keywords/unit), `LedgerEntry` (full coded line), `LedgerSummary`, `WbsCodingResult`; `LedgerSource` (`purchase-order|invoice|boq|manual`), `CodingMethod` (`auto|auto-fallback|manual`), `WbsCategory` (`material|labour|equipment|subcontract|service|overhead`).
+- `src/engine/ledger/trueLedger.ts` — `WBS_REGISTRY` (45 codes across 01 Substructure → 07 Fees/Statutory + `99.00.00 Unallocated` fallback, each with category + restockable flag + unit + keyword aliases), `findWbsCode` (word-boundary keyword scoring, confidence from matched-keyword length, zero-confidence auto-fallback to `99.00.00`), `codeLine`, `codePurchaseOrderLines`, `summarizeLedger` (totals, byCategory, restockable vs one-time, unallocated, top-by-code), `restockableCover`/`committedForCode`.
+- `src/engine/change/changeLensEngine.ts` — four lens functions + orchestration + penalty:
+  - `redPenLens` — revalues change line items quoted > 15% above the local market rate catalogue (token-first-3 match, same convention as RedPenAuditWidget).
+  - `wipaaLens` — cost-to-cost: net new exposure = declared − already-earned revenue portion; flags over-billing.
+  - `trueLedgerLens` — matches change lines to committed WBS codes; committed cover (esp. restockable) reduces net new cash.
+  - `budgetEngineerLens` — revalues at project BOQ rates and adds the BOQ's contingency ratio.
+  - `analyzeChangeImpact` — runs all four, `recommendedImpactCents` = median of lens impacts, `riskFlags` (per-lens flags + >50%-divergence warning), `spreadCents`.
+  - `calculatePenalty` — liquidated damages at a daily bps of contract value (default 25 bps) capped at `maxPenaltyPct` (default 10%), plus defect/rework penalty = defect value × rejectedFraction × `REWORK_MULTIPLIER` (default 2, mirrors `tco.ts`).
+- `src/stores/ledgerStore.ts` — zustand + immer + persist (`budget-engineer-ledger`): `loadForProject`, `addEntry`, `addEntries`, `codePurchaseOrder` (reads PO from Dexie → codes → bulkAdd → store), `setAnalysis` (upsert by changeOrderNumber), `summary`.
+- `src/components/ledger/TrueLedgerPanel.tsx` — stats (total committed / restockable cover / auto-coded % / unallocated), action buttons (Code N purchase orders, Analyze N change orders), WBS breakdown bars, PO list with Coded/Uncoded pills, per-change-order 4-lens cards with recommended impact + risk flags.
+- `src/pages/studio/LedgerStudio.tsx` — studio wrapper (`/project/:id/studio/ledger`) following the ProcurementStudio pattern.
+- Tests: `src/__tests__/ledgerChangeLens.test.ts` (29) + `src/__tests__/trueLedgerPanel.test.tsx` (4).
+
+### Files modified (3)
+- `src/db/db.ts` — Dexie schema v11 (additive over v10): `ledgerEntries` (`id,projectId,wbsCode,codingMethod,codedAt`) + `changeLensAnalyses` (`id,changeOrderNumber,analysisDate`); v11 repeats all v10 stores.
+- `src/app/router.tsx` — lazy `LedgerStudio` route `/project/:id/studio/ledger`.
+- `src/components/lifecycle/ProjectLifecycleDashboard.tsx` — fifth module summary card "True Ledger" (committed total, uncoded warning, link to the studio); card grid now `grid-cols-2 lg:grid-cols-5`.
+
+### Notes
+- `ChangeImpactResult.id` = `changeOrderNumber` (used as the Dexie primary key for upsert).
+- Auto-coding is deterministic text matching (no LLM) — `auto-fallback`/`confidence 0` for unmatched lines so unallocated costs are always visible for manual coding.
+- WIPAA lens treats money in cents but the earned-revenue fraction is unit-agnostic (`costPctComplete` from `paymentCalculators`).
+- A11y/`text-slate-500` rule + `fmtCents` shared helper followed; `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally untouched.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4538/4538 tests (225 files) — +33 new tests (29 engine + 4 panel)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+- `npx vite build`: success in ~7.3s (PWA precache 136 entries, 4980.27 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)

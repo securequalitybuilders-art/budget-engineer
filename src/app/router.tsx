@@ -33,6 +33,7 @@ const DeliveryStudio = lazy(() => import('@/pages/studio/DeliveryStudio').then((
 const HandoverStudio = lazy(() => import('@/pages/studio/HandoverStudio').then((m) => ({ default: m.HandoverStudio })));
 const CloseoutStudio = lazy(() => import('@/pages/studio/CloseoutStudio').then((m) => ({ default: m.CloseoutStudio })));
 const ProcurementStudio = lazy(() => import('@/pages/studio/ProcurementStudio').then((m) => ({ default: m.ProcurementStudio })));
+const LedgerStudio = lazy(() => import('@/pages/studio/LedgerStudio').then((m) => ({ default: m.LedgerStudio })));
 const ProjectControlsStudio = lazy(() => import('@/pages/studio/ProjectControlsStudio').then((m) => ({ default: m.ProjectControlsStudio })));
 const MarketplaceStudio = lazy(() => import('@/components/marketplace/ProviderDashboard'));
 const PilotReviewPage = lazy(() => import('@/pages/pilot/PilotReviewPage').then((m) => ({ default: m.PilotReviewPage })));
@@ -173,6 +174,10 @@ const router = createBrowserRouter([
       {
         path: '/project/:id/studio/procurement',
         element: <SafeRoute><ProcurementStudio /></SafeRoute>,
+      },
+      {
+        path: '/project/:id/studio/ledger',
+        element: <SafeRoute><LedgerStudio /></SafeRoute>,
       },
       {
         path: '/project/:id/studio/marketplace',
