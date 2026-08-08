@@ -1768,3 +1768,57 @@ Closed game-plan item A4.8: the market price index (cement/steel/brick with ZiG-
 - `npx vitest run`: 4582/4582 tests (229 files) - +26 new tests (13 scheduler/store + 9 panel + ticker/dashboard)
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
 - `npx vite build`: success in ~16.4s (PWA precache 140 entries, 5006.60 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+## A3.7 - Client journey DREAM to MOVE IN wizard (Current, 2026-08-08)
+
+### What was done
+Closed game-plan item A3.7: the client journey from DREAM to MOVE IN is now a routed 12-step multi-step wizard at /new with a shared journey engine, covering feasibility, funding, plans, finishes, build-plan approval, contractor match, materials lock, and milestone spend-down in ~12 clicks.
+
+### Files created (3)
+- src/engine/onboarding/dreamJourney.ts - DREAM_PHASES (5 phases), JOURNEY_STEPS (12 steps), FUNDING_SOURCES, romPerM2Cents, estimateGrossAreaM2 (ROM best-estimate from typology programme), romEstimateForType, feasibilityVerdict, buildConceptOptions, FINISH_CATALOG, finishLinePrice, buildMilestoneSplit (35/40/25), buildBuildPlan (9% contingency), contractorMatch (Kudakwashe Chirinda recommended), MATERIALS_LINES, SPEND_DOWN_OPTIONS, formatMoney, rateBand.
+- src/__tests__/dreamJourney.test.ts (24 tests) + src/__tests__/projectWizardJourney.test.tsx (7 tests) - 31 new tests.
+- src/pages/ProjectWizard.tsx rewritten as the 12-step journey: 5 profiles, 4 region IDs, 7 building types, 4 brief templates, 2 plan options (Red Pen $50 / Guardian $800/mo), concept sketches, 4 finish pickers, approve/lock build-plan gate, contractor match card, 30-day materials lock, 3 build milestones, spend-down + rating.
+
+### Key bugfixes
+- Typology ids are house-residential/apartment-multi/duplex/clinic-health/school-classroom/office-commercial/retail-shop, not `house`.
+- finishLinePrice over-annuitized: changed to Math.round(finish.priceCents * areaM2) (was /1000*100); same fix in both FinishPickers.
+- Badge variant in wizard is `danger`, not `destructive`.
+- RTL tests use .toBeTruthy() (jest-dom not installed).
+
+### Verification results
+- npx tsc --noEmit --skipLibCheck: 0 errors
+- npx eslint . --ext ts,tsx: 0 errors / 0 warnings
+- npx vitest run --maxWorkers=4: 4613/4613 tests (231 files) - +31 new tests
+- npx madge --circular --extensions ts,tsx src: No circular dependency found
+- npx vite build: success (~12s, PWA precache 141 entries)
+
+## A3.8 - IndexedDB offline site photo capture (Current, 2026-08-08)
+
+### What was done
+Closed game-plan item A3.8 (PWA offline-first: IndexedDB for site photos). Site photos are captured on device (input accept="image/*" capture="environment"), read via FileReader to data URLs, geo-tagged best-effort, and stored in a new Dexie sitePhotos table - fully offline, no backend.
+
+### Files created (5)
+- src/engine/offline/sitePhotos.ts - SitePhoto type, nowIso, photoId, fileToDataUrl (FileReader), toDataUrl, isPhotoFile, attachGeo (6-decimal clamp, rejects non-finite), summarizePhotos (total/geoTagged/withNotes/byMilestone), milestoneLabel, captureHint. Node-safe (no media APIs).
+- src/stores/sitePhotoStore.ts - zustand + immer: loadForProject, addPhoto (put + prepend), updatePhoto, removePhoto, summary, clearForProject.
+- src/components/offline/SitePhotoPanel.tsx - capture form (note, lat/lng, geo-tag toggle, multi-file capture/upload button, edit-note-on-blur, delete), stat pills, photo grid with stored-offline badge, empty state, per-photo geo display.
+- src/pages/studio/SitePhotoStudio.tsx - studio page at /project/:id/studio/site-photos (WipaaStudio pattern).
+- Tests: src/__tests__/sitePhotos.test.ts (15, jsdom for FileReader) + src/__tests__/sitePhotoPanel.test.tsx (8) - 23 new tests.
+
+### Files modified (4)
+- src/db/db.ts - Dexie schema v14 (additive over v13): sitePhotos ('id,projectId,milestoneId,capturedAt'); v14 repeats all v13 stores.
+- src/app/router.tsx - lazy SitePhotoStudio route /project/:id/studio/site-photos.
+- src/lib/lifecycle/studioLinks.tsx - site-photos case -> Camera icon.
+- src/components/lifecycle/ProjectLifecycleDashboard.tsx - eighth module card "Site Photos" (total + geo-tagged detail, link to studio); grid lg:grid-cols-8; mount effect also loads site photos.
+
+### Notes
+- Stats memo derives from projectPhotos (deps [photos]) - the store summary() ref never changes so it cannot drive re-render.
+- Store addPhoto input type Omit<SitePhoto, 'id'|'capturedAt'|'source'> with optional source/capturedAt/id - source defaults 'capture'.
+- PWA/SW was already shipped; A3.8 is purely the offline IndexedDB capture layer.
+- budget-engineer-canonical submodule intentionally NOT touched.
+
+### Verification results
+- npx tsc --noEmit --skipLibCheck: 0 errors
+- npx eslint . --ext ts,tsx: 0 errors / 0 warnings
+- npx vitest run --maxWorkers=4: 4636/4636 tests (233 files) - +23 new tests
+- npx madge --circular --extensions ts,tsx src: No circular dependency found
+- npx vite build: success in ~22s (PWA precache 143 entries, 5046.29 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
