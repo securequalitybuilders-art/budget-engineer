@@ -29,6 +29,8 @@ export class RagIndex {
     let added = 0
     for (const chunk of chunks) {
       if (this.chunks.has(chunk.id)) continue
+      chunk.docTitle = doc.title
+      chunk.docCode = doc.code
       this.chunks.set(chunk.id, chunk)
       this.chunkEmbeddings.set(chunk.id, embedText(chunk.text))
       added++
@@ -74,7 +76,18 @@ export class RagIndex {
       if (!embedding) continue
       const score = cosineSimilarity(q, embedding)
       if (score < minScore) continue
-      results.push({ chunkId: id, docId: chunk.docId, sectionId: chunk.sectionId, heading: chunk.heading, text: chunk.text, score })
+      results.push({
+        chunkId: id,
+        docId: chunk.docId,
+        sectionId: chunk.sectionId,
+        heading: chunk.heading,
+        text: chunk.text,
+        score,
+        path: chunk.path,
+        chapter: chunk.chapter,
+        docTitle: chunk.docTitle,
+        parentText: chunk.parentText,
+      })
     }
     results.sort((a, b) => b.score - a.score)
     return results.slice(0, k)

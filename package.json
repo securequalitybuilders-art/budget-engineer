@@ -15,6 +15,9 @@
     "test:fast": "vitest run",
     "test:ci": "npm run typecheck && set NODE_OPTIONS=--max-old-space-size=8192 && vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
+    "eval:kpi3": "vitest run --config vitest.integration.config.ts src/__tests__/integration/kpi3Promptfoo.test.ts",
+    "eval:kpi3:cli": "node eval/run-cli-gate.mjs",
+    "eval:kpi3:ci": "node eval/run-cli-gate.mjs",
     "test:release": "npm run typecheck && npm run build:only && npm test && npm run test:integration",
     "test:smoke": "playwright test --config=playwright.config.ts",
     "lighthouse": "npm run build && lhci autorun"
@@ -61,6 +64,7 @@
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^29.1.1",
     "postcss": "^8.4.39",
+    "promptfoo": "^0.122.0",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.65.0",

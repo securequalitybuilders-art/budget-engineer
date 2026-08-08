@@ -1,0 +1,30 @@
+name: KPI3 Golden-Dataset Gate
+
+on:
+  pull_request:
+    paths:
+      - 'eval/**'
+      - 'src/engine/estimation/**'
+      - 'src/engine/rag/**'
+      - 'src/__tests__/kpi3Golden.test.ts'
+      - 'src/__tests__/integration/kpi3Promptfoo.test.ts'
+      - 'package.json'
+      - 'package-lock.json'
+
+jobs:
+  kpi3-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run promptfoo golden-dataset eval (fail-on-threshold)
+        run: npm run eval:kpi3:ci
+        env:
+          PROMPTFOO_PASS_RATE_THRESHOLD: '100'
+      - name: Deterministic golden gate
+        run: npx vitest run src/__tests__/kpi3Golden.test.ts

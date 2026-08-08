@@ -30,6 +30,11 @@ export interface TextChunk {
   text: string
   tables?: TableData[]
   parentId?: string
+  docTitle?: string
+  docCode?: string
+  parentChunkId?: string
+  parentText?: string
+  chapter?: string
   embedding?: number[]
 }
 
@@ -40,6 +45,14 @@ export interface SearchResult {
   heading: string
   text: string
   score: number
+  path?: string[]
+  chapter?: string
+  docTitle?: string
+  citation?: string
+  parentText?: string
+  rerankScore?: number
+  denseScore?: number
+  sparseScore?: number
 }
 
 export type ConstraintOperator = 'min' | 'max' | 'eq'
@@ -90,4 +103,6 @@ export interface RagComplianceReport {
   fellBack?: boolean
   fallbackReason?: string
   sources: SearchResult[]
+  confidence?: number
+  needsClarification?: boolean
 }

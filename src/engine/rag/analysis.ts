@@ -1,6 +1,9 @@
 import type { RagComplianceFinding, RagComplianceReport, SearchResult } from './types'
 import type { RagIndex } from './ragIndex'
 import { extractConstraintsFromChunks } from './constraints'
+import { hybridSearch } from './hybrid'
+import { attachCitations } from './citation'
+import { DEFAULT_RERANK_THRESHOLD, clarificationPrompt, rerankResults } from './rerank'
 import { extractJson } from '@/lib/ai/brief-coercion'
 import { getRemoteProvider, completeChat } from '@/lib/ai/remote-providers'
 import { useAiSettingsStore } from '@/stores/aiSettingsStore'
@@ -11,6 +14,9 @@ export interface AnalyzeOptions {
   jurisdiction?: string
   k?: number
   minScore?: number
+  hybrid?: boolean
+  rerank?: boolean
+  rerankThreshold?: number
   engine?: AiRemoteProvider
   apiKey?: string
 }
@@ -22,7 +28,7 @@ export interface CompliancePromptContext {
 
 export function buildComplianceContext(ctx: CompliancePromptContext): string {
   return ctx.sources
-    .map((s, i) => `[${i + 1}] ${s.heading} (section ${s.sectionId}, score ${s.score.toFixed(3)})\n${s.text.slice(0, 400)}`)
+    .map((s, i) => `[${i + 1}] ${s.heading} (section ${s.sectionId}, score ${s.score.toFixed(3)})${s.citation ? ` ${s.citation}` : ''}\n${s.text.slice(0, 400)}`)
     .join('\n\n')
 }
 
@@ -40,17 +46,17 @@ ${buildComplianceContext(ctx)}
 Reply with ONLY the JSON object, no prose.
 JSON:`
 
-function localFindings(_query: string, sources: SearchResult[]): { findings: RagComplianceFinding[]; warnings: string[] } {
+function localFindings(_query: string, sources: SearchResult[], degraded: boolean): { findings: RagComplianceFinding[]; warnings: string[] } {
   const constraints = extractConstraintsFromChunks(
     sources.map((s) => ({ id: s.chunkId, docId: s.docId, sectionId: s.sectionId, heading: s.heading, path: [s.heading], text: s.text })),
   )
   const findings: RagComplianceFinding[] = constraints.map((c) => ({
     ruleId: c.id,
     title: c.rule.category,
-    status: 'warn',
+    status: degraded ? 'warn' : 'warn',
     actual: 'not checked',
     required: `${c.rule.operator === 'min' ? 'min' : c.rule.operator === 'max' ? 'max' : '='} ${c.rule.value}${c.rule.unit ? ` ${c.rule.unit}` : ''}`,
-    note: c.sourceText,
+    note: degraded ? `Unverified — retrieval confidence below threshold. ${c.sourceText}` : c.sourceText,
     sources: [c.clauseRef],
   }))
   const warnings = sources.length === 0 ? ['No code sections retrieved for the query'] : []
@@ -58,16 +64,37 @@ function localFindings(_query: string, sources: SearchResult[]): { findings: Rag
 }
 
 export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): Promise<RagComplianceReport> {
-  const sources = index.search(opts.query, { k: opts.k ?? 5, minScore: opts.minScore ?? 0 })
-  const base = { query: opts.query, jurisdiction: opts.jurisdiction ?? 'zimbabwe', sources }
+  const k = opts.k ?? 5
+  const rawSources = opts.hybrid === false
+    ? index.search(opts.query, { k, minScore: opts.minScore ?? 0 })
+    : hybridSearch(index, opts.query, { k, minScore: opts.minScore ?? 0 })
+  const sources = attachCitations(rawSources)
+
+  const rerank = opts.rerank ?? true
+  const threshold = opts.rerankThreshold ?? DEFAULT_RERANK_THRESHOLD
+  const outcome = rerankResults(opts.query, sources, { enabled: rerank, threshold })
+  const rankedSources = outcome.results
+  const degraded = outcome.needsClarification
+
+  const base = {
+    query: opts.query,
+    jurisdiction: opts.jurisdiction ?? 'zimbabwe',
+    sources: rankedSources,
+    confidence: outcome.confidence,
+    needsClarification: degraded,
+  }
 
   const providerId = opts.engine ?? useAiSettingsStore.getState().engine
   const config = providerId && providerId !== 'local-rules' && providerId !== 'webllm' ? getRemoteProvider(providerId as AiRemoteProvider) : undefined
   const apiKey = opts.apiKey ?? useAiSettingsStore.getState().apiKeys[providerId as AiRemoteProvider]
 
+  const degradationWarning = degraded
+    ? [clarificationPrompt(opts.query, outcome.confidence, threshold)]
+    : []
+
   if (config && apiKey) {
     try {
-      const content = await completeChat(config, apiKey, [{ role: 'user', content: COMPLIANCE_PROMPT({ query: opts.query, sources }) }])
+      const content = await completeChat(config, apiKey, [{ role: 'user', content: COMPLIANCE_PROMPT({ query: opts.query, sources: rankedSources }) }])
       const json = extractJson(content) as {
         findings?: RagComplianceFinding[]
         score?: number
@@ -82,28 +109,26 @@ export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): 
         score: json.score ?? (total > 0 ? Math.round((passed / total) * 100) : 0),
         totalRules: total,
         passedRules: passed,
-        warnings: Array.isArray(json.warnings) ? json.warnings : [],
+        warnings: [...degradationWarning, ...(Array.isArray(json.warnings) ? json.warnings : [])],
         engineUsed: config.id,
-        sources,
       }
     } catch (err) {
-      const local = localFindings(opts.query, sources)
+      const local = localFindings(opts.query, rankedSources, degraded)
       return {
         ...base,
         findings: local.findings,
         score: 0,
         totalRules: local.findings.length,
         passedRules: 0,
-        warnings: [...local.warnings, err instanceof Error ? err.message : String(err)],
+        warnings: [...degradationWarning, ...local.warnings, err instanceof Error ? err.message : String(err)],
         engineUsed: 'local-rules',
         fellBack: true,
         fallbackReason: err instanceof Error ? err.message : String(err),
-        sources,
       }
     }
   }
 
-  const local = localFindings(opts.query, sources)
+  const local = localFindings(opts.query, rankedSources, degraded)
   const total = local.findings.length
   const passed = local.findings.filter((f) => f.status === 'pass').length
   return {
@@ -112,10 +137,9 @@ export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): 
     score: total > 0 ? Math.round((passed / total) * 100) : 0,
     totalRules: total,
     passedRules: passed,
-    warnings: local.warnings,
+    warnings: [...degradationWarning, ...local.warnings],
     engineUsed: providerId === 'webllm' ? 'local-rules' : config?.id ?? 'local-rules',
     fellBack: !!(config && providerId !== 'local-rules'),
     fallbackReason: config && providerId !== 'local-rules' ? 'No API key configured — using local constraint extraction' : undefined,
-    sources,
   }
 }

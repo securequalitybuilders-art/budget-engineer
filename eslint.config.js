@@ -4,9 +4,18 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'eslint.config.js', 'budget-engineer-canonical'] },
+  { ignores: ['dist', 'node_modules', 'eslint.config.js', 'budget-engineer-canonical', 'DZENHARE SQB — NEW GAME PLAN TO ACHIEVE PRODUCTION RAG UNICORN'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  {
+    files: ['**/*.mjs'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+      },
+    },
+  },
   {
     files: ['**/*.{ts,tsx}'],
     plugins: {
