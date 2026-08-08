@@ -1704,3 +1704,34 @@ Closed game-plan items A4.3 (True Ledger: PO/invoice → WBS cost-code auto-codi
 - `npx vitest run --maxWorkers=4`: 4538/4538 tests (225 files) — +33 new tests (29 engine + 4 panel)
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
 - `npx vite build`: success in ~7.3s (PWA precache 136 entries, 4980.27 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+## A4.4 - WIPAA monthly auto-run scheduler (Current)
+
+### What was done
+Closed game-plan item A4.4: WIPAA snapshots are now computed automatically on app open at a new month and persisted to Dexie v12, with a WipaaStudio page + panel and a sixth lifecycle-dashboard module card. No backend - the scheduler is a client-only local rollover check on store/dashboard mount.
+
+### Files created (5)
+- `src/engine/payment/wipaaAutoRun.ts` - pure helpers (no React): `monthKeyFor(date)` (`YYYY-MM`), `sumActualCostsCents(milestones)` (sums `actualCostCents`), `monthRolloverDue(snapshots, now)`, `computeWipaaSnapshot(escrow, milestones, options?)` (contractValue/billedToDate from escrow, costs defaulted from milestone actuals, `totalEstimatedCostsCents` default = contractValue x 100, `costPctComplete`, `revenueEarnedCents`, `overUnderBilledCents`, `billingStatus`, `source: ''auto''|''manual''`), `sortSnapshotsDesc(snapshots)`; exports `WipaaSnapshot` (id = `projectId-monthKey`, unique per month for upsert).
+- `src/stores/wipaaStore.ts` - zustand + immer + persist (localStorage `budget-engineer-wipaa`, partialize only currentProjectId): `loadForProject`, `runAutoRollover(projectId, options?)` (resolves escrow via `db.escrows` then `deriveEscrowFromMilestones` fallback; idempotent per monthKey - returns `{ ran:true, snapshot }` / `{ ran:false, reason:''no-data''|''already-ran''|''error'' }`), `runManualSnapshot(projectId, options?)` (forces a recompute for the current month, upsert with source `manual`).
+- `src/components/payment/WipaaPanel.tsx` - stat cards (contract value / billed to date / revenue earned / cost % complete), "Run now" manual recompute, status pills (on-track/under-billed/over-billed), latest snapshot block, monthly history list (sorted desc, source + over/under amounts).
+- `src/pages/studio/WipaaStudio.tsx` - lazy studio wrapper at `/project/:id/studio/wipaa` (back-link, heading, cross-links to True Ledger + Closeout, `<WipaaPanel projectId>`).
+- Tests: `src/__tests__/wipaaAutoRun.test.ts` (12: pure helpers + computeWipaaSnapshot + Dexie store rollover) + `src/__tests__/wipaaPanel.test.tsx` (6: panel empty/auto-run/run-now + dashboard card x2).
+
+### Files modified (3)
+- `src/db/db.ts` - Dexie schema v12 (additive over v11): `wipaaSnapshots` (`id,projectId,monthKey,computedAt,billingStatus`); v12 repeats all v11 stores.
+- `src/app/router.tsx` - lazy `WipaaStudio` route `/project/:id/studio/wipaa`.
+- `src/lib/lifecycle/studioLinks.tsx` - `''wipaa''` case -> `Scale` icon (StudioLink/StudioCard rendering).
+- `src/components/lifecycle/ProjectLifecycleDashboard.tsx` - sixth module card "WIPAA" (latest billingStatus + over/under amount detail, link to the studio); grid `lg:grid-cols-5` -> `lg:grid-cols-6`; dashboard triggers `runAutoRollover(projectId)` in a mount effect so the monthly snapshot is computed when a project opens.
+
+### Notes
+- `computeWipaaSnapshot` defaults `asOf` to `new Date()` when unset - the panel/dashboard rollover therefore stamps the real current month (tests assert via `monthKeyFor(new Date())`, not a hardcoded date).
+- Escrow `totalAmount` is in dollars; converted to cents via x100 in the snapshot engine (same convention as `saveAward`). `deriveEscrowFromMilestones` (executionSync) is the fallback source when no `db.escrows` record exists; `getTotalReleased` (escrowEngine) supplies billedToDate.
+- Panel + dashboard tests require `afterEach(cleanup)` (vitest globals off, RTL no auto-cleanup) - a failed mid-test assertion otherwise leaks DOM into the next test (cascading "multiple elements" errors).
+- A11y/`text-slate-500` rule + `fmtCents` shared helper followed; `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally untouched.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4556/4556 tests (227 files) - +18 new tests (12 engine + 6 panel)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+- `npx vite build`: success in ~14.7s (PWA precache 138 entries, 4993.37 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)

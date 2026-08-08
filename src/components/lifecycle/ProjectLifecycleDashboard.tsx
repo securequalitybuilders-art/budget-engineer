@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { useAssuranceStore } from '@/stores/assuranceStore';
@@ -8,14 +8,16 @@ import { useHandoverStore } from '@/stores/handoverStore';
 import { useProjectControlsStore } from '@/stores/projectControlsStore';
 import { useChangeStore } from '@/stores/changeStore';
 import { useLedgerStore } from '@/stores/ledgerStore';
+import { useWipaaStore } from '@/stores/wipaaStore';
 import { summarizeLedger } from '@/engine/ledger/trueLedger';
+import { sortSnapshotsDesc } from '@/engine/payment/wipaaAutoRun';
 import { fmtCents } from '@/components/ecosystem/useEcosystemData';
 import {
   computeProjectReadiness, computeMilestoneLifecycleSummary,
   computeProcurementLifecycleSummary, computeHandoverLifecycleSummary,
   computeProjectHealthSummary, computeProjectLifecycleSummary,
 } from '@/lib/lifecycle/lifecycleSummary';
-import { ShieldCheck, Flag, ShoppingCart, FolderOpen, AlertTriangle, ArrowRight, BookOpenCheck } from 'lucide-react';
+import { ShieldCheck, Flag, ShoppingCart, FolderOpen, AlertTriangle, ArrowRight, BookOpenCheck, Scale } from 'lucide-react';
 
 interface ProjectLifecycleDashboardProps {
   projectId: string;
@@ -41,6 +43,14 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
   const snagItems = useChangeStore((s) => s.snagItems);
   const ledgerEntries = useLedgerStore((s) => s.entries);
   const ledgerSummary = useMemo(() => summarizeLedger(ledgerEntries), [ledgerEntries]);
+  const wipaaSnapshots = useWipaaStore((s) => s.snapshots);
+  const runWipaaAutoRollover = useWipaaStore((s) => s.runAutoRollover);
+  const latestWipaa = useMemo(() => sortSnapshotsDesc(wipaaSnapshots)[0], [wipaaSnapshots]);
+
+  useEffect(() => {
+    if (!projectId) return;
+    runWipaaAutoRollover(projectId).catch(() => {});
+  }, [projectId, runWipaaAutoRollover]);
 
   const readiness = useMemo(() => computeProjectReadiness({
     intakes, feasibilityAssessments, riskGates, riskRegister, solvencyChecks,
@@ -105,8 +115,8 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
           )}
         </div>
 
-        {/* Four module summary cards */}
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        {/* Six module summary cards */}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
           <ModuleSummaryCard
             icon={<ShieldCheck size={14} />}
             label="Assurance"
@@ -146,6 +156,18 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
             color={ledgerSummary.unallocatedCents > 0 ? 'text-amber-400' : 'text-cyan-400'}
             detail={ledgerSummary.entryCount > 0 ? `${ledgerSummary.entryCount} coded · ${fmtCents(ledgerSummary.unallocatedCents)} uncoded` : 'No entries yet'}
             linkTo={`/project/${projectId}/studio/ledger`}
+          />
+          <ModuleSummaryCard
+            icon={<Scale size={14} />}
+            label="WIPAA"
+            value={latestWipaa ? latestWipaa.billingStatus : '—'}
+            color={latestWipaa?.billingStatus === 'on-track' ? 'text-green-400' : latestWipaa?.billingStatus === 'under-billed' ? 'text-amber-400' : latestWipaa?.billingStatus === 'over-billed' ? 'text-red-400' : 'text-gray-400'}
+            detail={latestWipaa
+              ? latestWipaa.overUnderBilledCents === 0
+                ? `${latestWipaa.costPctComplete.toFixed(0)}% · on track`
+                : `${fmtCents(Math.abs(latestWipaa.overUnderBilledCents))} ${latestWipaa.overUnderBilledCents > 0 ? 'under' : 'over'} billed`
+              : 'No snapshot yet'}
+            linkTo={`/project/${projectId}/studio/wipaa`}
           />
         </div>
       </div>
