@@ -1892,3 +1892,41 @@ Completed the STYLE track: S3 (Linear-dark glass skin, `--bg-primary` `#0b0f19` 
 - npx vitest run --maxWorkers=4: 4636/4636 tests (233 files)
 - npx madge --circular --extensions ts,tsx src: No circular dependency found
 - npx vite build: success in ~7.5s (PWA precache 144 entries, 5079.48 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+## A2.5 + B-series close-out — Agent Studio, golden BOQ dataset, constitution, env.example (Current, 2026-08-09)
+
+### What was done
+Closed the four remaining open task_plan items: A2.5 (the KPI2 `runBudgetAgent` orchestrator now has an in-app runner), B5 (`eval/golden-boq.json`), B3 (`env.example`), and B1 (`docs/context/project_constitution.md`).
+
+### A2.5 — Budget Engineer Agent Studio (in-app runner, no backend)
+- `src/engine/rag/codeCorpus.ts` (new) — compact Model Building By-Laws 1977 corpus (`BY_LAWS_1977_TEXT`, `BY_LAWS_1977_DOC` via `parseCodeDocument`, `buildDefaultRagIndex()`) so the agent's `search-codes` tool can retrieve code evidence fully offline.
+- `src/components/agent/AgentRunnerPanel.tsx` (new) — panel with pipeline legend (researcher→calculator→validator→supervisor→hitl|done chips lit per visited node), query textarea + preset chips, context inputs (contract USD / plan ID / architect reg no / historical baseline), Run → `runBudgetAgent({query, jurisdiction:'zimbabwe', projectId, context:{ragIndex: buildDefaultRagIndex(), ...}})`; renders retrieved evidence, tool-call log, rewrite, decision badge, KPI3 trace spans; human-in-the-loop Approve/Reject via `resumeAgent(state, 'APPROVED'|'REJECTED')`; past runs from `listAgentRuns`.
+- `src/pages/studio/AgentStudio.tsx` (new) — studio page at `/project/:id/studio/agent` (WipaaStudio pattern).
+- `src/app/router.tsx` — lazy + SafeRoute entry for the agent studio.
+- `src/lib/lifecycle/studioLinks.tsx` — `agent` case → `Bot` icon.
+- `src/components/lifecycle/ProjectLifecycleDashboard.tsx` — ninth module card "Agent" (latest run status + query, link to studio); grid `lg:grid-cols-8` → `lg:grid-cols-9`; latest run loaded via cancelled-flag effect calling `listAgentRuns`.
+- task_plan A2.5 ticked with a note that the FastAPI/Next runner was delivered local-first (constitution §3) as the in-app Agent Studio.
+
+### B5 — Golden BOQ dataset
+- `eval/golden-boq.json` (new) — 20 golden bill-of-quantities take-off cases from ZIQS SMM measurement rules + SAZ standards (strip footing excavation/concrete/blinding, Y12 rebar mass, DPC, 230/115 masonry with >1 m² opening deduction, 400x200x200 SAZ 7 MPa bricks 0.293 thousand matching the KPI3 canonical, lintels, door sets, screed/plaster/paint/ceiling/skirting/tiles with 5% waste, IBR roofing at pitch factor, gutters/downpipes, WC suite + waste). Each case: `id/source/title/measurementRule/input/expected[{category,description,unit,quantity,tolerancePct,formula}]`.
+- `src/__tests__/goldenBoqDataset.test.ts` (new, 10 tests) — 20-case count, unique ids, ZIQS/SAZ provenance, positive quantities + tolerances, formula presence, ZIQS section coverage, canonical bricks + excavation + opening-deduction + tiling-waste spot checks.
+
+### B3 — env.example
+- `env.example` (new, repo root) — FREE-tier keys only per task_plan: OPENROUTER_API_KEY, BYTEZ_API_KEY, NVIDIA_API_KEY, GROQ_API_KEY, HF_TOKEN, SUPABASE_URL, SUPABASE_ANON_KEY, LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, VITE_APP_NAME; header documents that all keys are optional, browser-only, and fall back to deterministic local engines.
+
+### B1 — Project constitution
+- `docs/context/project_constitution.md` (new) — the highest-ranking project-memory doc: identity, 7 non-negotiable invariants (local-first, no backend, zero paid APIs, no telemetry, SI 56 human-in-the-loop, honest positioning, keys are secrets), architecture constitution (append-only Dexie schema, engine purity, RAG pipeline, agent orchestrator, storage split, free-tier swap point), standards-of-record single authorities (roomStandards, occupancyMatrix, typology-kb, componentRegistry, council package, ISO 7200, zone colors), engineering working agreement (tsc 0, eslint 0/0, vitest ~4,600, madge clean, build green, a11y AA, no text-stone-500, hooks/encoding conventions, untouched submodule/spec folders), definition of done, and a dated decision log.
+
+### Notes
+- Agent engine surface confirmed: `runBudgetAgent` (index.ts) default-persists run + checkpoint + KPI3 trace; `resumeAgent` returns `{state}` to swap in; `AgentContext` fields `ragIndex/contractValueCents/planId/architectRegistrationNumber/historicalBaseline` all honored by the panel.
+- The `react-hooks/set-state-in-effect` rule rejected calling a setState-bearing helper from the effect body — the panel and dashboard both use the repo's accepted inline async IIFE + cancelled-flag pattern.
+- `vi.mock` hoisting: the test defines the four mock fns via `vi.hoisted` (referencing top-level `const`s in the factory throws "Cannot access before initialization").
+- Test scope fix: `getByText('party wall fire resistance')` matched both the run row and the preset chip — asserted on the row's `textContent` instead.
+- `budget-engineer-canonical` submodule intentionally NOT touched.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4655/4655 tests (235 files) — +19 new (9 agentRunnerPanel + 10 goldenBoqDataset)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
+- `npx vite build`: success in ~7.9s (PWA precache 147 entries, 5120.89 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/useGlbExport; GLTFExporter dynamic-vs-static note)

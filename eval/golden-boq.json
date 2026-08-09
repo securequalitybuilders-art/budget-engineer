@@ -1,0 +1,208 @@
+{
+  "schemaVersion": 1,
+  "title": "Golden BOQ take-off dataset — ZIQS SMM + SAZ",
+  "description": "20 golden bill-of-quantities measurement cases derived from ZIQS SMM (Zimbabwe Institution of Quantity Surveyors — Standard Method of Measurement) measurement rules and SAZ material/construction standards. Quantities are authoritative take-offs a BOQ generator must reproduce within tolerancePct.",
+  "cases": [
+    {
+      "id": "boq-strip-footing-excavation",
+      "source": "ZIQS SMM",
+      "title": "Strip footing excavation — 10 m run, 600 mm wide, 600 mm deep",
+      "measurementRule": "ZIQS SMM earthworks: measured net cubic metres of excavation in the ground; no deduction for trench form in foundation excavation.",
+      "input": { "lengthM": 10, "widthM": 0.6, "depthM": 0.6 },
+      "expected": [
+        { "category": "Substructure", "description": "Excavate strip footings 600 mm wide x 600 mm deep", "unit": "m3", "quantity": 3.6, "tolerancePct": 2, "formula": "10 x 0.6 x 0.6" }
+      ]
+    },
+    {
+      "id": "boq-strip-footing-concrete",
+      "source": "ZIQS SMM + SAZ",
+      "title": "Mass concrete in strip footings — 20 MPa, 10 m x 0.6 m x 0.6 m",
+      "measurementRule": "ZIQS SMM concrete: measured cubic metres net; SAZ mix design 20 MPa (1:2:4).",
+      "input": { "lengthM": 10, "widthM": 0.6, "depthM": 0.6, "gradeMpa": 20 },
+      "expected": [
+        { "category": "Substructure", "description": "Mass concrete in strip footings 20 MPa (1:2:4)", "unit": "m3", "quantity": 3.6, "tolerancePct": 2, "formula": "10 x 0.6 x 0.6" }
+      ]
+    },
+    {
+      "id": "boq-blinding-layer",
+      "source": "ZIQS SMM",
+      "title": "Blinding concrete 50 mm under strip footings — 10 m x 0.6 m",
+      "measurementRule": "ZIQS SMM: blinding measured cubic metres.",
+      "input": { "lengthM": 10, "widthM": 0.6, "thicknessM": 0.05 },
+      "expected": [
+        { "category": "Substructure", "description": "Blinding layer 50 mm thick (blinding concrete)", "unit": "m3", "quantity": 0.3, "tolerancePct": 2, "formula": "10 x 0.6 x 0.05" }
+      ]
+    },
+    {
+      "id": "boq-footing-rebar-y12",
+      "source": "ZIQS SMM + SAZ",
+      "title": "Y12 reinforcement in strip footing — 40 m of bar",
+      "measurementRule": "ZIQS SMM: reinforcement measured as mass (tonnes); Y12 unit mass 0.888 kg/m per SAZ rebar schedule.",
+      "input": { "barLengthM": 40, "barDiameterMm": 12, "unitMassKgPerM": 0.888 },
+      "expected": [
+        { "category": "Substructure", "description": "High-yield deformed bars Y12 in strip footings", "unit": "tonne", "quantity": 0.0355, "tolerancePct": 2, "formula": "40 x 0.888 kg / 1000" }
+      ]
+    },
+    {
+      "id": "boq-dpc-230-wall",
+      "source": "ZIQS SMM",
+      "title": "Damp-proof course to 230 mm wall — 10 m run",
+      "measurementRule": "ZIQS SMM: DPC measured in square metres on the wall thickness.",
+      "input": { "lengthM": 10, "wallThicknessMm": 230 },
+      "expected": [
+        { "category": "Superstructure", "description": "Damp-proof course to 230 mm wall", "unit": "m2", "quantity": 2.3, "tolerancePct": 2, "formula": "10 x 0.23" }
+      ]
+    },
+    {
+      "id": "boq-external-wall-230",
+      "source": "ZIQS SMM",
+      "title": "Solid external wall 230 mm — 10 m x 2.4 m, deduct 1.8 m2 door",
+      "measurementRule": "ZIQS SMM masonry: measured square metres, deductions for openings exceeding 1.0 m2.",
+      "input": { "lengthM": 10, "heightM": 2.4, "openingM2": 1.8 },
+      "expected": [
+        { "category": "Superstructure", "description": "Solid external wall 230 mm thick (common brick)", "unit": "m2", "quantity": 22.2, "tolerancePct": 2, "formula": "(10 x 2.4) - 1.8" }
+      ]
+    },
+    {
+      "id": "boq-internal-partition-115",
+      "source": "ZIQS SMM",
+      "title": "Internal partition wall 115 mm — 4 m x 2.4 m",
+      "measurementRule": "ZIQS SMM masonry: measured square metres net.",
+      "input": { "lengthM": 4, "heightM": 2.4 },
+      "expected": [
+        { "category": "Superstructure", "description": "Internal partition wall 115 mm thick", "unit": "m2", "quantity": 9.6, "tolerancePct": 2, "formula": "4 x 2.4" }
+      ]
+    },
+    {
+      "id": "boq-bricks-400x200x200",
+      "source": "ZIQS SMM + SAZ",
+      "title": "Common bricks 400x200x200 mm SAZ 7 MPa — 10 m x 2.4 m x 230 mm boundary",
+      "measurementRule": "ZIQS SMM: bricks counted per thousand; SAZ 7 MPa minimum compressive strength; 293 units for the canonical boundary take-off (matches eval/golden-dataset.ts bricks-10m-boundary).",
+      "input": { "lengthM": 10, "heightM": 2.4, "wallThicknessMm": 230 },
+      "expected": [
+        { "category": "Masonry", "description": "Common bricks 400x200x200 mm SAZ 7 MPa", "unit": "thousand", "quantity": 0.293, "tolerancePct": 1, "formula": "293 bricks / 1000" }
+      ]
+    },
+    {
+      "id": "boq-precast-lintels",
+      "source": "ZIQS SMM",
+      "title": "Precast concrete lintels 150 x 75 mm — 2 openings",
+      "measurementRule": "ZIQS SMM: precast concrete lintels counted each.",
+      "input": { "openingCount": 2 },
+      "expected": [
+        { "category": "Superstructure", "description": "Precast concrete lintels 150 x 75 mm reinforced", "unit": "each", "quantity": 2, "tolerancePct": 0, "formula": "2 openings" }
+      ]
+    },
+    {
+      "id": "boq-door-sets",
+      "source": "ZIQS SMM",
+      "title": "Solid-core door sets 813 x 2032 mm — 2 nr",
+      "measurementRule": "ZIQS SMM: doors counted each complete with frame and ironmongery.",
+      "input": { "doorCount": 2 },
+      "expected": [
+        { "category": "Windows / Doors", "description": "Solid-core flush doors 813 x 2032 x 40 mm complete with frame", "unit": "each", "quantity": 2, "tolerancePct": 0, "formula": "2 doors" }
+      ]
+    },
+    {
+      "id": "boq-floor-screed-25",
+      "source": "ZIQS SMM",
+      "title": "Floor screed 25 mm — 6 m x 4 m room (24 m2)",
+      "measurementRule": "ZIQS SMM: screeds measured square metres.",
+      "input": { "areaM2": 24 },
+      "expected": [
+        { "category": "Finishes", "description": "Cement/sand floor screed 25 mm (1:4)", "unit": "m2", "quantity": 24, "tolerancePct": 2, "formula": "6 x 4" }
+      ]
+    },
+    {
+      "id": "boq-wall-plaster-14",
+      "source": "ZIQS SMM",
+      "title": "Wall plaster 1:4 — 20 m perimeter x 2.4 m (48 m2)",
+      "measurementRule": "ZIQS SMM: plaster measured square metres net on walls.",
+      "input": { "perimeterM": 20, "heightM": 2.4 },
+      "expected": [
+        { "category": "Finishes", "description": "Wall plaster 1:4 cement:sand, 12 mm thick", "unit": "m2", "quantity": 48, "tolerancePct": 2, "formula": "20 x 2.4" }
+      ]
+    },
+    {
+      "id": "boq-emulsion-paint-internal",
+      "source": "ZIQS SMM",
+      "title": "Internal emulsion paint (2 coats) — 48 m2 of plastered wall",
+      "measurementRule": "ZIQS SMM: painting measured square metres, 2 coats standard.",
+      "input": { "areaM2": 48 },
+      "expected": [
+        { "category": "Finishes", "description": "Interior washable matt emulsion paint 2 coats", "unit": "m2", "quantity": 48, "tolerancePct": 2, "formula": "plastered wall area" }
+      ]
+    },
+    {
+      "id": "boq-ceiling-boards",
+      "source": "ZIQS SMM",
+      "title": "Ceiling boards 6 mm — 24 m2 room ceiling",
+      "measurementRule": "ZIQS SMM: ceiling measured square metres.",
+      "input": { "areaM2": 24 },
+      "expected": [
+        { "category": "Finishes", "description": "Ceiling boards 6 mm on pine grid", "unit": "m2", "quantity": 24, "tolerancePct": 2, "formula": "room area" }
+      ]
+    },
+    {
+      "id": "boq-skirting-75",
+      "source": "ZIQS SMM",
+      "title": "Skirting 75 mm pine — 20 m perimeter less 2 x 0.9 m doorways",
+      "measurementRule": "ZIQS SMM: skirting measured linear metres, openings deducted.",
+      "input": { "perimeterM": 20, "doorwayCount": 2, "doorwayWidthM": 0.9 },
+      "expected": [
+        { "category": "Finishes", "description": "Skirting 75 mm primed pine, mitred corners", "unit": "m", "quantity": 18.2, "tolerancePct": 2, "formula": "20 - (2 x 0.9)" }
+      ]
+    },
+    {
+      "id": "boq-floor-tiles-400",
+      "source": "ZIQS SMM",
+      "title": "Ceramic floor tiles 400x400 mm with 5% waste — 24 m2",
+      "measurementRule": "ZIQS SMM: tiling measured square metres; 5% cutting waste per take-off convention.",
+      "input": { "areaM2": 24, "wastePct": 5 },
+      "expected": [
+        { "category": "Finishes", "description": "Ceramic floor tiles 400 x 400 mm non-slip incl. 5% waste", "unit": "m2", "quantity": 25.2, "tolerancePct": 2, "formula": "24 x 1.05" }
+      ]
+    },
+    {
+      "id": "boq-roof-covering-ibr",
+      "source": "ZIQS SMM + SAZ",
+      "title": "IBR roof sheeting 0.47 mm — 24 m2 plan at 15 deg pitch",
+      "measurementRule": "ZIQS SMM: roof covering measured square metres on the slope; pitch factor 1.15 for 15 degrees.",
+      "input": { "planAreaM2": 24, "pitchDeg": 15, "pitchFactor": 1.15 },
+      "expected": [
+        { "category": "Roofing", "description": "IBR profile sheeting 0.47 mm (28 gauge)", "unit": "m2", "quantity": 27.6, "tolerancePct": 2, "formula": "24 x 1.15" }
+      ]
+    },
+    {
+      "id": "boq-gutters-110",
+      "source": "ZIQS SMM",
+      "title": "PVC gutters 110 mm half-round — 2 x 10 m eaves",
+      "measurementRule": "ZIQS SMM: rainwater goods measured linear metres.",
+      "input": { "eavesLengthM": 20 },
+      "expected": [
+        { "category": "Roofing", "description": "PVC gutters 110 mm half-round", "unit": "m", "quantity": 20, "tolerancePct": 0, "formula": "2 x 10" }
+      ]
+    },
+    {
+      "id": "boq-downpipes-75",
+      "source": "ZIQS SMM",
+      "title": "PVC downpipes 75 mm — 2 x 3 m storey height",
+      "measurementRule": "ZIQS SMM: rainwater goods measured linear metres.",
+      "input": { "downpipeCount": 2, "heightM": 3 },
+      "expected": [
+        { "category": "Roofing", "description": "PVC downpipes 75 mm with clips", "unit": "m", "quantity": 6, "tolerancePct": 0, "formula": "2 x 3" }
+      ]
+    },
+    {
+      "id": "boq-sanitary-wc-suite",
+      "source": "ZIQS SMM + SAZ",
+      "title": "WC suite close-coupled + 110 mm waste — 1 nr + 6 m run",
+      "measurementRule": "ZIQS SMM: sanitary fixtures counted each; waste connections measured linear metres.",
+      "input": { "wcCount": 1, "wasteRunM": 6 },
+      "expected": [
+        { "category": "Plumbing", "description": "WC suite close-coupled 6 L dual flush", "unit": "each", "quantity": 1, "tolerancePct": 0, "formula": "1 fixture" },
+        { "category": "Plumbing", "description": "PVC waste pipe 110 mm", "unit": "m", "quantity": 6, "tolerancePct": 2, "formula": "6 m run" }
+      ]
+    }
+  ]
+}
