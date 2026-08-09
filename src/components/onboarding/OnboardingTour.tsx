@@ -128,7 +128,7 @@ export function OnboardingTour({ open, onClose, onComplete }: OnboardingTourProp
               </button>
             </div>
 
-            <h2 id="onboarding-title" className="mt-3 text-xl font-bold text-white">
+            <h2 id="onboarding-title" className="mt-3 text-xl font-bold text-[var(--text-primary)]">
               {current.label}
             </h2>
             <p id="onboarding-desc" className="mt-2 text-sm leading-relaxed text-stone-300">

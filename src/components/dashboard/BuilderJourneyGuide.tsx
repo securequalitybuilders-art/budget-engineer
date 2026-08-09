@@ -94,7 +94,7 @@ export function BuilderJourneyGuide({
           <div className="space-y-2 px-3 py-2.5">
             <div className="rounded-lg bg-cyan-500/5 border border-cyan-500/15 px-2.5 py-2">
               <p className="text-[10px] font-medium uppercase tracking-wider text-cyan-300">Current step</p>
-              <p className="mt-0.5 text-sm font-medium text-white">{currentStepLabel || 'Start your project'}</p>
+              <p className="mt-0.5 text-sm font-medium text-[var(--text-primary)]">{currentStepLabel || 'Start your project'}</p>
               {nextAction && (
                 <>
                   <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-stone-400">Next</p>
@@ -126,7 +126,7 @@ export function BuilderJourneyGuide({
                         className={cn(
                           'text-[11px] leading-tight',
                           status === 'done' && 'text-stone-400 line-through',
-                          status === 'active' && 'font-medium text-white',
+                          status === 'active' && 'font-medium text-[var(--text-primary)]',
                           status === 'upcoming' && 'text-stone-400',
                         )}
                       >
@@ -163,7 +163,7 @@ export function BuilderJourneyGuide({
                     <button
                       key={t.label}
                       onClick={() => navigate('/new')}
-                      className="block w-full rounded-md border border-stone-700/50 px-3 py-2 text-left text-[11px] text-stone-300 hover:border-cyan-600/40 hover:bg-cyan-500/5 hover:text-white"
+                      className="block w-full rounded-md border border-stone-700/50 px-3 py-2 text-left text-[11px] text-stone-300 hover:border-cyan-600/40 hover:bg-cyan-500/5 hover:text-[var(--text-primary)]"
                     >
                       <span className="text-[10px] font-medium text-cyan-400">{t.label}</span>
                       <p className="mt-0.5 text-[10px] text-stone-400 line-clamp-2">{t.brief}</p>

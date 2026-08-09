@@ -107,7 +107,7 @@ export function MobileNavDrawer({
       <button
         ref={toggleRef}
         onClick={() => onOpenChange(!open)}
-        className="touch-target flex h-11 w-11 items-center justify-center rounded-lg text-stone-300 hover:bg-stone-800 hover:text-white transition-colors"
+        className="touch-target flex h-11 w-11 items-center justify-center rounded-lg text-stone-300 hover:bg-stone-800 hover:text-[var(--text-primary)] transition-colors"
         aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
         aria-expanded={open}
         aria-controls="mobile-nav-drawer"
@@ -138,7 +138,7 @@ export function MobileNavDrawer({
           <p className="text-xs font-semibold uppercase tracking-wider text-cyan-400">Menu</p>
           <button
             onClick={handleClose}
-            className="touch-target flex h-11 w-11 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-800 hover:text-white transition-colors"
+            className="touch-target flex h-11 w-11 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-800 hover:text-[var(--text-primary)] transition-colors"
             aria-label="Close navigation menu"
           >
             <X size={18} />

@@ -107,7 +107,7 @@ export function WallFirstCanvas({ document, basePlan, onChange, onUndo, onRedo, 
     <section className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-white">Wall-First CAD Authoring</h2>
+          <h2 className="text-xl font-semibold text-[var(--text-primary)]">Wall-First CAD Authoring</h2>
           <p className="mt-1 text-sm text-slate-300">Professional wall-first CAD authoring with geometry intelligence, BIM metadata, exchange scaffolds, and vertical coordination groundwork.</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -115,7 +115,7 @@ export function WallFirstCanvas({ document, basePlan, onChange, onUndo, onRedo, 
           {doc.activeTool === 'boundary' && draftBoundaryPoints.length > 0 && (
             <button onClick={handleFinishBoundary} className="rounded-xl border border-cyan-500/50 bg-cyan-900/50 px-3 py-2 text-sm text-cyan-200">Finish Boundary</button>
           )}
-          <button onClick={() => onChange(healCadDocument(doc))} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">Heal Topology</button>
+          <button onClick={() => onChange(healCadDocument(doc))} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-[var(--text-primary)]">Heal Topology</button>
         </div>
       </div>
 

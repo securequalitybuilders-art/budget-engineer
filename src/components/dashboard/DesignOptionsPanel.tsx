@@ -41,7 +41,7 @@ export function DesignOptionsPanel({
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
-          <h2 className="text-base font-bold text-white">Design Options</h2>
+          <h2 className="text-base font-bold text-[var(--text-primary)]">Design Options</h2>
           <p className="text-xs text-slate-400">Compare every generated concept and pick one to refine.</p>
         </div>
         <span className="rounded-md bg-cyan-500/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-300">

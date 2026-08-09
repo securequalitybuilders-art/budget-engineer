@@ -1,6 +1,30 @@
 <!doctype html>
 <html lang="en" class="dark">
   <head>
+    <script>
+      // S5 theme pre-paint guard — applies the persisted theme before first
+      // paint so the Sun/Moon toggle never flashes the dark default.
+      (function () {
+        try {
+          var raw = localStorage.getItem('budget-engineer-ui-state');
+          var theme = null;
+          if (raw) {
+            var parsed = JSON.parse(raw);
+            if (parsed && parsed.state && parsed.state.theme) theme = parsed.state.theme;
+          }
+          var resolved = 'dark';
+          if (theme === 'light') resolved = 'light';
+          else if (theme === 'system') resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          var root = document.documentElement;
+          if (resolved === 'light') root.classList.remove('dark');
+          else root.classList.add('dark');
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', resolved === 'light' ? '#f8fafc' : '#0f0f0f');
+        } catch (e) {
+          /* keep the static default (dark) */
+        }
+      })();
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icon-192.png" />

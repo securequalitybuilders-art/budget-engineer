@@ -146,7 +146,7 @@ export function ConceptStage({
       <div ref={designOptionsRef} className="rounded-2xl border border-stone-700/40 bg-stone-900/60 p-4">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0">
-            <h2 className="text-base font-bold text-white">Your designs</h2>
+            <h2 className="text-base font-bold text-[var(--text-primary)]">Your designs</h2>
             <p className="text-xs text-slate-400">
               Pick a design to edit — full concept previews live in the Brief stage.
             </p>

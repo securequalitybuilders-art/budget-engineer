@@ -440,29 +440,29 @@ export function PlanCanvas({
     <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-white">2D CAD Canvas</h2>
+          <h2 className="text-xl font-semibold text-[var(--text-primary)]">2D CAD Canvas</h2>
           <p className="mt-1 text-sm text-slate-300">Editable parametric SVG plan with snapping, constraints, undo/redo, and export actions.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button onClick={zoomOut} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">\u2212</button>
+          <button onClick={zoomOut} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-[var(--text-primary)]">\u2212</button>
           <div className="min-w-[72px] text-center text-sm text-slate-300">{Math.round(view.zoom * 100)}%</div>
-          <button onClick={zoomIn} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">+</button>
-          <button onClick={reset} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">Reset</button>
+          <button onClick={zoomIn} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-[var(--text-primary)]">+</button>
+          <button onClick={reset} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-[var(--text-primary)]">Reset</button>
 
           <span className="text-slate-600">|</span>
 
-          <button onClick={() => addRoom()} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700">+ Room</button>
-          <button onClick={() => selectedRoomId && deleteRoom(selectedRoomId)} disabled={!selectedRoomId} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700 disabled:text-slate-400">\u2212 Room</button>
+          <button onClick={() => addRoom()} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-slate-700">+ Room</button>
+          <button onClick={() => selectedRoomId && deleteRoom(selectedRoomId)} disabled={!selectedRoomId} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-slate-700 disabled:text-slate-400">\u2212 Room</button>
 
           <span className="text-slate-600">|</span>
 
-          <button onClick={() => addOpening('door')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700">+ Door</button>
-          <button onClick={() => addOpening('window')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700">+ Window</button>
+          <button onClick={() => addOpening('door')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-slate-700">+ Door</button>
+          <button onClick={() => addOpening('window')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-slate-700">+ Window</button>
 
           <select
             value={String(snapStep)}
             onChange={(e) => setSnapStep(Number(e.target.value))}
-            className="rounded-xl border border-white/10 bg-slate-900 px-2 py-2 text-sm text-white"
+            className="rounded-xl border border-white/10 bg-slate-900 px-2 py-2 text-sm text-[var(--text-primary)]"
             aria-label="Snap grid step"
           >
             <option value="0.05">Snap 0.05m</option>
@@ -474,14 +474,14 @@ export function PlanCanvas({
 
           <span className="text-slate-600">|</span>
 
-          <button onClick={undo} disabled={!canUndo} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white disabled:text-slate-400">Undo</button>
-          <button onClick={redo} disabled={!canRedo} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white disabled:text-slate-400">Redo</button>
+          <button onClick={undo} disabled={!canUndo} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-[var(--text-primary)] disabled:text-slate-400">Undo</button>
+          <button onClick={redo} disabled={!canRedo} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-[var(--text-primary)] disabled:text-slate-400">Redo</button>
 
           <span className="text-slate-600">|</span>
 
-          <button onClick={() => downloadTextFile(`${(design?.name ?? 'tracing-canvas').toLowerCase().replace(/\s+/g, '-')}.json`, exportPlanToMakerJson(model), 'application/json;charset=utf-8')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">Maker JSON</button>
-          <button onClick={() => downloadTextFile(`${(design?.name ?? 'tracing-canvas').toLowerCase().replace(/\s+/g, '-')}.dxf`, exportPlanToDxf(model), 'application/dxf')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">DXF</button>
-          <button onClick={() => downloadTextFile(`${(design?.name ?? 'tracing-canvas').toLowerCase().replace(/\s+/g, '-')}.svg`, exportPlanToSvg(model), 'image/svg+xml;charset=utf-8')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white">SVG</button>
+          <button onClick={() => downloadTextFile(`${(design?.name ?? 'tracing-canvas').toLowerCase().replace(/\s+/g, '-')}.json`, exportPlanToMakerJson(model), 'application/json;charset=utf-8')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-[var(--text-primary)]">Maker JSON</button>
+          <button onClick={() => downloadTextFile(`${(design?.name ?? 'tracing-canvas').toLowerCase().replace(/\s+/g, '-')}.dxf`, exportPlanToDxf(model), 'application/dxf')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-[var(--text-primary)]">DXF</button>
+          <button onClick={() => downloadTextFile(`${(design?.name ?? 'tracing-canvas').toLowerCase().replace(/\s+/g, '-')}.svg`, exportPlanToSvg(model), 'image/svg+xml;charset=utf-8')} className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm text-[var(--text-primary)]">SVG</button>
         </div>
       </div>
 

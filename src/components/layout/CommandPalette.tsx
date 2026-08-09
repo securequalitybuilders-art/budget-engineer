@@ -244,7 +244,7 @@ export function CommandPalette() {
                   </div>
                   <div className="flex items-center gap-2">
                     {cmd.shortcut && (
-                      <span className={cn('text-xs', selected ? 'text-white/70' : 'text-[var(--text-muted)]')}>
+                      <span className={cn('text-xs', selected ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]')}>
                         {cmd.shortcut}
                       </span>
                     )}

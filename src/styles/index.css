@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --bg-primary: #0b0f19;
+    --bg-primary: #0f0f0f;
     --bg-secondary: #111827;
     --bg-tertiary: #1e293b;
     --bg-elevated: #0f172a;
@@ -27,6 +27,38 @@
     --border-focus: rgba(212, 165, 116, 0.5);
     --shadow-glow-brand: 0 0 20px rgba(212, 165, 116, 0.3);
     --shadow-glow-ai: 0 0 20px rgba(6, 182, 212, 0.3);
+  }
+
+  /* S5 light mode — html:not(.dark) flips the design tokens.
+     Dark mode stays the default; uiStore toggles `.dark` on <html>. */
+  html:not(.dark) {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #f1f5f9;
+    --bg-tertiary: #e2e8f0;
+    --bg-elevated: #ffffff;
+    --brand-primary: #1a365d;
+    --brand-primary-dark: #16294a;
+    --brand-secondary: #2c5282;
+    --brand-accent: #7a4a1f;
+    --accent-ai: #0891b2;
+    --accent-bim: #7c3aed;
+    --accent-success: #059669;
+    --accent-warning: #b45309;
+    --accent-danger: #dc2626;
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #475569;
+    --border-subtle: rgba(15, 23, 42, 0.08);
+    --border-default: rgba(15, 23, 42, 0.14);
+    --border-focus: rgba(122, 74, 31, 0.5);
+    --shadow-glow-brand: 0 0 20px rgba(122, 74, 31, 0.18);
+    --shadow-glow-ai: 0 0 20px rgba(8, 145, 178, 0.16);
+  }
+
+  /* light-mode default border (dark default is @apply border-slate-700 on *).
+     Stays in @layer base so explicit border utilities still win. */
+  html:not(.dark) * {
+    border-color: rgb(226 232 240 / 0.8);
   }
 
   * {
@@ -71,11 +103,11 @@
 
 @layer components {
   .glass {
-    @apply bg-[rgba(17,24,39,0.7)] backdrop-blur-xl border border-white/[0.08];
+    @apply bg-[rgba(26,26,26,0.8)] backdrop-blur-[12px] border border-white/[0.08];
   }
 
   .glass-strong {
-    @apply bg-[rgba(15,23,42,0.9)] backdrop-blur-2xl border-b border-white/[0.08];
+    @apply bg-[rgba(26,26,26,0.85)] backdrop-blur-[16px] border-b border-white/[0.08];
   }
 
   .aurora {
@@ -89,6 +121,28 @@
     background: linear-gradient(90deg, rgba(30, 41, 59, 0.5) 25%, rgba(51, 65, 85, 0.8) 50%, rgba(30, 41, 59, 0.5) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* S5 light-mode variants for the skin layers */
+  html:not(.dark) .glass {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(15, 23, 42, 0.08);
+  }
+
+  html:not(.dark) .glass-strong {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(15, 23, 42, 0.1);
+  }
+
+  html:not(.dark) .aurora {
+    background: radial-gradient(ellipse 80% 50% at 20% 30%, rgba(44, 82, 130, 0.12) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 80% 20%, rgba(212, 165, 116, 0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 60% at 50% 80%, rgba(44, 82, 130, 0.1) 0%, transparent 60%);
+  }
+
+  html:not(.dark) .shimmer {
+    background: linear-gradient(90deg, rgba(226, 232, 240, 0.6) 25%, rgba(203, 213, 225, 0.9) 50%, rgba(226, 232, 240, 0.6) 75%);
+    background-size: 200% 100%;
   }
 
   .border-beam {
@@ -157,4 +211,117 @@
 .ticker-track:hover {
   animation-play-state: paused;
 }
+
+/* ============================================================
+   S5 light mode — hardcoded dark-utility remaps.
+   The app was coded dark-first with explicit stone/slate/gray
+   classes. In light mode (html:not(.dark)) these are remapped to
+   light equivalents so the Sun/Moon toggle actually restyles the
+   whole app. Un-layered => beats Tailwind's @layer utilities.
+   ============================================================ */
+
+/* backgrounds — stone */
+html:not(.dark) .bg-stone-950 { background-color: #f8fafc; }
+html:not(.dark) .bg-stone-950\/80 { background-color: rgba(248, 250, 252, 0.8); }
+html:not(.dark) .bg-stone-950\/90 { background-color: rgba(248, 250, 252, 0.9); }
+html:not(.dark) .bg-stone-900 { background-color: #ffffff; }
+html:not(.dark) .bg-stone-900\/80 { background-color: rgba(255, 255, 255, 0.8); }
+html:not(.dark) .bg-stone-900\/60 { background-color: rgba(255, 255, 255, 0.6); }
+html:not(.dark) .bg-stone-900\/50 { background-color: rgba(255, 255, 255, 0.5); }
+html:not(.dark) .bg-stone-900\/40 { background-color: rgba(255, 255, 255, 0.4); }
+html:not(.dark) .bg-stone-900\/30 { background-color: rgba(255, 255, 255, 0.3); }
+html:not(.dark) .bg-stone-800 { background-color: #f1f5f9; }
+html:not(.dark) .bg-stone-800\/80 { background-color: rgba(241, 245, 249, 0.8); }
+html:not(.dark) .bg-stone-800\/60 { background-color: rgba(241, 245, 249, 0.6); }
+html:not(.dark) .bg-stone-800\/50 { background-color: rgba(241, 245, 249, 0.5); }
+html:not(.dark) .bg-stone-800\/40 { background-color: rgba(241, 245, 249, 0.4); }
+html:not(.dark) .bg-stone-700 { background-color: #e2e8f0; }
+html:not(.dark) .bg-stone-700\/60 { background-color: rgba(226, 232, 240, 0.6); }
+html:not(.dark) .bg-stone-700\/40 { background-color: rgba(226, 232, 240, 0.4); }
+html:not(.dark) .bg-stone-600 { background-color: #cbd5e1; }
+html:not(.dark) .bg-stone-500 { background-color: #94a3b8; }
+html:not(.dark) .bg-stone-500\/10 { background-color: rgba(148, 163, 184, 0.1); }
+
+/* backgrounds — slate */
+html:not(.dark) .bg-slate-950 { background-color: #f8fafc; }
+html:not(.dark) .bg-slate-950\/80 { background-color: rgba(248, 250, 252, 0.8); }
+html:not(.dark) .bg-slate-950\/60 { background-color: rgba(248, 250, 252, 0.6); }
+html:not(.dark) .bg-slate-900 { background-color: #ffffff; }
+html:not(.dark) .bg-slate-900\/80 { background-color: rgba(255, 255, 255, 0.8); }
+html:not(.dark) .bg-slate-900\/60 { background-color: rgba(255, 255, 255, 0.6); }
+html:not(.dark) .bg-slate-900\/40 { background-color: rgba(255, 255, 255, 0.4); }
+html:not(.dark) .bg-slate-800 { background-color: #f1f5f9; }
+html:not(.dark) .bg-slate-800\/80 { background-color: rgba(241, 245, 249, 0.8); }
+html:not(.dark) .bg-slate-800\/60 { background-color: rgba(241, 245, 249, 0.6); }
+html:not(.dark) .bg-slate-700 { background-color: #e2e8f0; }
+html:not(.dark) .bg-slate-700\/50 { background-color: rgba(226, 232, 240, 0.5); }
+html:not(.dark) .bg-slate-600 { background-color: #cbd5e1; }
+
+/* backgrounds — gray */
+html:not(.dark) .bg-gray-800 { background-color: #f3f4f6; }
+html:not(.dark) .bg-gray-700 { background-color: #e5e7eb; }
+html:not(.dark) .bg-gray-500 { background-color: #9ca3af; }
+html:not(.dark) .bg-gray-500\/10 { background-color: rgba(156, 163, 175, 0.1); }
+
+/* translucent whites on dark surfaces -> translucent darks on light */
+html:not(.dark) .bg-white\/5 { background-color: rgba(15, 23, 42, 0.05); }
+html:not(.dark) .bg-white\/10 { background-color: rgba(15, 23, 42, 0.08); }
+html:not(.dark) .bg-white\/20 { background-color: rgba(15, 23, 42, 0.14); }
+html:not(.dark) .bg-white\/\[0\.02\] { background-color: rgba(15, 23, 42, 0.02); }
+
+/* text — stone */
+html:not(.dark) .text-stone-100 { color: #1c1917; }
+html:not(.dark) .text-stone-200 { color: #292524; }
+html:not(.dark) .text-stone-300 { color: #44403c; }
+html:not(.dark) .text-stone-400 { color: #57534e; }
+
+/* text — slate */
+html:not(.dark) .text-slate-200 { color: #1e293b; }
+html:not(.dark) .text-slate-300 { color: #334155; }
+html:not(.dark) .text-slate-400 { color: #475569; }
+
+/* text — gray */
+html:not(.dark) .text-gray-200 { color: #1f2937; }
+html:not(.dark) .text-gray-300 { color: #374151; }
+html:not(.dark) .text-gray-400 { color: #4b5563; }
+
+/* borders — stone */
+html:not(.dark) .border-stone-700 { border-color: #e7e5e4; }
+html:not(.dark) .border-stone-700\/60 { border-color: rgba(231, 229, 228, 0.6); }
+html:not(.dark) .border-stone-700\/50 { border-color: rgba(231, 229, 228, 0.5); }
+html:not(.dark) .border-stone-700\/40 { border-color: rgba(231, 229, 228, 0.4); }
+html:not(.dark) .border-stone-800 { border-color: #d6d3d1; }
+html:not(.dark) .border-stone-800\/60 { border-color: rgba(214, 211, 209, 0.6); }
+html:not(.dark) .border-stone-800\/50 { border-color: rgba(214, 211, 209, 0.5); }
+html:not(.dark) .border-stone-800\/40 { border-color: rgba(214, 211, 209, 0.4); }
+html:not(.dark) .border-stone-600 { border-color: #d6d3d1; }
+html:not(.dark) .border-stone-300 { border-color: #d6d3d1; }
+
+/* borders — slate */
+html:not(.dark) .border-slate-700 { border-color: #e2e8f0; }
+html:not(.dark) .border-slate-700\/60 { border-color: rgba(226, 232, 240, 0.6); }
+html:not(.dark) .border-slate-700\/50 { border-color: rgba(226, 232, 240, 0.5); }
+html:not(.dark) .border-slate-700\/40 { border-color: rgba(226, 232, 240, 0.4); }
+html:not(.dark) .border-slate-500 { border-color: #cbd5e1; }
+
+/* borders — gray */
+html:not(.dark) .border-gray-700 { border-color: #e5e7eb; }
+html:not(.dark) .border-gray-600 { border-color: #d1d5db; }
+html:not(.dark) .border-gray-500 { border-color: #d1d5db; }
+
+/* white borders -> subtle dark borders on light */
+html:not(.dark) .border-white\/10 { border-color: rgba(15, 23, 42, 0.12); }
+html:not(.dark) .border-white\/5 { border-color: rgba(15, 23, 42, 0.08); }
+
+/* divides */
+html:not(.dark) .divide-stone-800 > :not([hidden]) ~ :not([hidden]) { border-color: #d6d3d1; }
+html:not(.dark) .divide-stone-800\/60 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(214, 211, 209, 0.6); }
+html:not(.dark) .divide-stone-800\/50 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(214, 211, 209, 0.5); }
+
+/* rings + gradient stops */
+html:not(.dark) .ring-stone-950 { --tw-ring-color: #e2e8f0; }
+html:not(.dark) .from-stone-900 { --tw-gradient-from: #ffffff var(--tw-gradient-from-position); }
+html:not(.dark) .from-stone-800 { --tw-gradient-from: #f1f5f9 var(--tw-gradient-from-position); }
+html:not(.dark) .to-stone-800 { --tw-gradient-to: #f1f5f9 var(--tw-gradient-to-position); }
+html:not(.dark) .to-stone-700 { --tw-gradient-to: #e2e8f0 var(--tw-gradient-to-position); }
 

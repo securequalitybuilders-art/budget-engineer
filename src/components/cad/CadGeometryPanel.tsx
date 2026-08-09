@@ -13,20 +13,20 @@ export function CadGeometryPanel({ selectedWallId, secondSelectedWallId, onSplit
       <button
         onClick={onSplitWall}
         disabled={!selectedWallId}
-        className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white disabled:opacity-30"
+        className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-xs text-[var(--text-primary)] disabled:opacity-30"
       >
         Split Wall at Midpoint
       </button>
       <button
         onClick={onJoinWalls}
         disabled={!selectedWallId || !secondSelectedWallId}
-        className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white disabled:opacity-30"
+        className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-xs text-[var(--text-primary)] disabled:opacity-30"
       >
         Join Walls
       </button>
       <button
         onClick={onGenerateDimensions}
-        className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white"
+        className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-xs text-[var(--text-primary)]"
       >
         Generate Dimensions
       </button>

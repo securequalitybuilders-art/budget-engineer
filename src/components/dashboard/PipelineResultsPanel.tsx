@@ -43,7 +43,7 @@ export function PipelineResultsPanel({ result, isOpen, onClose }: PipelineResult
               {result.success ? <CheckCircle2 size={22} className="text-green-400" /> : <XCircle size={22} className="text-red-400" />}
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">Pipeline Results</h2>
+              <h2 className="text-lg font-bold text-[var(--text-primary)]">Pipeline Results</h2>
               <p className={`text-xs ${result.success ? 'text-green-400' : 'text-red-400'}`}>
                 {result.success ? 'Design generated successfully' : 'Pipeline completed with errors'}
               </p>
@@ -54,7 +54,7 @@ export function PipelineResultsPanel({ result, isOpen, onClose }: PipelineResult
               <Download size={14} />
               Report
             </Button>
-            <button onClick={onClose} className="touch-target flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white" aria-label="Close results panel">
+            <button onClick={onClose} className="touch-target flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-[var(--text-primary)]" aria-label="Close results panel">
               <X size={18} />
             </button>
           </div>
@@ -85,7 +85,7 @@ export function PipelineResultsPanel({ result, isOpen, onClose }: PipelineResult
             <div className="rounded-xl border border-slate-700/40 bg-slate-800/60 p-4">
               <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-emerald-400">Compliance</h3>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-white">{cr.score}%</span>
+                <span className="text-2xl font-bold text-[var(--text-primary)]">{cr.score}%</span>
                 <span className="text-xs text-slate-400">{cr.passedRules}/{cr.totalRules} rules passed</span>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-700">
@@ -114,23 +114,23 @@ export function PipelineResultsPanel({ result, isOpen, onClose }: PipelineResult
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs">
                   <span className="text-slate-400">Sheets</span>
-                  <span className="font-medium text-white">{cp.sheets.length}</span>
+                  <span className="font-medium text-[var(--text-primary)]">{cp.sheets.length}</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-slate-400">Drawing Register</span>
-                  <span className="font-medium text-white">{cp.drawingRegister.length} entries</span>
+                  <span className="font-medium text-[var(--text-primary)]">{cp.drawingRegister.length} entries</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-slate-400">Room Schedule</span>
-                  <span className="font-medium text-white">{cp.roomSchedule.length} rooms</span>
+                  <span className="font-medium text-[var(--text-primary)]">{cp.roomSchedule.length} rooms</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-slate-400">BOQ Total</span>
-                  <span className="font-medium text-white">{cp.boqSummary.currency} {cp.boqSummary.totalCost.toLocaleString()}</span>
+                  <span className="font-medium text-[var(--text-primary)]">{cp.boqSummary.currency} {cp.boqSummary.totalCost.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-slate-400">Disciplines</span>
-                  <span className="font-medium text-white">{[...new Set(cp.sheets.map(s => s.discipline))].join(', ')}</span>
+                  <span className="font-medium text-[var(--text-primary)]">{[...new Set(cp.sheets.map(s => s.discipline))].join(', ')}</span>
                 </div>
               </div>
             </div>
@@ -143,15 +143,15 @@ export function PipelineResultsPanel({ result, isOpen, onClose }: PipelineResult
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs">
                 <span className="text-slate-400">Candidates</span>
-                <span className="font-medium text-white">{result.optimizerResult.candidates.length}</span>
+                <span className="font-medium text-[var(--text-primary)]">{result.optimizerResult.candidates.length}</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-slate-400">Pareto Front</span>
-                <span className="font-medium text-white">{result.optimizerResult.paretoFront.length}</span>
+                <span className="font-medium text-[var(--text-primary)]">{result.optimizerResult.paretoFront.length}</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-slate-400">Topologies</span>
-                <span className="font-medium text-white">{[...new Set(result.optimizerResult.candidates.map(c => c.topology))].join(', ')}</span>
+                <span className="font-medium text-[var(--text-primary)]">{[...new Set(result.optimizerResult.candidates.map(c => c.topology))].join(', ')}</span>
               </div>
               {result.selectedCandidate && (
                 <div className="mt-2 rounded-lg bg-slate-900/60 p-2">

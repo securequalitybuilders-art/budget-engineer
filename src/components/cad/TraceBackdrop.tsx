@@ -77,7 +77,7 @@ export function BackdropControls({ backdrop, onUpdate, onSetScale, onClear }: Ba
           placeholder="Width m"
           min="0.1"
           step="0.5"
-          className="w-16 rounded border border-white/10 bg-slate-800 px-1 py-0.5 text-xs text-white"
+          className="w-16 rounded border border-white/10 bg-slate-800 px-1 py-0.5 text-xs text-[var(--text-primary)]"
           aria-label="Known width in metres"
           id="cal-width"
         />
@@ -87,7 +87,7 @@ export function BackdropControls({ backdrop, onUpdate, onSetScale, onClear }: Ba
           placeholder="Height m"
           min="0.1"
           step="0.5"
-          className="w-16 rounded border border-white/10 bg-slate-800 px-1 py-0.5 text-xs text-white"
+          className="w-16 rounded border border-white/10 bg-slate-800 px-1 py-0.5 text-xs text-[var(--text-primary)]"
           aria-label="Known height in metres"
           id="cal-height"
         />

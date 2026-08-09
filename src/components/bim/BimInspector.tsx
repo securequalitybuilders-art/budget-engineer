@@ -15,7 +15,7 @@ export function BimInspector({ element }: BimInspectorProps) {
 
   return (
     <div className="rounded-xl border border-white/10 bg-slate-900/40 p-4">
-      <h3 className="mb-3 text-sm font-medium text-white">Element Inspector</h3>
+      <h3 className="mb-3 text-sm font-medium text-[var(--text-primary)]">Element Inspector</h3>
       <div className="space-y-2 text-xs text-slate-300">
         <Row label="Name" value={element.name} />
         <Row label="Type" value={element.type} />

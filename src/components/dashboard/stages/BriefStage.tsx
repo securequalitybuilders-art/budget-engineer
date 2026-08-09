@@ -161,7 +161,7 @@ export function BriefStage({
               <span className="text-xs text-emerald-400">✓</span>
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-bold text-white">Designs generated</h3>
+              <h3 className="text-sm font-bold text-[var(--text-primary)]">Designs generated</h3>
               <p className="text-xs text-stone-400">
                 {visibleDesignOptions.length} option{visibleDesignOptions.length > 1 ? 's' : ''} available — concept previews below. Select the ideal concept, then refine it in the Concept stage.
               </p>

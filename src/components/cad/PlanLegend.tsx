@@ -14,7 +14,7 @@ export function PlanLegend({ design, plan }: PlanLegendProps) {
 
   return (
     <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-      <h2 className="text-xl font-semibold text-white">Plan Metadata</h2>
+      <h2 className="text-xl font-semibold text-[var(--text-primary)]">Plan Metadata</h2>
       {!design || !model || !metrics ? (
         <p className="mt-3 text-sm text-slate-300">Select a design option to inspect the generated plan metrics.</p>
       ) : (
@@ -41,7 +41,7 @@ function Meta({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-3">
       <div className="text-[10px] uppercase tracking-[0.18em] text-slate-400">{label}</div>
-      <div className="mt-1 font-medium text-white">{value}</div>
+      <div className="mt-1 font-medium text-[var(--text-primary)]">{value}</div>
     </div>
   )
 }
