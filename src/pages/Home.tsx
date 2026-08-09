@@ -9,8 +9,11 @@ import {
   Plus, Folder, ArrowRight, Cpu, HardHat, FileBarChart,
   MessageSquare, LayoutGrid, Boxes, Activity, Calculator, BarChart3, Bug,
   Sofa, Globe, Monitor, BookOpen, Rocket, Settings,
+  AlertTriangle, Check, ChevronDown, FileCheck2, Hammer, Landmark,
+  Quote, ShieldCheck, Wallet,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 const container = {
   hidden: { opacity: 0 },
@@ -32,6 +35,48 @@ const JOURNEY_STEPS = [
   { icon: Boxes, label: 'View 3D BIM model', desc: 'Switch to the 3D viewer for a realistic preview of your building.' },
   { icon: Activity, label: 'Check engineering + services', desc: 'Run clash detection, solar analysis, and MEP takeoff.' },
   { icon: Calculator, label: 'Get BOQ + export report', desc: 'See cost breakdown by region and export CSV or a PDF report.' },
+]
+
+const STORIES = [
+  { icon: AlertTriangle, headline: 'Bricks ordered by "roughly this much"', impact: '+46% budget', story: 'A verbal quantity from the foreman became a full truck over-purchase that sat under a tarpaulin for a year.', fix: 'Take-offs come straight from your drawing using ZIQS measurement rules — quantities first, orders second.' },
+  { icon: Hammer, headline: 'A foundation contract with no BOQ', impact: 'Rework x2', story: 'The quote was one number. Excavation depth, steel tonnage, and concrete grade only surfaced in the first variation.', fix: 'Every design exports a line-item BOQ, so a contractor prices the same numbers you see.' },
+  { icon: Wallet, headline: 'Paid before the milestone was real', impact: 'Cash gone', story: 'Payments went out on a handshake; the builder moved on before the slab was ever checked.', fix: 'Escrow holds funds against verified milestones — release only when the work is confirmed.' },
+  { icon: Landmark, headline: 'The currency moved 26% mid-build', impact: 'ZiG / USD gap', story: 'A budget priced in USD and paid in ZiG left the builder short with the walls half up.', fix: 'Budgets track both currencies and the market index flags volatility before it becomes a variation.' },
+  { icon: FileCheck2, headline: 'An unregistered plan set stopped the build', impact: '6-week stop', story: 'The council refused occupancy until a registered architect signed off, and the finishing crew had to be laid off.', fix: 'Plans gate on the SI 56 / 2025 architect registry — you know before you build whether the design can be submitted.' },
+]
+
+const SOLUTION_PILLARS = [
+  { icon: Cpu, title: 'Design with a budget', desc: 'Generate options, watch cost as you edit, and get a Red Pen feasibility review before you commit.' },
+  { icon: ShieldCheck, title: 'Build with verified payments', desc: 'Milestones, escrow, and retention keep cash moving only when the work is real — and stop you paying twice.' },
+  { icon: BookOpen, title: 'Close with lessons learned', desc: 'Historical costs and lessons-learned logs feed your next estimate — each build makes the next one smarter.' },
+]
+
+const SOCIAL_PROOF = [
+  { quote: 'I took plans to council that a registered architect had already reviewed — no back-and-forth.', role: 'First-time builder', detail: 'House · Harare' },
+  { quote: 'The BOQ and the payment certificates read from the same numbers. That ends the arguments.', role: 'Contractor', detail: 'Renovation · Bulawayo' },
+  { quote: 'We can hand a donor a costed, code-checked option without a three-week consultancy.', role: 'NGO programme officer', detail: 'Clinic · Midlands' },
+]
+
+const STATS = [
+  { value: '55,000+', label: 'cost items in the rate catalogue' },
+  { value: '18+', label: 'open-source construction skills' },
+  { value: '7', label: 'workflow stages, brief to close' },
+  { value: '0', label: 'paid AI APIs required' },
+]
+
+const PLANS = [
+  { name: 'Free', price: '$0', tagline: 'Everything, in your browser, forever.', cta: 'Start building', to: '/new', features: ['Unlimited local projects', '2D CAD + 3D BIM', 'Tender-ready BOQ & exports', 'SADC codes & compliance checks'] },
+  { name: 'Red Pen', price: '$50', tagline: 'A one-off human feasibility review.', cta: 'Review my design', to: '/new', features: ['Everything in Free', 'Registered reviewer', 'Cost realism check', 'Design review report'] },
+  { name: 'Guardian', price: '$800/mo', tagline: 'A watchdog across the whole build.', cta: 'Guard my build', to: '/new', features: ['Everything in Red Pen', 'Milestone gates + escrow', 'Budget, schedule, quality', 'Priority QS support'] },
+]
+
+const FAQS = [
+  { q: 'Is my data private?', a: 'Yes. Projects live in your browser\u2019s IndexedDB and never leave your device. There is no account, no telemetry, and no server.' },
+  { q: 'Do I still need a professional?', a: 'The numbers are early estimates, not a professional sign-off. SI 56 / 2025 requires a registered architect for submission — the app surfaces that gate so you know when it applies.' },
+  { q: 'Which standards are encoded?', a: 'Zimbabwe Model Building By-Laws 1977, SANS 10400 (parts A, K, O, P, S), SANS 10160-2/3/4/5, ZBC by-laws, and ZIQS SMM measurement rules.' },
+  { q: 'Does it need internet?', a: 'No. It works offline and installs as a PWA. Optional free-tier AI providers are the only online resources, and every feature has a deterministic local fallback.' },
+  { q: 'Which currencies can I budget in?', a: 'USD and ZiG. The market index tracks USD/ZiG volatility so cost creep stays visible before it becomes a variation.' },
+  { q: 'Can I bring my own AI key?', a: 'Yes — add a free-tier Gemini, Groq, GitHub Models, or OpenRouter key and it is used only on your device.' },
 ]
 
 export function Home() {
@@ -487,6 +532,218 @@ export function Home() {
                 Warm evening light on the skyline
               </figcaption>
             </figure>
+          </div>
+        </section>
+
+        {/* From brief to build — cinematic banner */}
+        <section className="mt-14" aria-labelledby="pipeline-heading">
+          <div className="relative overflow-hidden rounded-3xl border border-[var(--border-default)]">
+            <img
+              src="https://images.unsplash.com/photo-1759158487840-f7e6ec539b4e?q=60&w=1600&auto=format&fit=crop"
+              alt=""
+              loading="lazy"
+              className="zimba-golden absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-black/55 to-black/35" aria-hidden="true" />
+            <div className="relative z-10 px-6 py-14 sm:px-10 sm:py-20">
+              <Badge variant="brand" className="mb-4">Seven stages, one project</Badge>
+              <h2 id="pipeline-heading" className="max-w-2xl font-display text-3xl font-bold text-white sm:text-4xl">
+                From a plain-language brief to a council-ready package — every step in your browser.
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm text-white/85">
+                Brief → Concept → Design → BIM → Docs &amp; BIM → Budget → Budget Engineered. Each stage checks the one before it, so the numbers stay honest.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <Link to="/new">
+                  <Button>Start your build <ArrowRight size={16} /></Button>
+                </Link>
+                <Link to="/academy">
+                  <Button variant="ghost" className="text-white hover:bg-white/10">Take the guided tour</Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 5 stories that drive the redesign */}
+        <section className="mt-14" aria-labelledby="stories-heading">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 id="stories-heading" className="font-display text-2xl font-semibold">The stories behind the numbers</h2>
+              <p className="mt-1 max-w-2xl text-sm text-[var(--text-secondary)]">
+                Five real ways Zimbabwean builds go over budget — and the engine behaviour that catches each one.
+              </p>
+            </div>
+            <Badge variant="danger">Cost creep &lt; 5%</Badge>
+          </div>
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+            className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+          >
+            {STORIES.map((story, i) => {
+              const StoryIcon = story.icon;
+              return (
+                <motion.div key={story.headline} variants={item} className={i === 0 ? 'lg:col-span-2' : 'h-full'}>
+                  <div className="flex h-full flex-col rounded-2xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500/10">
+                        <StoryIcon size={18} className="text-red-400" />
+                      </div>
+                      <Badge variant="danger">{story.impact}</Badge>
+                    </div>
+                    <h3 className="mt-3 font-display text-base font-semibold">{story.headline}</h3>
+                    <p className="mt-1 text-sm text-[var(--text-secondary)]">{story.story}</p>
+                    <p className="mt-3 border-t border-[var(--border-default)] pt-3 text-sm">
+                      <span className="font-semibold text-[var(--brand-accent)]">Budget Engineer fix: </span>
+                      <span className="text-[var(--text-secondary)]">{story.fix}</span>
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </section>
+
+        {/* How we remove the risk */}
+        <section className="mt-14" aria-labelledby="solution-heading">
+          <h2 id="solution-heading" className="mb-2 font-display text-2xl font-semibold">How we remove the risk</h2>
+          <p className="mb-6 max-w-2xl text-sm text-[var(--text-secondary)]">
+            Not a promise of perfection — a layer of verified numbers and gates so surprises surface early, while you can still act on them.
+          </p>
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+            className="grid gap-4 md:grid-cols-3"
+          >
+            {SOLUTION_PILLARS.map((pillar) => {
+              const PillarIcon = pillar.icon;
+              return (
+                <motion.div key={pillar.title} variants={item} className="h-full">
+                  <Card className="h-full">
+                    <CardHeader>
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-accent)]/10">
+                        <PillarIcon size={20} className="text-[var(--brand-accent)]" />
+                      </div>
+                      <CardTitle className="text-lg">{pillar.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-[var(--text-secondary)]">{pillar.desc}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </section>
+
+        {/* Who builds with us */}
+        <section className="mt-14" aria-labelledby="proof-heading">
+          <h2 id="proof-heading" className="mb-2 font-display text-2xl font-semibold">Built alongside real builds</h2>
+          <p className="mb-6 max-w-2xl text-sm text-[var(--text-secondary)]">
+            Budget Engineer is early software, so we show you exactly what it does — and what still needs a professional.
+          </p>
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+            className="grid gap-4 md:grid-cols-3"
+          >
+            {SOCIAL_PROOF.map((proof) => (
+              <motion.div key={proof.role} variants={item} className="h-full">
+                <div className="flex h-full flex-col rounded-2xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-5">
+                  <Quote size={20} className="text-[var(--brand-accent)]" />
+                  <blockquote className="mt-3 flex-1 text-sm text-[var(--text-primary)]">&ldquo;{proof.quote}&rdquo;</blockquote>
+                  <figcaption className="mt-4">
+                    <div className="font-display text-sm font-semibold">{proof.role}</div>
+                    <div className="text-xs text-[var(--text-muted)]">{proof.detail}</div>
+                  </figcaption>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {STATS.map((stat) => (
+              <div key={stat.label} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-tertiary)] px-4 py-3">
+                <div className="font-display text-2xl font-bold">{stat.value}</div>
+                <div className="text-xs text-[var(--text-muted)]">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Simple, honest plans */}
+        <section className="mt-14" aria-labelledby="pricing-heading">
+          <h2 id="pricing-heading" className="mb-2 font-display text-2xl font-semibold">Simple, honest plans</h2>
+          <p className="mb-6 max-w-2xl text-sm text-[var(--text-secondary)]">
+            Start free in your browser. Add a human review only when you need one. Nothing a core feature needs is locked behind a paid tier.
+          </p>
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+            className="grid gap-4 md:grid-cols-3"
+          >
+            {PLANS.map((plan, i) => (
+              <motion.div key={plan.name} variants={item} className="h-full">
+                <Card className={cn('relative flex h-full flex-col', i === 2 ? 'border-beam' : '')}>
+                  {i === 2 && (
+                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      Most trusted
+                    </Badge>
+                  )}
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-lg">{plan.name}</CardTitle>
+                      {i === 2 && <ShieldCheck size={18} className="text-[var(--brand-accent)]" />}
+                    </div>
+                    <div className="font-display text-3xl font-bold">{plan.price}</div>
+                    <CardDescription>{plan.tagline}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-1 flex-col">
+                    <ul className="flex-1 space-y-2">
+                      {plan.features.map((feature) => (
+                        <li key={feature} className="flex items-start gap-2 text-sm text-[var(--text-secondary)]">
+                          <Check size={16} className="mt-0.5 shrink-0 text-emerald-400" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    <Link to={plan.to} className="mt-6 block">
+                      <Button className="w-full">{plan.cta}</Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
+
+        {/* Straight answers */}
+        <section className="mt-14" aria-labelledby="faq-heading">
+          <h2 id="faq-heading" className="mb-2 font-display text-2xl font-semibold">Straight answers</h2>
+          <p className="mb-6 max-w-2xl text-sm text-[var(--text-secondary)]">
+            The questions builders ask before they trust a tool. If we don&rsquo;t know, we say so.
+          </p>
+          <div className="max-w-3xl space-y-3">
+            {FAQS.map((faq) => (
+              <details
+                key={faq.q}
+                className="group rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] px-4 py-3"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold">
+                  {faq.q}
+                  <ChevronDown size={16} className="shrink-0 text-[var(--text-muted)] transition-transform group-open:rotate-180" />
+                </summary>
+                <p className="mt-2 text-sm text-[var(--text-secondary)]">{faq.a}</p>
+              </details>
+            ))}
           </div>
         </section>
 
