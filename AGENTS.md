@@ -2019,3 +2019,41 @@ Built a local-first **Domain MCP server** exposing the app's domain data to MCP 
 - `npx vitest run --maxWorkers=4`: 4675/4675 tests (236 files) — +14 new domainMcpTools tests
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1053 files)
 - `npx vite build`: success in ~34s (PWA precache unchanged); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+## L5 — RAG corpus wiring for external source documents (Current, Commit: `22ed4b8`)
+
+### What was done
+Built the deterministic half of L5 (NotebookLM research brain → RAG corpus): a corpus ingestion path that takes extracted source texts (NotebookLM `source_get_content` fulltext exports, PDF→text, historical-cost spreadsheets) as plain `.txt`/`.md`/`.csv` files in a directory and feeds them through the exact same `parseCodeDocument → chunkDocument` pipeline the production RAG uses — so the KPI2 `search-codes` tool and MCP `search_codes`/`analyze_compliance` can retrieve them with zero code changes. The interactive half (install `notebooklm-py[browser]`, Google browser auth, notebook creation) was handed off to the user.
+
+### Files created (3)
+- `src/engine/rag/corpusLoader.ts` — **Node-only** loader (`node:fs`; keep OUT of browser import paths; the browser in-memory `buildDefaultRagIndex()` stays browser-safe):
+  - `slugId`/`humanizeTitle`/`metadataForFile` — filename→metadata (id slug, title with acronym-aware humanizer, `KNOWN_CODE_MAP` for registry identity: `sans10400`/`sans-10400`/`sans10160`/`sans-10160`→`sans/south-africa`, `ziqs-smm`→`ziqs/zimbabwe`, `si-56-2025`/`architects-act`→SI 56/2025, `by-laws-1977`→`zbc/zimbabwe`, `saz-catalogue`→`saz/zimbabwe`; unknown ids default code undefined + jurisdiction `zimbabwe`)
+  - `csvToTabText` — CSV→tab-separated table conversion (quote-aware parser) so rows land as `TableData` (table-aware chunking keeps them intact)
+  - `parseCorpusFile` (null for empty text), `listCorpusFiles` (`.txt|.md|.csv`, sorted, missing-dir-safe), `loadCorpusDocuments`, `corpusSummary` (per-doc sections/chunks)
+  - `buildIndexWithCorpus(base, dir)` (extends any `RagIndex`), `buildCorpusIndex(dir)` (by-laws + corpus files), `indexFromCorpus(dir)`
+  - `DEFAULT_CORPUS_DIR = process.env.BE_CORPUS_DIR ?? './corpus'`
+- `scripts/ingest-corpus.ts` — CLI: `node --import tsx scripts/ingest-corpus.ts [dir] [--json <out.json>]`; scans, chunks, prints per-doc summary (id/title/code/jurisdiction/sections/chunks + total), optional `--json` writes a `RagIndex.toJSON()` snapshot (absolute-path-safe via `path.isAbsolute`).
+- `src/__tests__/corpusLoader.test.ts` — 15 tests (metadata, CSV→table, dir scanning, empty-safety, index building).
+
+### Files modified (1)
+- `src/mcp/domain-tools.ts` — `searchCodes`/`runComplianceAnalysis` now call `await buildCorpusIndex(DEFAULT_CORPUS_DIR)` (was `buildDefaultRagIndex()`) so the MCP tools search any corpus files present in `BE_CORPUS_DIR` in addition to By-Laws 1977.
+
+### Handoff to user (interactive half — not run)
+1. `pip install notebooklm-py[browser]`
+2. `notebooklm login` (opens browser; authenticate with your Google account, then `notebooklm auth check`)
+3. Create the notebook + add sources (By-Laws 1977 PDF, SAZ catalogue, ZIQS SMM, SI 56/2025, historical cost sheets), then extract fulltext per source.
+4. Save each extract as `<id>.txt`/`<id>.csv` in `corpus/` (repo root) — filename decides id/title/code/jurisdiction via `KNOWN_CODE_MAP` (e.g. `si-56-2025.txt`, `ziqs-smm.csv`, `sans10400.txt`).
+5. `node --import tsx scripts/ingest-corpus.ts` — prints the chunked summary; the MCP `search_codes`/`analyze_compliance` pick the files up automatically next call. Optionally `--json corpus/index.json` for a portable snapshot.
+
+### Notes
+- The `.beproj`/MCP servers read source documents from disk; this is constitution-compatible (no backend, no network — NotebookLM itself is the user's interactive research aid, the corpus is stored as plain files).
+- `scripts/` is NOT in tsconfig include (matches debug-script convention) but IS eslint-linted; script verified clean.
+- `buildIndexWithCorpus` defaults to a fresh `RagIndex` (caller seeds); `buildCorpusIndex` seeds By-Laws 1977 so the agent keeps its offline evidence baseline.
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4690/4690 tests (237 files) — +15 new corpusLoader tests
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1055 files)
+- `npx vite build`: success in ~8.5s (PWA precache 147 entries, 5137.27 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
