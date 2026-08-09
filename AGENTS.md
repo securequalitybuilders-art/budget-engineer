@@ -1861,3 +1861,34 @@ Closed the four STYLE items from the DZENHARE task plan: S1 SEO/a11y polish (met
 - npx vitest run --maxWorkers=4: 4636/4636 tests (233 files)
 - npx madge --circular --extensions ts,tsx src: No circular dependency found
 - npx vite build: success in ~38s (PWA precache 144 entries, 5072.36 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+## S3/S5 - Glass skin + full light-theme conversion (Current, 2026-08-09)
+
+### What was done
+Completed the STYLE track: S3 (Linear-dark glass skin, `--bg-primary` `#0b0f19` -> `#0f0f0f`) and S5 (dark mode toggle already shipped via `uiStore`; this session adds the **full light-theme conversion** on top). The sole theme mechanism is the `dark` class on `<html>` toggled by `uiStore.ts` (zustand persist, localStorage `budget-engineer-ui-state`) - no `dark:` variants, no `data-theme`. Dark mode stays **byte-identical**; light mode is purely additive.
+
+### S3 - Glass skin
+- `src/styles/index.css` - `--bg-primary: #0b0f19` -> `#0f0f0f` (Linear dark mode). `.glass`/`.glass-strong`/`.aurora`/`.shimmer` already shipped (S1-era). `#0b0f19` now only lives in docs/submodule (verified).
+
+### S5 - Light theme (additive remap, dark untouched)
+- `src/styles/index.css`:
+  - `html:not(.dark)` block inside `@layer base`: light token palette `--bg-primary #f8fafc` / `--bg-secondary #f1f5f9` / `--bg-tertiary #e2e8f0` / `--bg-elevated #ffffff` / `--text-primary #0f172a` / `--text-secondary #334155` / `--text-muted #475569`; **`--brand-accent` flips to `#7a4a1f`** (AA contrast on light backgrounds; dark neutral decors/accents keep dark-appropriate colors); comment 'uiStore toggles .dark on <html>'.
+  - `html:not(.dark) *` default border-color `rgb(226 232 240 / 0.8)` inside `@layer base` (higher specificity than the plain `*` base rule; explicit border utilities still win).
+  - `@layer components` light variants for `.glass`/`.glass-strong` (white glass), `.aurora` (slate-tinted), `.shimmer` (slate).
+  - Large **un-layered remap table** appended after all `@layer` blocks so it beats Tailwind's layered utilities. Covered: stone/slate/gray bg + opacity variants, white-opacity bgs (`bg-white/5`, `/10`, `/20`, `[0.02]` -> dark-on-light translucent), stone/slate/gray text (+200/300/400), stone/slate/gray borders + opacity, white-opacity borders, divides, `ring-stone-950`, gradient stops. 300-level dark utilities skipped (preserve genuine dark accents).
+- `text-white` surface conversions (18 files): replaced `text-white` -> `text-[var(--text-primary)]` (adapts to both themes) on dark surfaces: BimInspector, BlockLibraryPanel(cad), CadCommandPanel, CadExchangePanel, CadGeometryPanel, PlanCanvas, PlanComparison, PlanLegend, TraceBackdrop, WallFirstCanvas, BuilderJourneyGuide, DesignOptionsPanel, MobileNavDrawer, PipelineResultsPanel, ConceptStage, BriefStage, CommandPalette (`text-white/70` shortcut), OnboardingTour.
+- **94 `text-white` instances intentionally kept** - all on colored/inverted backgrounds (cyan/emerald/violet/amber/rose buttons, `bg-[var(--brand-primary)]`, `bg-[var(--brand-accent)]`, Home photo captions over `from-black/70`, router skip link on brand-primary). Verified full 147-instance listing (`$env:TEMP\textwhite2.txt`).
+- `index.html` - **FOUC guard** inline IIFE in `<head>`: reads `localStorage['budget-engineer-ui-state']` -> `parsed.state.theme`, resolves `light`/`system`(matchMedia)/`dark`, adds/removes `dark` class on `<html>` **before first paint**, sets `meta[name=theme-color]` to `#f8fafc` (light) / `#0f0f0f` (dark); try/catch fallback to the static dark default.
+
+### Notes
+- `text-slate-500`-style medium grays not remapped (correct - already dark, fine on light). `#0b0f19` gone from runtime CSS. No tests assert `text-white` (0 matches). a11ySeoConfig scan unaffected (remaps are CSS, tsx only introduces `text-[var(--text-primary)]`).
+- PlanCanvas drawing surface `bg-slate-950/80` flips to near-white in light mode via the bg remap; walls stay dark slate-700/600 - reads as light paper CAD. The inline SVG grid stroke stays subtle.
+- task_plan.md S3/S5 checkboxes ticked (all 6 STYLE items now [x]).
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB...` spec folder intentionally NOT touched.
+
+### Verification results
+- npx tsc --noEmit --skipLibCheck: 0 errors
+- npx eslint . --ext ts,tsx: 0 errors / 0 warnings
+- npx vitest run --maxWorkers=4: 4636/4636 tests (233 files)
+- npx madge --circular --extensions ts,tsx src: No circular dependency found
+- npx vite build: success in ~7.5s (PWA precache 144 entries, 5079.48 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
