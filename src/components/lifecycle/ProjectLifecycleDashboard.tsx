@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { useAssuranceStore } from '@/stores/assuranceStore';
@@ -11,6 +11,7 @@ import { useLedgerStore } from '@/stores/ledgerStore';
 import { useWipaaStore } from '@/stores/wipaaStore';
 import { useMarketIndexStore } from '@/stores/marketIndexStore';
 import { useSitePhotoStore } from '@/stores/sitePhotoStore';
+import { listAgentRuns, type AgentRunRow } from '@/engine/agents/checkpoint';
 import { summarizeLedger } from '@/engine/ledger/trueLedger';
 import { sortSnapshotsDesc } from '@/engine/payment/wipaaAutoRun';
 import { fmtCents } from '@/components/ecosystem/useEcosystemData';
@@ -19,7 +20,7 @@ import {
   computeProcurementLifecycleSummary, computeHandoverLifecycleSummary,
   computeProjectHealthSummary, computeProjectLifecycleSummary,
 } from '@/lib/lifecycle/lifecycleSummary';
-import { ShieldCheck, Flag, ShoppingCart, FolderOpen, AlertTriangle, ArrowRight, BookOpenCheck, Scale, TrendingUp, Camera } from 'lucide-react';
+import { ShieldCheck, Flag, ShoppingCart, FolderOpen, AlertTriangle, ArrowRight, BookOpenCheck, Scale, TrendingUp, Camera, Bot } from 'lucide-react';
 
 interface ProjectLifecycleDashboardProps {
   projectId: string;
@@ -56,6 +57,21 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
     const byProject = sitePhotos.filter((p) => p.projectId === projectId);
     return { total: byProject.length, geoTagged: byProject.filter((p) => p.geo).length };
   }, [sitePhotos, projectId]);
+  const [latestAgentRun, setLatestAgentRun] = useState<AgentRunRow | null>(null);
+
+  useEffect(() => {
+    if (!projectId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const rows = await listAgentRuns(projectId);
+        if (!cancelled) setLatestAgentRun(rows[0] ?? null);
+      } catch {
+        if (!cancelled) setLatestAgentRun(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [projectId]);
 
   useEffect(() => {
     if (!projectId) return;
@@ -127,8 +143,8 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
           )}
         </div>
 
-        {/* Eight module summary cards */}
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-8">
+        {/* Nine module summary cards */}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-9">
           <ModuleSummaryCard
             icon={<ShieldCheck size={14} />}
             label="Assurance"
@@ -200,6 +216,14 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
               ? `${sitePhotoSummary.geoTagged}/${sitePhotoSummary.total} geo-tagged`
               : 'No photos yet'}
             linkTo={`/project/${projectId}/studio/site-photos`}
+          />
+          <ModuleSummaryCard
+            icon={<Bot size={14} />}
+            label="Agent"
+            value={latestAgentRun ? latestAgentRun.status : '—'}
+            color={latestAgentRun?.status === 'completed' ? 'text-green-400' : latestAgentRun?.status === 'awaiting-input' ? 'text-amber-400' : latestAgentRun?.status === 'failed' ? 'text-red-400' : 'text-gray-400'}
+            detail={latestAgentRun ? `latest · ${latestAgentRun.query}` : 'Run the agent'}
+            linkTo={`/project/${projectId}/studio/agent`}
           />
         </div>
       </div>
