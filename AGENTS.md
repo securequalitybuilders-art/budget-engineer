@@ -1960,3 +1960,31 @@ MCP (MCP concept + opencode/notebooklm skills; domain MCP server deferred), Agen
 ### Notes
 - task_plan.md lives in the untracked `DZENHARE SQB…` spec folder — edits are not committed (repo convention); the reconciliation is captured here for the record.
 - No `tsc`/`eslint`/`vitest`/`build` rerun needed — documentation-only changes.
+
+## A3.6 — Home page Trust Staircase sections (Current, Commit: `6719b77`)
+
+### What was done
+Closed the A3.6 Home-page sections follow-up (the last un-ticked item flagged as "video/story pricing sections pending" in the reconciliation). Added the full Trust Staircase to `src/pages/Home.tsx`: cinematic pipeline banner, 5 horror-story bento, solution 3-col, social proof + stats strip, honest pricing with the Guardian "Border Beam Fortress" highlighted, and a native-details FAQ accordion.
+
+### Files modified (2)
+- `src/pages/Home.tsx` — six new sections + 5 module-scope data arrays + 8 new lucide icons + `cn` import:
+  - **Cinematic pipeline banner** ("Seven stages, one project") — full-bleed golden-hour Unsplash image (same Victoria Falls asset as the Zimbabwe section) under `.zimba-golden` + `from-black/75` gradient; honest copy: "Brief → Concept → Design → BIM → Docs & BIM → Budget → Budget Engineered… each stage checks the one before it". Two CTAs (Start your build → /new, guided tour → /academy). **No fake video source** — documented deferral: a `<video src>` can be dropped onto the banner once a hosted clip exists (no bundled assets, honest positioning).
+  - **5 stories behind the numbers** — dark bento (first card `lg:col-span-2`), each card: red icon chip + danger impact badge (Cost creep < 5%, Rework x2, Cash gone, ZiG/USD gap, 6-week stop), story paragraph, and "Budget Engineer fix:" line naming the actual engine behaviour (ZIQS take-offs, line-item BOQ, escrow milestones, dual-currency + market index, SI 56/2025 registry gate).
+  - **How we remove the risk** — 3 solution pillars (Design with a budget / Build with verified payments / Close with lessons learned) with a deliberate "not a promise of perfection" intro (brandguidelines §11 Honest).
+  - **Built alongside real builds** — 3 role-based quote cards (First-time builder · Harare, Contractor · Bulawayo, NGO programme officer · Midlands) + a 4-stat strip (55,000+ cost items / 18+ skills / 7 stages / 0 paid AI APIs). Intro is honest about being early software.
+  - **Simple, honest plans** — 3 plans mirroring the actual wizard `planOptions` (`ProjectWizard.tsx`: Free $0, Red Pen one-off $50, Guardian $800/mo) with real feature lists; Guardian card gets `border-beam` + floating "Most trusted" badge + ShieldCheck icon (the existing `.border-beam` CSS conic-gradient from `index.css:148`). No paid tier gates a core feature.
+  - **Straight answers** — 6-item FAQ as native `<details>`/`<summary>` accordion (`group-open:rotate-180` chevron), answers matching the constitution (local-first IndexedDB, no telemetry; SI 56/2025 needs a registered architect; standards list incl. SANS 10400 A/K/O/P/S + SANS 10160-2/3/4/5 + ZIQS SMM; offline PWA; USD + ZiG; bring-your-own free-tier AI key).
+- `src/__tests__/homeDiscoverability.test.tsx` — +6 tests (Trust Staircase describe block): banner callout, all 5 story cards + 5 "Budget Engineer fix:" lines, 3 pillars, social proof roles + stat strip, 3 plans with Guardian `border-beam` containment via `.closest('.border-beam')`, and FAQ `<details>` closed-by-default assertion.
+
+### Notes
+- Two test gotchas fixed during the run: `getByText('Contractor')` collides with the existing ecosystem card (same word) → `getAllByText(...).length >= 1`; and `details` content is always in the DOM when closed, so the "hidden answer" assertion became a `hasAttribute('open') === false` check + single-match count.
+- Content honors brandguidelines §11 (Direct/Technical/Action-oriented/Honest — "Never claim more than what's built"): every headline/impact maps to a real engine behaviour; pricing copies the shipped wizard plan options exactly; the honest-software disclaimer appears in the social-proof intro.
+- A11y: no `text-slate-500`/`text-stone-500`; white text only on the black-gradient image overlay; `aria-labelledby` headings on every section; summary is keyboard-accessible by default (`list-none` styled).
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4661 tests — 1 failure = the known `useGlbExportStrictMode.test.tsx` full-parallel flake (documented infra flake; passes 1/1 in isolation); homeDiscoverability 14/14
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1050 files)
+- `npx vite build`: success in ~22s (PWA precache 147 entries, 5135.24 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
