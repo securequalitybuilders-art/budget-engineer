@@ -1988,3 +1988,34 @@ Closed the A3.6 Home-page sections follow-up (the last un-ticked item flagged as
 - `npx vitest run --maxWorkers=4`: 4661 tests — 1 failure = the known `useGlbExportStrictMode.test.tsx` full-parallel flake (documented infra flake; passes 1/1 in isolation); homeDiscoverability 14/14
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1050 files)
 - `npx vite build`: success in ~22s (PWA precache 147 entries, 5135.24 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+
+## Domain MCP server — budget-engineer-domain (Current, Commit: `119e15e`)
+
+### What was done
+Built a local-first **Domain MCP server** exposing the app's domain data to MCP clients (including opencode itself) over stdio. Constitution-compatible: no backend, no network — the server reads the app's own `.beproj` exports from disk (`BE_EXPORT_DIR`, default `./exports`) and runs the bundled RAG/compliance engines headlessly. A user's project must be exported from the app (via its `.beproj` download) into the export dir for the project tools to see it.
+
+### Files created (3)
+- `src/mcp/domain-tools.ts` — pure Node tool core, zero SDK imports (fully unit-testable): `listProjects(dir)` (scans `*.beproj`, tolerant of corrupt files), `loadProject(projectId, dir)`, `projectSummary` (entity counts across all v14 tables), `milestoneSummary` (release states / categories / planned+actual cost), `escrowSummary` (statuses, held/released amounts, milestone states), `boqSummary` (per-BOQ line counts, category distribution, totals), `searchCodes({query,k,minScore})` (hybrid dense+sparse over the built-in By-Laws 1977 corpus via `buildDefaultRagIndex` + `hybridSearch`), `runComplianceAnalysis({query,jurisdiction})` (`analyzeCompliance` with `engine: 'local-rules'`, no LLM needed).
+- `src/mcp/domain-server.ts` — thin `McpServer` (`budget-engineer-domain` v1.0.0) + `StdioServerTransport`; 7 `registerTool` entries with zod input schemas; errors returned as `{ isError: true }`.
+- `src/__tests__/domainMcpTools.test.ts` — 14 tests (11 core: listing/loading/summaries incl. corrupt-file and empty-package tolerance; 3 RAG: canonical ceiling-height query → `by-laws-1977:sec-4-1.3`, k/minScore bounds, local-rules compliance without LLM).
+
+### Files modified (3)
+- `src/engine/rag/analysis.ts` — `AnalyzeOptions.engine` widened `AiRemoteProvider` → `AiEngine` so `'local-rules'` is expressible (the code already handled the `'local-rules'`/`'webllm'` string branches; the type was just narrower than reality).
+- `src/services/projectExportImportService.ts` — `.beproj` extension to full v14 parity (from the prior session, committed here): `CURRENT_VERSION` 4, `ProjectExportPackage` gains the 17 v14 project-scoped arrays (escrows, dispatchOrders/Holds, sovs, finalAccounts, lienWaivers, gainFades, historicalCosts, lessons, planValidations, agentRuns, agentCheckpoints, traces, ledgerEntries, changeLensAnalyses, wipaaSnapshots, sitePhotos), fetch/import/migrate extended (planValidations by `planId`, agentCheckpoints by `runId`, changeLensAnalyses by `changeOrderNumber`).
+- `package.json` + lockfile — `@modelcontextprotocol/sdk` pinned `1.30.0` (direct dependency; peer zod ^3.25 satisfied by the hoisted 3.25.x).
+
+### Registered (1)
+- `opencode.json` (new, repo root) — `mcp.budget-engineer-domain` = `{ type: 'local', command: ['node', '--import', 'tsx', 'src/mcp/domain-server.ts'], environment: { BE_EXPORT_DIR: './exports' } }` with the opencode config `$schema`.
+
+### Notes
+- Verified end-to-end headlessly with the SDK client: `tools/list` returns all 7 tools; `search_codes` returns the canonical ceiling-height section; `analyze_compliance` runs local-rules (`engineUsed 'local-rules'`, 5 rules). The Node `localStorage` ExperimentalWarning from importing `aiSettingsStore` is harmless (persist degrades gracefully).
+- Search default `minScore` is `0.01` (hybrid RRF scores cluster ~0.03 — a `0.12` default returned nothing).
+- **opencode config is loaded once at startup — the user must quit and restart opencode for the MCP server to be picked up.**
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4675/4675 tests (236 files) — +14 new domainMcpTools tests
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1053 files)
+- `npx vite build`: success in ~34s (PWA precache unchanged); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
