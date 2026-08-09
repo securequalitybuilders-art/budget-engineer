@@ -7,7 +7,7 @@ import { DEFAULT_RERANK_THRESHOLD, clarificationPrompt, rerankResults } from './
 import { extractJson } from '@/lib/ai/brief-coercion'
 import { getRemoteProvider, completeChat } from '@/lib/ai/remote-providers'
 import { useAiSettingsStore } from '@/stores/aiSettingsStore'
-import type { AiRemoteProvider } from '@/lib/ai/ai-types'
+import type { AiEngine, AiRemoteProvider } from '@/lib/ai/ai-types'
 import { createTracer, type Trace } from './tracing'
 
 export interface AnalyzeOptions {
@@ -18,7 +18,7 @@ export interface AnalyzeOptions {
   hybrid?: boolean
   rerank?: boolean
   rerankThreshold?: number
-  engine?: AiRemoteProvider
+  engine?: AiEngine
   apiKey?: string
   onTrace?: (trace: Trace) => void
 }

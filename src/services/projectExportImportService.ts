@@ -1,7 +1,7 @@
 import { db } from '@/db/db'
 import { uuid } from '@/lib/utils'
 
-const CURRENT_VERSION = 3
+const CURRENT_VERSION = 4
 
 export interface ProjectExportPackage {
   version: number
@@ -47,6 +47,25 @@ export interface ProjectExportPackage {
   oAndMRecords: unknown[]
   projectControlsBaselines: unknown[]
   projectControlsSnapshots: unknown[]
+
+  // v14 project-scoped lifecycle + domain tables (global catalogs excluded)
+  escrows: unknown[]
+  dispatchOrders: unknown[]
+  dispatchHolds: unknown[]
+  sovs: unknown[]
+  finalAccounts: unknown[]
+  lienWaivers: unknown[]
+  gainFades: unknown[]
+  historicalCosts: unknown[]
+  lessons: unknown[]
+  planValidations: unknown[]
+  agentRuns: unknown[]
+  agentCheckpoints: unknown[]
+  traces: unknown[]
+  ledgerEntries: unknown[]
+  changeLensAnalyses: unknown[]
+  wipaaSnapshots: unknown[]
+  sitePhotos: unknown[]
 }
 
 async function fetchAllProjectData(projectId: string): Promise<ProjectExportPackage> {
@@ -56,7 +75,9 @@ async function fetchAllProjectData(projectId: string): Promise<ProjectExportPack
     procurementRequests, supplierQuotes, purchaseOrders, deliveryRecords,
     changeOrders, rfis, submittals, siteInspections, ncrs, snagItems,
     completionStages, snagLists, handoverPackages, assetRegister, warrantyRecords, oAndMRecords,
-    projectControlsBaselines, projectControlsSnapshots] = await Promise.all([
+    projectControlsBaselines, projectControlsSnapshots,
+    escrows, dispatchOrders, dispatchHolds, sovs, finalAccounts, lienWaivers, gainFades, historicalCosts, lessons,
+    agentRuns, traces, ledgerEntries, wipaaSnapshots, sitePhotos] = await Promise.all([
     db.projects.get(projectId),
     db.briefs.get(projectId),
     db.designs.where({ projectId }).toArray(),
@@ -95,6 +116,29 @@ async function fetchAllProjectData(projectId: string): Promise<ProjectExportPack
     db.oAndMRecords.where({ projectId }).toArray(),
     db.projectControlsBaselines.where({ projectId }).toArray(),
     db.projectControlsSnapshots.where({ projectId }).toArray(),
+    db.escrows.where({ projectId }).toArray(),
+    db.dispatchOrders.where({ projectId }).toArray(),
+    db.dispatchHolds.where({ projectId }).toArray(),
+    db.sovs.where({ projectId }).toArray(),
+    db.finalAccounts.where({ projectId }).toArray(),
+    db.lienWaivers.where({ projectId }).toArray(),
+    db.gainFades.where({ projectId }).toArray(),
+    db.historicalCosts.where({ projectId }).toArray(),
+    db.lessons.where({ projectId }).toArray(),
+    db.agentRuns.where({ projectId }).toArray(),
+    db.traces.where({ projectId }).toArray(),
+    db.ledgerEntries.where({ projectId }).toArray(),
+    db.wipaaSnapshots.where({ projectId }).toArray(),
+    db.sitePhotos.where({ projectId }).toArray(),
+  ])
+
+  const planIds = planModels.map((p) => (p as { id: string }).id)
+  const runIds = agentRuns.map((r) => (r as { id: string }).id)
+  const changeOrderNumbers = changeOrders.map((c) => (c as { id: string }).id)
+  const [planValidations, agentCheckpoints, changeLensAnalyses] = await Promise.all([
+    planIds.length > 0 ? db.planValidations.where('planId').anyOf(planIds).toArray() : Promise.resolve([]),
+    runIds.length > 0 ? db.agentCheckpoints.where('runId').anyOf(runIds).toArray() : Promise.resolve([]),
+    changeOrderNumbers.length > 0 ? db.changeLensAnalyses.where('changeOrderNumber').anyOf(changeOrderNumbers).toArray() : Promise.resolve([]),
   ])
 
   const procurementReqIds = new Set(procurementRequests.map((r) => r.id))
@@ -144,6 +188,23 @@ async function fetchAllProjectData(projectId: string): Promise<ProjectExportPack
     oAndMRecords: oAndMRecords ?? [],
     projectControlsBaselines: projectControlsBaselines ?? [],
     projectControlsSnapshots: projectControlsSnapshots ?? [],
+    escrows: escrows ?? [],
+    dispatchOrders: dispatchOrders ?? [],
+    dispatchHolds: dispatchHolds ?? [],
+    sovs: sovs ?? [],
+    finalAccounts: finalAccounts ?? [],
+    lienWaivers: lienWaivers ?? [],
+    gainFades: gainFades ?? [],
+    historicalCosts: historicalCosts ?? [],
+    lessons: lessons ?? [],
+    planValidations: planValidations ?? [],
+    agentRuns: agentRuns ?? [],
+    agentCheckpoints: agentCheckpoints ?? [],
+    traces: traces ?? [],
+    ledgerEntries: ledgerEntries ?? [],
+    changeLensAnalyses: changeLensAnalyses ?? [],
+    wipaaSnapshots: wipaaSnapshots ?? [],
+    sitePhotos: sitePhotos ?? [],
   }
 }
 
@@ -181,6 +242,23 @@ function migrateData(data: ProjectExportPackage): ProjectExportPackage {
   if (!data.oAndMRecords) data.oAndMRecords = []
   if (!data.projectControlsBaselines) data.projectControlsBaselines = []
   if (!data.projectControlsSnapshots) data.projectControlsSnapshots = []
+  if (!data.escrows) data.escrows = []
+  if (!data.dispatchOrders) data.dispatchOrders = []
+  if (!data.dispatchHolds) data.dispatchHolds = []
+  if (!data.sovs) data.sovs = []
+  if (!data.finalAccounts) data.finalAccounts = []
+  if (!data.lienWaivers) data.lienWaivers = []
+  if (!data.gainFades) data.gainFades = []
+  if (!data.historicalCosts) data.historicalCosts = []
+  if (!data.lessons) data.lessons = []
+  if (!data.planValidations) data.planValidations = []
+  if (!data.agentRuns) data.agentRuns = []
+  if (!data.agentCheckpoints) data.agentCheckpoints = []
+  if (!data.traces) data.traces = []
+  if (!data.ledgerEntries) data.ledgerEntries = []
+  if (!data.changeLensAnalyses) data.changeLensAnalyses = []
+  if (!data.wipaaSnapshots) data.wipaaSnapshots = []
+  if (!data.sitePhotos) data.sitePhotos = []
   return data
 }
 
@@ -191,6 +269,10 @@ const LIFECYCLE_TABLES = [
   'changeOrders', 'rfis', 'submittals', 'siteInspections', 'ncrs', 'snagItems',
   'completionStages', 'snagLists', 'handoverPackages', 'assetRegister', 'warrantyRecords', 'oAndMRecords',
   'projectControlsBaselines', 'projectControlsSnapshots',
+  'escrows', 'dispatchOrders', 'dispatchHolds', 'sovs', 'finalAccounts', 'lienWaivers',
+  'gainFades', 'historicalCosts', 'lessons', 'planValidations',
+  'agentRuns', 'agentCheckpoints', 'traces', 'ledgerEntries', 'changeLensAnalyses',
+  'wipaaSnapshots', 'sitePhotos',
 ] as const
 
 export async function importProjectPackage(blob: Blob): Promise<string | null> {
@@ -216,6 +298,10 @@ export async function importProjectPackage(blob: Blob): Promise<string | null> {
     db.changeOrders, db.rfis, db.submittals, db.siteInspections, db.ncrs, db.snagItems,
     db.completionStages, db.snagLists, db.handoverPackages, db.assetRegister, db.warrantyRecords, db.oAndMRecords,
     db.projectControlsBaselines, db.projectControlsSnapshots,
+    db.escrows, db.dispatchOrders, db.dispatchHolds, db.sovs, db.finalAccounts, db.lienWaivers,
+    db.gainFades, db.historicalCosts, db.lessons, db.planValidations,
+    db.agentRuns, db.agentCheckpoints, db.traces, db.ledgerEntries, db.changeLensAnalyses,
+    db.wipaaSnapshots, db.sitePhotos,
   ], async () => {
     await db.projects.put(data.project as never)
     if (data.brief) await db.briefs.put(data.brief as never)
@@ -287,6 +373,10 @@ export async function importProjectAsCopy(blob: Blob): Promise<string | null> {
     db.changeOrders, db.rfis, db.submittals, db.siteInspections, db.ncrs, db.snagItems,
     db.completionStages, db.snagLists, db.handoverPackages, db.assetRegister, db.warrantyRecords, db.oAndMRecords,
     db.projectControlsBaselines, db.projectControlsSnapshots,
+    db.escrows, db.dispatchOrders, db.dispatchHolds, db.sovs, db.finalAccounts, db.lienWaivers,
+    db.gainFades, db.historicalCosts, db.lessons, db.planValidations,
+    db.agentRuns, db.agentCheckpoints, db.traces, db.ledgerEntries, db.changeLensAnalyses,
+    db.wipaaSnapshots, db.sitePhotos,
   ], async () => {
     await db.projects.put(newProject as never)
 
