@@ -1822,3 +1822,42 @@ Closed game-plan item A3.8 (PWA offline-first: IndexedDB for site photos). Site 
 - npx vitest run --maxWorkers=4: 4636/4636 tests (233 files) - +23 new tests
 - npx madge --circular --extensions ts,tsx src: No circular dependency found
 - npx vite build: success in ~22s (PWA precache 143 entries, 5046.29 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+## S1/S2/S4/S6 - UI/UX Pro Max polish cluster (Current, 2026-08-09)
+
+### What was done
+Closed the four STYLE items from the DZENHARE task plan: S1 SEO/a11y polish (meta/OG tags, 44px touch targets, sticky table headers, skeleton-not-spinner, tabular-nums money, chart datapoint labels, reduced-motion), S2 bento-grid SaaS hero on Home, S4 micro-interactions (border beams, staggered scroll reveals, button scale, gold confetti on milestone verify via canvas-confetti), S6 Zimbabwe golden-hour imagery from Unsplash.
+
+### Files created (4)
+- src/components/ui/Skeleton.tsx - Skeleton/CardSkeleton/TableSkeleton (shimmer-pulse placeholders, no spinners).
+- src/components/ui/StudioLoading.tsx - full-viewport shimmer card grid used by all studio pages.
+- src/lib/effects/milestoneConfetti.ts - fireGoldConfetti(): prefers-reduced-motion short-circuit, 90 gold particles (#d4a574/#f5d78e/#c29360/#fff3c4/#b8860b) + two 40-particle side bursts after 250ms.
+- src/__tests__/setup.ts (extended) - jsdom IntersectionObserver no-op mock so framer-motion whileInView renders in tests.
+
+### Files modified (23)
+- index.html - S1 SEO: og:site_name, og:locale (en_ZW), og:image (+width/height/alt), twitter:image (+alt), robots index,follow, application-name; CSP img-src += https://images.unsplash.com (S6).
+- src/styles/index.css - .tnum, .sticky-head (sticky thead row), .touch-target (min 44px), .zimba-golden (+img sepia/saturate/contrast/brightness); table { font-variant-numeric: tabular-nums } in @layer base.
+- src/pages/Home.tsx - S2 bento hero (SVG floor plan, 3D BIM isometric, cashflow S-curve, BOQ lines, elevation sketch; aria-hidden with sr-only "Platform at a glance"); S4 staggered whileInView reveals on features/journey/studio/ecosystem/recent grids + border-beam on the hero card; S6 golden-hour Unsplash figures (Victoria Falls photo-1759158487840-f7e6ec539b4e + 2 skyline shots) under .zimba-golden.
+- src/components/execution/ExecutionPanel.tsx - S4 "Verify & release" amber button on next milestone fires fireGoldConfetti(); releasedMilestoneIds state; escrow = releaseFunds reduce over baseEscrow.
+- src/components/ui/Button.tsx - S4 active:scale-[0.97] + duration-100; icon size h-10->h-11.
+- src/pages/Dashboard.tsx - skeleton loading grid; journey-guide + tour buttons + feedback FAB bumped to touch-target h-11 w-11 (Bug 18).
+- src/pages/PortfolioPage.tsx - skeleton loading; back + feedback buttons touch-target h-11 w-11.
+- src/components/ledger/TrueLedgerPanel.tsx + src/components/payment/WipaaPanel.tsx - inline shimmer skeleton panels.
+- src/components/import/ImportWorkflow.tsx - wall-detection spinner -> shimmer skeleton.
+- 10 studio pages (Wipaa, SitePhoto, ProjectControls, Procurement, Ledger, Handover, Delivery, Closeout, Assurance, MarketIndex) - spinner -> <StudioLoading />; back buttons touch-target h-11 w-11 (icon 18). MarketIndexStudio also gained sticky-head on the price table; SiteAnalysisStudio back button bumped (no loading state exists).
+- Touch targets: MobileNavDrawer toggle/close, MobileStageRail min-h-44, Sidebar new-project, ThemeToggle h-7->h-9, OnboardingTour skip, PipelineResultsPanel close, Dashboard + FeedbackPage.
+- src/components/planning/CashflowChart.tsx - S-curve svg role="img" + aria-label datapoint description.
+- package.json + package-lock.json - canvas-confetti ^1.9.4 + @types/canvas-confetti ^1.9.0.
+
+### Notes
+- Remaining animate-spin usages are legitimate button busy-states (RefreshCw/Loader2 inline) or lazy-module loaders (PageLoader, GlbViewer, PlanCanvas) - not full-page loaders, left as-is.
+- a11ySeoConfig + homeDiscoverability guard tests kept green (no text-stone-500/slate-500/stone-600 introduced; five asserted headings intact).
+- Encoding lesson re-applied cleanly: no bulk string replacements; all edits via the UTF-8-safe Edit tool. git diff shows no mojibake.
+- budget-engineer-canonical submodule + untracked DZENHARE SQB spec folder intentionally NOT touched (repo convention).
+- task_plan.md S1/S2/S4/S6 checkboxes ticked (S3 glassmorphism + S5 theme toggle are separate STYLE items, not in this session's scope).
+
+### Verification results
+- npx tsc --noEmit --skipLibCheck: 0 errors
+- npx eslint . --ext ts,tsx: 0 errors / 0 warnings
+- npx vitest run --maxWorkers=4: 4636/4636 tests (233 files)
+- npx madge --circular --extensions ts,tsx src: No circular dependency found
+- npx vite build: success in ~38s (PWA precache 144 entries, 5072.36 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
