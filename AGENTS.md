@@ -1930,3 +1930,33 @@ Closed the four remaining open task_plan items: A2.5 (the KPI2 `runBudgetAgent` 
 - `npx vitest run --maxWorkers=4`: 4655/4655 tests (235 files) — +19 new (9 agentRunnerPanel + 10 goldenBoqDataset)
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found
 - `npx vite build`: success in ~7.9s (PWA precache 147 entries, 5120.89 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+## task_plan reconciliation — B4 skills path + done-items ticked + deferral notes (Current, 2026-08-09)
+
+### What was done
+Closed B4 (6-skills learning path checklist) and reconciled every remaining unchecked task_plan item against reality: verified-shipped items got ticked with pointers to their actual implementations, backend-bound items got explicit "superseded/deferred (constitution §3)" annotations. No production code changed.
+
+### Ticked as done (verified present in the codebase)
+- **A1.1–A1.6** RAG pipeline — `src/engine/rag/extraction.ts|chunking.ts|embeddings.ts|ragIndex.ts` (ingestion), `hybrid.ts` (dense+sparse RRF + rerank), `queryRewrite.ts`, `analysis.ts` (cited JSON generation), `eval/promptfooconfig.ts` + `run-cli-gate.mjs`
+- **A2.1–A2.4** Agent graph — `src/engine/agents/types.ts` (state), `tools.ts` (per-node tool scoping + validation), `graph.ts` (nodes/edges), `checkpoint.ts` (Dexie saver)
+- **A4.2** Escrow simulation — `src/engine/marketplace/escrowEngine.ts` + `src/engine/dispatch/escrowGateway.ts`
+- **A4.3–A4.6** True Ledger (`trueLedger.ts`), WIPAA (`wipaaAutoRun.ts`), Change Order 4-lens (`changeLensEngine.ts`), promptfoo CI gate (`.github/workflows/kpi3-gate.yml`)
+- **T1** Vercel deploy (production URL + branch previews, Lighthouse-audited)
+- **B2** superseded-note: monorepo is the product (lib/rag→src/engine/rag, lib/langgraph→src/engine/agents, supabase→Dexie v14)
+
+### B4 — 6 Skills learning path checklist (drafted inline)
+MCP (MCP concept + opencode/notebooklm skills; domain MCP server deferred), Agents (graph/tool-scoping/HITL + checkpointing + in-app runner), RAG (ingestion→hybrid→rewrite→rerank→cited gen→crossref), LLM Tools (free-tier router + tool registry + key UI), Automation (WIPAA rollover + market-index ticker + milestone auto-verify), Prompting (golden dataset + promptfoo gate + KPI3 tracing). Each skill maps to shipped repo artifacts.
+
+### Annotated as superseded/deferred (left unticked)
+- **L1–L6** (Supabase/Cloudinary/WhatsApp/Langfuse MCPs) — no-backend constitution; local analogues (Dexie, IndexedDB photos, in-app alerts, Dexie traces); notebooklm skill already installed as the L5 research-brain analogue
+- **A3.1–A3.6** — "clone tractor / forest+gold tokens" conflicts with the shipped brandguidelines S-track; equivalents already shipped (ecosystem dashboards, Agent Studio, bento hero, ticker, border-beam, gold confetti); Bytez SDXL sketch-gen deferred
+- **A4.1** (Supabase migrations → Dexie v14 authority), **A4.7** (Langfuse → Dexie traces)
+- **T2–T5** (Modal/Fly runner, Supabase RLS, Modal cron, AI SDK proxy — no backend), **T6** (eval-in-CI done; Langfuse dashboard superseded)
+
+### Remaining un-ticked after this pass
+- Post-launch KPI metrics (lines 176–183) — product metrics to track post-deploy, not code tasks: cost-creep <5%, verified-release USD (North Star), gate decision <5 min, approval >95%, WIPAA-vs-P4P >90%, NPS >70, re-engagement >80%, testimonial capture >85%
+- Genuinely optional follow-ups: domain MCP server exposing Dexie tools, NotebookLM→RAG corpus wiring, Home video/story pricing sections (A3.6 remainder)
+
+### Notes
+- task_plan.md lives in the untracked `DZENHARE SQB…` spec folder — edits are not committed (repo convention); the reconciliation is captured here for the record.
+- No `tsc`/`eslint`/`vitest`/`build` rerun needed — documentation-only changes.
