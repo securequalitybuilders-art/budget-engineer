@@ -168,7 +168,11 @@ export function ImportWorkflow({ projectId, onComplete, onCancel, className = ''
         <div className="flex flex-col items-center gap-3 py-8">
           {detectionRunning ? (
             <>
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--brand-primary)] border-t-transparent" />
+              <div className="w-full max-w-sm space-y-2.5">
+                <div className="h-4 w-1/2 shimmer rounded-md" />
+                <div className="h-24 w-full shimmer rounded-md" />
+                <div className="h-3 w-3/4 shimmer rounded-md" />
+              </div>
               <div className="text-sm text-[var(--text-secondary)]">Running wall detection...</div>
             </>
           ) : detectionError ? (

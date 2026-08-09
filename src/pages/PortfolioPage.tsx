@@ -227,7 +227,16 @@ export function PortfolioPage() {
   if (isLoading && !isHydrated) {
     return (
       <main className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-2 border-[var(--border-default)] border-t-[var(--brand-accent)]" />
+        <div className="grid w-full max-w-3xl gap-4 px-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="space-y-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-tertiary)] p-5">
+              <div className="h-4 w-2/3 shimmer rounded-md" />
+              <div className="h-8 w-full shimmer rounded-md" />
+              <div className="h-3 w-1/2 shimmer rounded-md" />
+              <div className="h-3 w-3/4 shimmer rounded-md" />
+            </div>
+          ))}
+        </div>
       </main>
     );
   }
@@ -248,9 +257,9 @@ export function PortfolioPage() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <Link to="/">
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <ArrowLeft size={16} />
+              <Link to="/" className="touch-target flex items-center">
+                <Button variant="ghost" size="icon" className="h-11 w-11">
+                  <ArrowLeft size={18} />
                 </Button>
               </Link>
               <h1 className="font-display text-3xl font-bold">Portfolio Dashboard</h1>
@@ -266,9 +275,9 @@ export function PortfolioPage() {
                 {activeSchemesCount} active
               </Badge>
             )}
-            <Link to="/feedback">
-              <Button variant="ghost" size="icon" className="h-8 w-8" title="Send feedback">
-                <Bug size={16} />
+            <Link to="/feedback" className="touch-target flex items-center">
+              <Button variant="ghost" size="icon" className="h-11 w-11" title="Send feedback">
+                <Bug size={18} />
               </Button>
             </Link>
           </div>

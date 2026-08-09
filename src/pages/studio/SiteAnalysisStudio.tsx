@@ -74,10 +74,10 @@ export function SiteAnalysisStudio() {
       <div className="flex items-center gap-3">
         <Link
           to={`/project/${projectId}`}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
+          className="touch-target flex h-11 w-11 items-center justify-center rounded-full bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
           aria-label="Back to dashboard"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={18} />
         </Link>
         <div className="flex-1">
           <h1 className="text-xl font-bold text-[var(--text-primary)]">Site Analysis & Heliodon Studio</h1>

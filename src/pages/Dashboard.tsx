@@ -564,9 +564,15 @@ export function Dashboard() {
   if (isLoading) {
     return (
       <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center bg-[var(--bg-primary)]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-12 w-12 animate-spin rounded-full border-2 border-[var(--border-default)] border-t-[var(--brand-accent)]" />
-          <p className="text-sm text-[var(--text-muted)]">Loading project…</p>
+        <div className="grid w-full max-w-3xl gap-4 px-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="space-y-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-tertiary)] p-5">
+              <div className="h-4 w-2/3 shimmer rounded-md" />
+              <div className="h-8 w-full shimmer rounded-md" />
+              <div className="h-3 w-1/2 shimmer rounded-md" />
+              <div className="h-3 w-3/4 shimmer rounded-md" />
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -620,7 +626,7 @@ export function Dashboard() {
           <div className="ml-auto flex items-center gap-1">
             <button
               onClick={toggleJourneyGuide}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-800 text-[10px] font-bold text-stone-400 hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors"
+              className="touch-target flex h-11 w-11 items-center justify-center rounded-full bg-stone-800 text-[10px] font-bold text-stone-400 hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors"
               aria-label="Toggle builder journey guide"
               title="Builder Guide"
             >
@@ -628,7 +634,7 @@ export function Dashboard() {
             </button>
             <button
               onClick={() => setTourOpen(true)}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-800 text-[10px] font-bold text-stone-400 hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors"
+              className="touch-target flex h-11 w-11 items-center justify-center rounded-full bg-stone-800 text-[10px] font-bold text-stone-400 hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors"
               aria-label="How it works — replay onboarding tour"
               title="How it works"
             >
@@ -809,7 +815,7 @@ export function Dashboard() {
           <div className="absolute left-4 top-2 z-20 hidden gap-1 md:flex">
             <button
               onClick={toggleJourneyGuide}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-stone-800 text-[10px] font-bold text-stone-400 hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors"
+              className="touch-target flex h-11 w-11 items-center justify-center rounded-full bg-stone-800 text-[10px] font-bold text-stone-400 hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors"
               aria-label="Toggle builder journey guide"
               title="Builder Guide"
             >
@@ -817,7 +823,7 @@ export function Dashboard() {
             </button>
             <button
               onClick={() => setTourOpen(true)}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-stone-800 text-[10px] font-bold text-stone-400 hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors"
+              className="touch-target flex h-11 w-11 items-center justify-center rounded-full bg-stone-800 text-[10px] font-bold text-stone-400 hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors"
               aria-label="How it works — replay onboarding tour"
               title="How it works"
             >
@@ -855,11 +861,11 @@ export function Dashboard() {
                 el.classList.toggle('hidden')
               }
             }}
-            className="fixed bottom-24 right-4 z-40 flex h-10 w-10 items-center justify-center rounded-full bg-stone-800 text-stone-400 shadow-lg hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors border border-stone-700/60"
+            className="fixed bottom-24 right-4 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-stone-800 text-stone-400 shadow-lg hover:bg-cyan-600/20 hover:text-cyan-300 transition-colors border border-stone-700/60"
             aria-label="Open feedback form"
             title="Send Feedback"
           >
-            <Bug size={16} />
+            <Bug size={18} />
           </button>
 
           {/* Feedback floating panel */}

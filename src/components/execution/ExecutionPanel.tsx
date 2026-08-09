@@ -10,8 +10,9 @@ import {
   deriveEscrowFromMilestones,
   totalDaysForPhases,
 } from '@/engine/construction/executionSync';
-import { getEscrowSummary } from '@/engine/marketplace/escrowEngine';
-import { Play, Calendar, DollarSign, Users, Receipt, Loader2, Lock, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
+import { getEscrowSummary, releaseFunds } from '@/engine/marketplace/escrowEngine';
+import { fireGoldConfetti } from '@/lib/effects/milestoneConfetti';
+import { Play, Calendar, DollarSign, Users, Receipt, Loader2, Lock, CheckCircle2, AlertTriangle, ArrowRight, PartyPopper } from 'lucide-react';
 
 const PHASE_LIST = Object.values(PHASES);
 
@@ -25,9 +26,15 @@ export default function ExecutionPanel({ projectId, budgetCents }: ExecutionPane
 
   const { milestones, isLoading } = useMilestonePlan(projectId, budgetCents);
 
+  const [releasedMilestoneIds, setReleasedMilestoneIds] = useState<string[]>([]);
+
   const ganttTasks = useMemo(() => milestonesToGanttTasks(milestones, PHASE_LIST), [milestones]);
   const budgetCategories = useMemo(() => milestonesToBudgetCategories(milestones), [milestones]);
-  const escrow = useMemo(() => deriveEscrowFromMilestones(projectId ?? 'project', milestones), [projectId, milestones]);
+  const baseEscrow = useMemo(() => deriveEscrowFromMilestones(projectId ?? 'project', milestones), [projectId, milestones]);
+  const escrow = useMemo(
+    () => releasedMilestoneIds.reduce((acc, id) => releaseFunds(acc, id, 'owner'), baseEscrow),
+    [baseEscrow, releasedMilestoneIds]
+  );
   const escrowSummary = useMemo(() => getEscrowSummary(escrow), [escrow]);
   const totalDays = useMemo(() => totalDaysForPhases(PHASE_LIST), []);
 
@@ -147,6 +154,15 @@ export default function ExecutionPanel({ projectId, budgetCents }: ExecutionPane
                       Next milestone: <span className="font-medium">{escrowSummary.nextMilestone.title}</span>
                       <ArrowRight size={12} className="text-stone-400" />
                       {formatMoney(escrowSummary.nextMilestone.amount)}
+                      <button
+                        onClick={() => {
+                          setReleasedMilestoneIds((ids) => [...ids, escrowSummary.nextMilestone!.id]);
+                          fireGoldConfetti();
+                        }}
+                        className="ml-2 flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-1 font-semibold text-amber-400 transition-colors hover:bg-amber-500/25"
+                      >
+                        <PartyPopper size={12} /> Verify & release
+                      </button>
                     </span>
                   )}
                   {escrowSummary.overdueCount > 0 && (

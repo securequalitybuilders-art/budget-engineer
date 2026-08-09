@@ -24,7 +24,7 @@ export function ThemeToggle() {
             onClick={() => setTheme(t.value)}
             aria-label={`Switch to ${t.label} mode`}
             className={
-              'flex h-7 w-7 items-center justify-center rounded-md transition-colors ' +
+              'flex h-9 w-9 items-center justify-center rounded-md transition-colors ' +
               (isActive
                 ? 'bg-[var(--brand-accent)] text-[var(--brand-primary-dark)]'
                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]')

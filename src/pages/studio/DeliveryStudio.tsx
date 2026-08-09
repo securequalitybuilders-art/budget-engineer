@@ -7,6 +7,7 @@ import { DeliveryWorkflowPanel } from '@/components/delivery/DeliveryWorkflowPan
 import { MilestoneBoard } from '@/components/lifecycle/MilestoneBoard';
 import { computeMilestoneLifecycleSummary } from '@/lib/lifecycle/lifecycleSummary';
 import { ArrowLeft, FileSpreadsheet, Flag, AlertTriangle } from 'lucide-react';
+import { StudioLoading } from '@/components/ui/StudioLoading';
 
 export function DeliveryStudio() {
   const { id: projectId } = useParams<{ id: string }>();
@@ -35,7 +36,7 @@ export function DeliveryStudio() {
   if (isLoading) {
     return (
       <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-2 border-[var(--border-default)] border-t-[var(--brand-accent)]" />
+        <StudioLoading />
       </div>
     );
   }
@@ -45,10 +46,10 @@ export function DeliveryStudio() {
       <div className="flex items-center gap-3">
         <Link
           to={`/project/${projectId}`}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
+          className="touch-target flex h-11 w-11 items-center justify-center rounded-full bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
           aria-label="Back to dashboard"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={18} />
         </Link>
         <div className="flex-1">
           <div className="flex items-center gap-2">

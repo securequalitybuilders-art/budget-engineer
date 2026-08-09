@@ -83,7 +83,7 @@ export function CashflowChart({ cashflow, currency, compact }: CashflowChartProp
         <div className="border-t border-stone-700/60 pt-3">
           <div className="text-[10px] text-stone-400 mb-1">Cumulative S-Curve</div>
           <div style={{ height: chartHeight, position: 'relative' }}>
-            <svg width="100%" height={chartHeight} viewBox={`0 0 ${weekly.length - 1} ${chartHeight}`} preserveAspectRatio="none">
+            <svg width="100%" height={chartHeight} viewBox={`0 0 ${weekly.length - 1} ${chartHeight}`} preserveAspectRatio="none" role="img" aria-label="Cumulative project cashflow S-curve">
               <polyline
                 points={weekly.map((w, i) => `${i},${chartHeight - (w.cumulativeCost / cashflow.totalCost) * chartHeight}`).join(' ')}
                 fill="none"

@@ -4,6 +4,7 @@ import { useMarketIndexStore } from '@/stores/marketIndexStore';
 import { fmtCents } from '@/components/ecosystem/useEcosystemData';
 import { fxConvert } from '@/engine/ecosystem/priceIndex';
 import { sortSnapshotsDesc, type MarketIndexSnapshot } from '@/engine/ecosystem/marketIndexScheduler';
+import { StudioLoading } from '@/components/ui/StudioLoading';
 import { ArrowLeft, TrendingUp, RefreshCw } from 'lucide-react';
 
 function Sparkline({ snapshot, symbol, width = 96, height = 28 }: {
@@ -90,10 +91,10 @@ export function MarketIndexStudio() {
       <div className="flex items-center gap-3">
         <Link
           to={`/project/${projectId}`}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
+          className="touch-target flex h-11 w-11 items-center justify-center rounded-full bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
           aria-label="Back to dashboard"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={18} />
         </Link>
         <div>
           <div className="flex items-center gap-2">
@@ -151,14 +152,14 @@ export function MarketIndexStudio() {
 
       {isLoading && !snapshot ? (
         <div className="flex h-64 items-center justify-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--border-default)] border-t-[var(--brand-accent)]" />
+          <StudioLoading />
         </div>
       ) : (
         <>
           <div className="overflow-hidden rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)]">
             <table className="w-full text-left text-[10px]">
               <thead>
-                <tr className="border-b border-[var(--border-subtle)] text-[var(--text-muted)]">
+                <tr className="sticky-head border-b border-[var(--border-subtle)] text-[var(--text-muted)]">
                   <th className="px-3 py-2 font-medium">Material</th>
                   <th className="px-3 py-2 font-medium">Unit</th>
                   <th className="px-3 py-2 font-medium">Base</th>

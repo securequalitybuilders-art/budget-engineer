@@ -10,9 +10,9 @@ export function FeedbackPage() {
 
       <div className="relative mx-auto max-w-2xl px-4 py-8 lg:px-8">
         <div className="mb-6 flex items-center gap-3">
-          <Link to="/">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <ArrowLeft size={16} />
+          <Link to="/" className="touch-target flex items-center">
+            <Button variant="ghost" size="icon" className="h-11 w-11">
+              <ArrowLeft size={18} />
             </Button>
           </Link>
           <div>

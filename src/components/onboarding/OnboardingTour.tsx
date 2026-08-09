@@ -121,7 +121,7 @@ export function OnboardingTour({ open, onClose, onComplete }: OnboardingTourProp
               </div>
               <button
                 onClick={handleClose}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-800 hover:text-stone-200 transition-colors"
+                className="touch-target flex h-11 w-11 items-center justify-center rounded-lg text-stone-400 hover:bg-stone-800 hover:text-stone-200 transition-colors"
                 aria-label="Skip tour"
               >
                 <X size={18} />

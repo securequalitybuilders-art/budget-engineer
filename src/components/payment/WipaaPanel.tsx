@@ -50,7 +50,12 @@ export function WipaaPanel({ projectId }: { projectId: string }) {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--border-default)] border-t-[var(--brand-accent)]" />
+        <div className="w-full max-w-md space-y-3">
+          <div className="h-4 w-1/3 shimmer rounded-md" />
+          <div className="h-8 w-full shimmer rounded-md" />
+          <div className="h-8 w-full shimmer rounded-md" />
+          <div className="h-8 w-3/4 shimmer rounded-md" />
+        </div>
       </div>
     );
   }

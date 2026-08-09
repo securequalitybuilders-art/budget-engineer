@@ -203,12 +203,116 @@ export function Home() {
           </div>
         </div>
 
+        {/* Bento hero collage */}
+        <section aria-labelledby="bento-heading">
+          <h2 id="bento-heading" className="sr-only">Platform at a glance</h2>
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+            className="grid grid-cols-2 gap-3 md:grid-cols-4 md:auto-rows-[150px]"
+            aria-hidden="true"
+          >
+            <motion.div variants={item} className="col-span-2 row-span-2">
+              <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--border-default)] bg-[var(--bg-tertiary)] p-4">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Generated 2D floor plan</span>
+                <svg viewBox="0 0 400 280" className="mt-2 flex-1" role="presentation">
+                  <rect x="30" y="20" width="340" height="240" fill="none" stroke="var(--brand-accent)" strokeWidth="3" />
+                  <path d="M170 20 V120 M170 120 H30 M370 120 H240 M240 120 V260 M240 260 H30 M170 120 V260" stroke="var(--border-default)" strokeWidth="1.5" fill="none" />
+                  <rect x="45" y="35" width="108" height="68" fill="var(--bg-primary)" opacity="0.5" />
+                  <rect x="190" y="35" width="90" height="68" fill="var(--bg-primary)" opacity="0.5" />
+                  <rect x="190" y="135" width="130" height="110" fill="var(--bg-primary)" opacity="0.5" />
+                  <rect x="45" y="135" width="108" height="108" fill="var(--bg-primary)" opacity="0.5" />
+                  <text x="60" y="70" fontSize="11" fill="var(--text-secondary)">Living</text>
+                  <text x="200" y="70" fontSize="11" fill="var(--text-secondary)">Kitchen</text>
+                  <text x="200" y="195" fontSize="11" fill="var(--text-secondary)">Bedroom</text>
+                  <text x="60" y="195" fontSize="11" fill="var(--text-secondary)">Bath</text>
+                  <path d="M320 65 A12 12 0 0 1 320 89" stroke="var(--brand-accent)" strokeWidth="1.5" fill="none" />
+                  <text x="330" y="68" fontSize="10" fill="var(--brand-accent)">D</text>
+                  <path d="M350 140 L350 152 M354 140 L354 152" stroke="var(--text-muted)" strokeWidth="1.5" />
+                  <text x="336" y="132" fontSize="8" fill="var(--text-muted)">W</text>
+                  <g stroke="var(--text-muted)" strokeWidth="1.5">
+                    <line x1="370" y1="18" x2="378" y2="26" /><line x1="370" y1="26" x2="378" y2="18" />
+                  </g>
+                  <text x="360" y="12" fontSize="9" fill="var(--text-muted)">N</text>
+                </svg>
+              </div>
+            </motion.div>
+
+            <motion.div variants={item} className="col-span-2">
+              <div className="flex h-full items-center justify-between gap-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-tertiary)] p-4">
+                <div className="min-w-0">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">3D BIM model</span>
+                  <p className="mt-1 truncate text-xs text-[var(--text-secondary)]">Orbit, explode, and export GLB.</p>
+                </div>
+                <svg viewBox="0 0 120 80" className="h-16 w-24 shrink-0" role="presentation">
+                  <polygon points="60,8 112,28 60,48 8,28" fill="none" stroke="var(--accent-bim)" strokeWidth="1.5" />
+                  <polygon points="8,28 8,56 60,76 60,48" fill="none" stroke="var(--accent-bim)" opacity="0.7" strokeWidth="1.5" />
+                  <polygon points="112,28 112,56 60,76 60,48" fill="none" stroke="var(--accent-bim)" opacity="0.7" strokeWidth="1.5" />
+                  <polygon points="8,56 112,56" stroke="var(--accent-bim)" opacity="0.5" strokeWidth="1.5" />
+                </svg>
+              </div>
+            </motion.div>
+
+            <motion.div variants={item}>
+              <div className="flex h-full flex-col rounded-2xl border border-[var(--border-default)] bg-[var(--bg-tertiary)] p-4">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Cashflow S-curve</span>
+                <svg viewBox="0 0 120 60" className="mt-1 flex-1" role="presentation">
+                  <polyline points="0,52 24,50 44,44 60,34 74,22 88,13 100,8 120,4" fill="none" stroke="var(--accent-ai)" strokeWidth="2" />
+                  <polyline points="0,52 120,52" stroke="var(--border-default)" strokeWidth="1" />
+                </svg>
+              </div>
+            </motion.div>
+
+            <motion.div variants={item}>
+              <div className="flex h-full flex-col rounded-2xl border border-[var(--border-default)] bg-[var(--bg-tertiary)] p-4">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">BOQ line items</span>
+                <div className="mt-2 space-y-1.5">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="truncate text-[var(--text-secondary)]">Cement 50kg</span>
+                    <span className="font-mono text-[var(--text-primary)]">2 410</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="truncate text-[var(--text-secondary)]">Face bricks</span>
+                    <span className="font-mono text-[var(--text-primary)]">11 200</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="truncate text-[var(--text-secondary)]">Rebar Ø12</span>
+                    <span className="font-mono text-[var(--text-primary)]">3 155</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div variants={item} className="col-span-2">
+              <div className="flex h-full items-center gap-4 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-tertiary)] p-4">
+                <svg viewBox="0 0 120 70" className="h-16 w-28 shrink-0" role="presentation">
+                  <rect x="14" y="18" width="92" height="44" fill="var(--bg-primary)" opacity="0.5" stroke="var(--brand-accent)" strokeWidth="1.5" />
+                  <line x1="34" y1="18" x2="34" y2="62" stroke="var(--brand-accent)" strokeWidth="1.5" />
+                  <line x1="86" y1="18" x2="86" y2="62" stroke="var(--brand-accent)" strokeWidth="1.5" />
+                  <rect x="10" y="8" width="44" height="8" fill="none" stroke="var(--brand-accent)" strokeWidth="1.5" />
+                  <line x1="60" y1="8" x2="60" y2="2" stroke="var(--brand-accent)" strokeWidth="1.5" />
+                  <line x1="48" y1="8" x2="48" y2="2" stroke="var(--brand-accent)" strokeWidth="1.5" />
+                  <rect x="42" y="46" width="22" height="16" fill="none" stroke="var(--text-muted)" strokeWidth="1" />
+                  <text x="40" y="40" fontSize="8" fill="var(--text-secondary)">glazed door</text>
+                </svg>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Elevations & sections</span>
+                  <p className="mt-1 text-xs text-[var(--text-secondary)]">All four faces with door & window schedules.</p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        </section>
+
         <section aria-labelledby="features-heading">
           <h2 id="features-heading" className="sr-only">Platform Features</h2>
           <motion.div
             variants={container}
             initial="hidden"
-            animate="show"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.15 }}
             className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
           >
           <motion.div variants={item} className="lg:col-span-2 lg:row-span-2">
@@ -299,11 +403,18 @@ export function Home() {
             No CAD experience needed. Everything runs in your browser with no paid AI APIs.
             The numbers you get are early estimates — always consult a registered professional for final construction.
           </p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {JOURNEY_STEPS.map((step) => {
               const StepIcon = step.icon
               return (
-                <Card key={step.label} className="h-full">
+                <motion.div key={step.label} variants={item} className="h-full">
+                <Card className="h-full">
                   <CardHeader className="pb-2">
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand-accent)]/10">
@@ -316,9 +427,10 @@ export function Home() {
                     <p className="text-sm text-[var(--text-secondary)]">{step.desc}</p>
                   </CardContent>
                 </Card>
+                </motion.div>
               )
             })}
-          </div>
+          </motion.div>
           <div className="mt-6 flex flex-wrap gap-3">
             <span className="rounded-full border border-[var(--border-default)] bg-[var(--bg-tertiary)] px-3 py-1 text-xs text-[var(--text-muted)]">
               No CAD experience needed
@@ -335,12 +447,62 @@ export function Home() {
           </div>
         </section>
 
+        {/* Zimbabwe golden hour */}
+        <section className="mt-14" aria-labelledby="zimba-heading">
+          <h2 id="zimba-heading" className="mb-2 font-display text-2xl font-semibold">Built for the Zimbabwean build</h2>
+          <p className="mb-6 max-w-2xl text-sm text-[var(--text-secondary)]">
+            Local regions, Zim dollar &amp; USD budgets, SADC codes, and supplier rates — engineered for how building happens here.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <figure className="group relative h-56 overflow-hidden rounded-2xl border border-[var(--border-default)]">
+              <img
+                src="https://images.unsplash.com/photo-1759158487840-f7e6ec539b4e?q=60&w=900&auto=format&fit=crop"
+                alt="Victoria Falls, Zimbabwe at golden hour"
+                loading="lazy"
+                className="zimba-golden h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <figcaption className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-3 py-2 text-xs text-white">
+                Victoria Falls, Zimbabwe
+              </figcaption>
+            </figure>
+            <figure className="group relative h-56 overflow-hidden rounded-2xl border border-[var(--border-default)]">
+              <img
+                src="https://images.unsplash.com/photo-1520330979108-7d66e04b35e5?q=60&w=900&auto=format&fit=crop"
+                alt="City skyline silhouetted at golden hour"
+                loading="lazy"
+                className="zimba-golden h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <figcaption className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-3 py-2 text-xs text-white">
+                Urban golden hour
+              </figcaption>
+            </figure>
+            <figure className="group relative h-56 overflow-hidden rounded-2xl border border-[var(--border-default)]">
+              <img
+                src="https://images.unsplash.com/photo-1422545063300-35f82a2b77d1?q=60&w=900&auto=format&fit=crop"
+                alt="Buildings catching warm evening light"
+                loading="lazy"
+                className="zimba-golden h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <figcaption className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-3 py-2 text-xs text-white">
+                Warm evening light on the skyline
+              </figcaption>
+            </figure>
+          </div>
+        </section>
+
         {projects.length > 0 && (
           <div className="mt-14">
             <h2 className="mb-4 font-display text-2xl font-semibold">Recent Projects</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <motion.div
+              variants={container}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.1 }}
+              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            >
               {projects.slice(0, 6).map((project) => (
-                <Link key={project.id} to={`/project/${project.id}`}>
+                <motion.div key={project.id} variants={item} className="h-full">
+                <Link to={`/project/${project.id}`}>
                   <Card className="group transition-all hover:shadow-lg">
                     <CardHeader>
                       <CardTitle className="text-lg group-hover:text-[var(--brand-accent)]">
@@ -359,8 +521,9 @@ export function Home() {
                     </CardContent>
                   </Card>
                 </Link>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         )}
 
@@ -370,7 +533,13 @@ export function Home() {
           <p className="mb-6 max-w-2xl text-sm text-[var(--text-secondary)]">
             Specialised tools for interior design, site analysis, presentation boards, and skill-building — all available inside any project.
           </p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          >
             {[
               { icon: Sofa, label: 'Interior Design', desc: 'Place fixtures, choose materials, generate finish schedules.', to: projects.length > 0 ? `/project/${projects[0].id}/studio/interior` : '/new' },
               { icon: Globe, label: 'Site Analysis', desc: 'Heliodon, shadow casting, wind rose, and environmental analysis.', to: projects.length > 0 ? `/project/${projects[0].id}/studio/site-analysis` : '/site-analysis' },
@@ -379,7 +548,8 @@ export function Home() {
             ].map((studio) => {
               const StudioIcon = studio.icon;
               return (
-                <Link key={studio.label} to={studio.to}>
+                <motion.div key={studio.label} variants={item} className="h-full">
+                <Link to={studio.to}>
                   <Card className="group h-full transition-all hover:shadow-lg">
                     <CardHeader className="pb-2">
                       <div className="flex items-center gap-3">
@@ -394,9 +564,10 @@ export function Home() {
                     </CardContent>
                   </Card>
                 </Link>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </section>
 
         {/* Ecosystem section */}
@@ -405,7 +576,13 @@ export function Home() {
           <p className="mb-6 max-w-2xl text-sm text-[var(--text-secondary)]">
             Role-based dashboards that connect homeowners, contractors, and suppliers across one build marketplace.
           </p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <motion.div
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          >
             {[
               { icon: Boxes, label: 'Ecosystem Hub', desc: 'Pick the seat that matches how you work.', to: '/ecosystem' },
               { icon: HardHat, label: 'Builder', desc: 'Roadmap, budget dial, escrow, find-a-pro, group buying.', to: '/ecosystem/builder' },
@@ -414,7 +591,8 @@ export function Home() {
             ].map((ecosystem) => {
               const EcosystemIcon = ecosystem.icon;
               return (
-                <Link key={ecosystem.label} to={ecosystem.to}>
+                <motion.div key={ecosystem.label} variants={item} className="h-full">
+                <Link to={ecosystem.to}>
                   <Card className="group h-full transition-all hover:shadow-lg">
                     <CardHeader className="pb-2">
                       <div className="flex items-center gap-3">
@@ -429,9 +607,10 @@ export function Home() {
                     </CardContent>
                   </Card>
                 </Link>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </section>
 
         {/* Feedback link */}

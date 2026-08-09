@@ -40,7 +40,7 @@ export function MobileStageRail() {
               title={isLocked ? reason : undefined}
               aria-current={isActive ? 'step' : undefined}
               className={
-                'min-h-[40px] whitespace-nowrap rounded-md px-3 py-2 text-sm transition-colors ' +
+                'min-h-[44px] whitespace-nowrap rounded-md px-3 py-2 text-sm transition-colors ' +
                 (isActive
                   ? 'bg-[var(--brand-primary)] text-white'
                   : isLocked

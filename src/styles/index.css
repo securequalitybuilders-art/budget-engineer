@@ -52,6 +52,10 @@
     font-family: 'JetBrains Mono', ui-monospace, monospace;
   }
 
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+
   *:focus-visible {
     @apply outline-none ring-2 ring-[var(--brand-accent)] ring-offset-2 ring-offset-[var(--bg-primary)];
   }
@@ -110,6 +114,30 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sticky-head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--bg-tertiary);
+  }
+
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .zimba-golden {
+    filter: sepia(0.22) saturate(0.9) contrast(0.95) brightness(1.08);
+  }
+
+  .zimba-golden img {
+    filter: sepia(0.22) saturate(0.9) contrast(0.95) brightness(1.08);
   }
 }
 

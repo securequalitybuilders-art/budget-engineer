@@ -29,9 +29,9 @@ export function Sidebar() {
         <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
           Projects
         </span>
-        <Link to="/new">
-          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="New project">
-            <Plus size={16} />
+        <Link to="/new" className="touch-target flex items-center">
+          <Button variant="ghost" size="icon" className="h-11 w-11" aria-label="New project">
+            <Plus size={18} />
           </Button>
         </Link>
       </div>

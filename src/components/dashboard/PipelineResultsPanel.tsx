@@ -54,7 +54,7 @@ export function PipelineResultsPanel({ result, isOpen, onClose }: PipelineResult
               <Download size={14} />
               Report
             </Button>
-            <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white" aria-label="Close results panel">
+            <button onClick={onClose} className="touch-target flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white" aria-label="Close results panel">
               <X size={18} />
             </button>
           </div>
