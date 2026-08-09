@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { buildDefaultRagIndex } from '@/engine/rag/codeCorpus'
+import { buildCorpusIndex, DEFAULT_CORPUS_DIR } from '@/engine/rag/corpusLoader'
 import { hybridSearch } from '@/engine/rag/hybrid'
 import { analyzeCompliance } from '@/engine/rag/analysis'
 
@@ -244,7 +244,7 @@ export interface SearchCodesOptions {
 }
 
 export async function searchCodes({ query, k = 5, minScore = 0.01 }: SearchCodesOptions) {
-  const index = await buildDefaultRagIndex()
+  const index = await buildCorpusIndex(DEFAULT_CORPUS_DIR)
   const results = hybridSearch(index, query, { k, minScore })
   return results.map((r) => ({
     docId: r.docId,
@@ -261,7 +261,7 @@ export interface ComplianceOptions {
 }
 
 export async function runComplianceAnalysis({ query, jurisdiction = 'zimbabwe' }: ComplianceOptions) {
-  const index = await buildDefaultRagIndex()
+  const index = await buildCorpusIndex(DEFAULT_CORPUS_DIR)
   const report = await analyzeCompliance(index, {
     query,
     jurisdiction,
