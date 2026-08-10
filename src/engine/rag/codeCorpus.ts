@@ -1,16 +1,19 @@
 // Local building-code corpus for the KPI2 researcher node.
 //
 // The agent orchestrator's `search-codes` tool needs a RagIndex. This module
-// ships a compact Model Building By-Laws 1977 corpus plus the SI 56/2025
-// Architects (Amendment) Regulations (same ingestion path as production: raw
+// ships a compact browser-safe corpus (same ingestion path as production: raw
 // text -> parseCodeDocument -> chunkDocument) so the agent can retrieve code
-// evidence fully offline. The extracted `corpus/` directory holds the larger
-// source library (textbooks, estimation files) for the Node-only MCP path;
-// these two statutes are small enough to bundle for the in-app browser agent.
+// evidence fully offline. It bundles the Model Building By-Laws 1977, the
+// SI 56/2025 Architects (Amendment) Regulations, plus the curated SAZ standards
+// catalogue and Building Typologies guide (see `curatedCorpus.ts`). The full
+// extracted `corpus/` directory holds the larger source library (textbooks,
+// estimation files) for the Node-only MCP path; these four docs are small
+// enough to bundle for the in-app browser agent.
 
 import type { CodeDocument } from './types'
 import { parseCodeDocument } from './extraction'
 import { RagIndex, createIndex } from './ragIndex'
+import { SAZ_CATALOGUE_DOC, TYPOLOGIES_GUIDE_DOC } from './curatedCorpus'
 
 export const BY_LAWS_1977_TEXT = [
   '1 General Requirements',
@@ -110,5 +113,5 @@ export const SI_56_2025_DOC: CodeDocument = parseCodeDocument({
 })
 
 export function buildDefaultRagIndex(): RagIndex {
-  return createIndex([BY_LAWS_1977_DOC, SI_56_2025_DOC])
+  return createIndex([BY_LAWS_1977_DOC, SI_56_2025_DOC, SAZ_CATALOGUE_DOC, TYPOLOGIES_GUIDE_DOC])
 }

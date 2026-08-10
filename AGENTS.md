@@ -2099,3 +2099,34 @@ Finalized the L5 corpus work: embedded the clean SI 56/2025 Architects (Amendmen
 - `npx vitest run --maxWorkers=4`: 4691/4691 tests (237 files)
 - `npx vite build`: success in ~49s (PWA precache 147 entries, 5139.77 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1055 files)
+
+
+## In-app agent corpus extended — curated SAZ + Typologies docs (Current)
+
+### What was done
+Closed the remaining in-app agent gap: the KPI2 researcher node (AgentRunnerPanel) previously searched only the 2 embedded statutes (By-Laws 1977 + SI 56/2025) via `buildDefaultRagIndex()`; the full 228k-chunk on-disk `corpus/` fed only the Node/MCP path. Added two genuinely-real, small, high-value Zimbabwe/SADC documents as a curated browser-safe corpus so the in-app agent now searches 4 documents offline.
+
+### Corpus reality audit (what was NOT embedded)
+- `corpus/ziqs-smm.txt` — dead OCR: only `-- N of 248 --` page markers, zero real text. Skipped.
+- `corpus/by-laws-1977.txt` — wrong-content course book (AAR1001/AAR2001, "Dennis & fen Architects"); the clean embedded copy in `codeCorpus.ts` is the authority. Skipped.
+- Remaining files are multi-MB Anna''s Archive textbooks or dead scans — Node-only, skipped.
+
+### Files created (2)
+- `src/engine/rag/curatedCorpus.ts` — `SAZ_CATALOGUE_TEXT`/`SAZ_CATALOGUE_DOC` (59.5 KB; SAZ Standards Development Update Jul-Dec 2022: ZWS 1057:202, ZWS 305, ZWS 284, ZWS 822, ZWS 533:1996, ZWS 187:1984, aggregate test methods) and `TYPOLOGIES_GUIDE_TEXT`/`TYPOLOGIES_GUIDE_DOC` (60.3 KB; Building Typologies Design Guide: spatial programming, dimensional standards, 5 design layers). Both run through the standard `parseCodeDocument` ingestion path; ids (`saz-catalogue`, `building-typologies-design-guide`) match the on-disk corpus slugs so MCP `buildIndexWithCorpus` dedup picks the clean embedded copies.
+- `src/__tests__/curatedCorpus.test.ts` — 6 tests: embedded sizes + no page markers, ingestion path, 4-doc `buildDefaultRagIndex`, hybrid retrieval of SAZ content, hybrid retrieval of typologies content, slug-id dedup parity.
+
+### Files modified (1)
+- `src/engine/rag/codeCorpus.ts` — `buildDefaultRagIndex()` now `createIndex([BY_LAWS_1977_DOC, SI_56_2025_DOC, SAZ_CATALOGUE_DOC, TYPOLOGIES_GUIDE_DOC])`; header comment updated. Existing exports (`BY_LAWS_1977_DOC`) untouched.
+
+### Notes
+- Cleaned generation: page-marker lines (`-- N of M --`) stripped, trailing whitespace trimmed, blank runs collapsed; no backtick/`${` escaping hazards found.
+- `AgentRunnerPanel.test.tsx` mocks `@/engine/rag/codeCorpus` entirely (unaffected); `domainMcpTools.test.ts` uses the real `buildDefaultRagIndex` — still green with 4 docs.
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint src/engine/rag/curatedCorpus.ts src/engine/rag/codeCorpus.ts src/__tests__/curatedCorpus.test.ts`: 0 errors / 0 warnings
+- `npx vitest run` RAG/agent/MCP family (8 files): 116/116
+- `npx vitest run --maxWorkers=4`: 4697/4697 tests (238 files) — +6 new curated corpus tests
+- `npx vite build`: success in ~28s (PWA precache 147 entries, 5261.49 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1057 files)
