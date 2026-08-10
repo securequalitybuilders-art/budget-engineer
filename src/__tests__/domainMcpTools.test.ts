@@ -13,8 +13,16 @@ import {
   searchCodes,
 } from '@/mcp/domain-tools'
 import type { BeProjectPackage } from '@/mcp/domain-tools'
+import { buildDefaultRagIndex } from '@/engine/rag/codeCorpus'
+import type { RagIndex } from '@/engine/rag/ragIndex'
 
 let dir: string
+
+// A small pre-built in-memory index (By-Laws + SI 56), injected so the RAG
+// tests do not build the full 66-doc on-disk corpus on every call.
+function smallIndex(): RagIndex {
+  return buildDefaultRagIndex()
+}
 
 const pkg: BeProjectPackage = {
   version: 4,
@@ -173,28 +181,28 @@ describe('domain MCP tool core', () => {
 
 describe('domain MCP RAG tools', () => {
   it('searchCodes returns top sections for the canonical ceiling-height query', async () => {
-    const results = await searchCodes({ query: 'minimum ceiling height of a habitable room', k: 3 })
+    const results = await searchCodes({ query: 'minimum ceiling height of a habitable room', k: 3, index: smallIndex() })
     expect(results.length).toBeGreaterThan(0)
     expect(results[0].sectionId).toBe('by-laws-1977:sec-4-1.3')
     expect(results[0].text.length).toBeGreaterThan(0)
   })
 
   it('searchCodes respects k and minScore bounds', async () => {
-    const few = await searchCodes({ query: 'ceiling height', k: 1, minScore: 0 })
+    const few = await searchCodes({ query: 'ceiling height', k: 1, minScore: 0, index: smallIndex() })
     expect(few).toHaveLength(1)
-    const none = await searchCodes({ query: 'zzzqqq non-matching', k: 3, minScore: 0.5 })
+    const none = await searchCodes({ query: 'zzzqqq non-matching', k: 3, minScore: 0.5, index: smallIndex() })
     expect(none).toHaveLength(0)
   })
 
   it('runComplianceAnalysis runs local-rules without an LLM', async () => {
-    const report = await runComplianceAnalysis({ query: 'minimum ceiling height of a habitable room', jurisdiction: 'zimbabwe' })
+    const report = await runComplianceAnalysis({ query: 'minimum ceiling height of a habitable room', jurisdiction: 'zimbabwe', index: smallIndex() })
     expect(report.engineUsed).toBe('local-rules')
     expect(report.totalRules).toBeGreaterThan(0)
     expect(report.findings.some((f) => f.status === 'pass' || f.status === 'warn' || f.status === 'fail')).toBe(true)
   })
 
   it('RAG tools do not require an export dir', async () => {
-    const results = await searchCodes({ query: 'fire resistance of external walls', k: 2 })
+    const results = await searchCodes({ query: 'fire resistance of external walls', k: 2, index: smallIndex() })
     expect(results.length).toBeGreaterThan(0)
   })
 })

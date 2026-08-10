@@ -169,8 +169,14 @@ export function corpusSummary(docs: CodeDocument[]): Array<{ id: string; title: 
 
 // Extends an existing index with every corpus document found in `dir`.
 // `base` defaults to a fresh empty index (caller decides what to seed).
+// Documents whose id already exists in `base` are skipped, so embedded clean
+// copies (e.g. the in-memory By-Laws / SI 56 in codeCorpus.ts) take precedence
+// over their extracted corpus-file counterparts.
 export function buildIndexWithCorpus(base: RagIndex, dir?: string): RagIndex {
-  for (const doc of loadCorpusDocuments(dir)) base.addDocument(doc)
+  for (const doc of loadCorpusDocuments(dir)) {
+    if (base.hasDocument(doc.id)) continue
+    base.addDocument(doc)
+  }
   return base
 }
 

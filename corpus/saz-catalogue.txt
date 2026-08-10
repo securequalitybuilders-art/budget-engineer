@@ -1,0 +1,2062 @@
+1
+SAZ Standards Development Update July –December 2022
+7
+ZWS 1057:202
+ZIMBABWE STANDARDS FOR
+Manned security services – cash and valuables in transit services
+(Collection and Delivery)
+\
+Contents Page
+Introduction 2
+How SAZ Standards are developed 3
+How to use this publication 3
+Section 1: Standards Projects in progress 6
+Section 2: Standards published during the 24
+preceding month
+Section 3: Standards reprinted during the 27
+preceding six months
+Section 4: Amendments published during 27
+the preceding six months
+Standards Association of Zimbabwe
+Postal Address : P.O Box 2259
+Harare
+Zimbabwe
+Physical Address : Northend Close
+Northridge Park
+Borrowdale
+Harare
+Zimbabwe
+Tel : 263-242-82021/8/9
+263-242-885511/2
+Fax : 263-242-882020
+Email : info@saz.org.zw
+Website : www.saz.org.zw
+
+-- 1 of 27 --
+
+2
+SAZ Standards Development Update July –December 2022
+INTRODUCTION
+The Standards Association of Zimbabwe (SAZ) is the National Standards Body of Zimbabwe.
+The SAZ depends on the work of its technical committees (TC), whose members give their time and effort
+without pay or reward, to develop generally acceptable national standards. The basic principles are; that SAZ
+carries out its task in the national interest, takes account of all significant viewpoints, secures appropriate
+representation at all technical committee levels and has an authoritative body of opinion behind every ZWS
+Standard. Regional, Continental or Internationals are adopted only if they are found applicable to the Zimbabwe
+situation.
+SAZ also adopts regional harmonized texts as required by the regional trade protocol. This work programme is
+published as fulfillment of the national standards body’s obligation to publish a work programme of standards
+currently under preparation and standards, which it has adopted under the WTO/TBT Agreement Annex 3 Code
+of Good Practice for the Preparation, Adoption and Application of Standards (Clause J). It is published twice a
+year.
+HOW SAZ STANDARDS ARE DEVELOPED
+SAZ Standards are developed on the basis of a project approach consisting of the following stages:
+a) Proposal stage
+b) Preparatory stage
+c) Committee stage
+d) Draft for public comment stage and
+e) Publication stage
+During the development of Zimbabwe Standards, drafts are circulated to Technical Committee and or
+Subcommittee members for perusal and comment. Differences of view on technical content of a standard are
+resolved through consensus. The technical committee ultimately produces a final draft which is then circulated
+for comment, not only to technical committee members but also to Standards Approval Committee members,
+other national standards bodies and any other organizations and persons who have indicated an interest in the
+project. Final drafts are also posted on website and workshopped as necessary. This procedure is designed to
+ensure that the published standard is acceptable to as many interested groups as possible.
+The SAZ Standards Development Update contains a list of all the standards projects that are in progress and a
+list of national Standards and amendments published during the previous six-month period. The SAZ Standards
+Development Update is published twice a year, in January and July.
+
+-- 2 of 27 --
+
+3
+SAZ Standards Development Update July –December 2022
+HOW TO USE THIS PUBLICATION
+1. Standards Projects in Progress
+1.1 Reference No.
+The reference number of the project is given in the left hand column 1. The number consists of:
+a) The initials of the Industry Sector under which the project falls e.g. BC Building and
+Civil Engineering Sector.
+b) The technical committee number.
+c) "D" stands for draft.
+d) The number of the standard once published
+e.g. BC 002 - D 528
+A list of SAZ technical committees is contained in the SAZ TC Catalogue available from the Standards
+Development Division at the SAZ.
+Projects are grouped in order of the Industry Sectors.
+1.2 Title
+Column 2 contains the title of each proposed standard.
+1.3 Stage
+Column 3 indicates the principle stages involved. A project is indicated as having reached a particular
+stage when action or decision indicated at that stage has been taken.
+Where ISO/ TC drafts are being reviewed and voted on by SAZ's National mirror committees, the
+stage of the ISO drafts is indicated as follows:
+ISO/WD
+ISO/CD
+ISO/DIS
+ISO/FDIS
+ISO/DTR
+ISO Working document
+ISO Committee draft
+ISO Draft Reginal, Continental or
+International
+ISO Final draft Reginal, Continental or
+International ISO Draft technical report
+
+-- 3 of 27 --
+
+4
+SAZ Standards Development Update July –December 2022
+1.4 International Classification for Standards (ICS)
+Column 4 lists the ICS number(s) under which the subject matter is classified.
+1.5 Edition
+Column 5 indicates the edition of the standard currently being developed under this project.
+1.6 Relationship with Regional Standard(RS), Continental Standard(CS) or International Standard
+(IS)
+The last column indicates the relationship of the proposed standard to a Regional Standard
+(RS), Continental Standard (CS) or International Standard (IS). The following abbreviations
+have been used:
+IDT An identical standard: a standard identical in every detail with a
+corresponding RS,CS or IS. The vice versa principle is fulfilled.
+M Modified: National standard is modified in relation to the RS,CS or IS.
+Modifications are identified in the national prefix. The vice versa principle is
+not fulfilled.
+NEQ Not equivalent: a national standard not equivalent to the Regional Standard
+(RS), Continental Standard (CS) or International Standard (IS). in technical
+content or presentation.
+2. Standards Published
+2.1 Reference No.
+The reference number in the left hand column 1 is the number of the ZWS Standard and is in
+numerical order.
+2.2 Issue
+Column 2 indicates the year in which the standard was published. For adopted Regional
+Standard (RS), Continental Standard (CS) or International Standard (IS), the issue refers to
+year in which the Regional Standard (RS), Continental Standard (CS) or International Standard
+(IS) was adopted by SAZ.
+2.3 Project Number
+Column 3 indicates the reference number of the project under which the standard was
+developed. (Refer to 1.1).
+2.4 Title
+Column 4 contains the title of the published standard.
+2.5 International Classification for Standards (ICS)
+Column 5 indicates the ICS number(s) under which the subject matter is classified.
+2.6 Edition
+Column 6 indicates the edition of the approved standard.
+
+-- 4 of 27 --
+
+5
+SAZ Standards Development Update July –December 2022
+2.7 Relationship with Regional Standard (RS), Continental Standard (CS) or International Standard
+(IS)
+The last column indicates the relationship of the published standard to Regional Standard (RS),
+Continental Standard (CS) or International Standard (IS). Refer to 1.6 for abbreviations used:
+3. Standards Reprinted
+3.1 Reference No.
+The reference number in the left hand column 1 is the number of the national Standard and is
+in numerical order.
+3.2 Issue
+Indicates the year in which the standard was
+reprinted.
+3.3 Title
+Column 3 contains the title of the reprinted
+standard.
+3.4 Incorporated Amendments
+Column 4 lists the amendments incorporated into the
+reprint.
+3.5 International Classification for Standards (ICS)
+The last column indicates the ICS number(s) under which the subject matter is classified.
+4. Amendments Published
+4.1 Reference No.
+The reference number in the left hand column 1 is the number of the amendment published.
+4.2 Standard No.
+Column 2 is the number of the standard to which the amendment was issued.
+4.3 Title Column 3 is the title of the standard to which
+the amendment was issued.
+4.4 Scope of Amendment
+Column 4 indicates the scope of the amendment.
+4.5 International Classification for Standards (lCS)
+The last column indicates the ICS number(s) under which the subject matter is classified.
+
+-- 5 of 27 --
+
+6
+SAZ Standards Development Update July –December 2022
+SECTION 1: STANDARDS PROJECTS IN PROGRESS
+Note: SAZ coordinated the development of the Zimbabwe National Standardization Strategy using the
+ISO methodology. Two editions of the ZNSS have been have been published since 2018.
+1 2 3 4 5
+5
+5 6
+Automotive and Transportation (AT)
+Reference No. Project/Title Stage IC
+S Edition Regional, Continental
+and
+International
+relationship	AT 001/SADCSTAN TC2
+ISO 3877.1 Tyres, valves and tubes – List of equivalent
+terms – Part 1: Tyres Prep Prep	91.140 1 Idt ISO 3877.1
+ISO 3877.2 Tyres, valves and tubes – List of equivalent
+terms – Part 2: Tyre valves Prep 91.140 1 Idt ISO 3877.2
+ISO 3877.3 Tyres, valves and tubes – List of equivalent
+terms – Part 3: Tubes
+Prep 91.140 1 Idt ISO 3877.3
+SADC ZW HS 318 Pneumatic Tyres for commercial purpose Prep 91.140 1 Idt SADC HS 318
+SADC ZW HS 328 Pneumatic Tyres for vehicles and their
+trailers
+Prep 91.140 1 SADC ZW HS 328
+ZWS 305 Pneumatic Tyre Valves Prep 91.140 2
+SANS 20027 Uniform provision for approval
+of advance warning triangles FDHT
+43.040.
+20
+1 Idt SADCSTAN
+NWIP TZS 698
+Code of practice for
+inspection and testing of
+motor vehicle for road
+worthiness
+NWIP 43.180 1 Idt SADCSTAN
+ARSO TC 59/Tripartite
+standards
+FDARS 1356
+Roadside roadworthiness assessment of
+motor vehicles-Code of practice FDHT
+43.180 1 Idt FDARS 1356
+ISO 3779 Road vehicles-Vehicle identification number
+(VIN)-Content and structure FDHT 43.180 1 Idt ISO 3779
+ISO 4925
+Road vehicles-Specification of non-
+petroleum-base brake fluids for hydraulic
+systems
+FDHT
+43.180 1 Idt ISO 4925
+ISO 4926 Road vehicles-Hydraulic braking systems-
+Non-petroleum-base reference fluids FDHT
+43.180 1 Idt ISO 4926
+ZWS 1081
+Uniform provisions concerning the approval
+of vehicles with regard to specific
+requirements for the electric power train
+Published
+43.180 1 Idt UNECER 100
+ZWS 1082
+Uniform provisions concerning the approval
+of passenger cars powered by an internal
+combustion engine only, or powered by a
+hybrid electric power train with regard to the
+measurement of the emission of carbon
+dioxide and fuel consumption and/or
+measurement of electric energy
+consumption and electric range, and or
+categories M1 and N1 vehicles powered by
+an electric power train only with regard to
+the measurement of electric energy
+consumption and electric range
+Published
+43.180 1
+ZWS 1085
+Uniform provisions concerning the approval
+of specific LPG (liquefied petroleum gases)
+retrofit systems to be installed in motor
+vehicles for the use of LPG in their
+propulsion system and specific CNG
+(compressed natural gas) retrofit systems to
+be installed in motor vehicles for the use of
+Published
+43.180 1
+
+-- 6 of 27 --
+
+7
+SAZ Standards Development Update July –December 2022
+CNG in their propulsion system
+1 2 3 4 5 6
+Reference No. Project/Title Stage ICS Edition
+Regional,
+Continental and
+International
+relationship
+Building and Civil Engineering
+ARSO THC03
+BC 007
+Relevant projects Prep 77.140 1
+SI 168 Steel Products Prep 77.140 1
+ZWS 284 Steel fencing materials Prep 77.140 1
+BC 26
+Revision of 519
+Measurement of lettable and tenancy
+available
+Prep 47.020.80 1 \
+BC001
+Revision of 678-1-9
+Development maintenance of ground
+water resources
+CD 13.060.10 1
+BC 012
+ZWS 822
+Dump proofing materials of buildings Prep 91.100 2
+BC 013
+SADC ZW HS 981:
+2014
+Burnt clay masonry units – Specification
+(SR)
+Draft 81.060 1 Idt SADC HS 981:
+2014
+SADC ZW HS 982:
+2014
+Concrete masonry units – Specification
+(SR)
+Prep 81.060 1 Idt SADC HS 982:
+2014
+ZWS 533: 1996 Laying precast concrete interlocking
+pavers (SR)
+Prep 81.060 1
+ZWS 187: 1984 Concrete roofing tiles (SR) Prep 81.060 1
+ARSO/TC 30
+BS EN 13242:2013
+Aggregates for unbound and hydraulically
+bound materials for use in civil
+engineering work and road construction
+NWIP 81.060 1 Idt BS EN
+13242:2013
+BS EN 13285:2018 Unbound mixtures. Specifications NWIP 81.060 1 Idt BS EN
+13285:2018
+BS EN 933-1:2012 Tests for geometrical properties of
+aggregates. Determination of particle size
+distribution. Sieving method
+NWIP 81.060 1 Idt BS EN 933-1:2012
+BS EN 933-2:1996 Tests for geometrical properties of
+aggregates. Determination of particle size
+distribution. Test sieves, nominal size of
+apertures
+NWIP 81.060 1 Idt BS EN 933-2:1996
+BS EN 933-3:2012 Tests for geometrical properties of
+aggregates. Determination of particle
+shape - Flakiness index
+NWIP 81.060 1 Idt BS EN 933-3:2012
+BS EN 933-4:2008 Tests for geometrical properties of
+aggregates. Determination of particle
+shape. Shape index
+NWIP 81.060 1 Idt BS EN 933-4:2008
+BS EN 933-5:1998 Tests for geometrical properties of
+aggregates. Determination of percentage
+of crushed and broken surfaces in coarse
+aggregate particles
+NWIP 81.060 1 Idt BS EN 933-5:1998
+BS EN 933-6:2014 Tests for geometrical properties of
+aggregates. Assessment of surface
+characteristics. Flow coefficient of
+aggregates
+NWIP 81.060 1 Idt BS EN 933-6:2014
+
+-- 7 of 27 --
+
+8
+SAZ Standards Development Update July –December 2022
+BS EN 933-7:1998 Tests for geometrical properties of
+aggregates. Determination of shell
+content. Percentage of shells in coarse
+aggregates
+NWIP 81.060 1 Idt BS EN 933-7:1998
+BS EN 933-
+8:2012+A1:2015
+Tests for geometrical properties of
+aggregates. Assessment of fines. Sand
+equivalent test
+NWIP 81.060 1 Idt BS EN 933-
+8:2012+A1:2015
+BS EN 933-
+9:2009+A1:2013
+Tests for geometrical properties of
+aggregates. Assessment of fines.
+Methylene blue test
+NWIP 81.060 1 Idt BS EN 933-
+9:2009+A1:2013
+BS EN 933-10:2009 Tests for geometrical properties of
+aggregates. Assessment of fines. Grading
+of filler aggregates (air jet sieving)
+NWIP 81.060 1 Idt BS EN 933-
+10:2009
+1 2 3 4 5 6
+Reference No. Project/Title Stage ICS Edition
+Regional,
+Continental and
+International
+relationship	BS EN 933-11:2009 Tests for geometrical properties of
+aggregates. Classification test for the
+constituents of coarse recycled aggregate
+NWIP 81.060 1 Idt BS EN 933-
+11:2009
+BC048
+ZWD 877
+Testing concrete
+Part 1: Methods of sampling fresh
+concrete on site
+CD 91.100.30 1 Idt BS 1881 Part101
+Part 2: Method for making test asbestos
+from fresh cubes CD 91.100.30 1 BS 1881Part 108
+Part 3: Method of normal wiring of test
+specimens (20ºc Method) CD 91.100.30 1 Idt BS 1881 Part111
+BC 048
+ZWD 877
+Part 4: Method for determination of
+compressive strength of concrete users
+Part 5: Specification for compression
+testing machines for concrete
+CD
+CD
+91.100.30
+91.100.30
+1
+1
+Idt BS 1881 Part116
+Idt BS 1881 Part115
+Part 6: Method for determination of
+density of hardened concrete CD 91.100.30 1 Idt BS 1881 Part114
+Part 7: Method for determination of pump CD 91.100.30 1 Idt BS 1881 Part102
+ZWS EN 197 Part 1: Composition, specification and
+conformity criteria for common cement Published 91.100.30 1 Idt EN 197 Part 1
+Part 2: Conformity evaluation Published 91.100.30 1 Idt EN 197 Part 2
+ZWS EN 413: Part 1
+Masonry
+cement Part 1:
+Composition,
+specifications
+and
+conformity
+criteria
+Published 91.100.30 1 Idt EN 413: Part 1
+Chemicals
+CH 001
+ZWS D 207
+Chlorinated lime calcium hypochlorite
+specification Committee 65.080 2
+ISO: 4198 Surface active agents -- Detergents for
+hand dishwashing -- Guide for
+comparative testing of performance
+published 71.100.35 1 Idt ISO: 4198
+ISO 8212 soaps and detergents techniques of
+sampling during maintenance
+Draft 71.100.35 1 Idt ISO: 8212
+ISO 6835 Surface active agents -- Washing
+powders -- Determination of total boron
+content -- Titrimetric method
+Draft 71.100.35 1 Idt ISO 6835
+ISO 6837 Surface active agents -- Water dispersing
+power in dry cleaning solvents
+Draft 71.100.35 1 Idt ISO 6837
+
+-- 8 of 27 --
+
+9
+SAZ Standards Development Update July –December 2022
+ISO 21703 Surface active agents -- Microbiology --
+Microbiological test methods for liquid
+hand dishwashing
+Draft 71.100.35 1 Idt ISO 21703
+ISO 8214 Surface active agents -- Washing
+powders -- Determination of inorganic
+sulphates -- Gravimetric method
+Draft 71.100.35 1 Idt ISO 8214
+ISO 7535 Surface active agents -- Detergents for
+domestic machine dishwashing -- Guide
+for comparative testing of performance
+Draft 71.100.35 1 Idt ISO 7535
+ISO CD TR 21681 Surface active agents -- Bio-based
+surfactants -- Overview on surfactants
+containing biomass
+CD 71.100.35 1 Idt ISO CD TR 21681
+ISO 8215 Surface active agents -- Determination of
+total silica content -- Gravimetric method
+Draft 71.100.35 1 Idt ISO 8215
+ISO/CD 21680 Surface active agents -- Bio-based
+surfactants -- Requirements and test
+methods
+CD 71.100.35 1 Idt ISO/ 21680
+(ZNSS) Sodium hypochlorite solutions Draft 71.100.35 1 ARSO
+(ZNSS) Antibacterial toilet soap Draft 71.100.35 1 ARSO
+(ZNSS) Household dish washing liquid detergents Draft 71.100.35 1 ARSO
+(ZNSS) Surface active agents -- Evaluation of
+certain effects of laundering -- Methods of
+analysis and test for unsoiled cotton
+control clothibacterial toilet
+71.100.35 1 ARSO
+(ZNSS) Methods of test of formulated detergents Prep 71.100.35 1
+EAS 296 Specification for liquid detergents-,
+Detergents for household hand dish
+washing
+Draft 71.100.35 1 Idt EAS 296
+CH003
+Rev ZWS 962
+Denatured fuel ethanol Prep 75.160 2
+Rev ZW 964-1-5 Ethanol blends Prep 75.160 1
+Rev ZWS913.1 Part
+1
+Petroleum industry Part 1: Storage and
+distribution of petroleum products in
+above ground bulk installations
+Prep 75.160.30 2
+ZWS 960 The handling, storage, distribution and
+maintenance of liquefied petroleum gas in
+domestic, commercial, and industrial
+installations
+Prep 75.160.30 2
+ZWS 913.3:2011 Petroleum Industry – Requirements for
+above ground tanks with integral
+secondary containment and dispensers
+Prep 75.160.30 2
+SACSTAN TC 15
+SANS 10234
+Globally Harmonized System of
+classification and labelling of chemicals
+(GHS )
+Prep 75.160 1 Idt 10234
+Electro technical and Information Communications Technology
+ICT 001
+ISO/IEC 38500
+Information technology -- Governance of
+IT for the organization
+Draft 35.020 2 Idt ISO/IEC 38500
+EL 021
+ZWS 556:
+IEC 60335
+13A plugs, socket outlets, adaptors and
+connection units.
+Part 1: Re-wirable 13A fused plugs
+Part 2 13 A switched and un-switched
+sockets outlets.
+CD
+CD
+29.120.30
+29.120.30
+2
+2
+Idt IEC 60335-1
+Idt IEC 60335-2
+EL 028/SC 10
+ZWS IEC 60335*
+Household and similar electrical
+appliances
+1) Part 2-15
+Particular requirements for appliances for
+heating liquids
+CD 97.030 1 Idt IEC 60335-2-15
+ZWS IEC 60335-2-3 Household and similar electrical
+appliances – safety
+published 97.030 1 Idt IEC 60335-2-3
+ZWS IEC 62552- 1 Household refrigerating appliances –
+Characteristics and test methods: Part 1:
+General requirements
+Published 97.030 1 Idt IEC 62552: Part 1
+
+-- 9 of 27 --
+
+10
+SAZ Standards Development Update July –December 2022
+ZWS IEC 62552- 2 Household refrigerating appliances –
+Characteristics and test methods: Part 2:
+Performance requirements
+Published 97.030 1 Idt IEC 62552: Part 2
+ZWS IEC 62552- 3 Household refrigerating appliances –
+Characteristics and test methods:
+Part 3: Energy consumption and volume
+Published 97.030 1 Idt IEC 62552: Part 3
+EL 003 System aspects for electrical energy
+supplies
+Prep 17.220 1
+EL 004 Electrical installation of protection against
+electric shock
+Prep 27.180 1
+EL009 ZWS
+351:1993
+The protection of structures against
+lightning
+Prep 91.120.40 1
+ZWS 350 The protection of dwelling houses against
+lighting
+Prep 91.120.40 1
+EL006 ZWS 400 Electrical wiring of premises SAZ wiring
+rules
+Prep 91.160 2
+EL009 Graphical symbol for electrical diagram Prep 01.080 2
+ZWS 890 High voltage bus bars and bus bar
+connection
+Prep 13.260 2
+EL007 ZWS 120 Eucalyptus poles and cross arms Draft 79.040 1
+Food and Agriculture (FA)
+AG004
+(national/regional)
+Tobacco hessian bags – (national)
+Tobacco and Tobacco products
+Committee
+Committee 65.160
+1
+1 Idt MS 75 –D1
+Good agricultural practice (national) Committee
+55.080
+1 Idt SADCSTAN
+AG 005
+ZWS 112 -
+Revision
+Dog and cat foods Draft 65.120 2
+ZWD 142 -Revision Pig feeds Draft 65.120 2
+ZWS 517 -
+Revision
+Poultry feeds Draft 65.120 2
+ZWS 518- Revision Cattle feeds Draft 65.120 2
+ZWS 530- Revision Animal feeding stuffs – Sampling and
+preparation of sample
+Draft 65.120 2
+FD 003
+ARS ZW HS 832 Banana crisps Draft 67.080.20 1 Idt ARS 832
+ARS ZW HS 847-
+2016
+Fresh potato tuber — Specification CD 67.060 1 Idt ARS 847
+ARS ZW HS 848-
+2016
+Production and handling fresh ware
+potatoes - Code of practice
+CD 67.060 1 Idt ARS 848
+ARS ZW HS 849-
+2016
+Reduction of acrylamide in potato
+products – Code of practice
+Draft 67.060 1 Idt ARS 849
+ARS ZW HS 851-
+2016
+Frozen potato chips - Specification CD 67.060 1 Idt ARS 851
+FD 017
+Revision of ISO
+22003-1
+Food safety management systems —
+Requirements for
+bodies providing audit and
+certification of food safety
+management systems —
+Part 1:
+Requirements for bodies providing
+audit and certification
+of food safety management systems
+Published 67.060 2 Idt ISO 22003-1
+Revision of ISO
+22003-2
+Food safety management systems —
+Requirements for
+bodies providing audit and
+certification of food safety
+management systems —
+Published 67.060 2 Idt ISO 22003-2
+
+-- 10 of 27 --
+
+11
+SAZ Standards Development Update July –December 2022
+Part 2:
+Requirements for bodies providing
+evaluation and
+certification of products, processes
+and services, including
+an audit of the food safety system
+FD003
+Rev ZWS 500
+Wheat Flour Draft 67.060 2
+DARS 461-2021 Maize grains (corn)-Specification DARS 67.060 2 DARS 461-2021
+DARS 463-2021 Pearl millet grains - Specification CD 67.060 2 DARS 463-2021
+Food and Agriculture (FA)
+DARS 464-2021 Milled rice - Specification DARS 67.060 2 DARS 464-2021
+CD ARS 465-2021 Wheat grains – Specification CD 67.060 2 CD ARS 465-2021
+DARS 466-2021 Milled maize products-Specification DARS 67.060 2 DARS 466-2021
+CD ARS 468-2021 Sorghum flour - Specification CD 67.060 2 CD ARS 468-2021
+CD ARS 469-2021 Millet flour - Specification CD 67.060 2 CD ARS 469-2021
+CD ARS 462-2021 Sorghum grains - Specification CD 67.060 2 CD ARS 462-2021
+CD ARS 857-2021 Finger millet grains - Specification CD 67.060 2 CD ARS 857-2021
+CD ARS 859-2021 Brown rice-Specification CD 67.060 2 CD ARS 859-2021
+CD ARS 858-2021 Rough (paddy ) rice – Specification CD 67.060 2 CD ARS 858-2021
+CD ARS 864-2021 Dry beans – Specification CD 67.060 2 CD ARS 864-2021
+CD ARS 867-2021 Dry cowpeas – Specification CD 67.060 2 CD ARS 867-2021
+CD ARS 868-2021 Dry pigeon peas – Specification CD 67.060 2 CD ARS 868-2021
+CD ARS 869-2021 Dry whole peas – Specification CD 67.060 2 CD ARS 869-2021
+CD ARS 870-2021 Lentils – Specification CD 67.060 2 CD ARS 870-2021
+CD ARS 871-2021 Dry split peas – Specification CD 67.060 2 CD ARS 871-2021
+ZWS 1050 Instant cereal and pulse based
+porridge
+Published 67.060 1
+FD070
+ZWS 348
+(SR)
+The manufacture of soft drinks and
+soft drinks concentrate
+CD 67.160.20 2
+FD073 Tomato paste and chilli sauce Prep 67.080.20 1
+FD074 Edible insects Prep 67.040 1
+FD075
+Revision of ZWS
+749
+Hazard Analysis Critical Control Point CD 67.020 2 CXC 1-1969
+AG 001 Specification for Mono-Ammonium
+Phosphate
+Prep 65.080 2
+IS 4830 Specification for Ammonium
+Polyphosphate Solution
+Prep 65.080 1 Idt IS 4830
+IS 8359 Specification for Urea Ammonium
+Phosphate
+Prep 65.080 2 Idt IS 8359
+IS 2279 Specification for Potash Chloride Prep 65.080 1 Idt IS 2279
+IS 2764 Specification for Potassium sulphate Prep 65.080 1 Idt IS 2764
+IS 12478 Specification for Ammonium
+Sulphate
+Prep 65.080 2 Idt IS 12478
+IS 6046 Specification for Gypsum
+(agricultural)
+Prep 65.080 2 Idt IS:6046
+ISO 3619 Specification for Ammonium
+Thiosulphate Solution
+Prep 65.080 2 Idt ISO 3619
+ARS 504 Specification for Ammonium
+Sulphate-Urea
+Prep 65.080 2 Idt ARS 504
+IS 826 Specification for Ammonium
+Sulphate
+Prep 65.080 2 Idt IS 826
+IS 662 Specification for Anhydrous
+Ammonia (gas)
+Prep 65.080 2 Idt IS 662
+ISO 7409 Specification for Urea-Ammonium
+Nitrate Solution
+Prep 65.080 2 Idt ISO 7409
+FD 055
+ZWS 1051
+Free range eggs CD 67.060 1
+Code of practice on free range poultry
+production
+published 67.060 1
+DARS 1218 Handling, Processing, Quality
+Evaluation and Storage of Poultry
+Draft 67.060 1 Idt DARS 1218
+DARS 1219 Poultry glossary of terms Draft 67.060 1 Idt DARS 1219
+
+-- 11 of 27 --
+
+12
+SAZ Standards Development Update July –December 2022
+DARS 1200 Eggs in shell for processing-
+Specification and grading
+Draft 67.060 1 Idt DARS 1200
+DARS 1199 Edible eggs in shell- Specification
+and grading
+Draft 67.060 1 Idt DARS 1199
+DARS 1225 Chicken meat, Carcass and parts Draft 67.060 1 Idt DARS 1225
+Food and Agriculture (FA)
+DARS 1226 Duck meat and Parts Draft 67.060 1 Idt DARS 1226
+DARS 1242 Goose meat and parts Draft 67.060 1 Idt DARS 1242
+DARS:1202-2021 Preserved eggs-in-shell —
+Specification and grading
+Draft 67.060 1 Idt DARS:1202-2021
+DARS 1203 Hens egg products for use in the food
+industry — Specification
+Draft 67.060 1 Idt DARS 1203
+DARS 1205 Egg powder specification Draft 67.060 1 Idt DARS 1205
+DARS 1245 Bovine (beef) meat –Carcasses and
+cuts
+Draft 67.060 1 Idt DARS 1245
+DARS 1246 Veal meat- Carcasses and cuts Draft 67.060 1 Idt DARS 1246
+DARS 1247 Caprine (goat) meat- Carcasses and
+cuts
+Draft 67.060 1 Idt DARS 1247
+DARS 1248 Ovine (sheep) meat- Carcasses and
+cuts
+Draft 67.060 1 Idt DARS 1248
+DARS 1250 Rabbit meat-Carcasses and cuts Draft 67.060 1 Idt DARS 1250
+DARS 1216 Chicken essence-Specification Draft 67.060 1 Idt DARS 1216
+DARS 1217 Ante-mortem and post-mortem
+inspection of poultry — Code of
+practice
+Draft 67.060 1 Idt DARS 1217
+CD ARS 1222 Canned curry chicken— Specification CD 67.060 1 Idt CD ARS 1222
+CD ARS 1223 Poultry sausages-
+specification
+CD 67.060 1 Idt CD ARS 1223
+Material Packaging
+MA056
+ZWS 257-2
+Sawn softwood timber Part general
+requirement
+CD 79.040 2 Idt SANS 1783-1
+ZWS 257-3 Part 3 Industrial grade timber CD
+CD
+79.040 2 Idt SANS 1783-3
+ZWS 257-4
+ZWS 257-5-1
+Brandering and battens
+Stress grade assessment
+CD
+Published
+79.040
+79.040
+2
+1
+Idt SANS 1783-4
+Idt SANS 1783-5-1
+ZWS 257-5-2 Quality assurance of stress grading. Published 79.040 1 Idt SANS 1783-5-2
+ZWS 717
+ZWS 184
+ZWS ISO 251
+The manufacture and erection of timber
+trusses
+Wooden doors
+Specification for conveyor belts
+Prep
+Prep
+Prep
+91.080.20
+91.060.50
+53.040.20
+2
+2
+1
+Idt SANS 10243
+Idt SANS 545
+Idt ISO 251
+ZWS 1060: Part 1 Adhesives for wood Part 1: Terminology Published 53.040.20 1
+ZWS 1060: Part 2 Adhesives for wood Part 2:
+Requirements for structural application
+Published 53.040.20 1
+ZWS 1061 Health, safety and environmental
+guidelines for the construction and
+operation of timber treatment plants
+Published 53.040.20 1
+ZWS 1087 Structural timber – characteristic values
+of strength-graded timber – sampling,
+full-size testing and evaluation
+Published 53.040.20 1
+ZWS 1062 The preservative treatment of timber Published 53.040.20 1
+MA 002
+ZWS D 986
+Non-traditional road additives Final draft 93.080.20 1
+
+-- 12 of 27 --
+
+13
+SAZ Standards Development Update July –December 2022
+MA002
+ZWS 467
+Bitumen for road industrial and
+purposes
+Prep 75.140 2
+MA002
+ZWS 110
+Test methods for bitumen Prep 75.140 2
+BS EN 12597:2014 Bitumen and bituminous binders.
+Terminology
+Prep 75.140 1 Idt BS EN 12597:2014
+BS EN 13108-
+1:2016
+Bituminous mixtures. Material
+specifications. Asphalt Concrete
+Prep 75.140 1 Idt BS EN 13108-
+1:2016
+BS EN 13108-
+2:2016
+Bituminous mixtures. Material
+specifications. Asphalt Concrete for
+Very Thin Layers (BBTM)
+Prep 75.140 1 Idt BS EN 13108-
+2:2016
+BS EN 13108-
+3:2016
+Bituminous mixtures. Material
+specifications. Soft Asphalt
+Prep 75.140 1 Idt BS EN 13108-
+3:2016
+BS EN 13108-
+4:2016
+Bituminous mixtures. Material
+specifications. Hot Rolled Asphalt
+Prep 75.140 1 Idt BS EN 13108-
+4:2016
+BS EN 13108-
+5:2016
+Bituminous mixtures. Material
+specifications. Stone Mastic Asphalt
+Prep 75.140 1 Idt BS EN 13108-
+5:2016
+BS EN 13108-
+6:2016
+Bituminous mixtures. Material
+specifications. Mastic Asphalt
+Prep 75.140 1 Idt BS EN 13108-
+6:2016
+BS EN 13108-
+7:2016
+Bituminous mixtures. Material
+specifications. Porous Asphalt
+Prep 75.140 1 Idt BS EN 13108-
+7:2016
+BS EN 13108-
+8:2016
+Bituminous mixtures. Material
+specifications. Reclaimed asphalt
+Prep 75.140 1 Idt BS EN 13108-
+8:2016
+BS EN 13108-
+9:2016
+Bituminous mixtures. Material
+specifications. Asphalt for Ultra-Thin
+Layer (AUTL)
+Prep 75.140 1 Idt BS EN 13108-
+9:2016
+BS EN 13108-
+20:2016
+Bituminous mixtures. Material
+specifications. Type Testing
+Prep 75.140 1 Idt BS EN 13108-
+20:2016
+BS EN 13108-
+21:2016
+Bituminous mixtures. Material
+specifications. Factory Production
+Control
+Prep 75.140 1 Idt BS EN 13108-
+21:2016
+BS EN 1317-
+1:2010
+Road restraint systems. Terminology
+and general criteria for test methods
+Prep 75.140 1 Idt BS EN 1317-
+1:2010
+BS EN 1317-
+2:2010
+Road restraint systems. Performance
+classes, impact test acceptance
+criteria and test methods for safety
+barriers including vehicle parapets
+Prep 75.140 1 Idt BS EN 1317-
+2:2010
+BS EN 1317-
+3:2010
+Road restraint systems Performance
+classes, impact test acceptance
+criteria and test methods for crash
+cushions
+Prep 75.140 1 Idt BS EN 1317-
+3:2010
+BS EN 1317-
+5:2007+A2:2012
+Road restraint systems Product
+requirements and evaluation of
+conformity for vehicle restraint
+systems
+Prep 75.140 1 Idt BS EN 1317-
+5:2007+A2:2012
+EN/TR 1317-
+6:2012
+Road restraint systems - Part 6:
+Pedestrian restraint system -
+Pedestrian parapets
+Prep 75.140 1 Idt EN/TR 1317-
+6:2012
+BS EN 13282-
+1:2013
+Hydraulic road binders. Rapid
+hardening hydraulic road binders.
+Composition, specifications and
+conformity criteria
+Prep 75.140 1 Idt BS EN 13282-
+1:2013
+
+-- 13 of 27 --
+
+14
+SAZ Standards Development Update July –December 2022
+BS EN 13282-
+2:2015
+Hydraulic road binders. Normal
+hardening hydraulic road binders.
+Composition, specifications and
+conformity criteria
+Prep 75.140 1 Idt BS EN 13282-
+2:2015
+MA054
+ISO 3320
+Power system components –
+cylinders bores and piston rod
+diameter and area ratios Mentz series
+Prep 77.140 2 Idt ISO 3320
+BC007
+Nails ZWS 285
+Mild steel nail Prep 77.140 2
+LT 001
+ZWS ISO 2588
+b
+Leather sampling number of items for
+a gross sample
+CD 59.140.30 2 Idt ISO 3320
+ZWS ISO 2419 Leather –physical and mechanical
+tests- sample preparation and
+conditioning
+CD 59.140.30 2 Idt ISO 2419
+ZWS ISO 2418 Leather – chemical physical and
+mechanical tests: sampling location
+CD 59.140.30 2 Idt ISO 2418
+ZWS ISO 1136 Wool: determination of diameter of
+fibres –Air permeability
+CD 59.140.30 1 Idt ISO 1136
+ZWS ISO 7023 Packaging – Sacks – Method of
+sampling empty sacks for testing.
+(SR)
+Prep 59.140.30 2 Idt ISO 7023
+Limits of restricted substances in
+textiles and apparel
+Prep 59.140.30 1
+Flags Prep 59.140.30 1
+Specifications for printed materials Prep 59.140.30 1
+Classification and grading of cotton
+fibres
+Prep 59.140.30 1
+Canvas Prep 59.140.30 1
+Woven blankets Prep 59.140.30 1
+Requirements for second hand
+textiles and apparels in trade
+Prep 59.140.30 1
+Limits of restricted substances in
+leather and footwear
+Prep 59.140.30 1
+Car seat Prep 59.140.30 1
+Specification for upholstery leather Prep 59.140.30 1
+Leather seats Prep 59.140.30 1
+Specification and grading of camel
+hides
+Prep 59.140.30 1
+Code of practice for Garment
+manufacturers
+Prep 59.140.30 1
+Specification for non-woven textile
+gloves
+Prep 59.140.30 1
+Terminologies of Textile finishing Prep 59.140.30 1
+Specification for mosquito nets Prep 59.140.30 1
+Non-woven carrier bag -
+Specification
+Prep 59.140.30 1
+
+-- 14 of 27 --
+
+15
+SAZ Standards Development Update July –December 2022
+Requirements for second hand
+footwear in trade
+Prep 59.140.30 1
+Specification for Garment leather Prep 59.140.30 1
+Specification for Leather sole Prep 59.140.30 1
+Leather for jacket Prep 59.140.30 1
+Brief case Prep 59.140.30 1
+ZWS ISO 137 Wool determination of fibre diameter
+projection microscope method
+CD 59.140.30 2 Idt ISO 137
+LT 001
+ASTMD 6534M-14
+Standard Specification for 100 %
+Cotton Denim
+Prep 59.080.30 1 Idt ASTMD 6534M-14
+MA 053
+ISO 3394
+Plastic bags Prep 83.080 1 Idt ISO 3394
+Modified Poly vinyl chloride pressure
+pipe and couplings
+Prep 83.120 1
+ZWS ISO 1167-1 Thermoplastics pipes, fittings, and
+assemblies for the conveyance of
+fluids – Determination of the
+resistance to internal pressure
+Part 1: General method
+Published 83.120 1 Idt ISO 1167-1
+ZWS ISO 1167-2 Thermoplastics pipes, fittings, and
+assemblies for the con-veyance of
+fluids – Determination of the
+resistance to in-ternal pressure
+Part 2: Preparation of pipe test pieces
+Published 83.120 1 Idt ISO 1167-2
+ZWS ISO 1167-3 Thermoplastics pipes, fittings, and
+assemblies for the con-veyance of
+fluids – Determination of the
+resistance to in-ternal pressure
+Part 3: Preparation of components
+Published 83.120 1 Idt ISO 1167-3
+ZWS ISO 1167-4 Thermoplastics pipes, fittings, and
+assemblies for the con-veyance of
+fluids – Determination of the
+resistance to in-ternal pressure
+Part 4: Preparation of assemblies
+Published 83.120 1 Idt ISO 1167-4
+ZWS ISO 9852 Unplasticized poly(vinyl chloride)
+(PVC-U) pipes — Di-chloromethane
+resistance at specified temperature
+(DCMT) — Test method
+Published 83.120 1 Idt ISO 9852
+ZWS ISO 2505 Thermoplastics pipes — Longitudinal
+reversion — Test method and
+parameters
+Published 83.120 1 Idt ISO 2505
+ZWS ISO 3127 Thermoplastics pipes – Determination
+of resistance to exter-nal blows –
+Round-the-clock method
+Published 83.120 1 Idt ISO 3127
+ISO 21138-3 Plastic piping systems for non-
+pressure underground drainage and
+sewerage
+Prep 83.140 1 Idt ISO 21138-3
+ISO 1307 Rubber hoses Prep 83.120 2 Idt ISO 1307
+MA 054 Specification for steel wheel barrow Prep 77.140 1
+KS 153 Specification for metal kitchen unit Prep 77.140 2 Idt KS 153
+Specification for Metal clad insulated
+panels
+Prep 77.140 1
+Specification for Lock gates Prep 77.140 1
+Specification for shutters Prep 77.140 1
+Specification for plates Prep 77.140 1
+Specification for rods Prep 77.140 1
+Specification for angles Prep 77.140 1
+Specification for clad Prep 77.140
+
+-- 15 of 27 --
+
+16
+SAZ Standards Development Update July –December 2022
+MA 055
+ASTM F782-01
+Specification for Flash doors Prep 77.140 1 Idt ASTM F782-01
+AS/NES 4935 Specification for Wardrobes Prep 79.020 1 Idt AS/NES 4935
+ASTM F2057 Specification for Bedroom suite Prep 79.020 1 Idt ASTM F2057
+ASTM F 2057-2014 Specification for Dining room suite Prep 79.020 1 Idt ASTM F 2057-2014
+MA007 Specification for coated and
+corrugated steel roofing sheets
+Prep 77.140 1
+LT 001
+FD ARS 1558
+WD- TH07-11:2017,
+Children's school shoes with direct
+injection
+Draft 13.340.50 1 Idt ARS 1558
+FDARS 1559 Men's open shoes Draft 13.340.50 1 Idt ARS 1559
+FDARS 1560 Men's closed shoes Draft 13.340.50 1 Idt ARS 1560
+FDARS 1563 Children's shoes 0 -2 years Draft 13.340.50 1 Idt ARS 1563
+FDARS 1564 Children's shoes 2 -6 years Draft 13.340.50 1 Idt ARS 1564
+
+-- 16 of 27 --
+
+17
+SAZ Standards Development Update July –December 2022
+DARS 653
+DARS 1575
+DARS 658-1
+DARS 658-2
+DARS 1569
+DARS 1570
+DARS 1571
+DARS 1572
+DARS 1573
+DARS 1574
+ZW ARS HS 1552
+ARS 1554
+ARS 1555
+ARS 1556
+ARS 1557
+Textiles –Sanitary towels –
+specification
+Textiles- Reusable sanitary towels
+specification
+Textiles- socks Part 1 Men and
+women socks specification
+Textiles- socks Part 2 commercial
+and sports hose specification
+The labelling and making of textiles
+and households textiles articles
+Printed Labels for textiles
+Textile – woven socks packing
+cement
+Textiles disposable audit diapers
+specification
+Textiles woven cotton and similar
+household fabrics and articles
+General requirements for woven
+textile piece –goods and households’
+articles
+Leather gloves specification Chrome
+tanned bend outer sole leather
+specification
+Ladies fashion hand bags
+specification
+Leather gloves specification
+Chrome tanned bend outer sole
+leather specification
+Draft
+Draft
+Draft
+Draft
+Draft
+Draft
+Draft
+Draft
+Draft
+Draft
+Publication
+CD
+CD
+CD
+CD
+59.040
+59.040
+59.040
+59.040
+59.040
+59.040
+59.040
+59.040
+59.040
+59.040
+59.040
+59.040
+59.040
+59.040
+59.040
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+Idt DARS 653
+Idt DARS 1575
+Idt DARS 658-1
+Idt DARS 658-2
+Idt DARS 1569
+Idt DARS 1570
+Idt DARS 1571
+Idt DARS 1572
+Idt DARS 1573
+Idt DARS 1574
+Idt ARS 1552
+Idt ARS 1554
+Idt ARS 1555
+Idt ARS 1557
+Idt ARS 1557
+Reference No. Title Stage ICS Edition Regional, Continental and
+International
+Pharmaceuticals
+PH 001
+ZWS ISO 16128-1
+Guidelines on technical definitions and
+criteria for natural & organic cosmetic
+ingredients and products –
+1) Part 1: Definitions for ingredients
+2) Part 2: Criteria for ingredients and
+products
+IS
+IS
+71.100.70
+71.100.20
+1
+1
+Idt ISO 16128-1
+Idt ISO 16128-2
+PH 001
+KS/EAS 794
+Determination of the microbial inhibition
+of cosmetic soap bars and liquid hand
+and body washes – Test Method
+Prep 11.080.20 1 Idt KS/EAS 794
+ISO 8212 Soaps and detergents -- Techniques of
+sampling during manufacture
+CD 11.080.20 1 Idt ISO 8212
+
+-- 17 of 27 --
+
+18
+SAZ Standards Development Update July –December 2022
+IS 286 Methods of sampling and test for soaps Prep 11.080.20 1 Idt IS 286
+SANS 238 Liquid toilet soap — Specification Prep 11.080.20 1 Idt SANS 238
+PH 007
+ZWS 1080
+Nicotine-containing tobacco free oral
+product 3-(1- methyl, 2- Pyrrodinyl)
+Pyrindine
+Published 11.080.20 1
+ARSO/TC 40
+EAS 336: 2013
+Chemical depilatories — Specification Prep 11.080.20 1 Idt EAS 336: 2013
+EAS 337: 2013 Henna powder — Specification Prep 11.080.20 1 Idt EAS 337: 2013
+EAS 339: 2013 Hair creams, lotions and gels —
+Specification
+Prep 11.080.20 1 Idt EAS 339: 2013
+EAS 338: 2013 Chemical hair relaxers and hair waving
+products — Specification
+Prep 11.080.20 1 Idt EAS 338: 2013
+EAS 340: 2013 Nail polish — Specification Prep 11.080.20 1 Idt EAS 340: 2013
+EAS 341: 2013 Nail polish removers — Specification Prep 11.080.20 1 Idt EAS 341: 2013
+EAS 342: 2013 Pomades and solid brilliantines —
+Specification
+Prep 11.080.20 1 Idt EAS 342: 2013
+EAS 461-1: 2013 Hair dyes — Part 1: Aryl diamine based
+formulated powders — Specification
+Prep 11.080.20 1 Idt EAS 461-1: 2013
+EAS 425-1: 2017 Skin powders — Specification — Part 1:
+Body and face powder
+Prep 11.080.20 1 Idt EAS 425-1: 2017
+EAS 840: 2017 Shaving cream — Specification Prep 11.080.20 1 Idt EAS 840: 2017
+EAS 841: 2017 Hair oils — Specification Prep 11.080.20 1 Idt EAS 841: 2017
+EAS 842-1: 2017 Hair shampoo — Part 1: Soap based —
+Specification
+Prep 11.080.20 1 Idt EAS 842-1: 2017
+EAS 842-2: 2017 Hair shampoo — Part 2: Synthetic
+detergent-based — Specification
+Prep 11.080.20 1 Idt EAS 842-2: 2017
+EAS 786: 2013 Skin care creams, lotions and gels —
+Specification
+Prep 11.080.20 1 Idt EAS 786: 2013
+EAS 361: 2004 Carbaryl dusting powders —
+Specification
+Prep 11.080.20 1 Idt EAS 361: 2004
+EAS 844: 2017 Aryl di-amine-based liquid oxidation hair
+dyes — Specification
+Prep 11.080.20 1 Idt EAS 844: 2017
+EAS 845: 2017 Cosmetic pencils — Specification Prep 11.080.20 1 Idt EAS 845: 2017
+EAS 425-2 :2017 Skin powders –specification- Part 2:
+Baby powders
+Prep 11.080.20 1 Idt EAS 425-2 :2017
+GYS 11-1: 1995 specification for cosmetics – Part 1:
+General requirements
+Prep 11.080.20 1 Idt GYS 11-1: 1995
+EAS 961:2019 Glycerine for cosmetic use —
+Specification
+Prep 11.080.20 1 Idt EAS 961:2019
+EAS 335 Cologne and perfume Prep 11.080.20 1 Idt EAS 335
+CRS 16: 2010 (Unique product),Specification for
+Botanical Cosmetics
+Prep 11.080.20 1 Idt CRS 16: 2010
+RS 361: 2018 (Unique product), Herbal petroleum jelly
+— Specification
+Prep 11.080.20 1 Idt RS 361: 2018
+EAS 187 Tooth paste Prep 11.080.20 1 Idt EAS 187
+EAS 786 Standard for Skin creams Prep 11.080.20 1 Idt EAS 786
+EAS 425-2 Skin powders-Specification-Part 2: Baby
+powder
+Prep 11.080.20 1 Idt EAS 425-2
+EAS 425-1 Skin powders-Specification-Part 1:Body
+and face powder
+Prep 11.080.20 1 Idt EAS 425-1
+EAS 377-3 Cosmetics and cosmetics products- Part
+3: List of colorants allowed in cosmetic
+products
+Prep 11.080.20 1 Idt EAS 377-3
+EAS 842-1 Hair shampoo-Part 1:Soap based –
+Specification
+Prep 11.080.20 1 Idt EAS 842-1
+
+-- 18 of 27 --
+
+19
+SAZ Standards Development Update July –December 2022
+EAS 377-5 Cosmetics and cosmetics products- Part
+5: Use of UV filters in cosmetic products
+Prep 11.080.20 1 Idt EAS 377-5
+EAS 377-4 Cosmetics and cosmetics products- Part
+4: List of preservatives allowed in
+cosmetic products
+Prep 11.080.20 1 Idt EAS 377-4
+EAS 377-2 Cosmetics and cosmetics products- Part
+2: List of substances which cosmetic
+products must not contain except
+subject to the restrictions laid do
+Prep 11.080.20 1 Idt EAS 377-2
+EAS 377-1:2013 Cosmetics and cosmetics products-Part
+1: List of substances prohibited in
+cosmetic products
+Prep 11.080.20 1 Idt EAS 377-1:2013
+EAS 126 Petroleum Jelly Prep 11.080.20 1 Idt EAS 126
+EAS 964 Lip balm (salve) — Specification Prep 11.080.20 1 Idt EAS 964
+EAS 960:2019 Deodorants and antiperspirants —
+Specification
+Prep 11.080.20 1 Idt EAS 960:2019
+EAS 967 Shea butter for cosmetic industry—
+Specification
+Prep 11.080.20 1 Idt EAS 967
+EAS 963 Lip balm (salve) — Specification Prep 11.080.20 1 Idt EAS 963
+EAS 591 Body oils — Specification Prep 11.080.20 1 Idt EAS 591
+EAS 957:2019 After shave —Specification Prep 11.080.20 1 Idt EAS 957:2019
+EAS 965:2019 Lipstick — Specification Prep 11.080.20 1 Idt EAS 965:2019
+EAS 958:2019 Baby oils — Specification Prep 11.080.20 1 Idt EAS 958:2019
+EAS 844: 2017 Hair dyes — Liquid oxidation hair dyes
+— Part 1: Aryl di-amine based—
+Specification
+Prep 11.080.20 1 Idt EAS 844: 2017
+ARS 952:2015 Guidelines on good agricultural and
+collection practices for traditional
+medicinal plants
+Draft 11.020 1 Idt ARS 952:2015
+ARS 953:2015 Certification scheme for medicinal plant
+produce
+Draft 11.020 1 Idt ARS 953:2015
+ARS 954:2015 :Minimum requirements for registration
+of traditional medicines
+Draft 11.020 1 Idt ARS 954:2015
+ARS 955:2015 Safety, efficacy and quality of raw
+materials and herbal medicines
+Draft 11.020 1 Idt ARS 955:2015
+ARS 956-1:2015 African Traditional Medicine—Aloe vera Draft 11.020 1 Idt ARS 956-1:2015
+ARS 956-2:2015 African Traditional Medicine— Ambrosia Draft 11.020 1 Idt ARS 956-2:2015
+][ARS 956-3:2015 African Traditional Medicine —- Urtica
+dioica L
+Draft 11.020 1 Idt ARS 956-3:2015
+ARS 956-4:2015
+African Traditional Medicine —
+Calotropis procera
+Draft 11.020 1
+Idt ARS 956-4:2015
+WD-ARS 958
+Consumer guidance on good
+preparation and use of ATM
+Committee 11.020 1 Idt ARS 958
+WD-ARS 959 Basic training guidelines for providers of
+ATM
+Committee
+11.020 1 Idt ARS 959
+WD ARS 960 Procedures for processing medicinal
+plants
+WD 11.020 1 Idt ARS 960
+WD ARS 961 Packaging and labelling of raw
+medicinal plant material
+WD 11.020 1 Idt ARS 961
+WD ARS 962 Storage of raw materials and prepared
+ATM remedies
+WD 11.020 1 Idt ARS 962
+WD ARS 963 Requirements for packaging and
+labelling of ATM remedies
+WD 11.020 1 Idt ARS 963
+
+-- 19 of 27 --
+
+20
+SAZ Standards Development Update July –December 2022
+WD ARS 964 Certification of herbal medicine
+production facilities
+Committee 11.020 1 Idt ARS 964
+WD ARS 965 Preparation of ATM remedies Committee 11.020 1 Idt ARS 965
+WD ARS 966 Safety and quality of tools used in ATM Committee 11.040.01 1 Idt ARS 966
+WD ARS 967 Sustainability procedures for medicinal
+plant resources
+Committee 11.020 1 Idt ARS 967
+WD ARS 968 ATM – Guidelines for
+pharmacovigilance
+Committee 11.020 1 Idt ARS 968
+ARP 154
+A
+Guidelines for sustainable harvesting of
+medicinal plants
+Committee 11.020 1 Idt ARP 154
+ARP 029 Guidelines on good agricultural
+practices for medical plants
+Committee 11.020 1 Idt ARP 029
+SANS 1683 Moringa Committee 11.020 1 Idt SANS 1683
+1 2 3 4 5 6
+Reference No.
+Title
+Stage ICS Edition
+Regional, Continental
+and
+International
+Safety, Health, Environment and Quality
+Environmental Management Systems-
+Combating land degradation and
+desertification
+25.080.01 2 Idt ISO NP 14045-2
+EN 001/ISO TC 207 ISO
+14055
+Part 2: Case studies NP
+ISO AWI 14100 Green Finance Assessment of Green
+Financial Projects
+AWI 25.080.01 1 Idt ISO AWI 14100
+ISO 14040:2006/D Amd 1
+Environmental management -- Life cycle
+assessment -- Principles and framework Published 25.080.01 1 Idt ISO 14040
+Idt ISO 14044
+ISO 14044: 2006/D Amd
+2
+Environmental management -- Life cycle
+assessment -- Requirements and
+guidelines Published 25.080.01 1 Idt ISO 14044
+ISO/AWI TS 14074
+Environmental management -- Life cycle
+assessment -- Principles, requirements
+and guidelines for normalization,
+weighting and interpretation
+AWI 25.080.01 1 Idt ISO 14074
+
+-- 20 of 27 --
+
+21
+SAZ Standards Development Update July –December 2022
+ISO /AWI 14075 Principles and framework for social life
+cycle assessment NP 25.080.01 1 Idt ISO AWI 14075
+ISO/WD 14076 Techno economic analyses: Principles,
+requirements and guidelines
+WD 25.080.01 1 Idt ISO WD 14076
+ISO DIS / 14020
+Environmental statements and
+programmes for products-Principles and
+general requirements
+DIS 13.020.10 1 Idt ISO DIS 14020
+ISO CD 19991-
+Environmental conscious design (ECD)
+Principles and requirements and
+guidance
+CD 13.020 1 Idt ISO CD 19991
+ISO/DIS 14002/2 EMS-Guidelines for using ISO 14001 to
+address environmental aspects and
+conditions within an environmental topic
+area-Part 2:Water
+WD
+13.020 1 Idt ISO DIS 14002/2
+EN 006 Noise limits (MS173) Preparatory 17.140.20 1 Idts MSI 73
+EN 007 (ISO TC 247)
+ISO DIS 50003
+Energy management systems-
+Requirements for bodies providing audit
+and certification of energy management
+systems
+DIS 27.010 1
+Idt ISO 50003
+ISO DIS 50005 EMS Implementation of 50001 CD 27.010 1 Idt ISO 50005
+ISO DIS 50006 EMS Evaluation of energy performance DIS 27.010 1 Idt ISO 50006
+ISO DIS 50009 EMS Guidelines for multiple DIS 27.010 1 Idt ISO/DIS 50009
+ISO AWI 50010 EMS Guidelines for zero net AWI 27.010 1 Idt ISO 50010
+EN009
+ZWS 558 (SR)
+Effluent waste water CD 13.060.30 2
+EN 001
+ZWS ISO 14031
+EM –environmental performance
+evaluation guidelines
+SR 13.020 2 Idt ISO 14031
+EN 001
+ZWS ISO/DIS 14063
+EM- environmental communication
+guidelines and examples
+DIS 13.020 2 Idt ISO/DIS 14063
+Safety, Health, Environment and Quality
+SA 013
+ZWS 275
+Fire detection and alarm systems in
+buildings
+CD 13.220.20 2
+SA 013
+ZWS 275
+(
+Fire detection and alarm systems in
+buildings
+CD 13.220.20 2
+QA 002
+ZWS ISO 9000 Quality management systems-
+Fundamentals and vocabulary
+IS 03.120.10 2 Idt ISO 9000
+ISO 9004 QM – Managing for the sustained
+success of an organization and quality
+management approach
+IS 03.120.10 2 Idt ISO 9004
+QA 003 (ISO CASCO)
+ISO 1702
+Conformity assessment –
+Requirements for bodies providing audit
+and certification of management
+systems
+Part 1: Requirements for bodies
+providing audit and certification of
+management systems
+IS
+03.120.20 1
+Idt ISO 17021-1
+Part 9: Competence requirements for
+auditing and certification of anti-bribery
+management system
+IS 03.120.20 1 Idt ISO 17021-9
+Part 10: Competence requirements for
+auditing and certification
+IS 03.120.20 1 Idt ISO 17021-9
+SA 007* Safe use of x-rays in interventional
+radiology
+Committee 13.280 1
+
+-- 21 of 27 --
+
+22
+SAZ Standards Development Update July –December 2022
+Qualification and training of radiation
+workers
+Committee 13.280 1
+Safe transportation of radioactive
+materials
+Committee 13.280 1
+ZWS 701 Radiation protection in density Committee 13.250 2
+ZWS 702 Radiation protection in industry Committee 13.280 2
+ZWS 703 Radiation protection in veterinary
+radiology
+Committee 13.280 2
+ZWS D 704 Radiation waste management Committee 13.280 2
+ZWS D 705 Safe use of x rays in medical diagnostic
+radiology
+Committee 13.280 2
+SA 012
+ISO TC 283
+ISO 45003
+Occupational health and safety
+management system – psychological
+health and safety in work place-
+guidelines
+published 13.100 1 Idt ISO 45003
+SA 011
+ISO TC 135
+ISO 16371-1:2011
+NDT – Industrial computed radiography
+with storage phosphor imaging plates –
+Part 1: Classification systems
+IS 19.100 1 Idt ISO 16371-1
+ISO 16526-1:2011 NDT – Measurement and evaluation of
+the X-ray tube voltage Part 1: Voltage
+divider method
+Part 2: 2011
+Constancy check by the thick filter
+method
+IS
+IS
+19.100
+19.100
+1
+1
+Idt ISO 16526-1
+Idt ISO 16526-2
+Part 3: 2011
+Spectrometric method
+IS 19.100 1
+Idt ISO 16526-3
+1 2 3 4 5 6
+Reference No. Title Stage ICS Edition
+Regional, Continental
+and
+International
+Safety, Health, Environment and Quality
+ISO 19232-1:2013 NDT – Image quality of radiographs –
+Part 1: Determination of the image
+quality value using wire type image
+quality indicators
+IS
+19.100 1 Idt ISO 19232-1
+Part 2: Determination of the image
+quality value using step type image
+quality indicators
+IS 19.100 1 Idt ISO 19232-2
+Part 3: Image quality classes IS 19.100 1 Idt ISO 19232-3
+
+-- 22 of 27 --
+
+23
+SAZ Standards Development Update July –December 2022
+Part 4: Experimental evaluation of
+image quality values and quality tables
+IS 19.100 1
+Idt ISO 19232-4
+1	SA 013
+ZWS 1046
+Revision of ZWS 202
+Installation to missioning maintenance of
+fire hose reels
+Graphical symbols safety colors and
+safety signs
+Draft
+CD
+13.22.10
+01.080
+1
+2 Idt ISO 7010
+ISO 3864 -1 ISO 3864 Graphical symbols — Safety
+colours and safety signs —Part 1:
+Design principles for safety signs and
+safety markings
+Draft 01.080 1
+Idt ISO 3864 -1
+ISO 3864-2 ISO 3864 Graphical symbols — Safety
+colours and safety signs —Part 2:
+Design principles for product safety
+labels
+Draft 01.080 1 Idt ISO 3864-2
+ISO 3864 -3 ISO 3864 Graphical symbols — Safety
+colours and safety signs — Part 3:
+Design principles for graphical symbols
+for use in safety signs
+Draft 01.080 1 Idt ISO 3864 -3
+ISO 3864 -4 ISO 3864 Graphical symbols — Safety
+colours and safety signs —Part 4:
+Colorimetric and photometric properties
+of safety sign materials
+Draft 01.080 1 Idt ISO 3864 -4
+SE 003
+Risk Management
+ZWS ISO 31022
+Guidelines for implementation of legal
+risk management IS 03.100.01 1 Idt ISO 31022
+ISO/IEC 31010 Risk management – Risk assessment
+techniques Published 03.100.01 1 Idt ISO/IEC 31010
+ISO/CD 31030 Risk management managing travel
+risks-Guidance for organizations published 03.100.01 1 Idt ISO CD 31030
+ISO NP IWA 31 Using ISO 31000 guidance on risk
+management
+NP 03.100.01 1 Idt ISO NP IWA 31
+ISO IEC/AWI 31050 Guidance for managing energy risk to
+risk enhance resilience AWI 03.100.01 1 Idt ISO !EC/AWI 31050
+SE 007
+Human Resources
+ISO 10667
+Assessment service delivery procedure
+and methods to assess people in work
+and organizations
+Part 1: setting requirements for the
+client
+Part 2: Requirements for service
+provider
+FDIS
+FDIS
+03.100.30
+03.100.30
+1
+1
+Idt ISO FDIS10667-1
+Idt ISO FDIS 10667-2
+ISO AWI 30419
+ISO FDIS 30415
+Guidelines recruitment process
+Diversity and Inclusion
+AWI
+FDIS
+03.100.30
+03.100.30
+1
+1
+Idt ISO AWI 30419
+Idt ISO FDIS 30415
+ISO 10667-1: 2020 Assessment service delivery --
+Procedures and methods to assess
+people in work and organizational
+settings -- Part 1: Requirements for the
+client
+draft 03.100.30 1 Idt ISO 10667-1: 2020
+ISO 10667-2: 2020 Assessment service delivery --
+Procedures and methods to assess
+people in work and organizational
+settings -- Part 2: Requirements for
+service providers
+draft 03.100.30 1 Idt ISO 10667-2: 2020
+ISO 24178:2021 Human resource management –
+Organizational culture metrics cluster
+draft 03.100.30 1 Idt ISO 24178:2021
+ISO 24179:2020 Human resource management –
+Occupational health and safety metrics
+draft 03.100.30 1 Idt ISO 24179:2020
+ISO TS 30423:2021 Human resource management –
+Compliance and ethics metrics cluster
+published 03.100.30 1 Idt ISO TS 30423:2021
+
+-- 23 of 27 --
+
+24
+SAZ Standards Development Update July –December 2022
+ISO TS 30425:2021 Human resource management –
+Workforce availability metrics cluster
+draft 03.100.30 1 Idt ISO TS 30425:2021
+ISO 30427:2021 Human resource management – Costs
+metrics cluster
+draft 03.100.30 1 Idt ISO 30427:2021
+ISO/TS 30430:2021 Human resource management —
+Recruitment metrics cluster
+published 03.100.30 1 Idt ISO/TS 30430:2021
+SE 008 (ARSO) ARS
+1651
+Financial services : Good financial grant
+practice
+ARS 03.060 1 Idt ARS 1651
+SE 006
+ISO 37001
+Anti-bribery management systems --
+Requirements with guidance for use
+corporate governance
+Prep 03.100.02 1 Idt ISO 37001
+ISO/AWI 37000 Guidance for the governance of
+organizations
+Prep 03.100.02 1 Idt ISO/AWI 37000
+ISO/NP 37002 Whistleblowing management systems --
+Guidelines
+Prep 03.100.02 1 Idt ISO/NP 37002
+ISO/AWI 37301 Compliance management systems --
+requirements with guidance for use
+Prep 03.100.02 1 Idt ISO/AWI 37301
+SE 010
+ISO/DIS 20400.2
+Sustainable procurement – Guidance Prep 03.100 Idt ISO/DIS 20400.2
+SE 011
+ZWS 1057
+Cash and valuables in transit
+Committee
+13.310 1 Idt: BS 7872
+ZWS D 1063 Closed circuit television (CCTV)-
+Management and operation –code of
+practice
+Committee
+13.310 1
+SECTION 2: STANDARDS PUBLISHED DURING THE PRECEDING SIX MONTHS
+NOTE: The publications listed below are new SAZ Standards already published and are now available on
+sale from the SAZ Information Centre.
+Reference No. Title ICS Edition
+Regional, Continental
+and
+International
+ZWS 1057:2022 Manned security services – cash and valuables
+in transit services (Collection and Delivery)
+03.060 1
+ZWS 1051:2021 Good agricultural practices for free range
+poultry production
+67.060 1
+ZWS ISO 45003:2021 Occupational health and safety management – 13.100 1 Idt ISO 45003:2021
+
+-- 24 of 27 --
+
+25
+SAZ Standards Development Update July –December 2022
+psychological health and safety at work –
+guidelines for managing psychosocial risks
+ZWS ISO TS 30423:2021 Human resource management – compliance
+and ethics metrics cluster
+03.100.30 1 Idt ISO TS 30423:2021
+ZWS ISO/IEC
+31010:2019
+Risk management – risk assessment
+techniques 03.100.01 1 Idt ISO/IEC 31010
+ZWS ISO TS 30430:2021 Human resource management – recruitment
+metrics cluster
+03.100.30 1 Idt ISO/TS 30430:2021
+ZWS ISO 31073:2022 Risk management – vocabulary 03.100.01 1 Idt ISO/IEC 31073
+ZWS ISO 31022:2020 Risk management – guidelines for the
+management of legal risk 03.100.01 1 Idt ISO/IEC 31022
+ZWS ISO TS 30425:2021 Human resource management – workforce
+availability metrics cluster
+03.100.30 1 Idt ISO TS 30425:2021
+ZWS 1089:1999 Baking powder 67.060 1
+ZWS IEC 60364: Part 4 -
+42:2014
+Low voltage electrical installations
+Part 4-42: Protection for safety –
+protection against thermal effects
+97.030 1 Idt IEC 60364: Part 4 -
+42:2014
+ZWS ISO 4198:1984
+Surface active agents – detergents for washing
+fabrics – guide for comparative testing of
+perfomance
+71.100.35 1 Idt ISO: 4198
+ZWS ISO 6835:1981 Surface active agents – washing powders –
+determination of total boron content – titrimetric
+method
+71.100.35 1 Idt ISO: 6835
+ZWS IEC PAS 62840:
+Part 3:2021
+Electric vehicle battery swap system
+Part 3: Particular safety and
+interoperability requirements for battery swap
+systems operating with removable ress/battery
+systems
+97.030 1 Idt IEC 62480: Part part
+3
+ZWS IEC 62196: Part
+1:2014
+Plugs, socket-outlets, vehicle connectors and
+vehicle inlets – conductive charging of electric
+vehicles
+Part 1: General requirements
+97.030 1 Idt IEC 62196: Part part
+1
+ZWS IEC 62196: Part
+2:2016
+Plugs, socket-outlets, vehicle connectors and
+vehicle inlets – conductive charging of electric
+vehicles
+Part 2: Dimensional compatiblity and
+interchangeability requirements for A.C pin and
+contact-tube accessories
+97.030 1 Idt IEC 62196: Part part
+2
+ZWS IEC TS 61980:Part
+2:2019
+Electric vehicle wireless power transfer (WPT)
+systems
+Part 2: Specific requirements for
+communication between electric road vehicle
+(EV) and infrastructure
+97.030 1 Idt IEC 62480: Part part
+3
+ZWS 1081
+Uniform provisions concerning the approval of
+vehicles with regard to specific requirements for
+the electric power train
+43.180 1 Idt UNECER 100
+ZWS 1082
+Uniform provisions concerning the approval of
+passenger cars powered by an internal
+combustion engine only, or powered by a hybrid
+electric power train with regard to the
+measurement of the emission of carbon dioxide
+and fuel consumption and/or measurement of
+electric energy consumption and electric range,
+and or categories M1 and N1 vehicles powered
+by an electric power train only with regard to the
+measurement of electric energy consumption
+and electric range
+43.180 1
+ZWS 1085
+Uniform provisions concerning the approval of
+specific LPG (liquefied petroleum gases) retrofit
+systems to be installed in motor vehicles for the
+use of LPG in their propulsion system and
+specific CNG (compressed natural gas) retrofit
+systems to be installed in motor vehicles for the
+use of CNG in their propulsion system
+43.180 1
+ZWS EN 197-1 Part 1: Composition, specification and
+conformity criteria for common cement
+91.100.30 2 Idt EN 197-1
+ZWS EN 197-2 Part 2: Conformity evaluation 91.100.30 2 Idt EN 197-2
+ZWS EN 413- 1 Masonry cement Part 1: Composition, 91.100.30 2 Idt EN 413- 1
+
+-- 25 of 27 --
+
+26
+SAZ Standards Development Update July –December 2022
+specifications
+ZWS IEC 62552- 1 Household refrigerating appliances –
+Characteristics and test methods: Part 1:
+General requirements
+97.030 1 Idt IEC 62552: Part 1
+ZWS IEC 62552- 2 Household refrigerating appliances –
+Characteristics and test methods: Part 2:
+Performance requirements
+97.030 1 Idt IEC 62552: Part 2
+ZWS IEC 62552- 3 Household refrigerating appliances –
+Characteristics and test methods:
+Part 3: Energy consumption and volume
+97.030 1 Idt IEC 62552: Part 3
+ZWS ISO 22003-1 Food safety management systems —
+Requirements for
+bodies providing audit and certification of food
+safety
+management systems —
+Part 1:
+Requirements for bodies providing audit and
+certification
+of food safety management systems
+67.060 2 Idt ISO 22003-1
+ZWS ISO 22003-2 Food safety management systems —
+Requirements for
+bodies providing audit and certification of food
+safety
+management systems —
+Part 2:
+Requirements for bodies providing evaluation
+and
+certification of products, processes and
+services, including
+an audit of the food safety system
+67.060 2 Idt ISO 22003-2
+ZWS 1050 Instant cereal and pulse based porridge 67.060 1
+ZWS 257-5-1 Stress grade assessment 79.040 1 Idt SANS 1783-5-1
+ZWS 257-5-2 Quality assurance of stress grading. 79.040 1 Idt SANS 1783-5-2
+ZWS 1060: Part 1 Adhesives for wood Part 1: Terminology 53.040.20 1
+ZWS 1060: Part 2 Adhesives for wood Part 2: Requirements for
+structural application
+53.040.20 1
+ZWS 1061 Health, safety and environmental guidelines for
+the construction and operation of timber
+treatment plants
+53.040.20 1
+ZWS 1087 Structural timber – characteristic values of
+strength-graded timber – sampling, full-size
+testing and evaluation
+53.040.20 1
+ZWS 1062 The preservative treatment of timber 53.040.20 1
+ZWS ISO 1167-4 Thermoplastics pipes, fittings, and assemblies
+for the con-veyance of fluids – Determination of
+the resistance to in-ternal pressure
+Part 4: Preparation of assemblies
+83.120 1 Idt ISO 1167-4
+ZWS ISO 9852 Unplasticized poly(vinyl chloride) (PVC-U) pipes
+— Di-chloromethane resistance at specified
+temperature (DCMT) — Test method
+83.120 1 Idt ISO 9852
+ZWS ISO 2505 Thermoplastics pipes — Longitudinal reversion
+— Test method and parameters
+83.120 1 Idt ISO 2505
+ZWS ISO 3127 Thermoplastics pipes – Determination of
+resistance to exter-nal blows – Round-the-clock
+method
+83.120 1 Idt ISO 3127
+ZWS 1080 Nicotine-containing tobacco free oral product 3-
+(1- methyl, 2- Pyrrodinyl) Pyrindine
+11.080.20 1
+ISO 14040:2006/D Amd
+1
+Environmental management -- Life cycle
+assessment -- Principles and framework 25.080.01 1 Idt ISO 14044
+ISO 14044: 2006/D Amd
+2
+Environmental management -- Life cycle
+assessment -- Requirements and guidelines 25.080.01 1 Idt ISO 14044
+ZWS ISO/TS 22003: Part
+1:2022
+Food safety
+Part 1 – Requirements for bodies providing
+67.060 2 Idt ISO 22003-1
+
+-- 26 of 27 --
+
+27
+SAZ Standards Development Update July –December 2022
+audit and certification of food safety
+management systems
+ZWS ISO/TS 22003: Part
+2
+Food safety
+Part 2 – Requirements for bodies providing
+evaluation and certification of products,
+processes and services, including an audit of
+the food safety system
+67.060 2 Idt ISO 22003-2
+ZWS ISO 37301 Compliance management systems —
+Requirements with guidance for use 25.080.01 1 Idt ISO 14044
+ZWS 1087 Structural timber – characteristic values of
+strength-graded timber – sampling, full-size
+testing and evaluation
+53.040.20 1
+SECTION 3: REPRINTS PUBLISHED DURING THE PRECEDING SIX MONTHS
+1 2 3 4 5
+Reference No. Issue Title ICS Edition
+SECTION 4: AMENDMENTS / CONFIRMATION SLIPS /ENDORSEMENT SLIPS PUBLISHED DURING
+THE PRECEDING SIX MONTHS
+Reference No. Standard No. Title Scope of ES ICS
+
+-- 27 of 27 --
+

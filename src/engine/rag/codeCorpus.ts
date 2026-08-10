@@ -1,9 +1,12 @@
 // Local building-code corpus for the KPI2 researcher node.
 //
 // The agent orchestrator's `search-codes` tool needs a RagIndex. This module
-// ships a compact Model Building By-Laws 1977 corpus (same ingestion path as
-// production: raw text -> parseCodeDocument -> chunkDocument) so the agent can
-// retrieve code evidence fully offline.
+// ships a compact Model Building By-Laws 1977 corpus plus the SI 56/2025
+// Architects (Amendment) Regulations (same ingestion path as production: raw
+// text -> parseCodeDocument -> chunkDocument) so the agent can retrieve code
+// evidence fully offline. The extracted `corpus/` directory holds the larger
+// source library (textbooks, estimation files) for the Node-only MCP path;
+// these two statutes are small enough to bundle for the in-app browser agent.
 
 import type { CodeDocument } from './types'
 import { parseCodeDocument } from './extraction'
@@ -56,6 +59,56 @@ export const BY_LAWS_1977_DOC: CodeDocument = parseCodeDocument({
   text: BY_LAWS_1977_TEXT,
 })
 
+// SI 56/2025 — Architects (Amendment) Regulations, 2025 (No. 1), which rewrites
+// the registration thresholds in the Second Schedule to the Architects Act
+// [Chapter 27:01]. Clean transcription of the gazetted text (Veritas copy), with
+// page markers and the distribution footer stripped.
+export const SI_56_2025_TEXT = [
+  '1 Citation',
+  '1.1 These regulations may be cited as the Architects (Amendment) Regulations, 2025 (No. 1).',
+  '',
+  '2 Amendment of Second Schedule',
+  '2.1 The Second Schedule to the Architects Act [Chapter 27:01] is amended by the insertion after paragraph 3 of the following provisions.',
+  '',
+  '3 Registered person — double storey, 400 square metres',
+  '3.1 A person—',
+  '(a) whose structures are limited to double storey, areas not exceeding 400 square metres;',
+  '(b) whose structures are farm buildings with area limited to 500 square metres;',
+  '(c) whose structures are residential complexes limited to 4 units maximum; and',
+  '(d) who holds a bachelor of architectural studies or equivalent from accredited tertiary institutions.',
+  '',
+  '4 Registered person — double storey, 300 square metres',
+  '4.1 A person—',
+  '(a) whose structures are limited to double storey, areas not exceeding 300 square metres;',
+  '(b) whose structures are limited to farm buildings with area limited to 350 square metres;',
+  '(c) whose structures are limited to mining structures with area limited to 350 square metres;',
+  '(d) whose structures are limited to residential complexes limited to a maximum of 2 units; and',
+  '(e) who holds a bachelor of technology, diploma or equivalent from accredited tertiary institutions.',
+  '',
+  '5 Registered person — single storey, 200 square metres',
+  '5.1 A person—',
+  '(a) whose structures are limited to single storey;',
+  '(b) whose structures are limited to areas not exceeding 200 square metres;',
+  '(c) whose structures are limited to farm buildings with area limited to 200 square metres;',
+  '(d) whose structures are limited to mining structures limited to 250 square metres;',
+  '(e) whose structures are limited to residential structures for 1 family (maximum area to apply); and',
+  '(f) who holds a certificate from accredited institutions.',
+  '',
+  '6 Registered person — interior design',
+  '6.1 A person who specialises in interiors and is limited to interior design works, and who holds a degree in interior architecture or a qualification in interior design (minimum being a diploma).',
+  '',
+  '7 Registered person — landscape design',
+  '7.1 A person who specialises in landscape and is limited to landscape design works, and who holds a minimum qualification of a diploma in landscape design.',
+].join('\n')
+
+export const SI_56_2025_DOC: CodeDocument = parseCodeDocument({
+  id: 'si-56-2025',
+  code: 'si562025',
+  jurisdiction: 'zimbabwe',
+  title: 'SI 56/2025 Architects Registration',
+  text: SI_56_2025_TEXT,
+})
+
 export function buildDefaultRagIndex(): RagIndex {
-  return createIndex([BY_LAWS_1977_DOC])
+  return createIndex([BY_LAWS_1977_DOC, SI_56_2025_DOC])
 }

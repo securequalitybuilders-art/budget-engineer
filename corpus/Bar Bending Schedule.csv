@@ -1,0 +1,217 @@
+--- Sheet: HOSTEL 36 MATERIAL SCHEDULE ---
+,MIDLANDS STATE UNIVERSITY,,
+,SCHEDULE OF QUANTITIES,,
+,GSBL HOSTEL 36 - AS BUILT DESIGNS,,
+ITEM,DESCRIPTION,UoM,Quantity
+,FOUNDATION: (PROVISIONAL QUANTITIES),,
+1,150mm thick hardcore inert granular fill ,m3,38
+2,Damp-proof mebrane - 250 micron polythene (100m long x 2m wide),roll,2
+3,Ant proofing/Termite poison,5 ltrs,42
+4,19mm stone in footings and slabs,m3,43
+5,River sand in footing and slabs,m3,40
+6,PC15 Cement in footing and slabs ,bags,337
+7,115mm damp proof course ,20m roll,5
+8,230mm damp proof course, 20m roll,6
+9,Common Bricks,no,12180
+10,Pitsand in mortar,m3,12
+11,PC15 Cement in brickwork mortar,bags,42
+12,S193 meshwire,sheets,16
+13,115mm brickforce,20m roll,18
+14,230mm brickforce,20m roll,23
+15,Y20,12m,9
+16,Y12,12m,13
+17,Tying wire,kg,20
+, SUPERSTRUCTURE BRICKWORK ,,
+1,Common bricks,no,80000
+2,PC15 Cement,bags,212
+3,Pitsand,m3,40
+4,230mm Brickforce,20m rolls,92
+5,115mm Brickforce,20m rolls,80
+6,230 x 150mm cast plaster interior air vents,no,56
+7,230 x 150mm cast plaster exterior air vents,no,56
+,INSITU LINTOLS ,,
+1,PC15 Cement,bags,18
+2,Riversand ,m3,2
+3,19mm concrete stones,m3,2
+4,Y12,12m,10
+5,Y10,12m,18
+6,Y20,12m,10
+,DOOR FRAMES,,
+1,115mm standard door frame,no,30
+2,115mm fanlight door frame,no,4
+3,230mm standard door frame,no,4
+4,Brandering,bundles,4
+,WINDOW FRAMES,,
+1,ND11F,no,18
+2,NE1,no,8
+3,NE2,no,4
+4,NDV2,no,4
+,DECK FORMWORK,,
+1,16mm blockboards/ shutterboards,no,30
+2,76X50mm timber x 6m,no,117
+3,2inch nails,kg,10
+4,3inch nails,kg,50
+5,4inch nails,kg,27
+6,5inch nails,kg,63
+,DECK CONCRETE,,
+1,PC15 Cement,bags,412
+2,19mm concrete stones,m3,45
+3,Riversand,m3,30
+,DECK SLASHING AND PLASTERING,,
+1,PC15 cement,bags,24
+2,Pitsand,m3,7
+3,Riversand,m3,5
+,WALL PLASTERING,,
+1,PC15 cement,bags,84
+2,Pitsand,m3,23
+,"STAIRCASE, BASE AND BEAMS",,
+1,PC15 cement,bags,26
+2,19mm concrete stones,m3,3
+3,Riversand,m3,26
+4,Y10 deformed bars,12m,5
+5,Y12 deformed bars,12m,20
+6,Y16 deformed bars,12m,1
+7,Y20 deformed bars,12m,2
+,CONCRETE APRON,,
+1,PC15 cement,bags,55
+2,19mm concrete stones,m3,6
+3,Riversand,m3,5
+,BRICK PIERS & CILLS,,
+1,Red rustic facebricks,no,1000
+2,PC15 cement,bags,4
+3,Pitsand,m3,2
+,FLOOR FINISHES,,
+1,PC15 cement,bags,104
+2,Red oxide,kg,250
+3,Riversand,m3,11
+,GLAZING (supply and fix),,
+1,3mm clear glass,m2,58
+2,4mm obscure glass,m2,8
+3,Putty,kg,50
+,PAINTWORK,,
+,(Still to be done),,
+,CARPENTRY - DOORS,,
+1,2032 X 813mm internal flush doors,no,34
+2,2032 x 813mm external saligna doors,no,4
+3,100mm wire nails,kg,4
+4,3 lever lockset yale,no,22
+5,2 lever lockset yale,no,16
+,BUILT IN CABINETS,,
+1,Built in cabinets steel frames (1.2m wide x 2.116m high),no,36
+2,2.04 x 0.61m bottom hung doors,no,72
+3,0.5 x 0.61m top hung doors,no,72
+4,Cupboard handles,no,72
+5,16mm thick blockboards (2.44 x 1.22m) ,no,126
+6,19mm pine quadrant,5m,78
+7,38 x 20mm square beading,no,78
+8,2inch steel nails,kg,6
+9,4.0 x 35mm wood screwa,kg,12
+10,50mm concrete nails,kg,8
+11,40mm wire nails,boxes,100
+12,Cupboard locks,no,72
+13,Door catch,no,72
+14,Wood glue,100ml,40
+
+--- Sheet: Reinforcement ---
+TYPE,TOTAL No OF BARS,LENGTH OF EACH BAR,TOTAL LENGTH (mm),LENGTH IN METRES,KGs/M,BARS IN KGs,,,,,
+BEAMS,,,,,,,,,,,
+Y12,4,2030,8120,8.12,0.888,7.21056,,,,,
+Y12,6,1264,7584,7.584,0.888,6.734592,,,,,
+Y12,8,3475,27800,27.8,0.888,24.6864,,,,,
+Y12,22,1264,27808,27.808,0.888,24.693504,,,,,
+Y12,22,1264,27808,27.808,0.888,24.693504,,,,,
+Y12,34,1264,42976,42.976,0.888,38.162688,,,,,
+Y12,4,5423,21692,21.692,0.888,19.262496,,,,,
+Y12,4,4620,18480,18.48,0.888,16.41024,,,,,
+Y12,26,1264,32864,32.864,0.888,29.183232,,,,,
+Y12,6,1264,7584,7.584,0.888,6.734592,,,,,
+Y12,4,5443,21772,21.772,0.888,19.333536,,,,,
+Y12,4,5443,21772,21.772,0.888,19.333536,,,,,
+Y12,26,1264,32864,32.864,0.888,29.183232,,,,,
+Y12,4,3363,13452,13.452,0.888,11.945376,,,,,
+Y12,10,1264,12640,12.64,0.888,11.22432,,,,,
+Y12 TOTAL,,,,,,288.791808,,,,,
+Y16,2,7080,14160,14.16,1.579,22.35864,,,,,
+Y16,4,7560,30240,30.24,1.579,47.74896,,,,,
+Y16 TOTAL,,,,,,70.1076,,,,,
+Y20,4,4620,18480,18.48,2.466,45.57168,,,,,
+Y20,4,5423,21692,21.692,2.466,53.492472,,,,,
+Y20 TOTAL,,,,,,99.064152,,,,,
+Y32,2,7080,14160,14.16,6.313,89.39208,,,,,
+Y32 TOTAL,,,,,,89.39208,,,,,
+FIRST FLOOR SLAB,,,,,,,,,,,
+TYPE,TOTAL No OF BARS,LENGTH OF EACH BAR,TOTAL LENGTH (mm),LENGTH IN METRES,KGs/M,BARS IN KGs,,,,,3995.818848
+Y12,253,1335,337755,337.755,0.888,299.92644,,,,,70.1076
+Y12,184,7840,1442560,1442.56,0.888,1280.99328,,,,,
+Y12,10,5040,50400,50.4,0.888,44.7552,,,,,99.064152
+Y12,4,3280,13120,13.12,0.888,11.65056,,,,,
+Y12,6,4180,25080,25.08,0.888,22.27104,,,,,89.39208
+Y12,20,2600,52000,52,0.888,46.176,,,,,
+Y12,14,4000,56000,56,0.888,49.728,,,,,
+Y12,71,5660,401860,401.86,0.888,356.85168,,,,,
+Y12,5,4175,20875,20.875,0.888,18.537,,,,,
+Y12,104,4645,483080,483.08,0.888,428.97504,,,,,
+Y12,107,8170,874190,874.19,0.888,776.28072,,,,,
+Y12,10,2860,28600,28.6,0.888,25.3968,,,,,
+Y12,10,2860,28600,28.6,0.888,25.3968,,,,,
+Y12,66,3550,234300,234.3,0.888,208.0584,,,,,
+Y12,8,3555,28440,28.44,0.888,25.25472,,,,,
+Y12,4,3810,15240,15.24,0.888,13.53312,,,,,
+Y12,4,2880,11520,11.52,0.888,10.22976,,,,,
+Y12,8,2995,23960,23.96,0.888,21.27648,,,,,
+Y12,8,2880,23040,23.04,0.888,20.45952,,,,,
+Y12,8,2995,23960,23.96,0.888,21.27648,,,,,
+Y12 TOTAL,,,,,,3707.02704,,,,,
+TOTAL KGs,4085.210928,,,,,,,,,,
+
+--- Sheet: Reinforcement (2) ---
+TYPE,TOTAL No OF BARS,LENGTH OF EACH BAR,TOTAL LENGTH (mm),LENGTH IN METRES,KGs/M,BARS IN KGs,,,,,
+BEAMS,,,,,,,,,,,
+Y12,4,2030,8120,8.12,0.888,7.21056,,,,,
+Y12,6,1264,7584,7.584,0.888,6.734592,,,,,
+Y12,8,3475,27800,27.8,0.888,24.6864,,,,,
+Y12,22,1264,27808,27.808,0.888,24.693504,,,,,
+Y12,22,1264,27808,27.808,0.888,24.693504,,,,,
+Y12,34,1264,42976,42.976,0.888,38.162688,,,,,
+Y12,4,5423,21692,21.692,0.888,19.262496,,,,,
+Y12,4,4620,18480,18.48,0.888,16.41024,,,,,
+Y12,26,1264,32864,32.864,0.888,29.183232,,,,,
+Y12,6,1264,7584,7.584,0.888,6.734592,,,,,
+Y12,4,5443,21772,21.772,0.888,19.333536,,,,,
+Y12,4,5443,21772,21.772,0.888,19.333536,,,,,
+Y12,26,1264,32864,32.864,0.888,29.183232,,,,,
+Y12,4,3363,13452,13.452,0.888,11.945376,,,,,
+Y12,10,1264,12640,12.64,0.888,11.22432,,,,,
+Y12 TOTAL,,,,,,288.791808,,,,,
+Y16,2,7080,14160,14.16,1.579,22.35864,,,,,
+Y16,4,7560,30240,30.24,1.579,47.74896,,,,,
+Y16 TOTAL,,,,,,70.1076,,,,,
+Y20,4,4620,18480,18.48,2.466,45.57168,,,,,
+Y20,4,5423,21692,21.692,2.466,53.492472,,,,,
+Y20 TOTAL,,,,,,99.064152,,,,,
+Y32,2,7080,14160,14.16,6.313,89.39208,,,,,
+Y32 TOTAL,,,,,,89.39208,,,,,
+FIRST FLOOR SLAB,,,,,,,,,,,
+TYPE,TOTAL No OF BARS,LENGTH OF EACH BAR,TOTAL LENGTH (mm),LENGTH IN METRES,KGs/M,BARS IN KGs,,,,,3995.818848
+Y12,253,1335,337755,337.755,0.888,299.92644,,,,,70.1076
+Y12,184,7840,1442560,1442.56,0.888,1280.99328,,,,,
+Y12,10,5040,50400,50.4,0.888,44.7552,,,,,99.064152
+Y12,4,3280,13120,13.12,0.888,11.65056,,,,,
+Y12,6,4180,25080,25.08,0.888,22.27104,,,,,89.39208
+Y12,20,2600,52000,52,0.888,46.176,,,,,
+Y12,14,4000,56000,56,0.888,49.728,,,,,
+Y12,71,5660,401860,401.86,0.888,356.85168,,,,,
+Y12,5,4175,20875,20.875,0.888,18.537,,,,,
+Y12,104,4645,483080,483.08,0.888,428.97504,,,,,
+Y12,107,8170,874190,874.19,0.888,776.28072,,,,,
+Y12,10,2860,28600,28.6,0.888,25.3968,,,,,
+Y12,10,2860,28600,28.6,0.888,25.3968,,,,,
+Y12,66,3550,234300,234.3,0.888,208.0584,,,,,
+Y12,8,3555,28440,28.44,0.888,25.25472,,,,,
+Y12,4,3810,15240,15.24,0.888,13.53312,,,,,
+Y12,4,2880,11520,11.52,0.888,10.22976,,,,,
+Y12,8,2995,23960,23.96,0.888,21.27648,,,,,
+Y12,8,2880,23040,23.04,0.888,20.45952,,,,,
+Y12,8,2995,23960,23.96,0.888,21.27648,,,,,
+Y12 TOTAL,,,,,,3707.02704,,,,,
+TOTAL KGs,4085.210928,,,,,,,,,,

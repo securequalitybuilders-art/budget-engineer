@@ -1,5 +1,7 @@
 node_modules
 dist
+Sources
+corpus/*.json
 build
 .cache
 .vite

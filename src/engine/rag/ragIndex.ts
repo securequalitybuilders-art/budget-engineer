@@ -15,6 +15,7 @@ export interface SearchOptions {
 export class RagIndex {
   private chunks: Map<string, TextChunk> = new Map()
   private chunkEmbeddings: Map<string, number[]> = new Map()
+  private docIds: Set<string> = new Set()
 
   get size(): number {
     return this.chunks.size
@@ -24,9 +25,14 @@ export class RagIndex {
     return this.chunks.get(id)
   }
 
+  hasDocument(docId: string): boolean {
+    return this.docIds.has(docId)
+  }
+
   addDocument(doc: CodeDocument): number {
     const chunks = chunkDocument(doc)
     let added = 0
+    this.docIds.add(doc.id)
     for (const chunk of chunks) {
       if (this.chunks.has(chunk.id)) continue
       chunk.docTitle = doc.title
@@ -57,12 +63,14 @@ export class RagIndex {
       this.chunkEmbeddings.delete(id)
       removed++
     }
+    this.docIds.delete(docId)
     return removed
   }
 
   clear(): void {
     this.chunks.clear()
     this.chunkEmbeddings.clear()
+    this.docIds.clear()
   }
 
   search(query: string, opts: SearchOptions = {}): SearchResult[] {
@@ -106,6 +114,7 @@ export class RagIndex {
     for (const chunk of data.chunks) {
       index.chunks.set(chunk.id, chunk)
       index.chunkEmbeddings.set(chunk.id, embedText(chunk.text))
+      if (chunk.docId) index.docIds.add(chunk.docId)
     }
     return index
   }

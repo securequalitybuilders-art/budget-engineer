@@ -161,9 +161,25 @@ describe('corpusLoader index building', () => {
   })
 
   it('buildCorpusIndex seeds By-Laws 1977 on top of any corpus files', () => {
-    const index = buildCorpusIndex()
+    const dir = makeDir()
+    writeFileSync(join(dir, 'sans10400.txt'), SANS_TEXT)
+    const index = buildCorpusIndex(dir)
     expect(index.size).toBeGreaterThan(0)
     const results = index.search('ceiling height', { k: 3 })
     expect(results.some((r) => r.docId === 'by-laws-1977')).toBe(true)
+    expect(results.some((r) => r.docId === 'sans10400')).toBe(true)
+  })
+
+  it('embedded docs take precedence over same-id corpus files', () => {
+    const dir = makeDir()
+    writeFileSync(
+      join(dir, 'by-laws-1977.txt'),
+      '2 Alternate\n2.1 A completely different rule that does not collide with the embedded by-laws section ids.\n'
+    )
+    const index = buildCorpusIndex(dir)
+    const byLaws = index.allChunks().filter((c) => c.docId === 'by-laws-1977')
+    expect(byLaws.length).toBeGreaterThan(0)
+    expect(byLaws.some((c) => c.sectionId.includes('sec-2-1.1'))).toBe(true)
+    expect(byLaws.some((c) => c.text.includes('completely different'))).toBe(false)
   })
 })

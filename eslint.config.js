@@ -8,12 +8,18 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['**/*.mjs'],
+    files: ['**/*.mjs', '**/*.cjs'],
     languageOptions: {
       globals: {
         process: 'readonly',
         console: 'readonly',
+        require: 'readonly',
+        module: 'readonly',
+        __dirname: 'readonly',
       },
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
   {

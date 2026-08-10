@@ -1,0 +1,1182 @@
+--- Sheet: OUTPUT ---
+,,,ESTIMATING DATA,,,,,
+,,,GROUND WORKS,,,,,
+A. SITE CLEARANCE,,,,,,,,
+"1,Clear site of all vegetation",,,,,1 Lab,,20m2/day,
+B. EXCAVATIONS,,,,,,,,
+"1, Normal pickable ground",,,,,,,,
+a) Trenches etc not exceeding 1m deep,,,,,1 Lab,,2m3/day,
+    Ditto 1-2m deep,,,,,1 Lab,,1.5m3/day,
+    Ditto 2-3m deep,,,,,1 Lab,,1m3/day,
+b) Bases etc not exceeding 1m deep,,,,,1 Lab,,1.75m3/day,
+    Ditto 1-2m deep,,,,,1 Lab,,1.20m3/day,
+    Ditto 2-3m deep,,,,,1 Lab,,0.75m3/day,
+c) Reduce levels n.e. 1m deep,,,,,1 Lab,,2.20m3/day,
+"2, Hard pickable ground",,,,,,,,
+"    As above, but +250%",,,,,1 Lab,, 0.40 ,
+"3, Rock excavation",,,,,,,,
+"    As above, but +1200%",,,,,1 Lab,,,
+C. DISPOSALS,,,,,,,,
+    ,,,,,,,,
+a)  Backfilling to trenches and bases,,,,,1 Lab,,2.5m3/day,
+b) Loose fill under floor,,,,,1 Lab,,3.0m3/day,
+c) Ram fill under floors ,,,,,1 Lab,,2.0m3/day,
+d) Compacting,,,,,1 Lab,,35m2/day,
+e) Load for disposal,,,,,1 Lab,,1.5m3/day,
+,,,BRICKWORK AND BLOCKWORK,,,,,
+ NB,,,,,,,,
+Adjustments must be made for high standard requirements,,,,,,,,
+All data based on gang of 1 Bricklayer + 2 Assistants,,,,,,,,
+Scaffolding not included,,,,,,,,
+BRICKWORK,,,,,,,,
+Common brickwork:,,,,,,,,
+"In foundations, ",,,,,,,,
+,,,Half brick thick,,,,375/day,
+,,,One brick thick,,,,400/day,
+,,,One and half brick thick,,,,425/day,
+"In superstructure up to 2 storeys,",,,,,,,,
+,,,Half brick thick,,,,350/day,
+,,,One brick thick,,,,380/day,
+,,,One and half brick thick,,,,400/day,
+,,,ESTIMATING DATA,,,,,
+,,,BRICKWORK AND BLOCKWORK,,,,,
+Facing brickwork:,,,,,,,,
+"In foundations,",,,,,,,,
+,,,Half brick thick,,,,325/day,
+,,,One brick thick,,,,340/day,
+"In superstructure up to 2 storeys,",,,,,,,,
+,,,Half brick thick,,,,300/day,
+,,,One brick thick,,,,325/day,
+Composite brickwork ( faced on side ),,,,,,,,
+"In foundations,",,,,,,,,
+,,,One brick thick,,,,350/day,
+"In superstructure up to 2 storeys,",,,,,,,,
+,,,One brick thick,,,,330/day, 520.00 
+Mortar,,,,,,,,
+Mixing by hand,,,,,,,8hrs/m3,
+,,,BLOCKWORK,,,,,
+115mm blockwork:,,,,,,,,
+In foundations,,,,,,,180/day,
+In superstructure,,,,,,,150/day,
+230mm blockwork:,,,,,,,,
+In foundations,,,,,,,150/day,
+In superstructure,,,,,,,120/day,
+,,,SUNDRIES,,,,,
+Beam filling,,,,,,,3m/hr/skin,
+Rough cutting,,,,,,,2.5hrs/m2,
+Cutting pipe chases,,,,,,,1.5hrs/m,
+Copings,,,,,,,0.75hrs/m,
+Fair cuttings,,,,,,,1hr/m,
+Cut small holes,,,,,,,1hr/skin,
+Cut large holes,,,,,,,2hrs/skin,
+Fix door and window frames,,,,,,,0.8hrs/m2,
+Unload and stack,,,,,,,3 lab hrs/1000,
+Painting around frames,,,,,,,3hrs/m,
+,,,MORTAR MIX (per m3),,,,,
+Mix,,,,,Cement (50kg),,Pit Sand (m3),
+3;1,,,,,10.6,,1.3,
+4;1,,,,,8.9,,1.4,
+5;1,,,,,7.5,,1.5,
+6;1,,,,,6.5,,1.6,
+7;1,,,,,6.2,,1.7,
+8;1,,,,,5.4,,1.7,
+,Note: Pit sand - Allow 15% bulk factor,,,,,,,
+,,,ESTIMATING DATA,,,,,
+,,,BRICKWORK ,,,,,
+1.Mortar required per m2 of walling:,,,,,,,,
+a. 75mm brick on edge ,,,,,,,0.02m3,
+b. Half brickwall ,,,,,,,0.028m3,
+c. One brickwall,,,,,,,0.06m3,
+d. One and half brickwall,,,,,,,0.096m3,
+e. 230 x 230mm clay block wall,,,,,,,0.018m3,
+f.  230 x 150mm ditto,,,,,,,0.023m3,
+2.Brick per m2 of walling (exclude waste),,,,,,Commons,Facings,
+a. 75mm brick on edge,,,,,,35,*,
+b. Half brickwall,,,,,,52,*,
+c. One brickwall,,,,,,104,*,
+,,Based on one brickwall,,,,,,
+d. English bond,,,,,,26,78,
+e. English garden wall bond,,,,,,39,65,
+f.  Colonial bond,,,,,,42,62,
+g. Flemish bond,,,,,,39,65,
+h. Mass brickwork per m3,,,,,,455,*,
+3.MORTAR TO BLOCKWORK (per m2 of walling),,,,,,,,
+a. Nominal 600 x 300mm - 108mm walls,,,,,,0.017m3,,
+b. Nominal 450 x 230mm - 108mm walls,,,,,,0.023m3,,
+,,     - 150mm walls,,,,0.031m3,,
+,,     - 230mm walls,,,,0.054m3,,
+,Hoop irons 24 ggr = 0.6mm = 6.20kg/m3,,,,,,,
+,CEMENT MORTAR,,,,,,,
+,MIX,Materials per m3,,,,,,
+,,Cement,Lime-25kg,Sand m3,,,,
+,1;1,22.4,,0.91,,,,
+,1;2,10.48,,1.25,,,,
+,1;3,10.6,,1.38,,,,
+,1;4,8.9,,1.5,,,,
+,1;5,7.8,,1.63,,,,
+,1;6,6.4,,1.69,,,,
+,1;7,5.9,,1.75,,,,
+,1;8,5.3,,1.81,,,,
+,1;2;9,3.6,,1.38,,,,
+,1;2;12,3,,1.5,,,,
+,MATERIAL,,,CONCRETE GRADE,,,,
+,,10,15,20,25,30,,
+,Cement,5,6,7,9.26,10.29,,
+,River sand,0.8,0.8,0.74,0.7,0.65,,
+,19mm Ag,0.8,0.8,0.77,0.78,0.78,,
+,Brick reinforcement per four courses = 2.94m/m2,,,,,,,
+,,,ESTIMATING DATA,,,,,
+,,,CONCRETING,,,,,
+Labour,,,,,,,,
+A. Mixing concrete,,,,Hourly output,,,Lab output/hour,
+7/5 mixer,,,,1.75m3,,,3/1.7,
+10/7 mixer,,,,3.15m3,,,3/1.1,
+14/10 mixer,,,,3.85m3,,,3/0.8,
+21/14 mixer,,,,5.25m3,,,5/0.9,
+B. Transport and Place concrete,,,,,,,,
+Mass filling,,,,2hrs/m3,,,,
+"Foundations,bases,ground beams",,,,4hrs/m3,,,,
+Slabs,,,,6hrs/m3,,,,
+Blinding,,,,12hrs/m3,,,,
+Columns below ground,,,,8hrs/m3,,,,
+Columns not exceeding 4m high,,,,12hrs/m3,,,,
+Beams not exceeding 4m high,,,,10hrs/m3,,,,
+Suspended slabs ditto,,,,10hrs/m3,,,,
+Walls,,,,8hrs/m3,,,,
+Isolated small areas,,,,12hrs/m3,,,,
+Hours to be adjusted accordingly for high level work,,,,,,,,
+Curb concrete,,,,12m2/hr,,,,
+Powerfloat finish,,,,2m2/hr,,,,
+Steel trowelled,,,,2m2/hr,,,,
+Fix expansion joints 150mm wide,,,,5m/hr,,,,
+Expansion joint filler,,,,m3/hr,,,,
+Fix mesh reinforcing,,,,5m2/hr,,,,
+,,,FORMWORK,,,,,
+Labour - Shuttering gang based on 1 Carpenter and 2 Assistants,,,,,,,,
+Hard work and strip formwork to:,,,,,,,Gang hours,
+Beams,,,,,,,0.85/m2,
+Walls,,,,,,,0.75/m2,
+Columns,,,,,,,1.15/m2,
+Soffits,,,,,,,0.80/m2,
+Narrow widths to edges,,,,,,,2.15/m2,
+,,,PLASTERWORK,,,,,
+Single coat work (walls) - wood float,,,,1+2,,,16m2/day,
+In narrow widths - ditto,,,,1+2,,,10m2/day,
+Single coat work (walls) - steel float,,,,1+2,,,14m2/day,
+In narrow widths - ditto,,,,1+2,,,8m2/day,
+Single coat soffits - wood float,,,,1+2,,,12m2/day,
+Ditto - steel float,,,,1+2,,,10m2/day,
+Two coat work:,,,,,,,,
+1st coat,,,,1+2,,,16m2/day,
+Skim coat,,,,1+2,,,23m2/day,
+,,,ESTIMATING DATA,,,,,
+,,,PLASTERWORK,,,,,
+Floor screeds,,,,1+2,,,20m2/day,
+Narrow widths,,,,1+2,,,16m2/day,
+Precast paving slabs,,,,1+3,,,1m2/hr,
+Wall tiling,,,,1+1,,,1m2/hr,
+Narrow widths,,,,1+1,,,0.5m2/hr,
+,,,GRANO,,,,,
+,,,MIX,MATERIALS      PER     M3,,,,
+,,,,CEMENT ,SAND,CHIPS,,
+,,,,50kg,M3,M3,,
+,,,1;3,11.4,*,1.1,,
+,,,1;1;1.05,14.5,0.59,0.7,,
+,,,1;1;2,12,0.49,0.77,,
+,Rhinosand,,,,,,8m2/sack(25kg),
+,Rhinoset,,,,,,20m2/sack,
+,Rhino bond,,,,,,6m2/sack,
+,Cemwash,,,,,,12m2/sack/coat,
+,,,,1m3 cment = 30bags,,,,
+,,,PAINTING,,,,,
+,Paint to ceiling,,,,,,50m2/day,
+,Paint to walls,,,,,,60m2/day,
+,Paint to frames,,,,,,50m2/day,
+,Paint to timber,,,,,,45m2/day,
+,Paint to small pipes,,,,,,25m/hr/coat,
+,Paint to large pipes,,,,,,10m/hr/coat,
+,"NB. Add 10% to labour figures for turps,brushes etc.",,,,,,,
+,Paint covering capacities,,,,,,,
+,All per 5 litres,,,,,,,
+,PVA to boards,,,,5 Litres,,1 Litre,
+,1st coat,,,,30m2,,6m2,
+,2nd coat,,,,40m2,,8m2,
+,3rd coat,,,,50m2,,10m2,
+,PVA to plaster,,,,,,,
+,1st coat,,,,40m2,,8m2,
+,2nd & 3rd coat,,,,50m2,,10m2,
+,PVA to blockwork:,,,,,,,
+,1st coat,,,,40m2,,6m2,
+,2nd coat,,,,35m2,,7m2,
+,3rd coat,,,,45m2,,9m2,
+,paint to 230 steel dr frame size 815x2032 =2.03m2,,,,,,,
+,paint to 115 steel dr frame size 815x2032 =1.47m2,,,,,,,
+,,,ESTIMATING DATA,,,,,
+,,,PAINTING,,,,,
+xs,Primer / Uct / Gloss ct etc,,,,5 Litres,,1 Litre,
+,To steel work:,,,,,,,
+     ,1st coat,,,,45m2,,9m2,
+,Subsequent,,,,50m2,,10m2,
+,To timber:,,,,,,,
+,1st coat,,,,35m2,,7m2,
+,2nd coat,,,,40m2,,8m2,
+,Subsequent,,,,50m2,,10m2,
+,,,REINFORCEMENT,,,,,
+,DIAMETER,,ROUND,,PLAIN,,HIGH,
+,,,MILD,,SQUARE,,YIELD ,
+,,,,,TWIST,,DEFORMED,
+,,,( R ),,( X ),,( Y ),
+,6mm,,0.222,,0,,0.222,
+,6.50mm,,0.26,,0.332,,0,
+,8mm,,0.395,,0.502,,0.395,
+,10mm,,0.616,,0.784,,0.616,
+,12mm,,0.887,,1.129,,0.888,
+,14mm,,1.207,,1.537,,1.21,
+,16mm,,1.577,,2.008,,1.579,
+,20mm,,2.464,,3.137,,2.466,
+,22mm,,2.981,,3.796,,0,
+,25mm,,3.85,,4.902,,3.854,
+,30mm,,5.544,,7.059,,0,
+,32mm,,0,,0,,6.313,
+,35mm,,0,,9.608,,0,
+,40mm,,0,,0,,9.869,
+,,,KGs PER RUNNING METRE,,,,,
+,1.BASES,,,,,,90kg/m3,
+,2.COLUMNS,,,,,,170kg/m3,
+,3.WALLS,,,,,,100kg/m3,
+,4.SLABS,,,,,,120kg/m3,
+,5.BEAMS,,,,,,150kg/m3,
+,FABRIC REINFORCEMENT,,,,,,,
+,Ref No S245,,,,,,2.45kg/m2,
+,Ref No S193,,,,,,1.93kg/m2,
+,Ref No S125,,,,,,1.25kg/m2,
+,Hoop irons 24 ggr = 0.6mm = 6.20 kg/m3,,,,,,,
+,,,ESTIMATING DATA,,,,,
+,,,BLOCK PRODUCTION DATA,,,,,
+1 Sack cement = 0.034m3,,,,,,,,
+1 Barrow = 0.057m3 ( 2 cu ft ),,,,,,,,
+Block Volumes,,,,,,,,
+( A ) 450 x 220 x 168 hollow      =,,,,0.00666m3/block              =             15kg,,,,
+( B ) 450 x 220 x 103 solid        =                 0.01070m3/block               =             30kg,,,,,,,,
+( C ) 450 x 220 x 216 hollow      =                 0.00879m3/block               =             27kg,,,,,,,, 113.77 
+Theoretical Mixes,,,,Mix 1:6,Mix 1:8,Mix 1:10,Mix 1: 12,
+Cement,,,,0.034m3,0.034m3,0.034m3,0.034m3,
+Aggregate,,,,0.204m3,0.272m3,0.340m3,0.408m3,
+Practical Equivalents,,,,,,,,
+Cement,,,,1 sack,1 sack,1 sack,1 sack, 5.44 
+Aggregate,,,,3.5barrws,4.5barrws,6 barrows,7 barrows, 1.06 
+Dry Volume,,,,0.234,0.291,0.376,0.433,
+Waste 5%,,,,0.012,0.015,0.019,0.022,
+,,,,0.222,0.276,0.357,0.411,
+Mixed Volume,,,,0.155m3,0.193m3,0.250m3,0.288m3, 5.18 
+Total cost of Blocks (materils only),,,,2870,,,,
+Labour,for 2870 units,,,,,,,
+SW,,,,8,12,1, 2.50 , 240.00 
+WG1,,,,8,12,6, 1.59 , 915.84 
+Plant ,,,,,,,,
+Concrete Mixer,,,,4.33,0.5,, 200.00 , 433.00 
+Subtotal,,,,,,,,
+Maintanance,,,,,,5%,,
+Total Cost all in for production of 2870 blocks ,,,,,,,,
+Cost per Block,,,,,,,,
+,,,YIELDS  Per  SACK,,,,,
+,,,,Mix 1:6,Mix 1:8,Mix 1:10,Mix 1:12,
+A.,,,,23,29,37,43,
+B.,,,,14,18,23,27,
+C.,,,,17,22,28,32,
+Mortar in filling 230mm hollow blocks                0.013m3/block             =         0.124m3/m2,,,,,,,,
+Mortar in filling 115mm hollow blocks                0.007m3/block             =         0.067m3/m2,,,,,,,,
+,,,ROOFING,,,,,
+Sheets,,,,1+4,,,6sheets/hr,
+Mitring,,,,1+1,,,20sheets/hour,
+Fix barge and fascia board,,,,1+2,,,5m/hr,
+Fix IBR roof sheeting,,,,1+4,,,6m2/hr,
+Fix tiling battens,,,,1+2,,,10m2/3hrs,
+CARPENTRY,,,,,,,,
+Fix purlins,,,,1+2,,,20m/hr,
+Fix rafters,,,,1+2,,,14m/hr,
+Fix trusses ( 8m ),,,,1+4,,,4No/day,
+Fix sprockets,,,,1+2,,,3m/hr,
+Fix joists,,,,1+2,,,15m/hr,
+Fix hangers,,,,1+2,,,3m/hr,
+,,,ESTIMATING DATA,,,,,
+CARPENTRY,,,,,,,,
+JOINERY,,,,,,,,
+Fix brandering one way,,,,1+2,,,3m2/hr,
+Fix ceilings,,,,1+3,,,2m2/hr,
+Fix cover strip,,,,1+2,,,20m/hr,
+Fix cornice,,,,1+2,,,15m/hr,
+Fix skirting,,,,1+2,,,10m/hr,
+Fix framing,,,,1+1,,,6m/hr,
+Cut and fix blocked shelving,,,,1+1,,,2hrs/sheet,
+Fix pre-cut shelving,,,,1+1,,,6m/hr,
+Hang doors,,,,1+2,,,1No /hr,
+Plugging,,,,1+1,,,8plugs/hr,
+Screwing,,,,1+1,,,20/hr,
+IRONMONGERY & SUNDRIES,,,,,,,,
+Mortice lock,,,,1+1,,,1hr/each,
+Indicator lock,,,,1,,,0.75hrs/each,
+Shelf brackets,,,,Allow plugs and screws,,,,
+Curtain track,,,,1+1,,,2m/hr,
+,Rhinoset coverage,,,,,,14m2/25kg bag,
+,Rhinobond coverage,,,,,,6m2/25kg bag,
+,,,,Turnall Products,,,,
+,Endurites,,,,,,0.875 wide,
+,Traffold tiles,,,,,,1.015 wide,
+,Brickforce  ( per 4 courses ),,,,,,2.94m/m2,
+,,,ESTIMATING DATA,,,,,
+,Wheelbarrow,,,,,,0.057m3,
+,Sack cement,,,,,,0.034m3,
+,,,,Grout,,,,
+,,,a+b,xcxdx1.7,kg/m2,,,
+,,,axb,,,,,
+,,where a  - length of tile,,,,,,
+,,          b  - width of tile,,,,,,
+,,          c  - thickness of tile,,,,,,
+,,         d   - average joint width,,,,,,
+
+--- Sheet: EST  CONSTANTS ---
+,CONVERSIONS FOR PREPARING SCHEDULE OF MATERIALS,,,,,,,,,,
+,WET TRADES,,,,,,,,,,
+,,SUBSTRUCTURE,,,,,,,,,
+,Concrete,,,,,,,,,,
+,Grade 10-20,m3,6.2,x,,,,,,,
+7;;],,,sand,4.88,,,,,,,
+,,,cement,27.67,,,,,,,
+,,,stone,5.27,,,,,,,
+,Grade 20-20,m3,6.2,,,,,,,,
+,,,sand,4.43,,,,,,,
+,,,cement,33.85,,,,,,,
+,,,stone,5.47,,,,,,,
+,Grade 25-20,m3,1,,,,,,,,
+,,,sand,0.71,,,,,,,
+,,,cement,5.99,,,,,,,
+,,,stone,0.88,,,,,,,
+,Grade 30-20,m3,1,,,,,,,,
+,,,sand,0.70,,,,,,,
+,,,cement,8.87,,,,,,,
+,,,stone,0.90,,,,,,,
+,Grade 30-40,m3,0,,,,,,,,
+,,,sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,,,stone,0.00,,,,,,,
+,Grade 40-20,m3,0,,,,,,,,
+,,,sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,,,stone,0.00,,,,,,,
+,Polythene sheeting,,,,,,,,,,
+,,m2,75,,,,,,,,
+,,,m,50.00,,,,,,,
+,Mesh fabric reinforcement Ref S193,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,sheets,0.00,,,,,,,
+,Hardcore,,,,,,,,,,
+,,m3,130,19.50,,,,,,,
+,Sand blinding,,,,,,,,,,
+,,m3,0,0.00,,,,,,,
+,Termite treatment,,,,,,,,,,
+,,m2,60,,,,,,,,
+,,,litres,6.52,,,,,,,
+,Half brick wall,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,commons,0.00,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,One brick wall,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,commons,0.00,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,Piers,,,,,,,,,,
+,,m3,0,,,,,,,,
+,,,commons,0.00,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,Face Brick Wall,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,facings,0.00,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,Brick-on-edge,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,bricks,0.00,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,Damp proof course for half brick wall,,,,,,,,,,
+,,m,0,,,,,,,,
+,,,roll,0.00,,,,,,,
+,Damp proof course for one brick wall,,,,,,,,,,
+,,m,0,,,,,,,,
+,,,roll,0.00,,,,,,,
+,Ref C1 for half brick wall,,,,,,,,,,
+,,m,0,,,,,,,,
+,,,roll,0.00,,,,,,,
+,Ref C2 for one brick wall,,,,,,,,,,
+,,m,0,,,,,,,,
+,,,roll,0.00,,,,,,,
+,Steel bar reinforcement,,,,,,,,,,
+,,m3,0,,,,,,,,
+,,,kg,0.00,,,,,,,
+,10mm Expansion joint.,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,sheets,0.00,,,,,,,
+,3 ply bituminous felt sheeting,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,sheets,0.00,,,,,,,
+,Thioflex sealant.,,,,,,,,,,
+,,m,0,,,,,,,,
+,,,tubes,0.00,,,,,,,
+,Woodfloat plaster,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,,,undercoat,0.00,,,,,,,
+,,,EPVA,0.00,,,,,,,
+,SUPERSTRUCTURE,,,cement-0.33m3,,,,,,,
+,Concrete,,,,,,,,,,
+,Grade 10-20,m3,0,,,,,,,,
+,,,sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,,,stone,0.00,,,,,,,
+,Grade 20-20,m3,0,,,,,,,,
+,,,sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,,,stone,0.00,,,,,,,
+,Grade 25-20,m3,0,,,,,,,,
+,,,sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,,,stone,0.00,,,,,,,
+,Grade 30-20,m3,0,,,,,,,,
+,,,sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,,,stone,0.00,,,,,,,
+,Grade 30-40,m3,25,,,,,,,,
+,,,sand,17.85,,,,,,,
+,,,cement,162.75,,,,,,,
+,,,stone,22.58,,,,,,,
+,Grade 40-20,m3,0,,,,,,,,
+,,,sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,,,stone,0.00,,,,,,,
+,Screeds,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,river sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,Half brick wall,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,commons,0.00,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,One brick wall,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,commons,0.00,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,Face Brick Wall                m2,,0,,,,,,,,
+,,,facings,0.00,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,Piers,,,,,,,,,,
+,,m3,0,,,,,,,,
+,,,commons,0.00,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,Brick-on-edge,,,,,,,,,,
+,,m2,,,,,,,,,
+,,,bricks,0.00,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,150 mm Block wall,,,,,,,,,,
+,,m2,1,,,,,,,,
+,,,blocks,10.36,,,,,,,
+,,,pit sand,0.03,,,,,,,
+,,,cement,0.22,,,,,,,
+,Damp proof course for half brick wall,,,,,,,,,,
+,,m,0,,,,,,,,
+,,,roll,0.00,,,,,,,
+,Damp proof course for one brick wall,,,,,,,,,,
+,,m,0,,,,,,,,
+,,,roll,0.00,,,,,,,
+,Ref C1 for half brick wall,,,,,,,,,,
+,,m,0,,,,,,,,
+,,,roll,0.00,,,,,,,
+,Ref C2 for one brick wall,,,,,,,,,,
+,,m,0,   ,,,,,,,
+,,,roll,0.00,,,,,,,
+,,,,,,,,,,, 
+,Mesh fabric reinforcement 6*2.4m),,,,,,,,,,
+,,m2,110,,,,,,,,
+,,,sheets,7.64,,,,,,,
+,Steel bar reinforcement,,,,,,,,,,
+,,m3,0,,,,,,,,
+,,,kg,0.00,,,,,,,
+,150 x 150 mm White glazed wall tiles,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,tiles,0.00,,,,,,,
+,,,Grout,0.00,5kg,,,,,,
+,,,tile addhesive,0.00,20kg,,,,,,
+,Render and set to walls,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,,,rhinoset,0.00,,,,,,,
+,,,undercoat,0.00,,,,,,,
+,,,IPVA,0.00,,,,,,,
+,Woodfloat plaster,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,,,undercoat,0.00,,,,,,,
+,,,EPVA,0.00,,,,,,,
+,Redecoration to existing int. walls,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,,,rhinoset,0.00,,,,,,,
+,,,undercoat,0.00,,,,,,,
+,,,IPVA,0.00,,,,,,,
+,Redecoration to existing Ext. walls,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,,,undercoat,0.00,,,,,,,
+,,,EPVA,0.00,,,,,,,
+,Plasterboard ceilings redecor,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,Rhinobond,0.00,,,,,,,
+,,Sheets,2100*1200,0.00,,,,,,,
+,,,ceiling white,0.00,,,,,,,
+,,,clout nails,0.00,,,,,,,
+,,,brandering,0.00,,,,,,,
+,Plasterboard ceilings,,,,,,,,,,
+,,m2,96.07,,,,,,,,
+,,,Rhinobond,20.17,,,,,,,
+,,Sheets,3600*1800,16.48,,,,,,,
+,,,ceiling white,17.73,,,,,,,
+,,,clout nails,1008.73,,,,,,,
+,,,brandering,480.35,,,,,,,
+,,,covebond,5.04,,,,,,,
+,Rhinoboard ceilings,,,,,,,,,,
+,,m2,13,,,,,,,,
+,Rhinocornice,m,20,,,,,,,,
+,,,Rhinobond,0.46,,,,,,,
+,,Boards,3600*900,4.40,,,,,,,
+,,,Rhinoset,0.91,,,,,,,
+,,,selftaping screws,221.76,,,,,,,
+,,,brandering,65.00,,,,,,,
+,,,Carcasing,,,,,,,,
+,,,Cornice,5.56,,,,,,,
+,,,covebond,1.05,,,,,,,
+,,,Scripaper,1.21,,,,,,,
+,,,Skirting,3.33,,,,,,,
+,,,quadrant,4.76,,,,,,,
+,ROOF COVERINGS,,,,,,,,,,
+,Concrete roof tiles,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,no.,0.00,,,,,,,
+,Cill ( quarry tiles),,,,,,,,,,
+,,m,0,,,,,,,,
+,,,no.,0.00,,,,,,,
+,,,pit sand,0.00,,,,,,,
+,,,cement,0.00,,,,,,,
+,Roof nails,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,kg,0.00,,,,,,,
+,Battens,m2,0,,,,,,,,
+,,,m,0.00,,,,,,,
+,Skirting,,,,,,,,,,
+,,m,0,,,,,,,,
+,,varnish,L,0.00,,,,,,,
+,Pelmets,,,,,,,,,,
+,,m,0,,,,,,,,
+,,varnish,L,0.00,,,,,,,
+,300 x 300 Vinyl tiles,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,tiles,0.00,,,,,,,
+,,,tylon,0.00,,,,,,,
+,,,tile adhesive,0.00,,,,,,,
+,150 x 150 Quarry floor tiles,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,tiles,0.00,,,,,,,
+,Wall plate,,,,,,,,,,
+,,m,0,,,,,,,,
+,galvanised hoop iron ties,,,0,,,,,,,
+,,carbolineum,,0,,,,,,,
+,Painting to metal,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,,undercoat,0.00,,,,,,,
+,,,metal primer,0.00,,,,,,,
+,,,high gloss,0.00,,,,,,,
+,Painting to wood,,,,,,,,,,
+,,m2,0,,,,,,,,
+,,undercoat,,0,,,,,,,
+,,wood primer,,0,,,,,,,
+,,high gloss,,0,,,,,,,
+
+--- Sheet: FNDTNS ---
+ONE BRICK WALL,,,note - brickforce is every 3 courses and includes 10% waste,,,,,,,,
+,,,           bricks do not include waste,,,,,,,,
+mortar ,,,cement,pit sand,bricks,brickforce,,,,,
+mix,area,,bags,m3,no.,rolls,,Half 400 X 115 X 200 blockwall,,,
+1:1,0,,0.0,0.0,0,0.0,,,m2,1,
+1:2,0,,0.0,0.0,0,0.0,,,,commons,14
+,,,,,,,,,,pit sand,0
+1:3,202.49,,94.8,12.6,22273.9,39.7,,,,cement,0
+1:4,,,0.0,0.0,0,0.0,,,,,
+1:5,,,0.0,0.0,0,0.0,,,,,
+,,,,,400x200 blocks,,,,,,
+1:3,,,0.0,0.0,0,0.0,,,,,
+,,,,river sand,,gravel,,,,,
+Paving,,,,0.0,0,0,,,,,
+HALF BRICK WALL,,,,,,,,,,,
+mortar ,,,cement,pit sand,bricks,brickforce,,,,,
+mix,area,,bags,m3,no.,rolls,,,,,
+1:1,0,,0.0,0.0,0,0.0,,,,,
+1:2,0,,0.0,0.0, -   ,0.0,,,,,
+1:3,19.6,,4.1,0.5,1176,3.8,,,,,
+1:4,,,0.0,0.00,0,0.0,,,,,
+1:5,,,0.0,0.0,0,0.0,,,,,
+,,,cement,pit sand,bricks,,,,,,
+TOTAL,,,98.8,13.1,23449.9,,,,,,
+,,,bags,m3,no.,,,,,,
+CONCRETE WORKS,,,,,,,,,,,
+,,,cement,sand,19mm ag,,,,,,
+grade,volume,,bags,m3,no.,,,,,,
+10,,,0.0,0.0,0.0,,,,,,
+15,0,,0.0,0.0,0.0,,,,,,
+20,0,,0.0,0.0,0,,,,,,
+25,4.73,,40.1,6.6,4.3989,,,,,,
+30,0,,0.0,0.0,0,,,,,,
+ratio,,,,,,,,,,,
+1:3:6,0,,0,0,0,,,,,,
+1:2:4,0,,0,0,0,,,,,,
+,,,cement, sand,19mm ag,,,,,,
+TOTAL,,,40.1,6.6,4.4,,,,,,
+,,,bags,m3,m3,,9.66,,,,
+
+--- Sheet: BWRK ---
+ONE BRICK WALL,,,note - brickforce is every 4 courses and includes 10% waste,,,,
+,,,note-Waste included on  bricks,,,,
+mortar ,,,cement,pit sand,bricks,brickforce,
+mix,area,,bags,m3,no.,rolls,
+1:1,0,,0.0,0.0,0,0.0,
+1:2,0,,0.0,0.0,0,0.0,
+1:3,157.92,,73.9,9.8,18950.4,23.2,
+1:4,,,0.0,0.0,0,0.0,
+1:5,0,,0.0,0.0,0,0.0,
+HALF BRICK WALL,,,,,,,
+mortar ,,,cement,pit sand,bricks,brickforce,
+mix,area,,bags,m3,no.,rolls,
+1:1,0,,0.0,0.0,0,0.0,
+1:2,0,,0.0,0.0, -   ,0.0,
+1:3,21,,4.4,0.6,1260,3.4,
+1:4,,,0.0,0.0,0,0.0,
+1:5,0,,0.0,0.0,0,0.0,
+,,,cement,pit sand,bricks,,
+TOTAL,,,78.3,10.4,20210.4,,
+,,,bags,m3,no.,,
+Stumbel,,,,,,,
+,,,400 x 200 x 200mm stumbel block,,,,
+,area,,,,,,
+,16,,,,,,
+,,,Blocks,pit sand,cement,Blockgrip,
+,,,487,1.2,1.2,1.1,
+,FOUNDATION FILL,,,,,,
+,AREA,,Block,Riversand,19mm,Cement,
+,53,,1613.85,18.978876,18.978876,108.5,
+
+--- Sheet: PLASTER ---
+PLASTER,,20mm Plaster,,,,
+mortar ,,,cement,Riversand,pit sand,Bonding liquid
+mix,area,,bags,,m3,litres
+1:1,0,,0.0,,0.00,0.00
+1:2,0,,0.0,,0.00,0.00
+1:3,178.92,,37.2,,4.94,89.46
+1:4,129.2,,22.2,,3.88,64.60
+1:5,,,0.0,,0.00,0.00
+1:6,0,,0,,0.00,0.00
+Bagwash,,10mm Plaster,,,,
+mortar ,,,cement,Riversand,pit sand,Bonding liquid
+mix,area,,bags,,m3,litres
+1:1,1,,0.2,,0.01,0.50
+1:2,0,,0.0,,0.00,0.00
+1:3,10,,1.0,,0.14,5.00
+1:4,0,,0.0,,0.00,0.00
+1:5,144,,11.2,,2.35,72.00
+1:6,195,,12.48,,3.30,97.50
+PLASTER,,10mm Plaster,,,,
+mortar ,,,cement,Riversand,pit sand,Bonding liquid
+mix,area,,bags,,m3,litres
+1:1,0,,0.0,,0.00,0.00
+1:2,0,,0.0,,0.00,0.00
+1:3,0,,0.0,,0.00,0.00
+1:4,0,,0.0,,0.00,0.00
+1:5,0,,0.0,,0.00,0.00
+1:6,0,,0,,0.00,0.00
+,,,cement,,pit sand,pit sand
+TOTAL,,,84.4,,14.6,329.1
+,,,bags,,m3,
+
+--- Sheet: SCREED ---
+SCREED,,40mm Screed,,,,
+mortar ,,,cement,river sand,,
+mix,area,,bags,m3,,
+1:1,0,,0.0,0.0,,
+1:2,0,,0.0,0.0,,
+1:3,82.88,,34.5,4.6,PMC,
+1:4,140,,48.2,8.4,,
+1:5,0,,0.0,0.0,,
+1:6,0,,0,0,,
+SCREED,,50mm Screed,,,,
+mortar ,,,cement,river sand,,
+mix,area,,bags,m3,,
+1:1,0,,0.0,0.0,,
+1:2,0,,0.0,0.0,,
+1:3,43,,22.4,3.9,,
+1:4,0,,0.0,0.0,,
+1:5,0,,0.0,0.0,,
+1:6,0,,0,0,,
+,,,cement,pit sand,,24
+TOTAL,,,105.0,16.8,,4.8
+,,,bags,m3,,
+
+--- Sheet: PAINTING ---
+PVA Paint to Boards,,,,Unit = 5 litre tins,,,,
+Area,,1st Coat,2nd Coat,3rd Coat,,Total,,
+0,,0.0,0.0,0.0,,0.0, no of 5 ltr tins,
+PVA Paint to Plaster,,,,Unit = 5 litre tins,,,,
+Area,,1st Coat,2nd Coat,3rd Coat,,Total,,
+0,,0.0,0.0,0.0,,0.0, no of 5 ltr tins,
+PVA Paint to Blockwork,,,,Unit = 5 litre tins,,,,
+Area,,1st Coat,2nd Coat,3rd Coat,,Total,,
+,,0.0,0.0,0.0,,0.0, no of 5 ltr tins,
+PVA Paint to Steelwork,,,,Unit = 5 litre tins,,,,
+Area,,1st Coat,2nd Coat,3rd Coat,,Total,,
+0,,0.0,0.0,0.0,,0.0, no of 5 ltr tins,
+PVA Paint to Timber,,,,Unit = 5 litre tins,,,,
+Area,,1st Coat,2nd Coat,3rd Coat,,Total,,
+0,,0.0,0.0,0.0,,0.0, no of 5 ltr tins,
+,,,,0.0,,0.0,,
+,,0.0,,,,,,
+
+--- Sheet: Girth & Opps ---
+Girth Collection,,,,,,,,,,,,
+230mm External wall,,230mm Verand,115mm External wall,230mm Internal wall,115mm Internal wall,,,Deductions,,,,
+,,,,,,,On 230 Ver,On 230 Ex,On 230 In,On 115 Ex,On 115 In,
+20.8,,0,6.8,0,0,,,,,,,
+18.8,,0,6,0,0,,11.71,21.28,0,0,16.9,m2
+4,,0,2,0,0,,,,,,,
+10.9,,0,0,0,0,,,,,,,
+1.5,,0,0,0,0,,,Height of Brick work,,,,
+0,,,0,0,0,,On 230 Ve,On 230 Ex,On 230 In,On 115 Ex,On 115 In,
+0,,,0,0,0,,,,,,,
+0,,,0,0,0,,2.72,2.72,2.72,2.72,2.72,
+0,,,0,0,0,,,,,,,
+0,,,0,0,0,,,,,,,
+0,,,0,0,0,,,Area of Brick work,,,,
+0,,,0,0,0,,On 230 Veran,On 230 Ex,On 230 In,On 115 Ex,On 115 In,
+0,,,0,0,0,,,,,,,
+0,,,0,0,0,,-11.71,131.04,0,40.256,-16.9,
+56.00,,0.00,14.80,0.00,0.00,,,,,,,
+Gross Floor Areas,,,,,,,,,,,,
+,,,,Area,Skirting,,,,,,,
+Ceramic Tiles,,,,32.45,39.94,,,,,,,
+Granolithic,,,,13.97,14.21,,,,,,,
+Carpet,,,,33.42,37.85,,,,,,,
+Vinyl,,,,18.15,34.92,,,,,,,
+Gross Floor Area ie Total floor area ,,,,97.99,318,,,,,,,
+Roof Construction,,,Floor area,Angle Deg,Area of Roof,,,,,,,
+,,,85,12.5,85.12,,,,,,,
+,,,0,17.5,0.00,,,,,,,
+,,,318,30,367.19,,,,,,,
+,,,Total,,452.31,,,,,,,
+Windows,,,,,,,,,,,,
+Window type,No.,Length,Height,Area,Clear,Obscure,,,,,,
+E7H,1,1.022,0.654,0.668388,0.668388,,,,,,,
+E7H,1,1.022,0.654,0.668388,0.668388,,,,,,,
+D11F,1,2,1.248,2.496,2.496,,,,,,,
+D11F,1,2,1.248,2.496,2.496,,,,,,,
+D11F,1,2,1.248,2.496,2.496,,,,,,,
+D11F,1,2,1.248,2.496,2.496,,,,,,,
+C4F,1,1.511,0.951,1.436961,1.436961,,,,,,,
+E1,1,0.533,0.654,0.348582,0,0.348582,,,,,,
+E1,1,0.533,0.654,0.348582,0,0.348582,,,,,,
+E1,1,0.533,0.654,0.348582,0,0.348582,,,,,,
+E1,1,0.533,0.654,0.348582,0,0.348582,,,,,,
+D2FH,1,1.022,1.248,1.275456,1.275456,,,,,,,
+W8,6,0.508,2.1,6.4008,6.4008,,,,,,,
+Total,,15.217,13.215,21.828321,20.433993,1.394328,,,,,,
+
+--- Sheet: Subie Valuation ---
+, MACO BUILDERS ,,,,,,,
+, Address : 18 Browning road Malindela Bulawayo.  ,,,,,,,
+, Phone : (09) 243107-8 ,,,,,,,
+, Main-Contractor Valuation Account  ,,,, DATE : , 26/03/2014 ,,
+, CONTRACTOR ,, FUNDED CONSTRUCTION ,,,,,
+, CONTRACT WORK  ,, OFFICE RENOVATIONS ,,,,,
+, PROJECT ,, ……………………………… ,,,,,
+, SUBCONTRACT PAYMENT ADVICE ,,No.,1,,,,
+, Preliminary & Generals ,,,,, 540.00 ,,
+, Value of work done (to date) ,,,,,,,
+, Contract sum ,,,,," 28,948.96 ",,
+, Additions ,,,,," 1,930.23 ",,
+, Variations (tiles in lieu of epoxy) ,,,,,,,
+, Generator shed ,,,,, 539.11 ,,
+, TOTAL ,,,,," 31,419.19 ",,
+, Less ;  10% Retention ,,,,, -   ,,
+,,,,,," 31,419.19 ",,
+, Variations ,,,,, -   ,,
+, Materials On /Off Site ,,,,, -   ,,
+, Certified value of increased costs (Labour) ,,,,, -   ,,
+, Gross Total Value ,,,,," 31,419.19 ",,
+, Less Previous Payments ,,,,, -   ,,
+,,,,,," 31,419.19 ",,
+, Less 10% Witholding tax ,,,,," 3,141.92 ",,
+, Net Total Value ,,,,," 28,277.27 ",,
+, For Office Use  Only ,,,,,,,
+, Certified in Certificate No. ,, Applied in Application No.  ,,,,,
+, Prepared by  (QS) , …………………………………………. , Date : ,……………………,,,,
+,,,,,, Sub-Contractor ,,
+, Checked By , ………………………………………… , Projects Manager ,,, Accounts ,,
+, Authorised by , ………………………………………… , General Manager ,,, Project QS ,,
+
+--- Sheet: Sheet2 ---
+WINDOW & DOOR SCHEDULE  FOR THE PROPOSED ,,,,,
+House for Mr & Mrs Mpofu,,,,,
+ITEM,DESCRIPTION,UNIT,QTY,PRICE,COST
+NO,,,,,
+A,STANDARD PRIMED MILD STEEL WINDOW FRAMES,,,,
+1, Type ND11F,No.,8,101.00,808.00
+2, Type NE11,No.,1,61.00,61.00
+3, Type NE4,No.,2,57.00,114.00
+4, Type NE1,No.,1,27.00,27.00
+5, Type NC11F,No.,1,94.00,94.00
+6, Type ND2F,No.,2,62.00,124.00
+,Pressed Steel Door Frame,,,,
+7,Frame size 813x 2032 x 115mm ,No,7,40.00,280.00
+8,Frame size 813x 2032 x 230mm ,No,8,54.00,432.00
+9,NDAS,No,2,196.00,392.00
+B,JOINERY AND IRON MONGERY,,,,
+,DOORS,,,,
+,44mm External quality semi solid core flush panel doors ,,,,
+,suitable for painting and hung to pressed steel frames ,,,,
+1,Door size 813x2032mm high,No,3,28.50,85.50
+,44mm Internal quality semi solid core flush panel doors ,,,,
+,suitable for painting and hung to pressed steel frames ,,,,
+2,Door size 813x2032mm high,No,11,54.00,594.00
+3,2 Hour Firedoor,No,1,,0.00
+4,3 Lever Mortice locksets,No,3,15.00,45.00
+5,2 Lever Mortice locksets,No,12,12.50,150.00
+,TOTAL MATERIAL COST,,,,"3,206.50"
+,TOTAL COST ,,,,"3,206.50"
+
+--- Sheet: Sheet3 ---
+SCHEDULE OF MATERIALS FOR THE PROPOSED ,,,,,
+Additions To Mr. & Mrs N Mabhena's Cottage,,,,,
+ITEM,DESCRIPTION,UNIT,QTY,PRICE,COST
+NO,,,,,
+1.0,SUBSTRUCTURE UP TO DPC LEVEL,,,,
+1,PC 15 Cement ,Bgs,23,12.00,276.00
+2,River Sand,m3,3,40.00,120.00
+3,Pit Sand,m3,1,40.00,40.00
+4,20mm Concrete stone,m3,4,50.00,200.00
+5,Approved industrial bricks,No,"1,100",0.23,253.00
+6,Black polythene 250 micron,m2,22,1.35,29.70
+7,Ant poison (5L),No,1,12.00,12.00
+8,230 mm Brickforce 22 M,Roll,2,5.00,10.00
+9,115 mm Brickforce 22 M,Roll,1,4.00,4.00
+10,Imported gravel fill under floating slab,m3,3,30.00,90.00
+,,,,,"1,034.70"
+2.0,SUPERSTRUCTURE BRICKWORK,,,,
+1,PC 15 Cement for brickwork,Bags,10,12.00,120.00
+2,Pit Sand,m3,2,40.00,80.00
+3,Common Bricks,No,"2,900",0.18,522.00
+4,Air Bricks,Pairs,6,3.00,18.00
+5,230 mm Brickforce 20m ,Roll,4,5.00,20.00
+6,115 mm Brickforce 20 m,Roll,2,4.00,8.00
+7,230 DPC  20m,Roll,1,12.00,12.00
+8,115 DPC  20m,Roll,1,8.00,8.00
+,,,,,788.00
+3.0,ROOF COVERINGS AND CARPENTRY,,,,
+,Turnall or similar approved asbestos endurite ,,,,
+1,roofing sheets                                             3.6m,no.,8,28.00,224.00
+2,                                                                    1.8m,no.,8,13.56,108.48
+3,Timber 152*38*6.6m,no.,3,12.00,36.00
+4,Ridges,pairs,8,28.00,224.00
+5,Galvanised Flashing (3m*925).4mm,sheets,2,13.63,27.26
+6,Asbestos Nails,kg,1,8.00,8.00
+7,Wire nails,kg,2,3.00,6.00
+,,,,,633.74
+4.0,METAL WORK,,,,
+,Pressed Steel Door Frame,,,,
+1,Frame size 813x 2032 x 115mm ,No,1,46.96,46.96
+2,Frame size 813x 2032 x 230mm ,No,1,56.00,56.00
+,,,,,102.96
+,STANDARD PRIMED MILD STEEL WINDOW FRAMES,,,,
+3, Type ND11F,No.,1,101.00,101.00
+4, Type NC4F,No.,2,74.63,149.26
+,,,,,250.26
+5.0,JOINERY AND IRON MONGERY,,,,
+,DOORS,,,,
+,44mm External quality semi solid core ,,,,
+,flush panel doors,,,,
+1,Door size 813x2032mm high,No,1,54.00,54.00
+,44mm Internal quality semi solid core,,,,
+,flush panel doors,,,,
+2,Door size 813x2032mm high,No,1,28.50,28.50
+,IRONMONGERY,,,,
+,The following ironmongery to be fixed to timber,,,,
+,doors and pressed steel frames,,,,
+,"""Union"" or similar approved lockset",,,,
+3,Three lever Union lockset ,No,1,15.00,15.00
+4,Two lever Union lockset ,No,1,12.50,12.50
+5,Rubber door stop,No.,2,1.00,2.00
+,,,,,112.00
+6.0,PLASTERING & FLOOR SCREEDS & untinted grano,,,,
+1.0,Cement,no.,22,12.00,264.00
+2.0,Pitsand,m3,2,40.00,80.00
+3,Riversand,m3,3,40.00,120.00
+,NOTE : SCREED IS 1:4 RATIO,,,,
+,,,,,464.00
+7.0,GLAZING,,,,
+1,3mm thick Clear sheet glass,m2,5,5.20,27.35
+8.0,PLUMBING AND DRAINAGE,,,,
+,SANITARY FITTINGS,,,,
+5,32mm waste pipe,m,,1.30,0.00
+6,32mm*90º inspection bends,no.,,0.59,0.00
+7,32mm rubber s-trape,no.,,2.90,0.00
+8,32mm rubberp-trape,no.,,2.90,0.00
+13,15mm elbows,no.,,0.40,0.00
+14,15mm Copper Tees,no.,,0.60,0.00
+15,15mm Copper straight connectors,no.,,0.50,0.00
+16,22mm Copper Pipes,m,,3.50,0.00
+17,15mm copper pipes,m,,3.00,0.00
+18,Double bowel stainless steel sink,no.,,80.00,0.00
+
+--- Sheet: Sheet4 ---
+MR. & MRS MABHENA,,,
+Additions to cottage,,,
+Supply and fix quote.,,,
+Item,Description,,Cost
+1,Excavating & building including all,,
+,allied works up to slab level,,"1,940.89"
+,Building superstructure including ,,
+2,supply & building in all window and door ,,
+,frames ,,"2,338.17"
+3,"Fixing of roof beams, rafters and",,
+,laying asbestos endurite roof sheets,,"1,156.04"
+4,Hanging all doors to appropriate ,,
+,openings and fixing the locksets,,226.80
+,Plastering of walls both externally and ,,
+5,internally also including laying a 40mm,,
+,screed and 20mm untinted grano to,,
+,appropriate rooms.,,"1,051.00"
+6,Glazing with 3mm clear glass to steel,,
+,sashes .,,94.29
+,TOTAL COST ,,"6,807.19"
+
+--- Sheet: Sheet5 ---
+MANSIONS AFRICA,,,,
+Description, UNIT , QNTY , RATE , AMOUNT 
+stripping 150mm topsoil around site, m2 ,110,7.00,770.00
+Setting out ,item,,,200.00
+Excavate foundation trenches, m3 ,35,7.00,245.00
+,,,,0.00
+Cast the concrete in strip footing foundations, m3 ,13,15.00,195.00
+,,,,0.00
+230mm brickwork in foundations, m2 ,35,20,700.00
+,,,,0.00
+115mm brickwork in foundations, m2 ,21,10.00,210.00
+,,,,0.00
+"Hardcore, approved non expansive material", m3 ,275,25,"6,875.00"
+Waterproofing, m2 ,345,0.5,172.50
+Termite treatment, m2 ,345,0.2,69.00
+Concrete to floor slabs, m3 ,45,15,675.00
+strike off and curing, m2 ,345,0.2,69.00
+Total,,,,"10,180.50"
+SUPERSTRUCTURE,,,,
+Description, UNIT , QNTY , RATE ,AMOUNT
+230mm common brickwall in internal partitions, m2 ,116,20.00,"2,320.00"
+,,,,0.00
+230mm common brickwall in toilet area, m2 ,148,20.00,"2,960.00"
+230mm common brickwall for the delivery yard area, m2 ,118,20.00,"2,360.00"
+115mm common brickwall, m2 ,59,10.00,590.00
+Build in frames Including door and window frames,no.,30,4.5,135.00
+smooth off-shutter to underside of slab soffit, m2 ,78,3.00,234.00
+shuttering of roof slab, m2 ,80,8.00,640.00
+fix S125 weld mesh in roof slab, m2 ,78,0.60,46.80
+concreting of roof slab, m3 ,12,25.00,300.00
+one coat cement plaster to internal brick walls, m2 ,742,5.10,"3,784.20"
+one coat cement plaster to external walls, m2 ,,5.10,0.00
+,,,,0.00
+prepare surfaces and apply paint to internal walls, m2 ,742,4.20,"3,116.40"
+apply paint to internal soffit of roof slab, m2 ,78,4.20,327.60
+"prepare surfaces and apply paint to external walls, ",,,,
+soffits and edges of roof slab, m2 ,,4.20,0.00
+prepare surfaces and apply water proofing complete ,,,,
+with silver paint to top of roof slab, m2 ,78,8.5,663.00
+paint and apply 1u/coat & 2 coats doors including,,,,
+door frames and window frames., no. ,17,12.00,204.00
+door fixing, no. ,17,8.50,144.50
+Total,,,,"17,825.50"
+ROOFING,,,,
+,,,,0.00
+SOLUSI, UNIT , QNTY , RATE ,#VALUE!
+,,,,0.00
+smooth off-shutter to underside of slab soffit, m2 ,3,,0.00
+,,,,0.00
+shuttering of roof slab, m2 ,37.9,"245,146.08","9,291,036.43"
+,,,,0.00
+reinforcement of roof slab, m2 ,25.2,"143,412.96","3,614,006.59"
+,,,,0.00
+fix S125 weld mesh in roof slab, m2 ,37,"13,583.26","502,580.62"
+,,,,0.00
+concreting of roof slab, m3 ,6.3,"925,575.84","5,831,127.79"
+,,,,0.00
+Concreting of floor slab, m3 ,2,"925,575.84","1,851,151.68"
+,,,,0.00
+one coat cement plaster to internal brick walls, m2 ,84.1,"71,670.62","6,027,499.14"
+,,,,0.00
+one coat cement plaster to external walls, m2 ,62.2,"71,670.62","4,457,912.56"
+,,,,0.00
+prepare surfaces and apply paint to internal walls, m2 ,84.5,"91,302.63","7,715,072.24"
+,,,,0.00
+apply paint to internal soffit of roof slab, m2 ,20.7,"124,858.29","2,584,566.60"
+,,,,0.00
+"prepare surfaces and apply paint to external walls, ",,,,0.00
+soffits and edges of roof slab, m2 ,79.8,"228,256.55","18,214,872.69"
+,,,,0.00
+prepare surfaces and apply water proofing complete ,,,,0.00
+with silver paint to top of roof slab, m2 ,37.9,"280,931.13","10,647,289.83"
+,,,,0.00
+paint RLU doors including door frames, no. ,1,"163,876.48","163,876.48"
+,,,,0.00
+door fixing, no. ,1,"280,931.13","280,931.13"
+,,,,0.00
+backfilling of bases, m3 ,58.8,"116,330.58","6,840,238.10"
+,,,,0.00
+compaction of bases, m3 ,58.8,"8,309.33","488,588.60"
+,,,,0.00
+stripping 150mm topsoil around site, m2 ,168,"14,541.32","2,442,941.76"
+,,,,0.00
+spreading inert materials, m3 ,10.5,"116,330.58","1,221,471.09"
+,,,,0.00
+compaction of inert materials over site, m3 ,10.5,"8,309.33","87,247.96"
+,,,,0.00
+100mm depth of 20mm stone to be rolled over site, m3 ,12,,0.00
+,,,,0.00
+stripping 1m outside perimeter fence, m2 ,23,"14,541.32","334,450.36"
+,,,,0.00
+,,,,0.00
+MKOBA, UNIT , QNTY , RATE ,#VALUE!
+,,,,0.00
+concreting generator slab, m3 ,6.3,"925,575.84","5,831,127.79"
+,,,,0.00
+backfilling of bases, m3 ,58.8,"116,330.58","6,840,238.10"
+,,,,0.00
+compaction of bases, m3 ,58.8,"8,309.33","488,588.60"
+,,,,0.00
+stripping 150mm topsoil around site, m2 ,168,"16,693.70","2,804,541.60"
+,,,,0.00
+spreading inert materials, m3 ,10.5,"116,330.58","1,221,471.09"
+,,,,0.00
+compaction of inert materials over site, m3 ,10.5,"8,309.33","87,247.96"
+,,,,0.00
+100mm depth of 20mm stone to be rolled over site, m3 ,12,,0.00
+,,,,0.00
+stripping 1m outside perimeter fence, m2 ,23,"14,541.32","334,450.36"
+,,,,0.00
+,,,,0.00
+ZIMASCO, UNIT , QNTY , RATE ,#VALUE!
+,,,,0.00
+concreting of generator slab, m3 ,6.3,"925,575.84","5,831,127.79"
+,,,,0.00
+backfilling of bases, m3 ,58.8,"116,330.58","6,840,238.10"
+,,,,0.00
+compaction of bases, m3 ,58.8,"8,309.33","488,588.60"
+,,,,0.00
+stripping 150mm topsoil around site, m2 ,168,"16,693.70","2,804,541.60"
+,,,,0.00
+spreading inert materials, m3 ,10.5,"116,330.58","1,221,471.09"
+,,,,0.00
+compaction of inert materials over site, m3 ,10.5,"8,309.33","87,247.96"
+,,,,0.00
+100mm depth of 20mm stone to be rolled over site, m3 ,12,,0.00
+,,,,0.00
+stripping 1m outside perimeter fence, m2 ,23,"14,541.32","334,450.36"
+,,,,0.00
+,,,,0.00
+LALAPANSI, UNIT , QNTY , RATE ,#VALUE!
+,,,,0.00
+prepare surfaces and apply paint to internal walls, m2 ,84.5,"91,302.63","7,715,072.24"
+,,,,0.00
+apply paint to internal soffit of roof slab, m2 ,20.7,"124,858.29","2,584,566.60"
+,,,,0.00
+"prepare surfaces and apply paint to external walls, ",,, . ,#VALUE!
+soffits and edges of roof slab, m2 ,79.8,"280,931.13","22,418,304.17"
+,,,,0.00
+prepare surfaces and apply water proofing complete ,,,,0.00
+with silver paint to top of roof slab, m2 ,37.9,"228,256.55","8,650,923.24"
+,,,,0.00
+paint RLU doors including door frames, no. ,1,"163,876.48","163,876.48"
+,,,,0.00
+door fixing, no. ,1,"280,931.13","280,931.13"
+,,,,0.00
+backfilling of bases, m3 ,58.8,"116,330.58","6,840,238.10"
+,,,,0.00
+compaction of bases, m3 ,58.8,"8,309.33","488,588.60"
+,,,,0.00
+stripping 150mm topsoil around site, m2 ,168,"14,541.32","2,442,941.76"
+,,,,0.00
+spreading inert materials, m3 ,10.5,"116,330.58","1,221,471.09"
+,,,,0.00
+compaction of inert materials over site, m3 ,10.5,"8,309.33","87,247.96"
+,,,,0.00
+100mm depth of 20mm stone to be rolled over site, m3 ,12,,0.00
+,,,,0.00
+stripping 1m outside perimeter fence, m2 ,23,"14,541.32","334,450.36"
+,,,,0.00
+,,,,0.00
+SHANGANI MINE, UNIT , QNTY , RATE ,#VALUE!
+,,,,0.00
+stripping 150mm topsoil around site, m2 ,168,"16,693.70","2,804,541.60"
+,,,,0.00
+spreading inert materials, m3 ,10.5,"116,330.58","1,221,471.09"
+,,,,0.00
+compaction of inert materials over site, m3 ,10.5,"8,309.33","87,247.96"
+,,,,0.00
+100mm depth of 20mm stone to be rolled over site, m3 ,12,,0.00
+,,,,0.00
+stripping 1m outside perimeter fence, m2 ,23,"14,541.32","334,450.36"
+,,,,0.00
+,,,,0.00
+,,,,0.00
+,,,,0.00
+
+--- Sheet: Sheet1 ---
+A,SUBSTRUCTURE,,,,,
+,CUTTING DOWN TREES,NO,,,,
+1,SITE CLEARANCE,m2,110,,,
+2,TOP SOIL EXCAVATION,m2,110,,,
+3,TRENCH EXCAVATION,m2,55,,,
+4,EARTH WORK SUPPORT,m2,,,,
+5,LEVEL & COMPACT,m2,,,,
+6,SURFACE TEATMENT,m2,110,,12,litres
+7,CONCRETE FOOTING,m3,11,,,
+8,ONE BRICK WALL,m2,56,,,
+9,HALF BRICKWALL,m2,15,,,
+10,150mm BRICKFORCE,m,56,,,
+11,75mm BRICKFORCE,m,15,,,
+12,BACKFILLING,m3,,,,
+13,DPC,m2,,,,
+13,DPC 230,m,32,,,
+13,DPC 115,m,15,,,
+14,MAKING LEVELS,m2,,,,
+15,SAND BLINDING,m2,98,,,
+16,DPM,m2,98,,,
+17,MASHWIRE,m2,98,,,
+18,HADCORE,M3,15,,,
+19,CONCRETE SLAB,M3,12,,,
+20,STRIKE OFF AND CURE,m2,98,,,
+21,SCREED,m2,98,,,
+,CARTAWAY,m3,,,,

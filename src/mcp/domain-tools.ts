@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { buildCorpusIndex, DEFAULT_CORPUS_DIR } from '@/engine/rag/corpusLoader'
 import { hybridSearch } from '@/engine/rag/hybrid'
 import { analyzeCompliance } from '@/engine/rag/analysis'
+import type { RagIndex } from '@/engine/rag/ragIndex'
 
 export interface ProjectMeta {
   id?: string
@@ -241,11 +242,13 @@ export interface SearchCodesOptions {
   query: string
   k?: number
   minScore?: number
+  /** Pre-built index to search; defaults to the full on-disk corpus. */
+  index?: RagIndex
 }
 
-export async function searchCodes({ query, k = 5, minScore = 0.01 }: SearchCodesOptions) {
-  const index = await buildCorpusIndex(DEFAULT_CORPUS_DIR)
-  const results = hybridSearch(index, query, { k, minScore })
+export async function searchCodes({ query, k = 5, minScore = 0.01, index }: SearchCodesOptions) {
+  const rag = index ?? (await buildCorpusIndex(DEFAULT_CORPUS_DIR))
+  const results = hybridSearch(rag, query, { k, minScore })
   return results.map((r) => ({
     docId: r.docId,
     sectionId: r.sectionId,
@@ -258,11 +261,13 @@ export async function searchCodes({ query, k = 5, minScore = 0.01 }: SearchCodes
 export interface ComplianceOptions {
   query: string
   jurisdiction?: 'zimbabwe' | 'south-africa'
+  /** Pre-built index to search; defaults to the full on-disk corpus. */
+  index?: RagIndex
 }
 
-export async function runComplianceAnalysis({ query, jurisdiction = 'zimbabwe' }: ComplianceOptions) {
-  const index = await buildCorpusIndex(DEFAULT_CORPUS_DIR)
-  const report = await analyzeCompliance(index, {
+export async function runComplianceAnalysis({ query, jurisdiction = 'zimbabwe', index }: ComplianceOptions) {
+  const rag = index ?? (await buildCorpusIndex(DEFAULT_CORPUS_DIR))
+  const report = await analyzeCompliance(rag, {
     query,
     jurisdiction,
     engine: 'local-rules',

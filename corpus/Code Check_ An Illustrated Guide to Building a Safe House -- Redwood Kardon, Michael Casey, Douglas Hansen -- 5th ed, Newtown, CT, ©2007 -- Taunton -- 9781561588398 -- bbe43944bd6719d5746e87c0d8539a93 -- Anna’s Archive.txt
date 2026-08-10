@@ -1,0 +1,3840 @@
+BUILDING
+PLUMBING
+HVAC 	.
+ELECTRICAL
+
+-- 1 of 33 --
+
+Check® Fifth Edition
+By REDWOOD KARDON, MICHAEL CASEY & DOUGLAS HANSEN
+Illustrations & layout by Paddy Morrissey
+© 2007 by The Taunton Press, Inc. 	ISBN 10 1-56158-839-3 	ISBN 13 978-1-56158-839-8
+Code Check '" is a trademark of The Taunton Press, Inc., registered in the U.S. Patent & Trademark Office.
+Printed in China
+Code Check is a field inspection guide to important code requirements and common code violations in the construction of single-
+family and two-family dwellings . The primary reference document for this book is the 2006 edition of the International Residential
+Code'" for One- and Two-Family Dwellings, published by the International Code Council.
+Codes are adopted at different times in different places around the country. New editions come out every three years, and some
+states make extensive modifications to the model codes prior to adoption. Because the actual code that is used in a particular area
+could vary, we include references to the two most commonly used codes for every item in the book. Significant code changes have
+been noted and are included in a summary on the inside back cover. This feature enables the book to be used in areas still using
+the previous code edition. To determine the particular codes in effect in your area, contact your local building department before
+beginning your project.
+For more information on the building, electrical & mechanical codes, valuable resources, & why Benjamin Franklin is featured in the Code Check series, visit: www.codecheck.com
+The code changes referenced on the inside back cover compare the codes in this table to the 2003 IRe ,
+UPC, UMC & 2002 NEC
+ABBREVIATIONS
+A = amp(s) (ex: a 15A breaker)
+ABS = acrylonitrile-butadiene-styrene
+plastic pipe
+AMI = in accordance with manufactuer's
+GEC = grounding electrode conductor
+horiz = horizontal
+IMC = intermediate metal conduit
+in (after number) = inch(es)(ex: 24in)
+Benjamin Franklin
+MODEL CODE ORGANIZATIONS
+9 o Electr ical 	27, 29
+instructions
+APOX = appendix
+appl = appliance
+ASTM = American Society for Testing &
+Materials
+AWG = American Wire Gauge
+B (vent) = double-walled round gas
+appliance flue
+bldg = building
+BO = building official
+Btu = British thermal unit
+BW = double-walled oval gas appliance
+flue
+ctm = cubic feet per minute
+CPVC = chlorinated polyvinyl chloride
+plastic pipe
+CSST = corrugated stainless-steel tubing
+cu. = cubic (ex: 24cu.ft)
+Cu = copper
+CWV = combination waste & vent
+OFU = drainage fixture unit(s)
+OW = dishwasher
+OWV = drain, waste & vent
+EGC = equipment grounding conductor
+EMT = electrical metallic tubing
+eqpt = equipment
+ex: = for example
+ext = exterior
+FO = family dwelling (ex : 1-FD =
+one-family dwelling)
+FLR = fl ood level rim
+fndn = 'ounaortJo<,
+IS = IAPMO Installation Standard
+L&L = listed & labeled
+lav = lavatory (bathroom sink)
+LFMC = liquidtight flexible metal conduit
+("sealtight")
+LFNC = liquidtight flexible nonmetallic
+conduit
+max = maximum
+min = minimum
+O.C. = on center
+PB = polybutylene plastic pipe
+PE = polyethylene plastic pipe
+PEX = cross-linked polyethylene plastic
+pipe (water pipe)
+PL = property line
+psi = pounds per square inch
+psig = pounds per square inch gauge
+PVC = polyvinyl chloride plastic pipe or
+electrical conduit
+recep = receptacle outlet (electrical)
+RMC = rigid metal conduit
+RNC = rigid nonmetallic conduit (PVC
+electrical conduit)
+SOC = Seismic Design Category
+SE = service entrance
+sq. = square (ex: 24sq.in)
+UL = Underwriter's Laboratories, Inc.
+VA = volt amps (input power vs. output
+power-watts)
+vert = vertical
+w/= with
+wlo = without
+W = electrical conductors rated for wet
+ICC
+IAPMO
+ICBO
+NFPA
+The International Code Council
+International Association of Plumbing and Mechanical Officials
+International Conference of Building Officials
+National Fire Protection Association
+For web links, visit www.codecheck.com
+SEQUENCE OF INSPECTIONS
+PLANNING _____________________________________ PAGE
+o Plans & Permit _____________________ _
+o Special Inspections ___________________ 1, 11
+FOUNDATION INSPECTION
+o Setback, Forms ____________________ 1, 3
+o Rebar, Anchors, Hold-Downs 	2, 3
+o Utility Trenches 	13, 24
+ROUGH INSPECTIONS
+o Plumbing ____________________ 13-17
+o Mechanical 	8, 20
+o Electrical 	24-26, 28 , 29
+o Windows 	9, 10
+o Stairs 	11
+o Fireblocking 	1 2
+FRAME & MASONRY INSPECTION
+o Framing _______________________ 4-6
+o Hold-Downs, Diaphragms & Bracing 	2, 3, 5, 6
+o Exterior Wall & Roof Coverings 	7, 8
+WALL COVER
+o Drywall Nailing _____________________ 9
+FINAL INSPECTION
+o Smoke Alarms _____________________ 12
+o Plumbing 	1 8, 1 9	
+it
+int = interior
+location o Mechanical 	20-23
+
+-- 2 of 33 --
+
+Grad in g from fnd n min 6in/ l Oft {6in/6ft} EXC F1 _ 	_ [401 .3) 	{1838.2}
+5% slope to swale OK when barrier prevents 6in/l Oft [401.3X)4 	{1838.2}
+:::J Graded site fndn min 12in + 2% above street drain F1 [403 .1.7.3) 	{18065.5}
+~ Fndns enclosing usable space req drainage EXC F4 _ [405.1) 	{1834.1}
+VVhere underfloor area is on same grade as ext OR__ [405 . 1) 	{1834.1 X}
+In 	ell-drained ground or sand/grave l mixture 	[405.1 X) 	tn/a}
+:::::; Walls retaining earth & enclosing int space:
+• Oampproofing to finished grade {6in above grade} OR [406.1)' 	{1833.1}
+igh water table- waterproofing to finished grade_ [406.2)" 	{1837.3}
+s and slabs on expansive so il must be
+aesigned per I BC specs to prevent damage _ __ [403 .1.8) 	{1804.4}
+Graded Site Drainage
+Final grade
+	evation of foundati on above street gutter = 	slope min.
+1 2in. + 2% of x 	6in. within
+x 	first 10ft.
+{6ft.}
+General 	061RC 	97 UBC
+D Footing stepped to maintain bottom slope <1 : 10 _ 	[403.1.5) 	{1806.4}
+D Utility or other trench may not undermine footing __ [2604.4) 	{UPC}
+D Size per T2 	[403.1.1) 	{1806.1}
+D Excavation free of debris & roots, wood forms removed [408.5, 506.2) 	{3302}
+D Pockets for untreated wood beams req 112in air space
+at ends & sides 	[319.1) 	{2306 .6}
+T Foundation with Forms
+Rebar 3in. min. clear-
+ance to soil; use dobie
+or wire chairs, not bricks 	Dobie
+Min. 12in. & below
+frost line per 60
+I
+BUILDING 	1
+PLANNING SITE & GRADING
+General 	061RC 	97 UBC
+o Determine climatic and geographic design criteria __ [301 . 2) 	{1804.1}
+:::J Spec ial consi derations for SOC Do, 0, & 0 ,,-[301.2.2.4)' 	{1605.2.2}
+:::J Approved plans & permit card on site 	[106.3.1) 	{106.4.2}
+=
+~ Engineered design per I BC specs OK as alternative_ [301.1.3) 	{2320.2}
+e special inspection reports req ' d? T13 	[109.1.5) 	{106.3.5}
+=Verify setbacks- unrated wal ls min 5ft {3ft} to PL __ [302.1)2 	{T5-A}
+0 openings in wa ll s <3ft to PL EXC 	[302.1)3 	{T-5-A}
+dn vents & openi ngs in walls perpendicular to PL OK [302.1 X) 	{0}
+I spection & approval prior to covering any work ___ [1 09.4) 	{108.1}	=
+SO il S, Grading & Drainage
+:::J
+FOOTINGS & FOUNDATIONS
+TABLE 2 	MINIMUM FOUNDATION SIZE-ALSO SEE T19
+[T403_1J & [T18-1-C}
+Dimension
+Number of Floors Supported by Foundation
+1 	2 	3
+Depth into previously 	12in. 	[12in.) {18in.} 	[12in.) {24in.}
+	undisturbed soil
+Wall thickness 	6in. 	8in. 	[8in.) {lOin .}
+Footing thickness 	6in. 	[6in.) {7in.} 	[6in.) {8 in.}
+Footing width 	12in. 	12in. 	[17in.) {18in .}
+
+-- 3 of 33 --
+
+Sill plates req bolts [or equivalent] @6ft O,C, __ _ [403.1.6] 	{1806.6}
+D Min 2 bolts per plate section, min 7in embedment _ 	[403 .1.6] 	{1806 .6}
+D Max 12in, min 7 bolt diameter from end of sill F3 __ [403 .1.6] 	{1806 .6}
+D SDC Do , D, & D2 & light-frame townhouses in SDC C :
+• Max spacing 4ft O.C . for >2 story 	[403 .1.6.1] 	{local}
+• Plate washers req 'd at braced wall lines 	[403.1 .6. 1] 	{1806 .6.1}
+Anchor Bolts
+& Hold·
+Downs
+Must be
+within 12in. of endl
+of sill plate
+Hold-downs he lp
+secure the structure
+from seismic &
+wind forces.
+---:7""~ ~Y
+•
+,
+Some hold-
+downs must
+be th roug h-
+bol t ed to
+p os t s. ,
+Foundation
+Downspout
+Drainage
+&
+Rigid perforated drainpipe
+Tightline drain adapter
+6-mil plastic on
+house side
+(recommended)
+Filter fabric
+TABLE 3 	REINFORCING STEEL COVER {1907_7_1}
+Foundation Surface
+Concrete cast against & permanently
+exposed to earth
+Concrete exposed to earth or weather
+Not exposed to weather, ex: top of
+indoor slab
+Min. Cover 	Min. Cover
+$ No_ 5 bars 	2 No.6 bars
+3in. 	3in.
+1 in. {11I2in .} 	2in.
+3/4in. 	3/4in . up to
+No. 11 bars
+Rebar 	061RC 	97 UBC
+D SDC Do , D, & D2 {SZ3&4} #4 bar req 'd in bottom of footing
+& top of stem wall F2 	[403 .1.3] 	{1806.7.1}
+D SDC Do , D, & D2 #4 vert bar 4ft O.C . req 'd in CMU or if
+construction joint between footing & stem wall _ __ [403.1.3] 	In/ a}
+D Min clearance to forms & soil T3 ,F2,5 	[404.1] 	{1907.7.1}
+Plates & Sills
+D Bottom of sill 6in min to earth 	[404.1 .6] 	{1806.1}
+D Sill treated or decay resistant [if $8in of earth] 	[319.1] 	{2306.4}
+D Pressure-treated wood fasteners req hot-dipped galv, stainless steel,
+silicone bronze, or Cu [exc bolts 2 112 in diameter] __ _ [319.3] 	{2304.3}
+Anchor Bolts
+D
+PLANNING 	GRADING 	FOUNDATION 	REBAR 	2
+
+-- 4 of 33 --
+
+Min. 6x6-1 Oxl 0
+Monolithic Slab 	welded wire mesh	Form
+board, 	with Footings 	between center &
+upper '/3 of slab	removed secured in place	after during pour	concrete
+sets
+2 # 4 r ebar
+or
+1 # 5 in
+'ddle 113
+BUILDING 	3
+BASEMENTS & RETAINING WALLS
+General 	061RC 	97 UBC
+D Design req 'd for retaining walls without lateral support &
+retaining >24in unbalanced fill 	[404.5]' 	{1611.6}
+D Fndn walls considered laterally supported if ALL the following :
+• Basement floor 3 1f2in slab tight against wall ___ [404.1]' 	{1611 .2}
+• Joist & blocking hardware connections to sill _ __ [404 . 1]' 	{1611.2}
+• Sill bolt spacing per soil type & backfill height __ [404.1]' 	{1611.2}
+• Joist blocking within 2 joist spaces of fndn wall __ [404 . 1]' 	{1611 .2}
+• Bldg aspect ratio within values of [Table R404.1 (3)] 	[404.1]' 	{16112}
+D Parge CMU walls prior to dampproofing EXC 	[406 .1] 	{1833.3}
+Dampproofing materials approved for direct application [406.1 X]" 	{1833.3}
+D No backfill :::4ft until walls anchored to floor 	[404 .1.7] 	{1838.1 }
+D Reinforcement [when req'd] min distance from soil T4 [404 . 1.1 , 2] 	In/a}
+CONCRETE SLABS
+Concrete Slabs 	061RC 	97 UBC
+D Slab floor on grade min 31f2in thick F5 	[506 .1] 	{1900.4.4}
+D Reinforcement reqs support in place between center & upper
+1/3 of slab for duration of slab placement F5 __ _ [506.2.4]'· 	In /a}
+D Elevated or wood-supported slab req 's engineering _ _ [lBC] 	{2307}
+D Vapor retarder joints min 6in lap under habitable space[506.2 .3] 	{1832 .2}
+CONCRETE MASONRY UNITS (CMU
+General
+D Hollow block min 8in if >1 story or >9ft 	[606.2.1] 	{21 09.6.1}
+D 6in solid block OK for 1 story to 9ft+6ft of gable _ _ [606.2 .1] 	{21 09 .6.1}
+D Anchor roof & floor structures to masonry walls __ [606.11] 	{2309}
+D Reinforcement min distance from soil side T4 __ [404.1.1] 	In/a}
+Grout
+D All cells w/ reinforcement req fill __ _ ___ _ 	[609.4.1] 	{21 04.6 .1}
+D Cleanouts req 'd for pours >4ft {5ft} 	[609 .1.5. 2] 	{2104.6.1}
+D Max lift of continuous pour 5ft {6ft} 	[609.1.4] 	{21 04 .6.1}
+UNDERFLOOR AREAS (CRAWL SPACES)
+Foundation Wall
+D Remove all form material (exc ICF) & organic debris _ 	[408.5] 	{ 1906}
+D Repair {prevent} rock pockets or voids 	[404.1] {1905.10.8}
+Access Openings
+D Min 18in high x 24in wide opening EXC __ __ _ [408.4] 	{2306.3}
+16in high OK in perimeter wall 	[408.4] 	{ca}
+D Opening must allow removal of eqpt in crawl space [1305 .1.4] 	{UMC}
+Ventilation
+D Ext openings req'd under floors exc for basements _ _ [408.1] 	{2306.7}
+D Vent openings within 3ft {as practical} of each corner _ [408.1] 	{2306.7}
+D Op enings screened or grated {1/4in mesh} 	[408.2] 	{2306.7}
+D Min area 1 sq.ft per 150 sq.ft underfloor area EXC __ [408 . 2]" 	{2306.7}
+o ventilati on req 'd if vapor re tarde r, insulated walls & space
+con d oioned or continuous mechanical venti la tion _ 	_ [408 . 3]12 	In/a}
+
+-- 5 of 33 --
+
+o Min bearing [1 112in on wood], 3in on concrete 	[502.6]
+o Joints over supports must be tied 	[502.9]
+o Max horiz offset under perpendicular bearing
+walls = depth of joist F7 	[502.4]
+o No notching tension side if ~4in thick exc at ends __ [502.S.1]
+{2320.7}
+{2320.7}
+{2320.S.5}
+{local}
+Bearing-Wall Suppor
+Over Perpendicular
+t
+Girders
+Double Joists
+Under Paralle
+Bearing Walls
+l
+Bearing wa l ls should
+not offset more t han
+the joist depth from
+the supporting girder
+be low the floor.
+W 	No notching
+Notchi ng & Boring Joists 	in middle 1/3, 	Notch max. 1/ 6 depth
+holes OK
+I
+~ Holes min. 2in. 	...
+~ - 	; from top, bottom,
+t or other holes,
+max size 1/3 depth
+Notch a end 1/4 	I 	I Outer 1/ 3
+of depth max. 	[No notching at bottom if ~ 4in. thick, except at ends]
+Prefabricated I-Joists 	Holes outside of
+shaded rectangles
+allowed if AMI
+Min. 13/4in. end
+bearing (manu)
+FLOOR FRAMING
+----~--------------
+Girders 	061RC 	97 UBC
+o Girder end joints must be over supports __ __ __ [502.6] 	{2320.7}
+TABLE 5 	JOIST SPANS, NOTCHING & BORING
+[T502.3.1(2)] & [502.8.1] & {T23-IV-J-l}
+Floor Joist Spans-40Ib. Live Load 	Notching 	Boring
+24in.
+DF#2 	12in.O.C. 	16in.O.C. O.C. End 	Outer 1/3 2in. to
+edge
+[2x6]
+{2x6}
+10f1.9in.
+10f1.9in.
+9ft.9in.
+9ft.9in.
+SfI. 1in.
+Sft.6in. 13/8in . 	7/8in. 	11 /2 in.
+[2xS]
+{2xS}
+14ft.2in.
+14ft.2in.
+12f1.7in.
+12ft.10in.,
+10f1.3in.
+11f1.3in. 17/8in. 	1112in. 	23/8in.
+[2x10]
+{2x10}
+17f1.9in.
+1Sft.Oin.
+15f1.5in.
+16ft.5in.
+12f1.7in.
+14f1.4in. 23f8in . 	11/2in. 	3 1/8in.
+[2x12]
+{2x12}
+20ft.7in.
+21ft.11 in.
+17ft.10in.
+19ft.11 in .
+14f1.7in.
+17ft.5in.
+27/8in . 	17/8in. 	3 1/2in.
+Joists 	061RC
+o Joi st spans not to exceed max numbers 'in T5 	[502.3]
+o Min bearing 11/2in on wood or metal, 3in on concrete _ [502.6]
+o Joists into side of girder req hanger or min 2x2 ledger[502.6.2]
+o Joist lap min 3in & 3 10d nails 	[502 .6.1]
+o Double joists under parallel bearing walls F6 	[502.4]
+o Prevent rotation of joists (blocking or hangers at ends) [502.7]
+o Blocking at intermediate supports [SOC Do , 0, & O2]_[502. 7X]
+o Joists >2x 12 blocked or bridged max Sft O.C. ___ [502.7.1]
+o No notches middle 1/3 of span F8 	[502 .S.1]
+o Bored holes min 2in from top or bottom
+{2320.S.1}
+{2320.S.2}
+{2320 .S.3}
+{2320 .S.3}
+{2320.S.5}
+{2320.S.3}
+{2320.S.3}
+{i1-2316.2}
+{2320.S.3}
+or other notch or hole F8 	[502.S.1] 	{2320.S.3}
+o Install manufactured I-joists AMI F9 	[502.1.4] 	{2320.1}
+o Modification of trusses, I-joists, structural composite lumber, or glue lams
+only AMI or per design professional F9 	[502 .S.2 ] 13 	{2304.4.1}
+97 UBC
+SLABS 	eMU 	FLOOR FRAMING 	4
+
+-- 6 of 33 --
+
+Size, spacing, notching & boring per tables T6,Fl 0_ [602 .3. 1] {2320.11 .1}
+o Studs must fully bear on min 2in nominal sale plate_ [602 .3.4] {2320 . 11 .2}
+o End-jointed lumber OK if identified by grade mark _ 	[602.1.1] 	{2304.2}
+o Corners req 3 studs min EXC 	[F602.3(2}] {2320.11.2}
+2 studs OK if approved spacers or backup cleats provided for
+attaching int surfaces 	[F602.3(2)] {2320.11.2}
+Notching &
+Boring Studs
+Bearing
+~	:~
+40%
+(2)"
+~
+60%
+60% hole OK
+on bearing walls
+if the studs are
+doubled & the
+holes do not pass
+through more than
+2 parallel studs.
+Nonbearing
+Altemate braced wall panels « 48 in wide) req tie-downs [602.10.6.1] 	{2320.11.4}
+o Min braced wall panel tie-down strength 1,800Ib __ [6021 0.1] {2320 .11.4}
+o Tie-down device installed AMI F3 	[602 . 10 .1] {2320.11.4}
+Underfloor Support & Cripple Walls
+o Cripple studs no less than size of studs above them _ [602.9] {2320.11.5}
+o Cripple wall <14in sheathed or solidly blocked ___ [602.9] {2320.11.5}
+o Cripple walls >411 sized as if additional story 	[602.9] {2320 . 11 .5}
+BUILDING 	5
+WALL FRAMING
+Stud Framing 	061RC 	97UBC
+o
+Top Plates 	061RC 	97UBC
+o Bearing wal l intersections & corners must overlap _ 	[602 .3. 2] {2320 .11.2}
+o End joints must offset 24in {48in} min 	[602.3.2] {2320 .11.2}
+o Joints need not be over studs 	[602 .3.2]14 	tn/a}
+o Notches or holes req 16gauge straps, min 8 {6} nails
+each side OR ~_______ _ ____ [602.6.1] {2320.11 . 7}
+Structural panel over notch/ cut 	[602 . 6.1 X] 	tn / a}
+STRUCTURAL SHEATHING/BRACING
+Stud Framing
+o All ext walls req bracing 	[602.10] {2320.11.3}
+o Let-in 1 x4 bracing OK topmost story SOC A, B, C _ [T602.10.1] {2320. 11 .3}
+o Let-in 1 x4 OK for second of 3 story in SOC A, B __ [T602.10.1] 	{2320.11.3}
+o Structural sheathing acceptable for all braced panels [T602.1 0. 1] {2320.11.3}
+o Plywood: 5f1 6in min @16 O.C. , 3/sin @24 O.C. __ [602.103] {2320.11.3}
+o Braced wall panels min 48in length, min 3 studs _ 	[602 .10.4] {2320.11.3}
+(refer to Code Check Build i ng for minimum percen ta ges of bracing coverage per wall)
+o All panel joints over studs or blocking EXC 	[602 .10.7] {2320 . 11 .3}
+Horiz joints in SOC A, B, C {where waived by manu} [602.10. 7X] {2320 .11.3}
+o Nail panels to schedule (min 6in edge, 12in field) [T602 .3(1&2)] {T23-II-B-l}
+o Wood structural panels per grade stamp 	[602 . 10 .3] 	{2304.1}
+Hold-Downs
+o
+
+-- 7 of 33 --
+
+- - 	- 	- 	- 	- 	- 	- 	- 	- 	- 	- 	- 	- ~-----"
+TABLE 8 	NAILING SCHEDULE [T602.3(1) {T23-II-B-l}
+Connection 	Nailing
+Joist to sill or girder, toe nail 	3-8d
+1 x6 subfloor or less to each joist, face nail 	2-8d [2-1 3/4in. staples]
+2in. subfloor to joist or girder, blind- & face nail 	2-16d
+Sole plate to joist or blocking, face nail 	16d 1 6i n. a.c.
+Top or sole plate to stud, end nail 	2-16d
+Stud to sole plate, toe nail 	3-8d or 2-16d {4-8d}
+Double studs, face nail 	10d {16d} 24in. a.c.
+Double top plates, face nail 	10d 24in. a.c. {16d 16in. a.c.}
+Sole plate to joist or blocking at braced wall panels 	3-16d 16in. a.c.
+Doubled top plates, face nail of lap splice 	8-16d
+Blocking between joists or rafters to top plate, toe nail 	3-8d
+Rim joist to top plate, toe nail 	8d 6in. a.c.
+Top plates, laps & intersections, face nail 	2-10d {2-16d}
+Built-up or continuous header 	16d 1 6in. a.c. each edge
+Ceiling joists to plate, toe nail 	3-8d
+Continuous header to stud, toe nail 	4-8d
+Ceiling joists, laps over partitions, face nail 	3-10d {3-16d}
+Ceiling joists to parallel rafters, face nail 	3-10d (3-16d)
+Rafter to plate, toe nail 	2-16d (3-8d)
+1 in. brace to each stud & plate, face nail 	2-8d [2-1 3/4in . staples]
+1 x6 sheathing to each bearing, face nail 	2-8d [2-1 3/4in. staples]
+1 x8 sheathing to each bearing, face nail 	2-8d [3-1 3/4in. staples]
+Wider than 1 x8 sheathing to each bearing, face nail 	3-8d [4-1"/4in . staples]
+Built-up corner studs 	1 Od {16d} at 24in. a.c.
+[10d each layer 32in. a.c. top
+Built-up girders & beams, 2in. lumber layers-IRC 	& bottom staggered & 2 nails
+at ends & each splice]
+{20d at 32in. a.c . top &
+Built-up girders & beams-UBC 	bottom staggered & two 20d
+nails at ends & each splice}
+2in. planks 	2-16d @each bearing
+Roof rafters to ridge, valley, or hip rafters, toe nail 	[4-16d]
+Roof rafters to ridge, valley, or hip rafters, face nail 	[3-16d]
+Rafter ties to rafters, face nail 	[3-8d]
+BRACING 	WALL FRAMING 	ROOF
+ROOF
+Trusses
+& CEILING FRAMING
+061RC
+D Provide design drawings, calculations & approvals
+wi shipment {marking on each truss} 	[802 .10.1]
+D Design professional approval req 'd for any field modification
+including added loads such as HVAC 	[802.1004]
+D Bracing per drawings or BCSI 1-03 	[802.10 .1,3]"
+Rafters & Ceiling Joists
+D Spans per table T9 	[80204, 5]
+D Rafter span can be measured from purlin support _ 	[802 .5.1]
+D Purlin dimension no smaller than rafter 	[802.5.1]
+D Purlin braces min 2x4 max 45° from vert 	[802.5.1]
+D Prefabricated wood I-joists AMI (including boring) __ [802. 7. 2]'·
+D Notching & boring same as floor joists & girders F8 _ 	[802.7]
+D Supports <3:12 slope roof design as beams not rafters [802.3]
+D Rafter ties req 'd if joists not tied to parallel rafters _ [802.3.1]17
+D Rafter ties min 2x4 on lower 1/3 of every rafter pair _ [802.3.1]'·
+D Collar ties for wind uplift upper 1/3 max 4ft O.C. __ [802 .3.1]"
+D Collar ties can be 1 x4 	[802.3.1)2°
+D Ridge board min 1 x & full depth of cut rafter 	[802.3]
+D Hip & valley rafters min 2x & full depth of cut rafter __ [802.3]
+D Headers & trimmers >4ft must be doubled 	[802.9]
+D Headers> 6ft must be hung with hardware 	[802.9]
+D Ends of rafters must have min 11/2in bearing 	[802.6]
+D Max allowable deflection ceiling joists L/240* 	[301.6]
+D Max allowable deflection roof rafters >3:12 L1180* __ [301.6]
+, L = length in inches
+{2321 A}
+{2320.1 }
+{2321 A}
+{2320.12.2}
+{2320 .12.7}
+{2320.12 .7}
+{2320.1 2.7}
+{2320.1 }
+{2320.1204}
+{2320.12.1}
+{2320.12 .6}
+{n/a}
+{n/a}
+{2320.12 .6}
+{2320.12 .3}
+{2320.12 .3}
+{2320 .12.5}
+{2320.12.5}
+{local}
+{2320.12.2}
+{2320.12 .2}
+97 UBC
+& CEILING FRAMING 	6
+
+-- 8 of 33 --
+
+BUILDING 	7
+EXTER I OR WALL COVERS
+General 	061 RC 	97 USC
+o Ext walls req'd to prevent water accumulation & to drain water
+that enters wall assembly 	[703.1]21 	{1402.1}
+o Water-resistive membrane req 'd over studs or sheathing [703.2]22 	{1402 .1}
+o All penetrations req flashing to carry water to ext or to
+water-resistive membrane __________ [703.8]23 	{1402.2}
+o Flashing req'd for door & window openings 	[703.8] 	{1402 .2}
+Stucco
+o Must conform to ASTM C926 & C1 063 	[703.6]24 	tn/a}
+o 3-coat system req 'd EXC Fll 	[703.6. 2] 	{2508.1 }
+2-coat OK over masonry 	[703.6.2] 	{2508.1 }
+o Weep screed min 4in to earth, 2in above paving Fll _ [703.6.2.1] 	{2506.5}
+o Min 2 layers grade D paper or equivalent Fll __ [703.6.3]25 	{2506.4}
+o Lap paper/paper & wire/wire (not paper/wire/paper /w ire) [703.1] 	{2506.3}
+o Paper lap: horiz 2in min, vert 6in 	[703.2] 	{1402.1}
+o Total thickness from sheathing min 7/sin 	[T702.1 (1 )] 	{T25-D}
+Stucco	Wire -----1!"""7-= 	coats :
+2 layers
+Weep 	paper 	Scratch
+Screed Weep 	Brown
+screed - '7""'.0:::....:"",,-
+Water exits 	Finish
+4in. min. to ground 	from edge, not
+2in. min. to pavement 	through holes.
+Exterior Insulation Finishing Systems ( EIFS )
+o Must follow manu instructions 	[703.9] 	{1401.1}
+o Water-resistive barrier & drain plane req'd behind
+insulation (only "w ater managed" systems allowed) _ [703.9.1] 	{1402.1}
+o No decorative trim nailed through EIFS 	[703.9] 	{manu}
+o Terminate at least 6in above ground level 	[703.9] 	{manu}
+Other Siding Materials
+o Water-resistive barrier req'd behind vi nyl siding __ [T703.4]'· 	tn/a}
+o Water-resistive barrier req'd behind hardboard siding _ [T703.4] 	{23106}
+o Fiber cement horiz lap siding end joints req
+___________ [703.10.2] 	tn/a}
+ped or behind batten __ [703.3.1] 	{23 10 .3}
+ed 	-bar) _ 	[ 703 _3 _1] 	{2310 .3}
+Masonry Veneer 	061RC 	97 USC
+o SDC A, B, C max thickness 5in 	[T703. 7(1)] 	tn/a}
+o SDC Do, D, max thickness 4in 	[T703.7(1 )]" 	tn/a}
+o SDC D, max thickness 3in 	[T703. 7(1)] 	tn/a}
+o Max height 30ft (20ft in SDC D2 ) 	[T703. 7(1)] 	tn/a}
+o Braced wall panels & hold-downs req 'd SDC D_ [T703.7(1)] 	tn/a}
+o No additional loads on masonry veneer 	[703.7.3] 	{1403.4.1}
+o Min. 3f4in gap between top of veneer & structural frame [F703.7] 	{1403.4.1}
+o Metal ties max 24in horiz & vert spacing F12 __ [703.7.4.1] {1403.6.4.2}
+o Flashing to ext surface all openings & horiz transitions F12 [703.8] 	{1402.2}
+o Min 3f16in weepholes immediately above flashing F12_ [703.7.6] 	{1403.6 .1}
+o Weepholes max spacing 33in O.C . F12 	[703.7.6] 	{1403.6 .1}
+o Min 1 in air space between sheathing & veneer OR F12 [703.7.4.2] {1403.6.4.2}
+Mortar/ grout fill over water-resistive membrane __ [703.7.4.3] {1403 .6.4. 2}
+Masonry
+Veneer
+Metal ties-
+ma x. 24in. O.C.
+Weep holes-
+max. 33in. O.C.
+r---'O; !9"--I-----Min. 1 in. airspace
+ATTICS
+General
+o Attics ~30in high [& >30sq .ft] req access 	[807.1]
+o Opening min 22inx30in & 30in headroom 	[807.1]
+o Opening must allow removal of attic mechanical equip [1305.1.3]
+Ventilation
+o Vent each enclosed attic & enclosed rafter bay {per BO} [806.1]
+o 1/sin to 1f4in {1/4in exact} mesh screen over openings _ [806.1]
+o Min net opening area 11150th of vented area OR ___ [806 . 2]
+1/30o th if 50 % -80 % in upper portion 	[806.2]
+o Conditioned unvented attic assemblies OK 	[806.4]'·
+o Insulation min 1 in clearance to sheathing near ven ts _ 	[806 .3]
+{1505.1}
+{1505 .1}
+{UMC}
+{1505.3}
+{1505.3}
+{1505.3}
+{1505.3X}
+tn/a}
+{1505.3}
+
+-- 9 of 33 --
+
+Dirty chimneys are a
+fire hazard due to the
+accumulation of combus-
+tible creosote. Consult a
+certified chimney sweep
+annually for cleaning &
+inspections.
+WALL & ROOF COVERINGS 	ATTICS
+- 	-------------- - - 	------ -- -
+ROOF COVERINGS
+Roof Sheathing 	061RC 	97UBC
+o Solid ly sheathed deck for asphalt shing le 	[905 .2. 1] 	{T15-B-l }
+o Wood panels req grade stamp & span rating __ [B03.2.1 , 2] 	{2312 .2}
+o Nail to schedule (6in edge-12in field min ) _ _ _ [T602.3 (1}] 	{T-23-II-B-l }
+o '/ain gap on sheathing ma rked "sized for spacing " _ _ 	[manu] 	{manu}
+Roof Coverings-General
+o Class A, B, or C fire rating req 'd [if edge <3ft from PL or]
+per loc al law 	[902.1] 	{1503}
+o Materials req manu identification & agency approvals _ [904.4] 	{1507.2}
+o Install AMI 	[903.1] { 1507.5,6,7}
+o Flashing req 'd at roof/wall intersections, penetrations,
+chimneys, etc. 	[903.2] 	{1509}
+Sloped Roofing
+o Min 24in ice-dam membrane from edge to 24in inside ext wall line
+of bldg in areas with history of ice forming at eaves [905.2.7.1]'" 	{T15-B-1}
+o Asphalt shingle min slope 2: 12 & double underlayment
+if <4:12 	[905.2.2] 	{T15-B-1}
+o Asphalt shingle fasteners min 4 , min 3/4in into sheathing
+(or through if sheathing <3/4in) 	[905.2.5] 	{T15-B-1}
+o 16in wood shingles min slope 3 : 12 (3 3/4in max exposure
+if <4:12) 	[905.7.2] 	{T15-B-2}
+o Wood shakes min slope 3:12 {4:12 or per BO} __ [905.B. 2] 	{T15-B-2}
+o Clay/concrete tile min slope-2112:12 [double underlayment
+if ~4 : 12] {built-up roofing if <3 :12} 	[905 .3.2] 	{T15-D-l }
+o Chimney cricket req'd AMI or if chimney >30in wide [905 . 2.B .3] 	{manu}
+Low Slope Roofing
+o Built-up roofs min slope ' /4in vert to 12in horiz ___ [905.9.1] 	{1506.1}
+o Install AMI 	[905.9.3] 	{1507.6}
+o Install drains at each low point 	[903.4] 	{1506.2}
+o Secondary drains req'd 2in above low point of roof _ [903.4.1] 	{1506.3}
+FIREPLACES & CHIMNEYS
+Masonry Fireplaces 	061RC 	97 UBC
+o Footing min 12in thick & 6in beyond all sides __ _ 	[1003.2] 	{31 02. 7.2}
+o Hearth min 4in thick 	[1001 .9.11 {3102.7.11}
+o Hearth extension min 2in {4in} thick 	[1001 .9.2] {31 02.7.11}
+o No combustible material remaining under hearth
+or extension _ __ _ _ ___ _ ____ _ 	[l 001.9] {31 02. 7.11}
+o Hearth extension min 16in deep & Bin to sides
+if opening <6sq.ft _ ___ __ ____ _ [1001 .10] {3102.7.12}
+o Hearth extension min 20in deep & 12in to sides
+if opening 26sq.ft 	[1001.10] {3102.7.12}
+o No combustible material within 6in of opening ___ _ [1 001.11] 	{3102 . 7.B}
+o Combustible material <12in of opening limited to
+max Bin projection for each inch of clearance _ _ _ [l 001 .11] 	{31 02 . 7.B}
+o All combustion air from outdoors & intake not higher
+than firebox _ _ _ __ _ _ ____ _ _ _ _ [l 006.1] 	{APDX13}
+Masonry Chimneys
+o Reinforcement & anchoring req 'd in SOC Do, 0, & O2 {SZ 2, 3, & 4}:
+• Min 4 #4 vert reinforcing bars solidly grouted __ [1003.3.11 	{3102.4.3}
+• Min 6 #4 vert reinforcing bars if chimney >40in wide [1003.3.1] 	{3102.4.3}
+• Min '/4in horiz ties every lBin in height 	[1003 .3.2] 	{3102.4.3}
+• Anchor at each floor/ ceiling >6ft above grade exc when
+chimney completely in bldg int 	[1003.4] 	{3102.4 .3}
+o Termination min 3ft above roof AND
+2ft above any part of bldg within 10ft F13 ___ [1003.9] 	{3102 .3.6}
+o Spark arrester req 'd per BO _ _____ _ ___ [local] 	{3102.3 .B}
+o Spark arrester min 4x area of flue opening 	[1003.9.1] 	{3102.3 .B}
+o Spark arrester mesh min 3/ ain max 1/ 2in 	[1003.9 .1] 	{3102 .3.B}
+Manufactured Fireplaces & Chimneys
+o Must be L&L & installed AMI 	[1004 .1] 	{3102 .5.1}
+o Hearth extension per listing & instructions 	[1004 . 2] 	{3102.5.1}
+o Decorative shrouds req listing for specific chimney used [1 004.3] 	{3102 .5.1}
+o Chimney chase req's fireblocking at attic 	[602.B] 	{70B.2.1]
+o Termination min 3ft above point passing through roof _ 	[manu] 	{3102.3.6}
+o Termination min 2ft above any part of bldg within 10ft _ 	[manu] 	{3102.3.6}
+o Spark arrestor req'd [per BO] 	[manu] 	{3102.3.B}
+Gas Appliances
+o Decorative logset must be installed AMI
+(damper blocked open) 	[2432.1]
+o Decorative logs with pilots must have pilot safety __ [2432.2]
+o Log lighters req hard gas pipe 	[2433.1}
+o Req 'd valve ~6ft of fireplace in same room 	[2420.5]
+{UMC}
+{UMC}
+{UMC}
+{UMC}
+FIREPLACES & CHIMNEYS 	8
+
+-- 10 of 33 --
+
+Ladder req'd if window well> 44in. below grade
+Basement
+Window
+Egress
+(plan view )
+3m . min. clearance 	" 	/'	9sq.ft. min.
+Basement 	/ 	""'"
+=====I"";window .....L:==:::=:=
+Sin. max.
+into req'd
+clearance
+o
+o
+o
+W
+o
+o
+o
+Gypsum Board 	061RC
+o Install only after rough inspections complete 	[109.4] 	{108.5.4}
+o Install only after bldg is weather-protected 	[701.2] 	{2511 .1}
+o Nailing per schedule T10 	[702.3.5] 	{2511.2}
+o Edges & ends over or perpendicular to framing __ [702.3 .5] 	{2511.3}
+Greenboard-Water Resistant Gypboard
+o Not allowed where subject to direct water exposure (tubs or showers)
+or high humidity (saunas) 	[702.3.8.1]33 	{2512}
+o OK for adhesive ceramic tile wi no direct water exposure[702.3.8] 	{2512}
+Ceiling framing max >12in O.C. for 1i2in green board _ [702.3.8] 	{2512}
+Ceiling framing max >16in O.C. for 5/8in green board _ [702.3.8] 	{0}
+Use cement fiber tile backer in tub/shower areas_ [702.4.2]'4 	in/a}
+all & Ceiling Insulation
+Vapor retarder facing conditioned space EXC 	[318.1] 	{707.3X2}
+Primarily cooling condition (hot humid climate) _ _ _ [318.1 X] 	in/a}
+Light fixts in bldg envelope either Type IC airtight, Type IC
+max 2cfm leakage, or non-IC in airtight box 	[1102.4 .3] 	{APDX13}
+Installer to provide certificate for blown-in insulation [1101.4.1] 	{APDX13}
+97 UBC
+~........	..---=....-
+BUILDING 	9
+EGRESS
+Doors & Landings 	061RC 	97UBC
+o Door with direct access to ext req 'd
+(not through garage) 	[311.4.1] {1005.3 .2.3}
+o Min one exit 3ft wide x 6ft 8in high side hinged door _ [311.4.2] {1 005.3.2.1}
+o All doors req keyless operation from int 	[311.4.4] {1003.3.1 .8}
+o Hallways min 36in wide 	[311.3] {1004.3.3.2}
+o Floor or landing each side of all ext doors EXC __ [311.4.3] {1003.3.1.6}
+2 risers OK at ext door that is not req 'd exit __ _ [311.4.3X] 	{0}
+o Max threshold height at [ext] doors 11/2in {1 in} __ [3 1 1.4.3]'° {1003.3 .1.6}
+o Landing can be one riser height below threshold if door does not
+swing over landing (screen door may swing over) _ 	[311 .4 .3X]{ 1003.3.1 .6X}
+o Landing min 36in deep x width of door 	[311.4.3]( 1003.3.1 .7X}
+o Exit balconies req positive attachment (lag screws not toe nails)
+to resist lateral & vert forces 	[311.2. 1] 	{2320.13}
+Bedroom & Basement Egress
+o All sleeping rooms req escape & rescue opening F1 5_ [310.1] 	{310.4}
+o Window sill height max 44in above floor F15 	[310 . 1] 	{310.4}
+o Min 20in wide & min 24in high AND F15 	[310.1.2,3] 	{310.4}
+5.7sq.ft min clear opening EXC T12 	[310.1.1] 	{310.4}
+5.0sq.ft OK if direct grade level access Tll __ _ [310.1.1 X] 	{0}
+o Approved int qu ick-release hardware req'd for security
+bars on escape & rescue openings 	[310.4] 	{310.4}
+o Basements re q escape & rescue opening EXC F14 _ [31 0.1]31 	{310.4}
+Basements ~ 200 sq.ft & only for mechanical eqpt _ 	[310.1]32 	in/a}
+o Wi nd ow wells mi n 9sq.ft & 36in min horiz dimension F14 [310.2] 	{310.4}
+o Permanent ladder re q 'd if >44in below grade F14 _ [310.2.1] 	{310.4}
+o Ladder may project 6in into req 'd well space F14 __ [31 0.2X] 	{310.4}
+Bed room Wi ndow Egress
+When the requi red second exit in a bedroom is
+a window, it must open to a size that al lows the
+residents an escape rou te & a firefighter to enter
+while wearing an oxygen pack. The sill must not
+be higher than 44in. from the finished floor. The
+openable portion of the window must be at least
+24in. high & at least 20in. wide, with a net area a
+least 5.7sq.ft. , per T12. If the window is at direct
+grade level, the overa ll size may be reduced to
+5.0sq.ft. per T11 .
+t
+-
+
+-- 11 of 33 --
+
+Safety Glass 	1.1 >36in. above
+~ walking surface
+.----------.
+If all conditions (A+S+C+D) exist, then window must be safety glass.
+Safety glazing would also be req'd if within 2ft. of the door frame.
+WINDOWS & SAFETY GLAZING
+Minimum Light & Ventilation
+D Habitable rooms req openings for natural light min 8
+floor area {1 0% & min 1 Osq .ft }
+D Bathrooms {& kitchens} may have artificial light only _
+D Bath fan may not discharge into any part of attic _
+D Habitable rooms req openings for natural ventilation
+floor area {5% & min 5sq.ft}
+D Bathrooms req 11l2sq.ft openings OR
+50cfm {5 air changes/hour} fan to outside
+D 2 rooms considered 1 for light & ventilation if openin
+between them min 50% of common wall & opening
+;:-:10% of floor area & min 25sq.ft
+061RC
+% of
+[303.1]
+[303.3X]
+[1501.1]35
+min 4% of
+[303.1]
+[303.3]
+[303.3X]
+g
+[303.2]
+97UBC
+{1203 .2}
+{1203.2X}
+{1203.3}
+{1203.3}
+{1203.3}
+{1203.3}
+{1203.1}
+Safety Glass Identification
+D Tempered glass reqs permanent etched label EXC
+Spandrel glass removable paper label OK
+D Only 1 lite req's etched label in multi pane window _
+Exterior Windows & Doors
+D 3rd-party performance testing & labeling req 'd EXC _
+Decorative glazed openings exempt
+D Openable windows ;:-:4in & w/ >72in drop-off must b
+int floor or provided w/ window guard
+Hazardous Locations Requiring Safety Glass
+D Tub/shower enclosure + doors & windows with
+lower edge $60in from tub/shower floor
+D Glass in doors if 3in sphere could pass through F16
+D Glass in sliding or fixed panels of sliding doors __
+D Sidelites with vert edge of glazing <24in of door swi
+& lower edge of glass <60in from floor EXC F16_
+Lites perpendicular to door & on latch side ___ [
+D All glass in railings
+D Glazing $3ft horiz of stair or 5ft horiz of bottom nosin
+intervening guard & lower edge <60in from floor _
+D Windows w/ walk-through hazard ALL the following: F
+• Exposed area of glazing >9sq.ft AND
+• Bottom edge <18in above floor or ground AND
+[308 .1 X2]
+_ [308 .1]
+[613.4]
+[613.4X]
+{2406.2}
+{0}
+in/a}
+in/a}
+e min 24in above
+[613 .2],6
+[308.4]
+_ [308.4]
+_ [308.4]
+ng
+__ [308.4]
+308.4X4]37
+[308.4]
+g w/ no
+__ [308.4]
+16 [308.4]
+• Top edge >36in above floor or ground AND
+• Within 36in horizontally of a walking surface
+D Decorative glass in doors, sidelites & windows
+in/a}
+{2406.4}
+{2406.4}
+{2406.4}
+{2406.4}
+{0}
+{2406.4}
+{2406.4}
+{2406.4}
+exempt exc in bathrooms, stairs & landings ___ [308.4X2] {2406.4X5}
+EGRESS 	WINDOWS 	SAFETY GLAS
+__ [308.1] 	{2406.2}
+Skylights
+D Skylights may be tempered , heat-strengthened, laminat
+wired, or approved rigid plastics
+Min 4in curb if roof slope <3:12 {<12:12}
+SWIMMING POOL BARRIERS
+eneral
+D Applies to all pools or spas >24in deep
+Barrier fence req 'd min 48in high
+D Bottom of fence max 2in above grade
+Max opening <4in , fence not climbable
+D Gate lockable, self-closing, open away from pool __
+If latch <54in high, must be poolside & min 3in from to
+D No openings >1l2in within 18in of gate latch
+D Doors & screen doors w/ direct pool access req alarm aud
+within 7 seconds of opening for 30 seconds duration _
+D Alarm control min 54in high, automatically resetting _
+[308.6.2]
+[308.6.8]
+APDXG
+{2409.2}
+{2409.4}
+APDX4
+[102] 	{420}
+[105.2] 	{421.1 #1}
+[105 . 2] 	{421 .1 #1}
+[105 . 2] 	{421.1 #1}
+_ [1 05.2] 	{421.1 #4}
+p [105.2] 	{421.1 #4}
+[105.2] 	{421.1 #4}
+ible throughout house
+_ [1 05.2] {421.1#5X2}
+[105.2] {421.1#5X2}
+POOL BARRIERS 	10
+D
+G
+D
+D
+D
+061RC
+ed,
+97 UBC
+S
+
+-- 12 of 33 --
+
+Winding Stairs
+Stair Profile
+Min. tread
+depth lOin.
+{9in.}
+,
+:Min. 3f4in .
+:Max. 11f4in.
+Max. radius 9/1sin.
+:-
+l1f4-2in .
+'
+Handrail 	Handrail
+Height S;ze
+l1f2in.
+min.
+......~__-t..:1:.; 134in.-38in.
+,_ 	[41f2in.l
+{31f2in.}
+Guardrails
+Guardrail req'd
+- Min . height:
+.
+36in. single·family
+dwelling
+when deck
+surface to
+ground >30in .
+Max. opening such that
+a 4in. sphere cannot
+pass through
+TABLE 13 	SPECIAL INSPECTION REPORTS FILL-IN TABLE
+5.1. Reports Due before Fina l Inspection 	Required 	Received
+Concrete >2,500 psi
+Pilings, drilled piers & caissons
+Reinforced concrete/masonry
+Insulating concrete form walls
+Post ·tensio ned concrete
+High -strength bolting
+Structural welding/steel moment frames
+Fire -res istance- rated construction
+Shear nailing <4 in. O.C.
+Special case: 	I
+BUILDING 	11
+STAIRS & DECKS
+eneral
+o Illumination req'd for all stairways
+o Switch req'd top & bottom of int stairs 2:6 risers
+o Floor or landing req 'd at top & bottom of int stair
+exc where door does not swing over stairs _
+o Headroom min 6ft Bin F19
+o Min stairway width above handrail 36in
+o Handrail may project into req 'd width 41i2in {3 1i2in}
+o Max riser height 73/4in {Bin} F18
+o Min tread depth lOin {9in} F18
+o Max difference between tallest & shortest riser o
+& shortest tread run 3/sin
+o Winder tread min 6in & develop req 'd length at :
+from inside of winder F17
+o Nosing min 3/4in max 11/4in req 'd on stairs w/ so
+risers EXC F18 _ __ ________ _
+Nosing not req'd if tread depth 2: 11 in _ __
+G 	061RC 	97 UBC
+[303.6] 	{NEC}
+__ [303.6.1]'8 	{N EC}
+ways {including garage}
+__ [311.5.4X]39 {1003.3.1.6}
+[311.5.2] {1003.3.3.4}
+[311.5.1] {1003.3.3.2}
+F20 [311 .5.1] {1003.3.3.2}
+[311.5.3.1]{1003.3.3.3x}
+[311.5.3.2]{1003.3.3.3x}
+r largest
+[311.5.3.1 , 2] {1003.3.3.3}
+0;1 2in
+[311 .5.3.2]{1003.3.3.B .2}
+lid
+_ [311.5.3.3]
+_ [311.5.3.3X]
+in/a}
+in/a}
+Handrails
+o Grippable handrail req'd if 4 or more risers 	[311.5.6] {1003 .3.3.6}
+o Handrail height min 34in max 3Bin F19,20 	[311 .5.6.1] {1003.3.3.6}
+o Grips min 11 / 4in max 2in circular cross section F20 [311.5.6.3] {1003 .3.3.6}
+o Min i 1i2in between wall & handrail F20 	[311.5 .6.2] {1003 .3.3.6}
+o Ends must return to wall or newel post 	[311 .5.6. 2] {1003.3.3.6}
+o Handrail on open side of stairs must not allow 4in sphere
+to pass through 	[312.2]
+::J Openi 9S be 	een treads of open ri sers <4in __ [31 1. 5.3.3]
+_~ - snace betv.een rise . ead & rail must no allow
+{509.3}
+in/a}
+E ---e-e ' w == - 	[312.2X 11 	{5 09 .3X2 }
+.
+..	if
+Guardrails 	061RC 	97 UBC
+{509.1 }
+{509.2Xl}
+{509.3}
+Req 'd for any walkoff >30in above floor or grade F21 _ [312.1]
+o Min height 36in {34in if guard is stair handrail} F21 __ [312.1]
+o Opening must not allow 4in sphere to pass through F21 _ [312.2]
+o Guards w/ openings, 43/sin req'd on open sides of stairs if total rise
+above floor or grade >30in 	[31 2.1] 	{509.1 }
+o
+I
+
+-- 13 of 33 --
+
+Coved or
+Dropped Ceiling
+Chimney Fire Block _I.IiO.IKaO.
+2in.
+/
+Coved
+ceiling 	Fire block must be made of non-
+combustible material, such as com-
+pressed fiberglass or sheet metal.
+STAIRS 	DECKS 	FIRE PROTECTION
+--- ------ ---------- - 	--- -----------
+FIRE PROTECTION
+Stairs
+o Firebl oc ki ng req 'd at concealed space under stairs
+at top & bottom of str in ge rs
+o Enclosed accessib le space below stairs req 's 1/2in {
+gyps um boa rd
+[602.S] 	{70S.2 .1}
+5/sin type X}
+[311.2.2] {1003 .3.3.9}
+Fireblocking & Draftstopping
+o Fireblocking req 'd in concealed spaces of stud wal ls
+ma x 10ft {vert &} horiz _____ _ __ _ _
+o Fireblocking req 'd at ceiling/floor levels
+o Fireblocking req 'd at horiz/vert intersections such as
+drop & cove ce ilings F22
+o Seal gaps around ducts, wires & pipes @ floor & ceili
+level penetration
+o Fireblock material may be 2x lumber, 1/2 in gypboard,
+glass fiber, or other approved materials
+o Compressed glass fiber should be tightly packed _
+o Unfaced fiberglass min 16 in vert height when used
+as fireblock in wall cavity 	[
+o Fireblock between chimneys & framing F23 __ _ [
+o Floor/ceiling draftstopped if >1 ,000 sq.ft (open web
+or ceiling suspended from floor framing
+o Draftstop material 112in gypsum or 3/sin panels __
+Separation & Protection from Garage
+o Min 112in {5/sin} gyp board on garage side of walls co
+to house
+o Min 5/sin gyp board on garage ceiling common to hou
+__ [602.S]
+[602.S]
+soffits,
+[602.S]
+ng
+[602.S]40
+compressed
+[602.S.1 ]
+[602.S.1]
+{70S.2.1 }
+{70S.2.1 }
+{70S.2.1 }
+{70S. 2.1 }
+{70S. 22}
+{70S.2.2}
+602.S.1.1] 	In/a}
+1003 . 19]41 {31 02. 7.13}
+trusses)
+[502 .12] {70S.3.1.1.1}
+[502 .12.1] 	{70S.3.1 .3}
+mmon
+[309.2]
+se [309.2]
+o Min 112in {5/sin} gypboard on walls supporting ceilings
+common to house 	[309.2]
+o Approved firestop material at penetrations to house [309 .1. 2]42
+o Ducts from house to garage min 26gauge steel __ [309.1.1]
+o No duct openings into garage 	[309.1 . 1]
+o No openings between garage & sleeping rooms __ _ [309 . 1]
+o Door between house & garage rated 20-minute or 13/s in solid
+core {& self closing} 	[309.1]
+{302.4X}
+{302.4X}
+{302.2}
+{709.6.3}
+{302.4X}
+{302.4X}
+{312.4}
+{302.4X}
+061RC 	97 UBC
+Separation & Protection from Garage (co
+o Noncombustibl e floor [sloped to drain] _ __
+o Carport exempt if open 2 or more sides
+D int walls of detached garage min 1/2 in gypboard
+nt.) 	061RC
+___ [309.3]
+[309.4]
+where
+within 3ft of house 	[309 . 2]43
+97 UBC
+{312.5}
+{302 .1X3}
+In/a}
+SMOKE ALARMS
+General Requirements
+o NFPA 72 fire alarms OK if equivalent to smoke alarms
+o Req'd in each sleeping room & adjoining area F24
+o Min 1 detector each story including basements F2
+o Interconnect so activation of one alarm sets off all al
+o Compliance req 'd for work (>$1 ,OOO) requiring permit
+Work on ext (porches, residing, reroofing, etc.) ~
+o Power from bldg wiring plus battery backup
+o Battery power alone OK for remodel where no
+finishes removed __________
+[313.1]44
+__ [313.2]
+4 _ 	[313.2]
+arms _ [313.2]
+EXC[313.2.1]
+[3 1 3.2.1 X2]45
+[313.3]
+{local}
+{310.9 .1.4}
+{310 .91.4}
+{310.9.1.4}
+{310.9.1.2}
+{local}
+{310 .9.1 .3}
+_ [313 . 2.1 X1] 	{3109 .1.3}
+Smoke
+Alarm
+Locations
+-1.1'--_ Hallway
+adjoining
+bedroom
+HABITABILITY REO'S & FINAL INSPECTION
+General Requirements
+o Bldg address numbers legible from street 	[321.1]
+o Heat req 'd in habitable rooms 6So {700} 3ft above floor [303.S]
+o Min one room 2:1 20sq.ft 	[304.1] 	{
+o Habitable rooms exc kitchens min 70sq.ft &
+min dimension 7ft 	[304.2 , 3] 	{3
+o Sloped ceiling rooms min 50 % must be 2: 7ft ceiling & areas <5ft
+do not count toward required floor area 	[305.1 X3]46 	{
+o Sloped ceiling room area <5ft high doesn't count toward
+req 'd min space 	[305.1] 	{
+o Ceiling height habitable space min 7ft {7ft 6in} ___ [305 .1] 	{
+o Kitchens, baths & hallways min ceiling height 7ft EXC ~ [305.1] 	{
+6ft Sin OK in baths over fixture & front clearance area ~ [305.1]
+o Ceiling height unfinished basements min 6ft Sin __ [305.1]
+{502}
+{310.11}
+3106.2}
+10.6.2,3}
+310.6.1}
+3106.1}
+310 .6.1}
+310 .6.1}
+{0}
+In/a}
+SMOKE ALARMS 	12
+
+-- 14 of 33 --
+
+Pipe supported on firm bed for entire length F25 __ [2604.1]
+o No rocks supporting or touching pipe F25 	[2604.1]
+o No rocks or debris in first 12in backfill over pipe __ [2604.3]
+o Common trench for gas & elec tric per utility 	[utility]
+o No sewer in common trench with electric 	[utility]
+o Water service min 12in deep & 6in {12in} below frost line[2603 .6
+o No pip es outside thermal envelope of bldg if
+w inter design temp ~ 32°F 	[2603.6]
+o Water & sewer OK in same trench if sewer
+material appro ved in house OR 	[2904.4 .2]
+5ft separation OR w ater 12in above sewer [or slee ve d] [2904.4.2]
+o Se wer depth per local BO 	[2603.6 .1]
+o Utility or other trenc h may not undermine footing __ [2604.4]
+o Pipes through fndn req sleeve or arch 	[2603.5]
+{314.3}
+{315.4}
+{315.4}
+]
+{utility}
+{utility}
+{609.1}
+Pipes in Trench
+Pipe must be fully supported
+{313 .6}
+{609.2}
+{609 .2}
+{local}
+{313.3}
+{313.10.1}
+PLUMBING 	13
+UNDERGROUND
+Utility Trenches 	06 IRC
+o 06UPC
+Gas Pipes
+o Min d e pth 12in {lBin if external damage likely} __
+D {Provide sleeve or bridge in conduit if <1 2in}
+o Individual gas lines to lights, grills, et c .: Bin OK __
+o Plastic only OK underground outside bldg ___ [
+o Buried plastic req 's #1 Bgauge tracer wire ___ [
+o Buried metal factory wrapped EXC
+Fi eld w rapping OK wh ere s tripped for threading _ [
+_ [2415.9]
+[0]
+[2415.9 .1]
+2415 . 14 .1]
+2415 . 14.3]
+[2415.B.2]
+2415.B.2X]
+{1211.1.2A}
+{0}
+{1211 .1.7A}
+{1211 . 1.7C}
+{1211 .1.3}
+{1211.1.3}
+Foundati o ns & Conc re te Slabs
+o Pipes in concrete mu st be wrapped or sheathed _
+o No fl at venting
+o Vent do w nstream of trap
+o Gas not permitted unless sl eeved in c onduit __
+o Ty pe M Cu OK in slab {min ty pe " t..: '}
+o Cu joints brazed , no t soldered
+o Ferrous met als [proh ibited] {fac tory wrapped} __
+ROUGH INSPECTION-TESTIN.;....
+o Test all p ip ing before cover or concea lm ent
+o DWV wa ter test min. 10ft head for 1 5 minutes 0 R _
+= 'r test 5ps ig (1 0 in me rc ury) for 15 minutes ___
+Wa e 	under wo 'ng pressure { 15 minutes
+5 	'c p i pe
+_____
+_ [2603 .3]
+[3104.3]
+[3101 .2.1]
+_ [2415.11]
+[2904.5.1]
+[2904 . 15]
+[2904 .5.1]
+{313 .2}
+{905.2}
+{901.0}
+{1211 .1.6}
+{604.2}
+{609.3.2}
+{609.3.1 }
+G""--____ _
+[2503.2J
+[2 503.5 .1J
+[2 5 03 .5.1J
+} O R
+[2503.6]47
+[2417.4.1J
+{103.5 . 1}
+{712.2}
+{712.3}
+{609.4}
+{ 1214 .3 }
+{1211 .1. 2A}
+SIZING
+TABLE 14 	SIZING BRANCH DRAINS & VENTS [3005.4.1] & {7-5}
+Pi pe size 	l'/.in . 	l'12i n. 	2in . 	3i n. 	4in.
+Max it of 	Vert. 	1 	4 (2) 	10 (16) 	48 	240 (25
+DFU 	Horiz. 	1 	3 (1) 	6 (8) 	20 (35) 	160 (21
+Ven t s' 	Max Units 	(1) 	(8) 	(2 4) 	(84) 	(2 56 )
+{U PC} 	Max FeetC 	(45) 	(60) 	(120) 	(2 12) 	(300)
+A. Based on 4in.lf t. slope
+B. IRe ve nts must be :?2x the req uired drain diamete r.
+C. IRe vents >40ft. must be increased one pipe size; UP C vents increase 1 pipe size jf hor iz. length
+exceeds 2 of vert length.
+6)
+6)'
+TABLE 15 	TRAPS & ARMS
+[T3004.1, T3105.1, & T3201.7] & {T7-3 & 10-1}
+Min. Size 	DF U 	Len gth
+Bathtubs 	1 1/2 in . 	2 	6ft. {3ft. 6in .}
+Floor drains 	2in. 	0 	Bft. {5ft.}
+Laundry tubs 	11 f2 in. 	2 	6ft . { 3ft . 6 in.}
+Cl ot hes was he r 	2in. 	2 	Bft. {5ft.}
+Shower 	1 1I2in .' 8 	2 {3} 	Bft. {5ft.}
+Bar si nk 	11 f2 in. 	2 	6ft. {3ft. 6in.}
+Kitchen sink' 	l 1f2 in . 	2 	6ft . {3ft. 6in.}
+Lav 	11 /4in. 	1 	5ft. {2ft . 6in.}
+Water closet 	3in. 	3 8 	no li mit {6 ft.}
+A. {Min . drain size 2in.}
+B. 4 DF Us IR C if >1.6 gallons per flush
+TABLE 16 	PIPE SUPPORT [T2424.1] & [T2605.1} & [T3-2}
+Pi pe
+Gas'
+Plastic'
+Cast
+Horiz.
+1/2in.-6ft.· 3/4in.&1 in,-6ft.
+:?:11/4in.-8ft.
+~ 1 in. CPVC-3in. - ~ 1 in. CPVC -4 ft.
+PVC & ABS-4ft.
+5ft. lenghts - 5ft_ - 1Oft. lengths-10ft.
+(~18in. of hub)
+Vert.
+lhin.- 6ft. • 3/4in.& 1in.-6ft.
+:2: 1 '/4in. each stol)'
+[10ft.) (Ba se & each slory) +
+mid-story guides [if ~2in.)
+Sase & each story max_ 15ft.
+Screwed 	[1 2ft_ ) [53/4in_ -1 Oft . - ~1 in.-12ft_) 	[1 5ft.) ('/,in. - 6ft. - 3/4in.& 1in.-Sft. - ~ 1 '/4in. each story)
+Cu 	<1 1hin.- 6ft . • :2:1'hin.-1 Oft . 	10ft.
+A. CSS T support in accordance to manufacturer's instructions
+B. PE X tubing hOfiz. support 32in.
+TABLE 17 	CLEANOUTS
+Pipe Size (in.) 	UPC CO Size (in.)
+[3005.2] & {707}
+UPC Clearan ce (in.)
+1'/2 	1'/2 	12
+2 	1'/2 	12
+2'/2 	2'/2 	18
+3 	2'/2 	18
+4 or larger 	3'/2 	18
+IRe 3005 .2.9 requ ires cleanouts to be the same size as the pipe they serve up to 4in.51
+UPC 707.1 requires cJeanout fittings with raised square heads or countersunk slots.
+
+-- 15 of 33 --
+
+Backwater valve req 'd on ejector discharge pipe
+o Gate valve req 'd on discharge side of check valve
+F26 _ [3007.1]
+F26 [3007.1]
+{710.4}
+{710.4}
+Sump & Ejector 	Drain must enter through top,
+not side.
+Vent opening not below weir of trap exce
+o Trap weir to vent distance min 2x trap ar
+o Total fall of trap arm max 1 pipe diameter
+{per table} 115,F27
+o Traps must be plumb
+o Trap no larger than {same size as} arm
+o Tailpiece max vert distance 24in exc cloth
+o Trap primer or deep-seal type req 'd @ flo
+pt toilet __ [31052]
+m diameter ~[31 05.3]
+[3105.2]
+[3201.3]
+[3201 . 7]
+es washer ~ [3201.6]
+or drains __ [3201.2]
+Trap Arms & Vents
+Weir
+Trap arm length, see T15
+{1002.4}
+{1002 .2}
+{1002.2}
+{1005.0}
+{1003 .3}
+{1001.4}
+{1007.0}
+The length & slope of the trap arm must allow air to be
+admitted above the dotted line in the figure. If .the slope
+or length is excessive, the dotted line (trap weir
+elevation) would be above the vent opening.
+Vents General
+o All vent pipes must be sloped to drain __ __ __ [31 04.2]
+o Horiz vent min 6in above fixture FLR 	[3104.4]
+o Vents below fixt FLR must be drainage pattern
+{no horiz sanitary tees} (may req cleanouts) 	[3104.2]
+o Vent opening above weir (toilet excepted) F27 _ _ _ _ [3105.2]
+o No flat venting (takeoff above horiz centerline) __ _ [31 04.3]
+o Min 1 vent to ext {all vents to ext} 	[3114.7]
+o {Aggregate vent area must be 2 bldg drain} 	[n/a]
+{905.1}
+{905.3}
+{905.3}
+{905.5}
+{905.2}
+{905.4}
+{904.n
+SUPPORT 	TABLES 	14
+--------------- -------------------
+DRAINAGE
+ABS/PVC
+o Fireblocking around ceilinglfloor plate penetration
+o Female threaded adapters must remain accessib l
+os IRC 	os UPC
+s _ _ [602 .8] 	{U BC}
+e _ 	[2608 . 2] {IS5,9-316.1}
+o N ail plate if < 1' l2in {1 in} from edge of framing _
+o Nail plate must extend 2in {1' l2in } beyond framing
+o No metal straps in direct contact
+o Solidly support horiz pipe every 4ft T16
+o Allow for thermal expansion & contraction
+o No rain drains to bldg drains unless OK by BO
+hanges of Direction
+o Vert to horiz or horiz to horiz through wye branche
+or 45° wye branches or fittings of equal sweep _
+o Sanitary tee OK only for horiz to vert
+o Double sanitary tee OK exc for water closet arms <18i
+o Double sanitary tee barrel min 2 pipe sizes larger th
+[2608 . 2] {IS5,9-314.1}
+[T2605.1] 	{T3-2}
+[2608.2] {IS5,9-313.2}
+[n / a] 	{714.2}
+C
+s
+__ [3005.1]
+[3005.1]
+n [3005.1.1 X]
+an inlets [n / a]
+{706.3,4}
+{706.2}
+In / a}
+{706.2}
+ixtures below Manhole or Sewer
+o Backwater valve req 'd for fixtures with flood
+rim {on floor level} below upstream manhole cover
+o Backwater valve must remain accessible
+o No fixtures above manhole cover draining through
+backwater valve
+Ejector req 'd for fixtures below sewer crown level
+_[3008.1]
+[3008.1]
+[3008.1]
+F26 [3007.2]
+{71 0.1 }50
+{710.6}
+{710.n
+{710.2}	o
+o Sump discharge must be lifted above gravity drain
+o
+_ [2603.2.1] 	{313.9}
+_ [2603 .2.1] 	{313.9}49
+F
+F26 [3007.2] 	{710.2}
+)
+Cleanouts
+o Lo cation must remain accessible
+o Min 18in clearance EXC
+12in OK for pipes <3in {<2 ' /2in}
+o Req 'd at upper terminal 1 st floor runs & e
+o Req 'd in horiz runs each >45° {135°} cha
+o Removable fixt trap OK substitute for cle
+o Take off above flow line or at end of line
+o If access limited, extend above floor or ou
+o Size same as drain {per table} T17
+Cleanout Exceptions
+o Runs <5ft (except sinks)
+o Slope of 72° or less (1 /5 bend) from vert
+o Not req'd above first floor
+TRAPS & VENTS
+[3005.2.5]
+very 100ft [3005.2 .2]
+nge _ _ 	[3005.2.4]
+anouts_ [3005.2.1 0]
+[local]
+tside _ _ [3005.2.3]
+[3005.2 .9]51
+[n / a]
+[n/a]
+[n/a]
+{707.10}
+{707.4}
+{707.5}
+{0}
+{707.6}
+{707.10}
+{707.11}
+{707.4X1 }
+{707.4X2}
+{707.4X3}
+o Size per table 115
+o Traps seal min 2in max 4in
+o
+OSIRC
+[3005.2.5]
+[3201 . 7]48
+[3201.2]
+OSUPC
+{707.9}
+{1003.3}
+{10050}
+UNDERGROUND 	DRAINS 	TRAPS
+
+-- 16 of 33 --
+
+We t Vents 	06 I RC
+D Min 1112in {2in} F32 ___ _______ __ [31 08 .3]
+D Wet-vented fixts must be on same floor level __ _ [31 OB.1 , 4]
+D Combinations of fixts in up to 2 bath groups may be horizontally
+wet-vented 	[310B.1]
+D Only horiz fixt drains may be horizontally wet-vented [310B.1]55
+D Vert wet venting max 4 fixtures, max 6ft 	[n/a]
+D Vert wet venting limited to 1- & 2-WSFU fixts 	[n/a]
+D Vert wet vent min 1 pipe size larger than req 'd waste F32 [n/a]
+Commo
+Venting
+IRC
+n 1112in.
+2in.
+06 UPC
+{90B.2}
+{90B.1.4}
+{90B.4.1}54
+{n/a}
+{90B.n
+{90B.n
+{90B.2}
+Wet
+Venting
+UPC
+1 pipe size
+larger than
+re q'd d ra in 	Ma x. 6ft.
+2in. 2in.
+D Branch type min 4in above drain F30 ____ _ _ [3114.4]
+D Stack type min 6in above insulation in attic 	[3114.4]
+D Stack type min 6in above fixture FLR 	[3114.4]
+D Must be accessible & open to airflow 	[3114 . 5]
+Air Adm itta nce Val ve
+Air admittance valves must remai n
+accessi ble. Air adm ittance va lves
+n all cs must be at least 6in.
+abo e su a Io n.
+......"r---11N-t-II~ I 4in. min.
+{local}
+{local}
+{local}
+{local}
+Ball Valve
+Valve
+Full-bore valves r eq
+/'d for 	Throttling valv/es n ot app roved
+mains & water heater. 	for ma ins & wa ter heate r.
+PLUMBING 	15
+Vent Termination
+D Min 6in above roof {& 12in to vert s
+D Clearance to bldg openings min 1
+above [or 4ft below]
+D Sidewall vent-min 10ft from PL &
+D Plastic DWV above roof protected
+Heavy Snow & Frost Vent Term
+D Min 3in {2in} diameter vent above r
+D Terminate 6in above snowline {10in
+D Transition to larger pipe at least 1ft
+Island Sinks-UPC Drain Loop
+D Is land sink vented with drain-type fi
+D No upstream fixtures allowed on isl
+D Is land sink clean out in vert section
+Island Sink IRC Methods
+D Limited to sinks & lavs only F29
+D Air admittance valve under sink OK
+D Combo waste & vent (CWV) OK (if
+D CWV max 8ft vert, unlimited horiz
+D Max slope of (CWV) drain 1/2in/ft
+061RC
+urface} 	[3 10 3.1]5'
+0ft horiz or 2ft {3ft}
+[3103.5]
+10ft above grade _ [3103.6]
+with latex paint _ 	[2608.2]
+ination
+oof 	[3103 . 2]
+above roof} _ 	[3103 . 1]52
+below roof __ _ [31 03.2]
+Method
+ttings only F28 _ 	[3112 .3]
+and drain 	[n/a]
+of foot vent F28 _[3112.3]
+[3112.1]
+F30 	[3114.3]
+no disposer) _ 	_ [3111.1]
+[31 11.2] 53
+[3111.2.1]
+_;H':W.t:_
+06 UPC
+{906.n
+{906.2}
+{0}
+{301 . 1.n
+{906.7}
+{906.7}
+{906.7}
+{909.0}
+{909.0}
+{909.0}
+{n/a}
+{local}
+{0}
+{0}
+{0}
+_:::IltIW.4l.
+I
+UPC Kitchen Island Sink 	IRC Kitchen Island Sink
+1112in._ 	1112in. 	..------ 1112in .
+Must	I
+i 45' ---, 	45' 	connect 	~ 90 ' / 	Cleanouts
+to vented 	req 'd for
+~ _t 1112in. - 	~ 	drain 	~ vent unless
+\ ~ -~ . - ro dding
+~ -- . ~~. ~-. 	possible
+through
+--I2i ~ 	V1112i \
+CO in foot vent 	sanitary t ee.
+i· 	CO 	\ 	CO	In. 	1112in.
+Air Admittance Valves
+WATER SUPPLY & DISTR f. JUTION
+~ 	---
+D Sizing per tables T18-22 	[29
+------------
+03.7]
+D Min water service 3/4in 	[2903.7]
+D 3 bathrooms usually means 1 in service 	[2903.7]
+D No reduction to inlet of service by softener, backflow _ [2903.7]
+D Support per tables T16 	[2605.1]
+D Nail plate if <1 112in {1 in} from edge of framing __ [2603.2.1]
+D Nail plate must extend 2in {1 1I2in} beyond framing _ [2603.2.1]
+D Accessible full-bore shutoff req'd at house F33-35 _ [2903.9.1]
+D Static pressure <40psi {15psi} req 's booster pump _[2903.3]
+D Excessive pressure >BOpsi must be regulated 	_ 	[2903.31]
+D Accessible strainer req 'd ahead of regulator 	[n/a]
+D Expansion tank req'd for regulators without integral bypass
+& for bldg supplies with check valves 	[2903.4.1]
+D Regulated pressure computed at BO% of setting __ [2903.7]
+D Brass adapter [or dielectric fillings] between galv & Cu [2904.17.1]
+D Water hammer arrestors req'd if quick-close valves _ 	[2903 .5]
+D Backflow protection from fire sprinkler piping wI fire department
+connection or wI additives or antifreeze 	[2902.5.4]
+{610.n
+{610.B}
+{610.n
+{610 .2}
+{314.n
+{313.9}
+{3 13.9}49
+{605.2,6}
+{60B.n
+{60B.2}
+{60B.2}
+{60B.3}
+{60B.2}
+{316.2.n
+{609.10}
+{603.4.16}
+
+-- 17 of 33 --
+
+Section 	Length 	F ixture
+Units
+Pipe
+Size 	Section
+TABLE 18 	SIZING A WATER SERV ICE FI LL-I N TABLE
+[2903.7] & {6 10.8}
+1. Det en--.L"le ~><L Lrr. OEl'"1<L"ldt o taJ from T19).
+2. Min. daily stalic pressure at meter or sourc e.
+3 . Su btract (ad d) 'h1b. pressu re per ft . of rise (fall).
+4. Deduct press ur e losses for filters, regulators, etc.
+5. Fi nd pressure range g ro up in T20 or T22 .
+6. Find co lumn for developed leng th to most remote lix t'~0ic" j
+7. Find row meeting fix!. unit demand req 'd by total in T19 .
+8. Find re q'd meter & pipe size in left columns of T20 or T22 .
+Note : The same procedure can be used for branches.
+TABLE 19 WATER SUPPLY FIXTURE UNITS (WSFU) FILL-IN TABLE
+[T2903.6] & (T6·S)
+Fixture 	WSFU IRC/UPC 	# of WSFU 	ExtenSion
+Bathtub 	1.4 / 4.0
+Clothes washer 	1.4 / 4.0
+Dishwasher 	1.4 / 1.5
+Hose bibb 	2.5 / 2 .5
+Kitchen sink 	1.4 / 1.5
+La vatory 	0.7 / 1.0
+Laundry tub 	1.4 / 1.5
+Stall shower 	1.4 / 2.0
+Water closet 	2.2 / 2.5
+Full bath group' 	3.6/ n/a
+Total:
+A. Full bath grou p = W ater clos et + tub/ show er + lav
+A. First multiply actua l len gt h to most remote fix ture by 1. 2 to c ompensate fo r loss at fi ttings.
+B. Minimum build ing supply is 3/4 in .
+VENT TERMINALS 	ISLAND SINKS 	WATER SUPPLY 	SIZING 	16
+------------ --,
+Worksheet Area
+Water service
+I'--P_r_e_ss_u_re_ =__----'I ,--IE_I_ev_a_ti_o_n_=__.....J11 Length =
+Most
+remote
+fixture
+
+-- 18 of 33 --
+
+TABLE 23 	PROCEDURES FOR SIZING GAS PIPE
+[2413.4.1,2] & {1211.17.1.1 ,2}
+1. Determine Btu/cu.ft. gas from local supplier (usually 1,100).
+2. Divide appl Btu by Btu/cu.ft. to obtain appl demand.
+3a. Longest length method: Measure deve loped length to most remote outlet.
+4a. Longest length method: Use column from T25 for most remote fixture for all outlets.
+3b. Branch length method: Measure developed length to each outlet.
+4b. Branch length method: Select column from T25 for load on pipi ng to each outlet.
+5. Select row for pipe si ze equal i ng or exceeding demand each section.
+CSST
+Manifold
+CSS T is regulated by American National Standards
+Institute ANSI / lAS LC 1-1997/ CSA 6.26-M97 Fuel
+Gas Piping Systems Using Corrugated Stainless Steel
+Tubing (CSST ). The standard requires that a contractor
+be certified before installing CSST.
+1/4-turn
+ball valve
+PLUMBING 	17
+CSST Strik e Plates
+T he IRC requires strike-plate
+protection when tubing passes
+through fram ing & is closer than
+l ' /2in. of the surface.
+The UPC requires strike-plate
+protection for all penetrations.
+Codes require the st ri ke-plates to
+ext end 4i n. beyond the conceal ed
+framing & manufacturer rec ommen-
+dations are usua Iy more stringent
+th an tre codes.
+[>1 hin.
+from surface]
+General 	061RC 	06 UPC
+o Gas meter: accessible & ventilated space ______ [utility] 	{1209.6}
+o Main shutoff req 'd outdoors each bldg 	[2420.2,3] {1211.10.3}
+o Material: steel (galv or black) , Cu, CSST 	[2414.1] 	{1209.5}
+o Pipes not in same room as eqpt req'd to be labeled
+D "Gas" every 5ft for other than steel pipe 	[2412.5]56 	{n/a}
+o Cu types L & K OK for low sulfur-content gas __ [2414.5.2] {1209.5.3.2}
+o Cu joints brazed or flared (not soldered) ___ [2414.1 0.2,3] {1209.5.8.2}
+o Size pipe per tables T23-25 	[2413.3] 	{1 217.1}
+Dint of pipe must be deburred 	[2414.7] 	{1209.5.5}
+o No gas pipe in circulating or ventilating air duct __ [24151] 	{1211.2.5}
+Pipe Installation
+o Outdoor piping min 3 ' /2in above ground or roof __ [2415.7] 	{n/a}
+o Underslab only if run through gas-tight conduit __ [2415 .11] 	{1211.1.6}
+o Electrically isolate buried ferrous gas pipes 	[2410] {1211.14B}
+o Electrically bond internal metal gas pipes 	[2411.1] {1211 .14A}
+o CSST AMI F36 , 37 	[2414.5.3] {1209.5.304}
+o Shutoff ahead of regulators F37 	[242004] {1211 . 10 .1}
+o Shutoff valve within 6ft of appl & ahead of union __ [2420.5] 	{121204}
+o No unions or bushings in concealed locations ___ [2415.3] 	{1211.3.2}
+o Drip legs at low points if water vapor in gas 	[2419.2] 	{1211.7.1}
+o LP gas piping per NFPA-58 (see Code Check HVAC)[2414.6.2] 	{1213.0}
+Gas Appliance Connectors
+o Max length 3ft {6ft} [6ft range or dryer] 	[2422.1.2.1]
+o May not pass through bldg or appl wall 	[2422.1.2.3]
+o Valve immediately ahead of connector _ 	[2420.5, 2422.1.204]
+o Outdoor connectors L&L for outdoors & AMI 	[2422 . 1]57
+o Gas hose outdoor po rt a bl e appl o nl y 	[2422.1]
+{1212.1}
+{121204}
+{n/a}
+{1212.2B}
+{1212.1 , 4}
+
+-- 19 of 33 --
+
+Toilet Flanges
+(Above
+Ol,.t m"
+finish
+=k Beneath floor:	floor: concealed fouling
+Flush with
+finished floor
+correct ~ 	s~'
+Slip Joints & Access
+Must provide a
+12in. x 1 2in . min. access
+to concealed slip joints for
+replacement or repair.
+The access can be through
+the wall or the ceiling .
+GAS PIPING 	FIXTURES
+, I
+Air Gap Device on Drain: 	Dishwasher High-Loop:
+UPC 	IRC
+Air gap
+device
+@ ...~
+Dishwasher
+High loop drain
+must be secured to
+underside of counter.
+18
+RES
+General 	061RC
+:::J Hot on left, cold on right when facing outlet 	[2722.2]5'
+o Potable water air gap of 2 pipe diameters or min 1 in [2902 .3.1]
+o In dividual shutoff req'd for each f ix t ure or appl
+exc tubs & showers (m ay be at manifold) 	[2903.9.3]
+o Fixts smooth, impervious & free from concealed
+fouling areas 	[2701.1]
+o Joint between fi xtures & walls or floors sealed ___ [2705.1]
+o All fixts (exce pt toilets) req drain strainers 	[2702.1]
+o Tailpiece max ve rt distance 24in exc laundry 	[3201.6]
+Tailpiece max horiz distance from trap 30in 	[3201.6]5'
+06 UPC
+{415.0}
+{603.3.5}
+{605.5}
+{401.1}
+{407.2}
+{4041 }
+{1001.4}
+{0}	o
+Toilet & Bidet
+o 15in min side clear from center, 21 in {24in} at front _ [2705. 1]
+o Centerline of bidet min 15in to rim of adjacent toilet _ [2705.1]
+o Flange secure & corrosion-resistant fasteners ___ [27051]
+o Flange flush to finish floor, no fouling area F38 _ _ _ [2701.1]
+o Max 1.6 gal. flush water closets req'd 	[2903.2]
+o Ballcock antisiphon & critical level min 1 in above
+overflow pipe __ ___________ [2902.4.1]
+o Max discharge temp at bidet 110°F 	[2721.2]60
+{407.6}
+{407.6}
+{407.3}
+{407.5}
+{402.2}
+{603.42}
+{nfa}
+Tubs
+o Access req 'd to waste & overflow if slip joints used,
+min 12inx 12in door F39 	[2704 . 1]
+o Over-rim bath faucet-min air gap 2in 	[T2902.3.1]
+o Tub hose attachments req vacuum breaker _ 	[270S.4, 2902.4]
+o Whirlpool tub motor req 's [min 12inx12in] access
+[1Sinx1Sin if pump >2 It from opening] 	[2720 . 1]61
+o Whirlpool tub leak testing & pump operation AMI _ _ [2720.3]
+o Max discharge temp 120°F 	[2713 . 3]62
+{404.2}
+{T6-3}
+{603.4.7)
+{414.1}
+{nfa}
+{414.5}62
+Showers
+D Shower va lve , headlr iser secure 	[270S.2]
+D Min stall area 900sq.in {1 ,024sq.in} to 70in & 30in circle [2708.1]
+D Min rough pan 32in x 32in {34in x 34in} 	[270S.1]
+D Curb min 2in & max 9in 	[2709.1]
+D Pan liner plastic or 3 layers hot mop type 15 felt __ [2709.2]
+D Hot·mopped corners reinforced wf webbing __ _ [2709.2.3]
+D Liner min 3in above dam or threshold 	[2709.2]
+D Slope lining & floor 'f4infft-'f2infft to drain 	[2709.1 , 3]
+D No fasteners <1 in above dam or threshold 	[2709 .3]
+D Weep holes at drain to remain clear 	[2709.4]
+D [Min 24in clearance in front of shower opening] ___ [307.1]
+D Door must open outward , min 22in wide_ [270S.1, 270S.1.1]63
+D Nonabsorbent surface to 72in {70in} above floor __ _ [307.2]
+D {Shower head not to discharge at shower entrance} _ _ [local]
+D Individual pressure balance valve req 'd 120° max _ 	[270S.3]64
+Laundry
+D Standpipe min 1Sin max 42in {30in} above trap ___ [2706.2]
+D Trap min 6in max 1Sin above floor 	[nfa]
+D Laundry tub may drain to standpipe within 30in __ [2706.2.1]
+Kitchen
+D OW drain through wye fitting or to disposer head __ [2717.3]
+D Air gap device above FLR req 'd for OW drain F40 	[nfa]
+D OW drain hose min 3f4in, secure to underside
+of counter F41 	[2717.3]
+D Reverse osmosis water treatment drain through air gap [2907.2]
+Outdoors
+D Nonremovable vacuum breakers on all hose faucets_ [2902.4.3]
+D Backflow protection on irrigation systems 	[2902 .5.3]
+D Vacuum breaker {6in} above sprinkler heads ___ [2902.5.3]
+D No valves downstream of vacu um breaker 	[2902.5.3]
+D Wrap outdoor PVC exposed to sun 	[ASTM F409]
+{411.11}
+{411.7}
+{411.7}
+{411.6}
+{411 .S}
+{411.S}
+{411.S}
+{411.6}
+{411 .S}
+{411.8}
+{nfa}
+{411 .6}
+{UBC}
+{411.10}
+{41S.0}
+{804.1 }
+{S04.1 }
+{0}
+{404.4}
+{S07.4}
+{0}
+{S01.4}
+{603.4.7}
+{603.4.6.1 }
+{T6·2}
+{T6·2}
+{IS-8-313.5}
+D Freezing climate hose bibbs "frost·free " extending through insulation into
+open heated space or drainable stop & waste type _ [2903 .1 0] 	{nfa}
+061RC 	06 UPC
+
+-- 20 of 33 --
+
+Heat loop
+W ate r Heat er
+in Gara ge
+Strapping & flex
+connectors in
+seismic areas
+4in. min. above
+gas valve
+Platform to raise
+ignition source lain .
+min. above floor 	Terminate to
+unless WH is FVIR 	approved location
+max [Sin.] I RC
+{S-24in,} UPC
+Protective 	above floor
+bo ll ards 	or ground
+Why TPRV?
+Exp loding hea t ers
+have been known
+to reach heights of
+500ft. & l ift houses
+off their founda t ions.
+TPR Discharge Pipe 	06 IRC
+o Size at least same as outlet & serve o nl y one va lve _ [2S03.6.1]
+o End pointing downward and with no threads ___ [2S03.6.1]
+o End outside or other approved location ~ 6in {6-24in}
+from ground, floor, or receptor 	[2S03.6.1]
+o May not run uphill or be trapped 	[2S03.6 .1]
+o May {not} discharge to WH pan 	[2S03.6.1]
+06UPC
+{60S.5}
+{60S.5}
+{60S.5}
+{60S5}
+{50S.5}
+MECHANICAL 	19
+WATER HEATERS
+General 	061RC
+o Full-bore valve req 'd on cold water supp ly F33,34_ [2903.9.2]
+o Unions req'd {within 12in} for service and removal __ [2S01 .3]
+o Electric req 's in-sight or lockable disconnect ___ [T4001 .5]
+o Must meet min efficiency wi th no external blanket __ [1101.2]
+Location
+o Prohibited in bedroom, bathroom, or their closets EXC
+o Di rect-vent type OR 	[2005.2, 2406.2]
+Separated by weatherstripped self-close door & all
+combustion air from ext 	[2005.2, 2406.2]
+o Watertight pan req 'd if leaks would cause damage F42 [2S01 . 5]
+o Pan drain min 3/4 in or size of relief valve outlet F42 _ [2S01.5.1]
+o Ignition source min lSin above garage floor EXC F42 [1307.3 , 2S01 .6]
+Li sted as Flammable Vapor Ignition Resistant (FVIR) [240S.2X]
+o Protection from vehicles req 'd in garage F42 ___ [1307.3.1]
+o On ground: {3in} concrete or equiva lent req 'd _ 	[1305.1.4.1]
+o Outdoor: enclosure req 'd unless li sted for ex t ___ [2005.1 ]
+o SOC 0 0, 0 , & O2 {C, 0 , E & F} strap upper & lower 1/3 of tank
+wit h min 4in clearance to controls F42 	[2S0 1 .7]66
+Access & Working Space
+o Min 30in working space in front 	[1305 . 1]
+o Must be able to inspect or remove WH 	[1305 . 1]
+o Min closet door size 24in wide 	[1305 .1.2]
+o Attic: solid passage floor max 20ft, min 24in wide _ [1305.1 .3]
+o Attic eqpt req 's light and recept near WH ___ [1305 .1.3.1]
+Temperature & Pressure-Relief Valves (TPRV)
+06 UPC
+{605 .2}
+{609.5}
+{N EC}
+{501 .0}
+{505.1}
+{5 05 .1 }6S
+{50S.4}
+{50S.4}
+{50S.14}
+{50S.14}
+{50S.14}
+{50S.3}
+{50S.27}
+{50S.2}
+{UMC}
+{UMC}
+in/a}
+{509.4}67
+{NEC}
+o Combination TPRV {req 'd} OR F43, 44 	[2S03. 1] {506.2,60S.3}
+o Separate TRV (Watts 210 valve) and PRV F45, 46 _ 	[2S03. 1] 	{505.4,5}
+o Watts 210 also req 's pressure relief valve F46 ___ [2S03. 1] 	{505.6}
+o Locate TPRV [in top 6in of tank] {per manu} F42_ 	[2S03.4, 5] {505.6,60S.3}
+Temperature & Pressu re-Relief Valve
+When the water heater is in a basement or below grade, it
+may not be possible to arrange for a gravi ty drain of the T&P
+valve . A Watts 210 valve (F45) can be installed. The temper-
+ature-sensing bulb of the valve goes in the upper portion of
+the tank & the gas piping runs through the valve. The Watts
+210 shuts off the gas if the temperature is excessive. In addi-
+tion, a separate water-pressure-relief valve (F4S ) mus t be
+installed in the piping & must drain by gravity to an approved
+location. Check with the local Administrative Authority to see
+if this method is accepted in your area.
+, .
+Watts 210
+Gas Shutoff
+Pressure-
+Relief Valve
+Vents & Flues (also see "Venting" on page 22)
+o Draft hood/barometric damper in same space
+as WH 	[lS02.1 , 2407.3]
+o Terminate min 5ft above draft hood __ [lS04.2.3, 2427.6.5]
+o Only 1 draft hood 	[2426 .5]
+o No si ngle-wall outdoors in cold climate 	[2427.7.2]
+o No single-wall in concealed space or attic 	[2427.7.6]
+o Secure ve nt connector to draft hood & ven t with
+{510 .12.5}
+{510.621}
+{510 .12.3}
+{510 . 7.2}
+{51 0. 7.4. 2}
+screws or other approved means ______ [2427.10.7] 	{5 10 .10.7}
+., 	., 	., 	., 	1 	11 	1 	11 	1 	11 	1 	1 	1 	) 	1 	1 	) 	1 	1 	1
+
+-- 21 of 33 --
+
+Stretch Flex Duct 	Flex Duct Suppo rt
+Min. 12 gauge~
+Support bands 	_
+min . 1'l2m. Wide 	•
+Sag max.
+'hin. per foot
+of support 	4ft. max.
+spacing
+Manufactured ducts must be supported
+& stretched so they are as straight as
+possible w /o kinks t hat obs t ruc t airflow.
+MECHANICAL EQUIPMENT-GENERAL
+General 	061RC 06 UMC
+o [Eqpt mus be L&L] 	[1302.1] 	{n /a}
+o Install li s ed eqp AM I 	[1401.1 , 2408.1] 	{304.1}
+o Insta ll ation instructions to be left on site _ _ _ [1307.1, 2408.1] 	{304.1}
+o Packing materials removed 	[1401.1] 	{304.1}
+o H ea t source must be capable of maintaining habitable rooms
+@ 68° {7 00 } at point 3ft above floor & 2ft from ext walls _ [303.8] 	{U BC}
+FORCED AIR FURNACE
+--------------------~
+General Rules & Clearances
+o Prohibited in bedroom, bathroom, or their closets EX
+Direct-vent type installed AMI OR ___ __ _ _
+Separated by weatherstripped self-close door & all
+combustion air from ext _ _ _ ____ _ _ _
+o Eqpt room door large enough to remove appl
+[min 24in wide]
+o Workspace min 30in deep x 30in high or to unit's heig
+o Install wi clearances to combustibles AMI
+o Room considered large in relation to eqpt if 1 2x furn
+volume or 16x boiler volume, __ _ _____
+o Clearance reduction for gas furnace only OK if room
+considered large 	[2409.3.
+o Oil furnaces: min closet 12in wider than furnace, 3in
+6in to open combustion chamber EXC
+Lesser clearances OK on replacement eqpt
+installed AMI _ _ __ _ _ __ _ __ __
+o Install above design flood elevation _ __ _ _ _
+o Electrical recep req'd within 25ft
+o Air filter(s) req 'd
+nderfloor
+o Ground-supported eqpt on slab above grade [1305.1.
+o Suspended eqpt min 6in above grade {AMI} [1305.1.
+o Passageway [min 22inx30in] clear to eqpt
+o Access door max distance 20ft to eqpt
+o Light near furnace wi switch at access door _ __
+o Recep within 25ft & not on appl circuit
+o [Excavation 12in sides (30in control side) 6in below] _
+C
+_ [2406 . 2]
+_ [2406.2]
+[1305.1.2]
+ht_ [1305.1]
+[2409.4]
+ace
+__ _ [lFGC]
+{904.1}
+{9 04 .1 }6.
+{305.1 }
+{305.0}
+{904.2}
+{304.2}
+3, 2409.4.1] 	{904.2D}
+side clearance ,
+[1305.1.1]
+[1305.1.1 X]
+_ 	[1401.5]
+[3801.11]
+[1401.1]
+U
+4.1, 2408.4]
+4.1, 2408.4]
+[1305.1.4]
+[1305.1.4]
+[1305 .1.4.3]
+[1305.1.4.3]
+[1305.1.4.2]
+{n/a}
+{9042A}
+{308.2}
+{309.0}
+{312.1}
+{904.3}
+{9043}
+{305.0}
+{n / a}
+{N EC}
+{309.0}
+{n/a}
+ttic	A
+o Access opening: min [22inx30in] {30inx30in} OR_[1305.1.3]
+[20inx30in] {22inx30in} OK if appl fits through
+opening 	[1305.1.3]
+o Max distance from opening 20ft [50ft if 6ft high] _ [1305 .1.3XFo
+o Solid floor min. 24in wide to eqpt 	[1305 .1.3]
+o Min 30inx30in platform in front of firebox EXC _ _ _ [1305.1 .3]
+No platform if eqpt can be serviced from opening _ [1305.1.3X1]
+o Upright furnace req 's adequate {min 5ft} clearance _ _ [1305.1]
+o Luminaire {light fixt} near furnace wi switch
+@ access door 	[1305.1.3.1]
+o Recep {within 25ft} near furnace & not on appl circuit_ [1305.1.3.1]
+o Floor noncombustible or clearances AMI 	[1307.1]
+Garage
+o Ignition source min 18in above floor EXC _ _ 	[1307.3, 2408 . 2]
+Separate space not communicating with garage air OR _ [2408 . 2]
+Listed flammable vapor ignition resistant (FVIR) appl_ [2408.2X]
+o Duct through fire-resistive wall min 26gauge 	[309.1.1]
+o No duct openings into garage 	[309.1.1]
+o Protect appl from impact [or elevate 6ft] F42 _[1307.3.1 , 2408.3]
+{931 . 1}69
+{931.1X} 69
+{931.2} 69
+{931.2} 69
+{931.3} 69
+{931.3X} 69
+{931.0} 69
+{931.4}
+{309.0}
+{904.3}
+{308.1 }
+{308.1 }
+{3041 }
+{UBC}
+{UBC}
+{3081 }
+WATER HEATERS 	FORCED AIR
+Condensing Furnaces (Cat. IV High Efficiency) 061RC
+o Condensate drain required 	[2427.9]
+o Not drain to public way 	[2427.9]
+o Drain piping AMI {& '/sin/ft slope} 	[1411.3.1]
+o Auxiliary drain pan or auto cutout req'd _ [1411.3.1,2404.1 OF'
+o May drain to indirect receptor (Iav tailpiece, tub overflow}[manu]
+{310.1}
+{310.1}
+{310 1}
+{n/a}
+{310.1}
+DUCTS
+----~----------------------~
+General
+o Factory-made ducts must be L&L 	[1601.2]
+o 2-story max vert riser on factory-made duct 	[n/a]
+o Fireblocking around duct penetrations between floors _ [602.8]
+o No duct openings into garage 	[309.1 . 1]
+o Min 26gauge sheet steel in attached garage __ _ [309.1.1]
+{602.3}
+{604.3}
+{UBC}
+{UBC}
+{UBC}
+06UMC
+Return Air
+o Duct to outside enclosure req'd for return __ ___ [2442.4]
+o Must be open to min 25% area served 	[1602.2]
+o Not from bathroom, kitchen , mechanical room ,
+{904.7D}
+{n/a}
+closet, garage, or other dwelling unit __ _ [1602.2, 2442 .5] 	{n/a}
+o Sole return can be from room wi fuel-burning eqpt if supply air provided,
+return min 10ft from eqpt & room vo lume min 100 cu.ft per
+1 ,000Btu of eqpt 	[1602.2, 2442.5]
+o Duct min size 2sq.in/kBtu output rat ing 	[2442.2]
+Installation
+o Ground clearance min 4in 	[1601.3.6]
+o 18in ground clearance if duct cuts off crawl space access [n/a]
+o Min 2in encasement for ducts underlin concrete _ 	[1601.1.2]
+o Duct joints sealed , taped, or gasketed airtight __ [1601 .3.1]
+o Flex ducts req UL-181 B pressure-sensitive tape _ 	[1601.3.1]
+o Flex duct per L&L (1'hin strap every 4ft) F47,48 _ 	[1601.3.2]
+o Round metal duct support: min 'hin metal straps or
+12gauge wire every 10ft 	[1601 .3.2]
+o Stud cavities prohibited {restricted} as
+supply air duct 	[1103.2 .3, 1601.1.1]
+o Stud cavities & joist spaces OK as returns if no condensation
+[not conveying air from one floor to another] [11 03.2.2, 1601.1.1]
+{904.7A}
+{manu}
+{604 .2,3}
+{604.1 }72
+{604.2}
+{602.4}
+{602.4}
+{T6-10}
+{T6-7}
+{6021}
+{602 .1 }
+Insulation in Unconditioned Space (1 	~
+o R-6 min in floor trusses, R-8 elsewhere EXC _ __ [11 03 . 3F3
+Not req 'd for ducts completely inside bldg thermal envelope[11 03.3X]
+o Insulate boots & connectors {if over 5sq.ft} 	[1103.3]
+o {Runs $ 1 Oft need not exceed R-3.5} 	[n/a]
+o {Typical min R-3.5 in crawl, R-6 in ventilated attic} _ _ _ [n/a]
+{n/a}
+{605.0X}
+{605.0X}
+{6050X}
+{T-6-6B}
+in fiberglass 	R-3)
+DUCTS 	20
+
+-- 22 of 33 --
+
+o Single opening direct to ext or equivalen t OK in upper 12in of enclosure
+min 1sq.in/3kBtu F49 	[2407.6. 2] 	{701.4.2}
+o Sing le opening must be ;::: size of al l vent con nectors [240 7.6 .2] 	{701.4.2}
+Attic Space Source
+o Attic freely commu ni cati ng w ith outdoors co nsidered
+equivalent to outdoors (ventilated attic) _ [1703.2, F2407. 6. 1 (1)]
+o Min 1sq .in per 4,0 00Btu F54 	[1703.2 .1, 2407.6.1]
+o Du ct galv metal or material of equivalent performance
+& no screen or obstruction to air flow 	[2 407.11]'"
+o Oil appl: duct 6in above joist or insulation , no screen 	[1703.3]
+{ F7 -2,3}
+{701.4.1}
+{70 1 .10}75
+in /a}
+TABLE 26 	COMBUSTION AIR-OPENING SIZES
+Inside AirA 	Outside Air Openings
+B tu 	Opening size" 	cu.ft. min. (sq.ft.C) 	1in.l4k Bt u/hr. 	1in.l2kBtu/hr.
+30k 	100sq.in . 	1,500 (188) 	15sq.i n. 	7.5 sq .in .
+40 k 	100sq.in. 	2,000 (2 50 ) 	20sq .in . 	10sq.in .
+50k 	100sq.in. 	2,500 (313 ) 	25sq.in. 	12.5sq .in.
+60k 	100sq .in. 	3,000 (375) 	30 sq.i n. 	15sq.in.
+4,000 (50 0) 	20 sq.in .
+25sq. in.
+31.3sq.in.
+37.5sq.in.
+1 opening in upper 12in. of ext wall 	I
+Single 	min.2sq.in.l3kBtu
+Opening
+Method
+Exterior 	""1 	grade ~
+Openings
+2
+min.
+® / 	Two openings in ext wall
+___ ~ 	min. 1sq.in .l4kBtu each
+openings in ext wall
+1 sq.in.l4kBtu
+, each
+Vertical
+Ducts to	Vertical
+Ducts to 	Attic
+Outdoors 	. f
+2 openings in ventilated attic
+min. 1sq .i n.l4kBtu each &
+	2 vert ducts 	sleeved min . 6in. above joist
+	min. 1 sq.in.l4kBtu each
+Openings from enclosed WH
+All Air from 	space to building interior:
+Indoors by 	min. 1 OOsq . in. each,
+1 in upper 12in. &
+Infiltration 	1 in lower 12in. of enclosure
+Crawl Space Source
+o Underfloor area freely com municat in g w/ outdoors considered eq ui va lent
+to outdoors (ve ntilated crawl space) _ 	[1703.2, F2407.6.1(1)] 	{F7-2}
+o OK o nly for lower CA source, not upper F56 [1703.2, 2407.11] 	{F7-2}
+o Min 1sq. in / 4kBtu F55 	[1703.2.1 , 2407.6.1] 	{701.4.1}
+o [Oil appl -und erfloor vent il ation min 2x req 'd CAl _ 	[1703.4] 	in/a}
+Crawl Space
+Crawl space]irl'D cannot be
+& Attic the only
+Open i ngs 	,j
+i"" 	::P 	Source
+Attic & cra w l space 	Craw l space may not provide
+. 1 sq. i n.l4kB tu each 	up pe r combustion ai r sou rce.
+MECHANICAL 	21
+COMBUSTION AIR (C.A.)
+General 	061RC 	06 UMC
+Note: I RC Chapter 17 is for oil-burning appls & Chapter 24 is fo r gas-burni ng appls
+o C.A. req' d for natur al draft appl EXC 	[1701 .1, 2407. 1] 	{70 1.1.1}
+CA for direct vent appl per manu 	[1701.1 , 2407.1] 	{70 1.1 X 1}
+o Draft hood in same space as appl 	[2407.3] 	{70 1.1.3}
+o Consider effect of exhaust fans (kitchen , bath) __ _ [2407.4] 	{701.1.4}
+Openings & Ducts
+o Outside air openings req screens w/ mesh ~ 1/4 in [1703.5, 2407.10]
+o No screens a ll owed on ducts to atti c ___ [1703.3, 2407.11]
+o Net area of louvered openings = 75% if metal,
+25% if wood 	[1701.5, 2407.10]
+o Du cts to outdoors min dimension 3in __ [1703 .2.1 , 2407.6]
+o No manual dampers in C.A. ducts 	[1701.3, 2407.11]
+o Motorized louvers/ dampers OK only w/ appl interlock [2407.10]
+o Joi st/stud space OK as CA duct if no more
+than 1 fireblock removed 	[2407.11 X]
+o Mechanical CA supply min 35cu.ftlminute/kBtu __ [2407.9]
+o Appl interlock req 'd if me cha ni cally supplied CA _ 	[2407.9.2]
+o Ext openings min 12in above grade F50, 51 ___ [2407.11 ]
+o Du cts may serve only 1 enclosure 	[2407.11]
+o Horiz ducts to upper part of enclosu re may not slope down
+to source (upper duct not to originate fr om below) _ [2407.11]
+o Upper & lower ducts remain separate to source _ _ 	[2407.11]
+o 2 direct ext openings min
+1sq.in/4kBtu T26, F51 	[1703.2, 2407.6.1]
+o 2 openings in upper & lower 12in F51, 54 _ [1703.2 , 2407.6.1]
+o 2 horiz ducts min 1sq .in / 2kBtu T26, F50 _ [1703.2 , 2407.6 . 1]
+o 2 ve rt ducts min 1sq.in/4kBtu T26, F52, 53 [F1703.2 (3) , 2407.6.1]
+{701 . 9B}74
+{70 1.10}
+{70 19A}
+{701.3,4,5}
+{701 .11}
+{701. 11}
+{701 .10X}
+{70 1.7}
+{701.8.2}
+{701 .10}
+{701 . 10 }
+{701 10}
+{70 1.1 O}
+{701.4.1 }
+{7014.1}
+{701.4.1}
+{701.4.1}
+Single-Opening Method
+TIM
+Indoor Air Source 	061RC 	06 UMC
+o Min vol um es for known air infiltration method: (ACH = air changes per hour)
+• Non-fan-assisted appl min vo l = (2 1cu.ft/ACH)KBtu [2407.5. 2] 	{701.2.2}
+• Fan-assisted appl min vo l = ( 15 cu.ft/ACH)KBtu _ 	[2407.5.2] 	{701.2.2}
+o Indoor air source alone only OK if ACH >.40/hr ___ [2407.5] 	{701.2}
+o Min vo lum e of space 50cu.ft/ 1,000Btu/ hr T26, F54 [2407.5.1] 	{701.2.1}
+o Indoor air volume in cludes rooms directly communicating
+w/ appl space T26, F54 	[2407.5] 	{701 .2}
+o Openings con necting indoor spaces req'd to be located in
+upper & lo wer 12in of appl space F54 	[2407.5.3. 1] 	{70 1.3.1}
+o Opening s con nec ting indoor spaces min 1 OO sq.in each min 1sq.in/kBtu
+if on same level, 2sq.in if on different levels T26 __ [2407.5 .3] 	{70 1 .3. 1}
+1
+
+-- 23 of 33 --
+
+Vent Offsets
+Ap pl iance ma nufact ure rs
+su pp ly venti ng ta bl es
+givi ng max Btu capacity for 	Ceiling
+different sizes , lengths
+& offsets. 	When not using the
+tables, 1 60° offset 0 K
+	When the offset includes 	& flue offsets ~ 45° OK
+	more than 2 90° bends, 	if total horiz. length of
+	subtract 5% from the table 	connector & vent ~ 75 %	
+capacity for each elbow 	of height.
+	up to 45° & 10% for each
+elbow up to 90°.
+Gas Appliance
+Vent Terminations
+If vent is closer than
+Sft. to the wal l, the
+vent must terminate
+at least 2ft. above the
+roof edge.
+Termination
+height, see T29
+VENTING
+General (Gravity Gas)
+o Install per manu instructions &
+D Induced-draft (Category I) can
+061RC 	06UMC
+listing 	[2427.6 .1 J {S02.6.1.1}
+be "gravity vent " T27 _ [2427. 1) 	{S02. 1}
+D Type B or L min 5ft height from co llar 	[2427.6 .5J 	{S02.6.2 .1 }
+D Bends 45° max exc one of 60° EXC F57 	[2427.6.9 . 2J 	{S02.6.1.1}
+Systems designed using vent sizing tables 	[242S.2 .3J 	{S03.1.2}
+D Provide proper support {AMI} F57 	[2426 .6) 	{S02.6.5}
+D Insulation shield req 'd [to 2inJ above insulation F57 _ [2426.4J 	{manu}
+D No solid fuel & gas in same vent 	[2427.5 .6 .1 J {S02.5 .5. 1}
+D Vents <1 112 in from face of framing req steel plate protection extending
+4 in beyond edge of framing member 	[2426 . 7)16
+D Single wall may not originate in attic or pass through wall [2427. 7.6)
+D Min 6in clear to combustible for single wall pipe __ [2427. 7. 7J
+Connector
+{n / a}
+{S027.4.2}
+{S02.7.4.4}
+D Size: min 7sq.in or 3in diameter 	[T242S.2 (2)J 	{TS-6}
+D Size : max 2x diameter of vent co llar or draft hood _ [242S.2.11 J 	{S03.1. 10}
+D Use B or L materials in crawl spaces & cold areas EXC[2427.10.2.2J {S02. 1 0.2.2}
+Within ext walls of bldg & 99 % winter design
+temp ~ 5°F 	[2 4 27.1 0.2. 2XJ {S02.1 0.2.2X}
+D Un insulated connector max 75% of vert vent __ [2427 1 0.9J {S02. 10.9.2}
+D Insulated connector (type B) max 1 00 % of vert vent [2427.1 0.9J {S02.10.9.3}
+D No single-wall connector through floor, ceiling, or wall [2427.1 0.14) {S02. 10 .1 4. 1}
+D Slope min 1/4in/ft toward appl EXC 	[2427.10.SJ 	{S02. 10.S}
+Mechanical draft systems AMI 	[2 4 27. 10.SXJ {S02. 10.SX}
+D Screws or approved method AMI to appl vent collad2427.1O. 7J 	{S02.1 O. 7}
+Appliances with Common Venting
+D Multiple connectors join as hi gh as possible __ [2427.1 0.3 .4 J {S02.10.3.4}
+D Entering connectors staggered, sma ll er above larger[2 4 27.1 O.4J {S02.1 0.4.1}
+D 2 connectors: common connector must equal largest
+connector + 50 % of smaller on e 	[2427. 10 .3.4J {S02. 10 .3.4}
+" 8 " Vents Termination Clearances
+D Must extend above roof _ _ _ ____ ___ [2427.6.3J
+D 2ft above vert surface within Sft F58 	[2427.6.4J
+D Min 1ft above roof T28 	[F2427.6.4J
+D Per table for roofs steeper than 6 : 12 T28 	[F2427.6.4)
+"l" Vents (Oil) Termination Clearances
+D Min 2ft above roof ___ _ ___ _ __ __ [1 S04 .2.4)
+D Min 2ft above anything within 10ft 	[1S04.2.4)
+{S02 .62}
+{S02 .6.2}
+{S02.6.2}
+{S02 .6.2}
+{S01 .2}
+{S01 .2}
+COMBUSTION AIR 	VENTING
+Forced Vents (Category IV): (also see page 20) 061RC 	06 UMC
+o All mechanical draft systems L&L & installed AMI_ 	[2427.3.3)
+o Forced draft system must be gas t ight 	[2 4 27.3.3)
+o No na tur al & forced-vent to co mmon flue 	[2 4 27.3.3)
+o Term in ate min 3ft above forced -air inlet within 10ft _ 	[2 4 27.S)
+o Termination same as direct vent (see p. 23) if combustion air
+piped from ext & AM I 	[2427.S)
+{S023.4. 1 }
+{S02.3.4.3}
+{S023.4.4}
+{S02.S.1}
+{S02.S.2}
+o Terminate min 4ft bel ow or to side or 1ft above w in dow or door &
+min 1ft above any bldg open ing, & min 1ft above grade [2 4 27.S) 	{S02.S.2}
+{S02.9.1}	o Co ll ect & dispose of condensate from vent 	[2427.9)
+Gas Vent Entering Masonry Chimney
+o Enter above [min 1 2in) bottom of chimney 	[2425.9) {S02.1 0. 11}
+o Must be lined with clay or met al 	[2427. 5 .5. 1) 	{S02.5.4.2}
+o Cross-sectional area not >7x size of gas vent _ _ 	[2427.5.4J 	{S02.5.3}
+TABLE 27 	APPLIANCE VENTING CATEGORIES [12427.41 & {T8-1}
+Category 	Condensation 	Static Pressure 	Typical Vent
+I 	No 	Negative 	B Vent
+II 	Yes 	Negative 	Per manu
+III 	No 	Positive 	Per manu
+IV 	Yes 	Positive 	Plastic
+TABLE 28 	TERMINATION OF B & BW VENTS [F2427.6.5] & {F B-2}
+Roof Slope 	Height above Roof
+upt 06: 12 	1ft.
+>6:12 to 7: 12 	1ft.3in.
+>7: 12 to S:12 	1ft.6in.
+>8:12 to 9: 12 	2ft.
+>9 :1 2 to 10: 12 	2ft.6 in.
+> 10:12t0 11:12 	3ft. 3in .
+> 11 :12 t0 12:12 	4ft.
+> 12:12 t 014: 12 	5ft.
+> 14: 12 to 16: 12 	6ft.
+> 16:12 t 018: 12 	7ft.
+> 18 :1 2 to 20:12 	7f t. 6in.
+>20 :12 to 21 :1 2 	8ft.
+22
+
+-- 24 of 33 --
+
+Dryer Moisture Exhaust Ducts
+No screws in airflow ~ ~ ~
+o i tr-
+I 	[25ft. max. minus 2V2ft.
+each 45· of bend]
+{14ft. max. minus 2ft.
+each 90· bend in
+excess of 2 bends}
+connectors
+MECHANICAL 	23
+APPLIANCES
+General (also see "Connectors;' page 17) 	06 IRC
+o Install AMI 	[1307.1 , 240S .1]
+o Attach installation instructions to appl ___ [1307.1 , 240S .1]
+o If code & manu differ, more restrictive rule applies __ [240S.1]
+Air Conditioning
+o Evaporator downstream from fur
+o Working space min 30inx30in
+nace heat exchanger _ [1411.2]
+[1305.1]
+o Condensate may not drain to public way 	[1411 .3]
+o Drain pipe [min 3/s in] {AMI & min 1/sin /ft slope} __ [1411.3 . 2]
+o May drain to indirect receptor (lav tailpiece, tub overflow) [local]
+o Protect from condensate overflow w/secondary drain line OR
+Drain pan with drain pipe under eqpt OR 	[1411.3.1]
+Water level detection device interlocked to eqpt _ [1411.3.1]n
+o Overflow/secondary drains to readily observable
+location 	[1411.3.1]
+o Outdoor condenser on raised level base 	[1401.4]
+o Electrical disconnect req 'd in sight of condenser F68 _ [4001.5]
+Direct Vent Termination
+o 0-1 OkBtu/hr min 6in clearance to bldg openings __ [2427.S]
+o 1 Ok-50kBtu / hr min 9in 	[2427.S]
+o >50kBtu/hr min 12in 	[2427.S]
+o 12in clearance to ground 	[2427. S]
+Range/Cooktop
+o Vert clearance to combustibles 30in ______ [1901.1]
+o Reduced clearance OK if L&L & AMI 	[1901 . 1]
+o {24in vert clearance OK w/ sheet metal over millboard} _ [n /a]
+o Horiz clearance per manu 	[1901 .2]
+06UMC
+{304 .1}
+{304.1}
+{103 .0}
+{904S}
+{305 .0}
+{310.1}
+{310.1}
+{3101}
+{3102}
+In /a}
+{310.2}
+{11062}
+{NEC}
+{S02.S.3}
+{S02.S.3}
+{S02.S.3}
+{S02.S.3}
+{916.2B}
+{916.2B}
+{916.2B}
+{916 .1A}
+Freestanding Room Heaters
+o Secure to floor 	[1307.2]
+o Clearances AMI {12in if unlisted jacketed type} __ [2446.1]
+o Flame safeguard (pilot safety) req 'd 	[2446 .1]
+o Unvented heater may not be sole heat source ___ [2445.2]
+o Unvented heaters max 40kBtu input, 6kBtu in bath, 10kBtu in
+bedroom & must have adequate combustion air _ 	[2445.3 ,4,5]
+o Unvented heater must have oxygen depletion shutoff _ [2445 .6]
+Fireplace with Gas Appliance
+o Pipe penetration sealed with listed material 	[2432.1]
+o Decorative log set req 's damper blocked open ___ [2432.1]
+o Req 'd valve :S: 6ft of fireplace & in same room OR __ [2420.5]
+OK in or remote from firebox if installed AMI [2420.5X, 2420.5. 1]
+o Decorative log sets w/ pilots or ignitor req pilot safety [2432.2]
+o Unvented log heaters not in factory fireplace
+unless L&L ___________ [1004.4, 2445.7]
+o Fireplace screen req'd 	[n/a]
+o Adequate combustion air req 'd if in bedroom
+or bath 	[2406.2X2 , 2432.3]
+{304.4}
+{924 .3}
+{306.0}
+{9 24.1}18
+{924 .1.1X}
+{local}
+{907.2}
+{907.2}
+{1312.4}
+{0}
+{306.0}
+{907.2}
+{907.3}
+{907.1}
+WALL FURNACES
+Clearances & Installation
+D Header height AMI 	[2436.1]
+D Side & top clearance req 'd to prevent ignition hazards [2436.3]
+D Door swing [min 12in] may not cause hazard 	[2436.4]
+D Door stops not allowed to provide req 'd clearance _ 	[2436.4]
+D Room or space must have adequate combustion air _ [2407.5]
+D No ducts attached to wall furnaces 	[2436.5]
+Vent (Type BW)
+D Min termination 12ft from base of wall furnace __ [2427.6.5]
+D Base plate & firestop spacers per manu 	[2436.1]
+{92S.1C}
+{92S.2}
+{92S.2}
+In/ a}
+{92S.3}
+{92S.1A}
+{S02.6.2.2}
+{92S.1}
+FLOOR FURNACES
+General 	061RC
+D May not project into habitable space 	____ [2437.5 , 6]
+o 6in to ground, 1 2in sides, 1Sin control side 	[2437.4]
+o Flat-register type min 6in from any wall 	[2437.2]
+o Not in doorway & 1 2in from door swing or draperies _ [2437.2]
+o 1Sin clearance req'd at 2 adjoining sides 	[2437.2]
+EXHAUST SYSTEMS
+Electric Clothes Dryer Ducts
+D L&L ductless (condensing) dryers OK per L&L __ [1502.1 X]
+o Closet install req 's make-up air opening min 100sq .in _ _ [n /a]
+o Flexible connectors from dryer to duct must be listed
+In/ a}
+(504.3.2)
+& max Sft {6ft} F59 	[1502.4] {504.3.2.1 X}
+o Connector not concealed in construction F59 _ __ [1502.4] {504.3.2.1 X}
+o Duct smooth metal , no screws in air flow F59 _ __ [1502.5] 	{504 .3.2.1}
+o Duct size of appl outlet {min 4in} 	[1502.3] 	{504.3 .2}
+o [Max length 25ft minus 21 12ft per each 45° of bend] _ [1502 .6] 	In/a}
+o {Max length 14ft minus 2ft each 90° turn more than 2} _ 	[n/a] 	{504 .3.2.2}
+o Longer lengths OK w/ specific dryer installed AMI [1502.6 X]79 	In/a}
+o No mixing with or passage through other systems __ [1502.1] 	{504.31}
+o End outside in backdraft damper & no screens F59 _ [1502.2] 	{504.3.1}
+o Min 3ft from other bldg openings 	[1502.2]80 	In/a}
+06UMC
+{912.11 ,12}
+{912.7}
+{912.4B}
+{912.4A, C}
+{912.4B}
+Gas Clothes Dryers & Ducts
+D Closet install req 's [1 OOsq.in] make-up air opening _ 	[2439.4]
+o Flexible connectors from dryer to duct must be listed
+& max Sft {or AMI} F59 	[2439 .5]
+o Connector not concealed in construction F59 ___ [2439 .5]
+o Smooth metal inside [min 4in diameter] & no screws in
+air flow F59 	[2439. 5]
+o [Max length 25ft minus 21 /2 ft per each 45° of bend] EXC [2439.5.1]
+Longer lengths OK w/ specific dryer installed AMI [2439 . 5.1 X]
+o No mixing with or passage through other systems __ [2439.1]
+(905 .3A )
+{905.4C}
+{905.4C}
+{905.4B ,C}
+{manu}
+{905.4A}
+o End outside in backdraft damper & no screens F59 _ [2439.3]
+Bathroom Exhaust Fan (also see page 10)
+o Must exhaust direct to outsi
+o Opening min 3ft from PL {or
+o Openings weather protecte
+o Duct material approved for a
+Outside termination req 's 1/4
+de 	[303.3X,15 0 1.1] 35
+bldg openings} 	[303.5]
+d {backdraft damper req 'd} [303 .5]
+pplication 	[1506.1]
+in- 1I2in mesh screen __ [303 .5]
+{504 .1}
+{504.5}
+{504.1}
+{504.1}
+In/a}	o
+Range Hood Ducts
+o Terminate outdoors {min 3ft
+Ductless range hoods OK p
+o Must be metal with smooth i
+PVC OK for downdraft duct
+o Backdraft damper req 'd
+er L&L 	[1503.1 X]
+nt EXC 	[1503 . 2]
+under slab 	[1503.2X]
+[1503.1]
+o Min 100 cfm in termittent or 25 cfm continuous __ [1503.3 ]
+{304.1}
+{504.2}
+{504 .2X}
+{504 .1}
+(n/a)
+from opening or PL} EXC [1503.1]
+{905.2A}
+{504.5}
+
+-- 25 of 33 --
+
+Service Drop Clearances
+18ft.
+12ft
+Clearances around
+Service Equipment
+::::::===;~~~====T=~3ft. min.
+measured
+Keep the 	~___+_ -I rom front
+property line 	edge of
+in mind when 	panel
+spotting a
+meter location.
+A future chain·link
+fence can create a 	I
+potential hazard. 	I 	Maintain to	I height of	I 	edge I 	I
+l 	l~ 	I 	: Sft. Sin.
+I I I 	_~
+	, ~. ,
+Location 	UF 	Rigid
+Cable 	Metal 	PVC
+ELECTRICAL
+GFCI20A
+Circuit 	s 30v
+10ft min to lowest point bottom of drip loop ___ [3504.2.2]
+o 10ft min above areas accessible only to
+pedestrians 	[3504.2.2]
+o 12ft above residential property & driveways _ _ _ [3504.2.2]
+o 1 ~ft above public streets & tractor trailer parking _ [3504.2.2]
+HVAC •
+{230.24B}
+{230.24B}
+{230.24B}
+{230.24.B}
+---- ---- - - -- -- -~ ~-
+SERVICES
+General 	061RC
+D All eqpt shall be [L&L] {approved} _ _____ [3303.3)
+o 1·FD min 1 OOA service 	[3502 . 1)
+o All other services min 60A 	[3502.1)
+o Only 1 service allowed per dwelling 	[3501.2)
+05 NEC
+{110.2}
+{230.79C}
+{230.79D}
+{230.2}
+Service Riser/Lateral
+o Underground depth per tables &
+o Underground raceways sealed in
+o Warning ribbon 12in above burie
+o Service riser adequately braced &
+o No unsupported couplings above
+o Only service conductors on mast
+o Plumbing pipe or fittings prohibite
+o Clamp conduit within 3ft of servic
+side panel _ __ [3501.5)
+d service conductors [3703. 2)
+per utility specs _ [3504.5)
+roof 	[3504.5)
+(no CATV or phone)[3504.5)
+d 	[3303.3)
+e box 	[T3702.1)
+{300.5G}
+{300.5D3}
+{230.28}
+{230.28}
+{230.28}
+{110.8}
+{3XX.30A}*
+"The 2005 NEC uses a parallel numbering system. The section for support is .30.
+The articles for various service risers are: RMC=344, IMC=342, RNMC=352, EMT=358
+utility 129 	[3703.1) 	{300.5A}
+Meters & Service Hardware
+D Verify meter height, location, fees wI utility 	[utility)
+o Meter base alone not considered service eqpt __ [3501.6 . 1)
+o L&L "Suitable for Service" or "Suitable Only
+for Service" 	[3501 .6.1]
+o 6 handles max to disconnect power at service __ [3501 . 7]
+o Backfed breakers mechanically secured in place _ [3606.5]81
+o Neutral bar must be bonded in service eqpt 	[3507.5]
+{230.66}
+{230 .66}
+{230.71A}
+{408.36F}
+{250.28}
+o Eqpt working space min 30in wide, 36in deep F61 _ [3305.2)
+Service Conductors
+o Utility may have jurisdiction for outside service conductors [local]
+o Service entrance conductor size per table 129 __ [3503 .1]
+o Min 18in of conductor at weatherhead 	[utility]
+o Identify (white tape) insulated neutral at each end _ 	[3307.1]
+o Drip loop below weatherhead F61 	[3505.9.5]
+o Arrange weatherhead & conductors to prevent
+water entry 	[3509.6]
+o Exposed wire sunlight resistant or covered ___ [3505.6]82
+o SE cable secured 12in of service box & every 30in _ [T3702.1]
+o Min rating for 1·FD 100A 	[3502.1]
+o Min rating for individual unit of 2·FD 60A 	[3502.1]
+Not pass through int of another bldg 	[3501.3]
+{90.2C}
+{230.42A}
+{utility}
+{2006B}
+{230.54F}
+{230.54G}
+{310.8D}82
+{230.51 All
+{230.42B}
+{230.42B}
+{230.3}	o
+Clearances above Ground F60
+o
+{utility}
+{110.26A}
+Clearances above Roof Surfaces F60
+D Setback & clearances per utility
+D 8ft min if slope <4:12
+D 3ft min if slope ~4:12
+D Maintain req 'd clearance for 3ft past roof ed
+D 10ft clearance above roof used as walkable d
+D 18in clearance OK overhanging eave
+Clearances from Building Openings F
+D 3ft below or to sides of doors & openable wind
+Not req'd for raceway or enclosed cable
+D Above window per utility
+D Maintain clearance above decks & stairs for
+061RC
+[utility]
+05 NEC
+{utility}
+{230.24A}
+{230 .24AX2}
+{230 .24A}
+{230.24AX1 }
+{23024AX3}
+[3504.2.1]
+[3504.2.1 X2]
+ge _ 	[3504 .2.1]
+eck [3504.2.1 X1]
+[3504.2.1 X3]
+60
+ows EXC [3504.1]
+[F3504.1]
+[F3504.1)
+{230 .9A}
+{230.9A}
+{230.9AX}
+3ft
+past edge 	[3504.1 , 2.1] 	{230.9A,B}
+_~Hdrv""'" 	J --- - --I.., 	I
+Service panel
+clearance area
+- -:- - 	, ~
+-----"'=-c'''7,t ___ - - - - -
+Meter height
+is utility's call
+(44in.-SSin.)
+
+-- 26 of 33 --
+
+Grounding Electrode System (GES)
+5ft.
+max.
+GEe
+\
+All available
+electrodes must
+be bonded
+together &
+a GEC mu st
+connect them to
+the service 	Rod min.
+8ft. below	neutral.
+•I ••
+Cu Service Wire 	Aluminum Service
+Wire
+Max. Service
+Rating 	GECCu
+--_... _- _	..•...-~--......--------~-~-------------------------------....
+TABLE 30 	I;
+1. Indoor sq.ft. x 3VA/ft.
+2. Min . 2 small appliance circuits @ 1,500VA ea. 	3,000
+3. Laundry circuit @ 1,500VA 	1,500
+4. Nameplate VA of fixed appliances:
+Dryer @5,000VA
+Oven(s )
+Cooktop
+WH
+DW
+Disposer
+Other
+5. Subtotal
+6. First 1O,OOOVA @ 100% 	10,000 	10,000
+7. Balanc e@40 % (subtract line 6 from line 5) 	xA
+S. Largest of heating or c ooling load:
+Sa . Nameplate rating (s) of air·conditioning & cooling eqpt OR
+Sb. Heat pump nameplate if no supplemental electric heat OR
+Sc. Continuous electr ic thermal storage @ nameplate rating OR
+Sd. 100% of heat pump nameplate rating plus 65 % of supplemental
+electri c heat or central electric heat OR
+Se. Spa ce heate rs @ 65 % of nameplate rating if <4 units OR
+Sf. Space heaters @ 40% of nameplat e rating if ~ 4 units
+9. Total load in VA
+10. Di vi de by 240 = minimum service rating
+A. Minim um s ize is 100 am ps or result of calc ul at io n fr om tab le , which ev er is greater.
+PANELBOARDS (LOAD CENTERS)
+General 	061RC
+D Working space 30in wide x 3ft deep min F61 _ _ 	[3305.2]
+D Working space min 6ft 6in high F61 	[3305.2]
+D Neutral not to be regrounded after service EXC F62 _ [3507.2]
+Separate bldg wi no parallel metal path between bldgs[3507.3]
+D Subpanel neutrals NOT bonded to enclosure & grounds [3808 .6]
+D Only 1 wire per breaker unless L&L for 2 	[3306 .9]
+D Each neutral req 's individual terminal 	[3306.9]83
+D Overcurrent protection req 'd per tables T32 ___ [3605 .5]
+D Breakers L&L for panel 	[3303.3]
+D Breaker & fuse labeling on panel must distinguish their use
+from all other circuits 	[3606 . 2]84
+D Unused openings closed equivalent to original __ [3304 .5]
+D Max height of breakers 6ft 7in 	[3605.7]85
+D No panels in clothes closet or bathroom 	[3605.7]
+D 1/4in behind surface-mounted panel in damp or wet location [3807.2]
+05 NEC
+{II 0. 26A 1,2}
+{110.26A3}
+{250.24A5}
+{250.32B2}
+{408.20}
+{110.14A}
+{408.21 }
+{24004}
+{110.3B}
+{40804}84
+{110.12A}
+{240 . 24A}85
+{240.24D,E}
+{312.2A}
+Subpanel
+In a downstream subpanel, the white
+neutral & the equipment grounds must not
+be bonded together. The neutral MUST be
+insu lated from contacting the metal
+enclosure & any equipment grounds.
+Bonding these conductors is hazardous
+because it will cause neutral currents to
+travel on metal services of electrical boxes
+& conduits.
+GROUNDING & BONDING
+Grounding Electrode System (GES)
+D Use underground water pipe if metal &
+more in earth
+o Attach to water service before 5ft of piping into
+o Bond around removable eqpt (meters, etc.) _
+o Supplement water pipe (can't be sole electrod
+o "Ufer"=20ft #4 rebar or Cu wire near bottom
+[3508.1 .1]
+bldg [3508.1.1]
+_ _ [3508.1.1]
+e) [3508.1.1.1]
+of footing req'd in new construction F63 ___ [3508 .1 X,2]'6
+{250 . 52A I}
+{250 . 52Al }
+{250.53Dl }
+{250.53D2}
+{ 250 .50AX}86
+10ft or
+061RC
+o Ground rod min 8ft F63 	[3508.104]
+o Ground rod driven flush & min 8ft deep F63 _ _ [3508.104.1]
+o Rod resistance >250hms, req 's second rod min 6ft apart[350804]
+o Detached structures wi >1 branch circuit require G ES [3507.3]
+{250.53G}
+{250.56}
+{250.32A}
+Clamps
+D Clamp to ground rod L&L for direct burial _ __ _ 	[3511 . 1]
+[3511.2]	D Clamps accessible, unless buried or concrete-encased
+{250.70}
+{250.68A}
+Grounding Electrode Conductor (GEC)
+D G EC must connect to neutral at service 	[3507.2]
+D 8 AWG req 's protection in raceway 	[T3503.1]
+D 6 AWG following bldg contour OK wlo protection _ [3510.2]
+D 6 AWG largest size GEC req 'd if dead-ends at rod [T3503.1]
+D 4 AWG largest size GEC req'd if dead-ends at Ufer[T3503.1]
+{250.24A}
+{250.64B}
+{250.64B}
+{250.66A}
+{250.66B}
+Bonding
+D Bond all available electrodes
+D Provide means to bond phone & CATV to service _ 	[3509.3] 	{250.94}
+D Bond lightning protection to G ES 	[n/a] 	{250.106}
+D Bond metal raceways enclosing GEC 	[3510.3] 	{250.64E}
+D Bond service raceway fittings wi bonding jumpers if knockouts remain ,
+use bonding locknuts if no remaining concentrics _ 	[350904] 	{250.92B}
+. . 	...
+05 NEC
+{250.52A5}
+..
+(water piping, rod, Ufer) [3508 .1] 	{250.50}
+D Bond metal piping, hot, cold & gas 	[3509 .6, 7] { 250 . 104A ,B}
+D EGC of eqpt (ex : forced·air furnace)
+may be used to bond gas 	[ 35 09 .7] 	{ 25 0. 04 B}
+
+-- 27 of 33 --
+
+'
+Islands & 	Rain-Tight
+Peninsulas 	Covers
+If cabinet is ~ 20in.
+above counter,
+receps. can be
+installed on cabinet
+and are safer t han
+under counter.
+Island or peninsula 	Required for
+reqs. min. 1 outlet. • 	wet locations
+ELECTRICAL
+6ft. & 12ft. Rule
+...
+~ 6ft. 	Fixed
+Fireplace does
+not count as I glass
+to floor
+\ 	wall space. 	/'
+Distance at 	~ 6ft.
+wall/floor 	Openable
+sliding	line between door --...	.... each of these
+receptacles
+is a max. 	Receptacle
+I
+of 12ft. 	required if --....
+~ 6ft. wall wider
+than 2ft.
+Openable
+f 	sliding door ~
+I::;:===~r
+/~ Permanent
+partition 	t
+~
+t Floor receptacle required ~
+Je: 	Fixed glass
+within 6ft. of beginning of 	to floor
+glass & 18in. O:.~~II 	/
+b 	..( '
+Receptacle required for hallway
+'-"--:2 1Oft .
+TABLE 32
+Fuse or
+Breaker
+Branch Circuits or Feeders
+Wire S iz eA
+Cu 	Alum i num
+Service Conductors
+Wi re Size "
+Cu 	Aluminum
+15 	14 	12
+20 	12 	10
+30 	10 	8
+40 	8 	6
+50 	8 	6
+60 	6 	4
+70 	4 	3
+80 	4 	2
+90 	3 	1/0
+100 	2 	1/0 	4 	2
+110 	1/0 	3
+125 	1/0 	2 	1/0
+150 	1/0 	2/0 	2 /0
+175 	2/0 	3/0 	1 /0 	3/0
+200 	3/0 	4/0 	2/0 	4/0
+225 	3/0 	250kcmil 	3/0 	250kcmil
+250 	4/0 	350kcmil 	4/0 	300kcmil
+300 	300kcmil 	400kcmil 	250kcmil 	350kcmil
+350 	400kcmil 	600kcmil 	350kcmil 	500kcmil
+400 	500kcmil 	800kcmil 	400kcmil 	600kcmil
+A. Branch circuit & feeder wire sizes are based on [T 3605.1] & {T31 O.16} for not more than 3 current-
+carrying conductors in a raceway or cable & without temperature corrections. Conductors # 1 & smaller
+or connected to breakers 1 aDA or less are based on a eo°c ampacity; larger conductors & breakers
+are based on a 75°C ampacity.
+B. Service conductor sIZes are based on the wire types in [T3503.1) & (T31 0- 15(b)(6)}.
+..
+BRANCH CIRCUITS
+Required Branch Circuits
+D Min 2 20A small appl circuits for receps i
+breakfast room, dining room & pantry
+D 20A recep circuit for bath receps only O
+D 20A dedicat ed circuit for each bathroom
+D Central heating req 's individual circuit
+D Cord/plug range hood req's individual ci r
+D 20A circuit dedicated for laundry eqpt
+D Min 30A circuit for electric dryer
+D int li ving space: typical 1 circuit per 500s
+n kitchen (including refrigerator),
+[3 603.2) 	{21 0.11 C1}
+R 	[3603.4) 	{21 0.11 C3}
+[3603.4X) {21 0.11 C3X}
+[3603.1) 	{422.12}
+cu it __ [4001.3)87 (422.1684}87
+[3603.3) 	{21 0.11 C2}
+[T3604.2(1 )) 	{220 .18}
+q.ft __ _ [3603 . 5) 	{21 0.11 A}
+Restrictions on Required Circuits
+D No lights or other outlets on sma ll appl circ
+Clock, range igniter, or refrigerator OK _
+D Refrigerator OK on individual circuit 2: 15
+uits EXC [3801.3.1) 	(2 10.5282 )
+_ 	[380 1 .3. 1 X1 , 2) {21 0.5282X1}
+A ___ [3603.2X] {2 1 0.5282X2}
+D No other outlets (including lights) on bath recep circuits EXC
+Individual circuit may serve a ll outlets in 1 bath _ 	[3603.4X) {21 0.1 1C3X}
+D Only laundry appl on laundry circuit (no lights) __ [3603.3] 	{21 0. 11 C2}
+061RC 	05 NEC
+.
+• 	•
+I -
+.
+RECEPTACLE OUTLETS
+Required Branch Circuits
+D 15A circuits: 15A receps only
+D 20A circuits: 15A (duplex) or 20A r
+Hallways & Habitable Rooms
+D An y wa ll 2: 2ft in habitable room req 's
+D No point on wa ll >6ft horiz from rec
+D No electric baseboard heaters under
+D Hallway:2 1 Oft requires recep F66
+Kitchen
+D Min 2 sma ll- appl circuits serving cou
+D No point along cou nter >24in from r
+D Kitchen counters 2: 12in req's recep
+Spaces <12in deep behind sinks &
+D Recep req 'd behind corner sink if sp
+2 18in deep
+D Countertop receps max 20in above
+D Islands min 1 recep per counter spa
+D Island, peninsula & disabled access
+cabinet max 12in below & no overha
+Bathroom
+D Recep req 'd wit hin 3ft of edge of ea
+D Recep on wall or on side or face of
+from top
+D No receps inside or over tub or sho
+eceps OK _[T3902.1.2)
+recep F66 _ [3801 .2.2]
+ep F66 _ __ [3801.2. 1)
+receps, see p.27 [3801.1)
+[380 1.10]
+{T21 0.21 83}
+{210 .52A.2}
+{210.52A.1}
+{210.52}
+{210 .52H}
+ntertops _ _ [3801 .3.2) 	{21 0.5281}
+ecep 	[3801.4.1] 	{21 0.52C1}
+EXC 	[3801.4.1] 	{21 0.52C1}
+ranges _ 	[3801.4.1 X]88{21 0.52C1 X}88
+ace
+[3801.4.1 X]'9{21 0.52C1 X}89
+countertop F64 [3801.4.5] 	{2 10 .52C5}
+ce F64 __ [3801.4.2, 3] {2 10.52C2 ,3}
+receps all owed on side of
+ng >6in F64 [3801.4 .5X) {2 10.52C5 X}
+ch basin ___ [3801.6) 	{210.52D}
+cabinet if < 1 2in
+[3801.6X] 	{2 10.52DX}
+wer space __ [3902.11) 	{406.8C}
+Basements & Garages
+D Min 1 general-purpose recep (in add
+D Each section of unfinished basemen
+Outdoor
+D Grade-level receps req 'd front & rear
+ition to laundry) [380 1.9]
+t req's recep _ 	[3801.9]
+___ __ _
+D Damp location (carpo rt ) req's weatherproof cover _
+D Wet locati on req's in-use (bubble) cover F65 ___ _
+[3801.7]
+[3902.8]
+[39029]
+{210.52G}
+{210.52G}
+{210.52E}
+{406.8A}
+{406 .881}
+061RC
+[T3902.1 . 2)
+05 NEC
+{T21 0.21 83}
+
+-- 28 of 33 --
+
+Air-Conditioning
+Condenser
+All air conditioners
+require an in-sight
+disconnect.
+Surface fluorescent or
+Closet Light Clearances 	rt>~· t>".ot>" incandescent
+12in.
+Surface wall lights 	Surface
+only OK over door. 	fluorescent
+Shaded areas are desi9nated
+as storage. The storage area 	72in.
+above the shelf is the shelf
+width or 12in., whichever is
+9reater.
+A
+{422.16A
+{430.32B1 ,2}
+{210 .70A3}
+{422.12
+{422.12X
+{210.63
+{422.13
+{422.31B
+{424 .3B
+{manu,424.9
+{424.9
+{422.18
+{314.27D
+{314 .27D}
+{314.27D
+Kitchen
+ORange/oven >8.75kw (kilowatt) min 4
+(#8Cu #6Aluminum)
+o D is poser cord min 18in max 36in
+o DW & compactor cords min 36in max
+o DW & disposer not on same circuit
+o 2 circuits sharing split duplex recep (e
+req 's common trip breaker or handle ti
+Central Furnace
+o Cord & plug connection NOT OK
+o Fused disconnect req 'd AMI unless ther
+o Lighting outlet switched at entry to eq
+o Central furnace must be on individual
+Auxiliary eqpt (ex: filter) OK on furnac
+o 120V recep within 25ft on same eleva
+Water Heater
+o Circuit min 125% of nameplate rating
+D In-sight or lockable breaker or switch
+Space Heating
+D Circuit min 125% of nameplate rating
+D No electric baseboard heaters under
+D Receps in baseboard heaters not on
+Paddle Fans
+D Not to be supported by standard elec
+D Boxes & box systems listed for fan su
+OK to 70lbs
+D If listed for >35Ibs , max weight must
+D Fans ov er 70lbs req independent sup
+0A wire
+[3602 .9.1] 	{21 0.19A3}
+[T4001.3] 	{422.16B1
+48in __ [T4001 .3] 	{422.16B2
+[3601 .2] 	{210 . 20A ,C}
+x: disposer & DW circuits)
+e on breakers [3601.5] 	{210AB
+[4001.3]
+mally protected [4001.2]
+pt space __ [380304]
+circuit EXC _ [3603 .1]
+e circuit __ [3603 .1]
+tion ___ [3801.11]
+[3602.10]
+req 'd F67 _ 	[T4001.5]
+[3602 .10]
+recep outlets _ [4001 . 2]
+same circuit _ 	[3801 .1]
+trical boxes _ 	[3805.9]
+pport
+[3805.9]
+be marked _ 	[3805.9]
+port 	[3805 .9]
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+{440 .63}
+{440 .64}
+{440.65}
+D Cord/plug disconnect OK if co ntrols <;
+D Max cord length 120V = 10ft, 240V =
+D Cord/plug units req AFCI or LCDI (le
+, 6ft of floor __ [n/a]
+6ft 	[n/a]
+akage current detection
+interrupter) in cord or plug cap 	[n/a]
+{440AB]
+{440 .14}
+{110.26A}
+GFCI & AFCI PROTECTION	----	
+PPLIANCES
+Required Disconnecting Means 	061RC
+o Breaker alone OK if appl <;,300VA or 1fshp ___ [T4001.5]
+D Accessible cord/plug for appls listed for cords _ 	[T 4001.5]
+D In-sight or lockable breaker or switch EXC F67 _ 	[T 4001.5]
+Unit switch that opens all hot conductors OK __ [T 4001.5]
+{422.33A}
+{422.31 B}
+{422.34}
+D Air conditioner always req 's in-sight disconnect _ 	[T 4001.5]
+Breaker Lockout
+If disconnect is not in sight of appliance,
+lockable breaker required.
+Window/Wall Air Conditioners
+05 NEC
+{422.31A}
+{440.14}
+}
+}
+}
+Central Air Conditioning
+D Central AC wire & br ea ker/fuse size per nameplate [3602.11]
+D Disconnect in sight of co ndenser F68 	[T4001 .5]
+D Disconnect clearance min 30in wide, 36in d ee p F68 [3305 . 2]
+Required GFCI Protection 	061RC
+D All bathroom receps 	[3802.1]
+D All receps serving kitchen countertops 	[3802.6]
+D All outdoor receps EXC 	[3802.3]
+Non-readily-accessible recep for de-icing tape __ [3802.3X]
+D All garage & unfinished basement receps EXC __ [3802.2]
+Receps not readily accessible &
+recep(s) only for appl(s) in dedicated space __ [3802.2X]
+D Receps within 6ft of wet bar, laundry, or utility sinks [3802.7]"°
+AFCI Protection
+D Req 'd for all branch circuits w/ outlets in bedrooms [3802.12]
+D Effective 1/ 1/ 08 must be "combination type" UL listed [3802.12]91
+LIGHTING OUTLETS
+Required Locations
+D Wall-switched lighting outl
+rooms & bathrooms __
+et in all habitable
+05 NEC
+{21 0.8A 1}
+{210 .8A6}
+{210.8A3}
+{210.8A3X}
+{210 .8A2,4}
+{210 .8A2,4X}
+{210.8A7}
+{210.12B}
+{210 . 12B}91
+_________ [3803.2] 	{21 O. 70A 1}
+D Lighting outlet may be switched recep exc in
+kitchens & bathrooms 	[3803.2X]
+D Hallways, stairways & garages 	[3803.3]
+D Outside each ext door with grade-le ve l access __ [3803.3]
+D Garage vehicle door does not req light 	[3803.3]
+{210 .70A1X}
+{210.70A2}
+{210 .70A2}
+{210 .70A2}
+Switching
+D All switching in ungro
+D Occupancy sensors
+D Switch req 'd at each
+D No dimmers controllin
+Bath
+D No pendant, track, or
+& within 3ft of side of t
+D Luminaires in above z
+Track Lights
+D Track rating not <load
+D Lighting track min 5ft a
+Recessed Lights (als
+unded conductors 	[3901.8]
+OK for halls, stairs & exits _ 	[3803 .3X]
+access to int stairs if ~ 6 risers [3803.3]
+g switched receps 	[3901.12]92
+{404 .2A,B}
+{210 .70A2X}
+{210 .70A2}
+{404.14E}
+suspended lights or paddle fans <8ft above
+op or tub or shower threshold [3903.10] 	{410AD}
+{410AD}93	one listed for damp locations [3903 . 10]93
+& branch circuit rating __ [3905.1 ,3]
+bove floor & securely fastened [390504 ,5]
+o see page 9)
+{410.101B}
+{410.101,4}
+D Insulation & combusti
+D Recessed light
+Recessed light
+(non-I
+D 	(non-I
+Closet F69
+D No open incandesce nt bulb fixtures 	[3903.11] 	{410.8C}
+bles contact OK for type IC [3904.8 , 9]
+C rated) 1hin from combustibles [3904.8]
+C rated) 3in from insulation_ 	[3904.9]
+D Storage area = 12in or shelf width & to ceiling __ [3903 .11]
+D Enclosed surface incandescent: 12in clearance _ [3903 .11]
+D Fluorescent or recessed incandescent: 6in ___ [3903.11]
+{410.66A2}
+{41 0. 66A 1}
+{410.66B}
+{410.8A}
+{410.8D}
+{410 .8D}
+11 	1 	11 	(l 	I) 	() 	() 	() 	() 	() 	() 	() 	I) 	() 	I) 	) 	) 	) 	) 	) 	) 	) 	) 	) 	., 	) 	) 	) 	11 	11 	I')
+
+-- 29 of 33 --
+
+Too 	90 "
+Insert pull	
+Many 	4 x 90 " 	point, such
+Bends 	= 360 " 	as a conduit
+body
+90" 	90 "
+Max. 360 " in bends of conduit
+EMT "Thinwall"
+Rain-tight wet location 	Dry location
+o Supports :S 6ft apart & within 12in of box 	[T3702.1] 	{330 .30A,C}
+o Anti-short bushings ("redheads") recommended _ 	[3303.3J 	{110.3B}
+NM Cable
+SE Cable 	MC Cable "1.IiiiIi1lll:.l~
+Liquidtight Flex "1.IiiiIi1lll:.l~
+Rigid Nonmetallic Cable (PVC)
+(~
+Schedule 80 	Schedule 40
+APPLIANCES
+General Rules for NM, UF, SE & AC 	061RC
+o Ex posed cables closely follow bldg surface or on running
+boards (ex: in basement nex t to load center)__ [370 2.3.1J
+o Nail plate req 'd if cable <1 1/4i n to face of framing [T3702.1J94
+o Protect within 6ft of att ic access opening 	[3702.2.1 J
+o Protect below 7ft in attics w/ stair or pull-down ladder [3702.2.1 J
+o Supports :S4 112 ft apart & within 1 2in of box 	[T3702.1 J
+o Cable req 's clamp to box EXC 	[3804.1 J
+NM cable secured :S 8in to single-gang NM box _ [3805.3.2XJ
+o Cable clamps per L&L: no chase nipples 	[3303.3J
+o Fir eblocking caulk at holes in wall plates 	[602.8J 4•
+o Cable derated if >2 cables in caulked hole __ [360504o4J95
+05 NEC
+{3XX.15}*
+{30004A ,D}94
+{3XX.23}*
+{3XX.23}*
+{3XX.30} *
+{314.17C}
+{314.17CX}
+{110.3B}
+in/a}
+{334 . 80}95
+• Th e 2005 NEC uses a parallel numbering system. The articles for various cable types are:
+AC=320, MC=330, NM=334 , 5E=338, UF=340.
+Nonmetallic Sheathed Cable (NM) "Romex®" F71
+o Normally dry locations only 	[T370104J
+D #8/3 or #6/2 OK strung under basement joists __ [370204J
+o Smaller cables req bored holes or running board __ [370204J
+o Protect exposed cables w/ conduit or tubing __ [3702.3. 2J 96
+o Conduit or tubing OK protection on unfinished basement walls if
+{334.10A}
+{334.15C}
+{334 . 15C}
+{334 .15B}96
+nonmetallic bushing at entry of cable to raceway _ [370204J97 	{334.15C}97
+o NM never suitable as flexible cord or with plug __ [3303.3J 	{110.3B}
+o Listed bushing or grommet req 'd through steel studs[T3702.1 J 	{30004.Bl}
+o No sharp bends (bend radius min 5x cable diameter) [3702.5J 	{334.24}
+o Min 1/4in sheathing into box 	[3805.3.1 J 	{314.17C}
+Underground Feeder Cable (UF) "Romex®" F70
+o Same rules as NM when used as int wiring method [T370104J
+o Cable emerging from ground req 's protection from 18in below
+grade to 8ft above grade 	[3703.3J
+o Min 1/4in sheathing into box 	[3805.3.1 J
+{340.10}
+{3005Dl }
+{314.17C}
+Service Entrance Cable (SE) F72
+o As service p.24, as branch see "General" & "NM" rules [T3702.1J
+o Feed to subpanel req 's insulated neutral (SER type) F62 [3507.2J
+{338.10}
+{338.10B}
+Armored Cable (AC) "BX"
+o Dry locations only ___ _ _ ____ __ _ [T370104]
+o Anti-short bushings ("redheads") req 'd 	[T3702.1] 	{320040}
+Metal Clad (MC) F73
+{320.10}
+ELECTRICAL Loo·,J"j/·'U·'I",;;I"I"........,;;"&,;;lo,;,,jl
+•
+APPLIANCES
+General Rules for NM, UF, SE & AC 	061RC 	05 NEC
+o Openings to conduit systems to remain accessible [3805 .1 OJ 	{314.29}
+D No common plastic boxes with metal raceways __ [3805.3J 	{314.3}
+D No splicing in small conduit bodies 	[3805.12.3.1 J 	{314.16C2}
+D Max 360 " of bends between pull points F75 _ _ 	[T3702.1 J 	{3XX.26}*
+The 2005 NEC uses a parallel numbering system. The subsection for bends is .26, the race -
+way articles are: RMC=344, IMC=34 2, FMC=348, LFMC=350, RNC=352, EMT=35B.
+, 	.)
+W
+Electrical Metallic Tubing (EMT) "Thinwall
+o Kinks in pipe not permitted
+D Not suitable for direct burial w/o corrosion protect
+D Supported every 10ft & within 36in of boxes _
+D Rain-tight fittings outdoors
+[3702.5J
+ion [T370104J
+_ 	[T3702.1J
+[3805 . 11 J
+D Not to support boxes exc conduit bodies (LBs) __ [380404J
+D Max fill :S40% 133 	[T3804.6(2 )J
+{35824}
+{358.10B}
+{35830}
+{358042}
+{358.12}
+{TC.l }
+" F78
+Flexible Metal Conduit (FMC) "Greenfield" or "Flex" F74
+o Dry locations unless drip loop & " W" conductors_[T370104J 	{348.1 2.1}
+D Supported every 4112ft & 12in from box EXC _ _ 	[T3702.1 J 	{34830}
+Where fished or up to 3ft to motorized eqpt ___ [T3702.1] 	{348.30}
+D EGC req 'd exc light whips :S6ft 	[3808 .8J 	{250 . 118}
+D EGC req 'd to motorized eqpt 	[3808.8 .1J 	{348.60}
+D Angle connectors not concealed 	[n /aJ 	{348042}
+Liquidtight Flexible Metal Conduit (LFMC) "Sealtight" F75
+o Same as flex except OK for wet (or buried when L&L) [T370104J 	{350.10}
+o EGC req'd to motorized eqpt 	[3808.8 . 2] 	{350.60}
+Rigid Nonmetallic Conduit (RNC) "PVC" F76
+o Schedule 80 OK for protection from physical damage [T370104] 	{334 . 15B}
+o Not OK to support boxes other than conduit bodies [3806 .8.5] 	{352.12B}
+o Expansion fittings req 'd if seasonal length change> 1/4in [n/aJ 	{352044}
+
+-- 30 of 33 --
+
+4ft. min.
+Underwater Pool 	8in. min.
+above max.
+Lighting 	water level
+General 	061RC 	05 NEC
+D Repair wallboard side gaps >1fsin to outlet box FBO _ [3806.6] 	{314.21}
+D Outlet box flush with combustible surface F80 __ [3806 .5] 	{314.20}
+D Setback :o;1/4 in from noncombustible surface (drywall) F80 _ [3806.5] 	{314.20}
+D Boxes & conduit openings must remain accessible 	[3805.10] 	{314.29}
+D Min 6in free conductor in box min 3in past face _ 	[3306.10.3] 	{300.14}
+: I
+Box extender
+Bad Box 	(goof ring)
+Placement
+Box setback
+too deep 	"	
+(>1/4in.)
+D Box size for conductors, devices & fittings _ 	T33 [3805 .1 2] 	{314.16}
+o 4in (6cu.in) pancake box only OK end of 14/2 run F81 [3805.12] 	{314 .16B}
+o 18cu.in box wi device too small for 3 x 12/2 N M cable [3805.12] 	{314.16B}
+Total
+Pancake Boxes
+4cu.in.	6cu .i n.
+Pancake boxes are not suitab le for most applications
+because they are too small for wiring connections.
+ELECTRICAL FINAL
+D Repair wallboard side gaps >1/sin to outlet box FBO [3806 . 6] 	{314.21}
+D Outlet box flush with combustible surface FBO __ [3806.5] 	{314.20}
+D Setback :0; 1/4 in from noncombustible surface (drywall) F80 _ [3806.5] 	{314.20}
+D Lighting fixtures must be L&L 	[3303 .3] 	{local}
+o Faceplates installed on all recep outlets 	[3902.5] 	{406.5}
+o Faceplates installed on all switches 	[3901.11] 	{404.9}
+o Smoke alarms working & in terconnected F24 	[313 ] 	{310 .9.1 B}
+SWIMMING POOL	----------------
+General 	061RC 	05 NEC
+D Service drop above or within 10ft of pool req 's clearance
+of 22 {22112} ft in any direction from water _____ [T 4103.5] 	{T680.8}
+o Underground <5ft from pool RMC, IMC, or RNC only[41 03.6] 	{680.10}
+Receptacles
+o Min 1 recep;:O:l Oft & :O;20ft from pool walls _____ [41 03 .1. 2] 	{680.22A3}
+o Receps :O;20ft from pool walls GFCI protected ___ [41 03.1.4] 	{680.22A5}
+o Pump motor recep OK ;:O:5ft & :0;1 Oft from pool walls
+if twist-lock & GFCI-protected 	[4103.1.1] 	{680.22Al }
+o If pool less than 10ft from house, recep may
+be ;:O:5ft from pool 	[4103.1 .3]98 	{680.22A4}
+o 15A & 20A receps for pool pump motors req GFCI [4103.1.4]99 	{680.22A5}
+Lighting Outlets
+o Outdoor lights min 5ft from pool or ;:O: 12ft above_ 	[41 03.4.1] 	{680 . 22Bl }
+o GFCI for lights >5ft & <10ft from pool & <5ft above [4103.4 .5] 	{680.22B4}
+o Existing fixt OK<5ft if GFCI protected & >5ft above [4103.4.3] 	{680.22B3}
+{680.22B2}	o Indoors 72ft above water OK if enclosed & GFCI _ 	[4103.4]
+o Pool light grounds unsplice
+o Bond together pool shell, metal eqpt. for pumps, pool covers,
+underwater light forming shell & all metal :O;5ft of pool [4104 . 2] 	{680.26B}
+o Bonding wire min solid 8AWG Cu 	[4104.4] 	{680.26C}
+o Feeds to pool subpanels RMC, IMC, RNC ,
+LFNC EXC ______________________ [T 4102.1] 	{680 .25A}
+EMT or existing cable within bldg OK 	[T 4102.1] 	{680.25AX}
+o Branch circuit EGC min 12AWG 	[4105.2] 	{680.23F2}
+F80
+o GFCI-protected or low-voltage _______ [4106.4] 	{680 .23A}
+o Top of fixt min 18in below water level 	[4106.4.2] 	{680.23A5}
+o RNC to underwater lights req 's 8AWG insulated
+bonding conductor 	[4105.3] 	{680.23B2}
+o Encapsulate bonding conductor on forming shell _ 	[4105.3] 	{680.23B2
+o Segregate GFCI-protected from non-GFCI ___ [4106.3] 	{680.23F3}
+o Junction box L&L for pool light 	[4106.9.1] 	{680 .24A1}
+o Junction box min 8in above water, 4in above deck [4106 .9.1] 	{680.24A2}
+o Junction box min 4ft from pool edge 	[4106.9.1] 	{680.24A2}
+o Wet-niche fixture secured to shell wi locking device [4106.5] 	{680.23B5}
+Bonding & Grounding
+d exc on terminals ____ [4105.2]
+Underwater Lighting
+HOT TUB/SPA
+.,
+D Outdoors same rules as swimming pools 	[4102 .1]
+o Cord :O;15ft OK for GFCI-protected packaged unit _ [4102.2] 	{680.42A2}
+o Bond all metal within 5ft 	[41042] 	{680.26B5}
+Indoors
+o Min 1 recep min 5ft & :0; 1 Oft from spa ________ [41 03.1 .5] 	{680.43A}
+o GFCI-protect all receps:O;l Oft from spa 	[4103.1.6] 	{680.43A2}
+o No wall switches within 5ft of spa 	[4103.2] 	{680.43C}
+HYDROMASSAGE TUBS
+D Eqpt accessible wlo damaging bldg finish _ [2720.1 ,41 09.3] 	{680.73}
+o GF;CI protection req 'd 	[4109.1] 	{680 .71}
+o All receps within 5ft req GFCI protection 	[4109.1] 	{680 .71}
+o Metal piping systems & grounded metal parts in contact wi
+circulating water bonded wi th min 8AWG Cu _ 	[4109.4],00 	{6 80 .74}
+{680 .23F2}
+{680.42}
+BOXES
+Box Fill
+00
+
+-- 31 of 33 --
+
+BUILDING
+Page 1
+1 .. 	-~
+2. - ...,
+3.
+tl ~. soc [), was 	in 02 parts, D. & D, .
+increased from 3ft to 5 11.
+s & openi ngs near PL
+4. 	exists 'or sites 	ere positive slope for 1011 is not possible.
+5. ::rdosec DeaOW-9raDe spaces need not be habitable/usable to req dampproofing.
+6. CncIoseo oeoow-grade spaces need not be habitable/usable to req waterproofi ng .
+Page 3
+7. This section req's a 1.5 safety factor in design of unrestrained retaining walls.
+8. For basement walls to be considered laterally supported:
+The floor slab must now rest ra in basement walls, AN D
+The floor system must be connected to the sill with hardware per a new table, AND
+The sills must be bolted to the walls per a new table, AND
+The floors must be blocked full depth within two joist spaces of the wall, AN D
+Aspect ratios of bldgs with unbalanced loads must be within values of a new table.
+9. Dampproofing membranes c an be approved if made for CMU w/o parging.
+10. Reinforcement must be secured in place, not merely thrown into wet concrete.
+11. Reduction to 10 % of req'd venting if vapor retarder present has been deleted.
+12. Conditioned crawl spaces can now be approved for perimeter insulated crawl space.
+Page 4
+13, Manufacturer's instructions OK for cutting, notching & boring .
+Page 5
+14. Joints in top plates no longer req over studs.
+Page 6
+15. HIB-91 replaced by BCSll-03.
+16. Manufacturer's instructions are sufficient for alteration of engineered lumber.
+17. Rafter ties defined as being in the lower '13 of the roof elevation.
+18. The size & number of req 'd rafter ties has been increased.
+19. Collar ties defined as being in the upper '13 of the roof elevation.
+20. The min size of collar ties is the same as the former rafter tie size.
+Page 14
+49 . The req 'd distance past the framing edge is new in the 2006 U PC .
+50 . The re qu irement depends on the floor level of the fixt , not the fixt floor.
+51. C leanouts must be the same size as the pipe served in the IRC.
+Page 15
+52. The height above the roof is specified instead of a blank to be filled in by the AHJ.
+53. The specified case of a "vertical leg waste fixture drain" has been deleted.
+54. The 2003 U PC did not allow any horiz wet venting.
+55. This section clarifies where horiz wet vents are allowed.
+Page 17
+56. In 2003 , only black pipe was exempt.
+57. The I RC recognizes separate ANSI standards for indoor & outdoor connectors.
+Page 18
+58. This change clarifies that hot must be on the left when facing the outlet.
+59. The rule for max horiz tailpiece distance is new.
+60. The max temperature at a bidet is new in 2006.
+61. Openings did not previously have to be larger than 12in x 12in.
+62. The max temperature at a tub or hydromassage is new in 2006.
+63. The min width of 22in is new to the IRC.
+64. This change clarified that the control must be on the individual valve.
+MECHANICAL
+Page 19
+65. The U PC now recognizes bed/bath closet in stallations w/ specified conditions.
+66. Seismic bracing of water heaters is new to this chapter of the IRC.
+67. The 2003 U PC did not include requirements for attic water heaters.
+Page 20
+68. The UMC now recognizes bed/bath closet installations w/ specified conditions.
+69. The 03 UMC did not contain any specific requirements for attic installations.
+70. 50ft distance not allowed in 2003 even if passage 6ft high.
+71. Condensing furnaces req a drain pan if leaking condensate would cause damage.
+72. Requirement that ducts may not prevent crawl space access is new in 2006 UMC .
+Page 7
+21. Ext walls have performance requirement to prevent water accumulation.
+22. The term water-resistive replaces weather-resistant.
+23. Flashing now req 'd to extend to ext surface or to water-resistive membrane.
+24. Additional ASTM standards referenced in the requirements for stucco.
+Page 21
+74. Screen requirement is new to the 2006 UMC.
+75. Alternate material to galv sheet metal now req 's equivalent strength & rigidity.
+Page 22
+25. A new performance requirement was added for stucco water-resistive barriers.
+26. A water-resistive membrane is req'd behind vinyl siding.
+27. A new table is provided for masonry veneer thickness, shear, and tie -down forces.
+28. Conditioned attics are now recognized in lieu of ventilated attics.
+Page 8
+29. This requirement refers to local history rather than climate tables.
+Page 9
+30. The max threshold height applies to all ext doors, not just req'd exits.
+31. Unfinished basements >200sq.1I now req secondary egress even if not habitable.
+32. Basements for mechanical eqpt and <200sq .ft are exempt from this new rule.
+33. Previous restrictions on green board in tubs/showers only applied to vapor retarders.
+34. Cement board is prescribed as tile backer in tub and shower areas.
+Page 10
+35. All exhaust fans (exc whole house fans) are req'd to extend to the ext.
+36. New requirement conforms with CPSC recommendations for window guards.
+37. All sidelites within prescribed proximity zone req'd safety glass in the 2003 IRC.
+Page 11
+38. Previous editions req 'd a point of control at top & bottom of all interior stairs.
+39. Including garage stairs as interior stairs is a clarification of the rule.
+Page 12
+40. Holes for wires must also be caulked (fireblocked) (also on p.28).
+41. The requirement for height of chimney fireblocking was deleted-flat sheet metal OK.
+42. Firestop penetration systems used when pipes must penetrate firewalls.
+43. Detached garages closer than 3ft req protection in the area <3ft from house.
+44. Central station fire alarm systems have different standards than house smoke alarms.
+45. Jhe exemption for work only on the ext is new.
+46. Sectio n clarified to omit areas with <5ft in computing area of req'd space.
+PLUMBING
+Page 13
+47. The duration of the test not specified in the 2003 edition.
+48. The min size of a shower drain & trap changed from 2in. to 1'12 in.
+76. Strike plates now req'd for protection of vents.
+Page 23
+77. Water-detection devices allowed in lieu of a pan or a pan drain.
+78. The 2003 UMC prohibited all unvented space heaters.
+79. Boost er fans only allowed when specific to the installed dryer.
+80. The 2003 IRC did not req the terminat io n to be 3ft from other openings.
+ELECTRICAL
+Page 24
+81. The requirement for securing backfed breakers is new to the IRC.
+82. Non-sunlight-resistant conductors allowed if protected with a listed covering.
+Page 25
+83. Th e IRC now includes this requirement that has long been part of the UL standards.
+84. Label ing must be specific-"generallighting" is no longer an accepted la bel.
+85. All breakers have this max height, not just breakers used as switches.
+86. Reinforcing steel used in new construction must be part of the grounding system.
+Page 26
+87. Listed microwave range hoods with cord/plug connections req their own circuit.
+88. Diagrams explain when countertops behind a range req a recep.
+89. Diagrams explain when countertops behind corner sinks req a recep.
+Page 27
+90. Receptacles within 6ft of laundry sinks req G FCI protection.
+91. "Combination type" AFCls detect more possible arcs than the "branch feeder" type.
+92. The IRC prohibits dimmers controlling receptacles. Th is was a 2002 NEC rule.
+93. Shower lights req listing for damp or wet locations, depending on shower spray.
+Page 28
+94. This rule has been expanded to include furring strips.
+95. If more than 2 cables pass through a caulked hole, they must be derated.
+96. Conduit & tubing are now specified as possible protection methods.
+97. This protection method req's a nonmetallic bushing on the protective raceways.
+Page 29
+98. I RC allows recep @ >5ft & <10ft if space between house & pool is restricted.
+99. IRC req's GFCI for all 15A & 20A receps for pool pump motors.
+73. The min in the 2003 IRC was R-5.
+TOP 100 CODE CHANGES
+-------,.~ -- -- -- -- -- -- -- -- -- ---
+100. Bonding is only req'd for metal parts when in contact with circulating water.
+CODE CHANGES 	30
+
+-- 32 of 33 --
+
+Own the Suite
+Code Check
+Building
+Code Check
+Electrical
+Code Check
+HVAC
+Code Check
+Plumbing
+
+-- 33 of 33 --
+
