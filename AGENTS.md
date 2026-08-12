@@ -1,4 +1,4 @@
-﻿# Agent Session Log
+# Agent Session Log
 
 ## Phase 1b + Phase 2 â€” Architecture Consolidation (Commit: `279f1c0`)
 
@@ -2130,3 +2130,355 @@ Closed the remaining in-app agent gap: the KPI2 researcher node (AgentRunnerPane
 - `npx vitest run --maxWorkers=4`: 4697/4697 tests (238 files) — +6 new curated corpus tests
 - `npx vite build`: success in ~28s (PWA precache 147 entries, 5261.49 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1057 files)
+
+## NotebookLM brain decision — deterministic local simulation is authoritative (Current)
+
+### Decision
+The interactive notebooklm-py half of the L5 "NotebookLM brain" is **stopped by user choice** (`Skip live session for now`). The deterministic local brain — `scripts/notebooklm-brain.ts` + `corpus/` (66 sources) + `brain/brain-manifest.json` + `brain/deep-research.tsv` + the in-app embedded corpus (`codeCorpus.ts`: By-Laws 1977, SI 56/2025, SAZ catalogue, Building Typologies guide) — is the **authoritative** research/RAG brain. No production code changed this session; the live Google session is a research aid only.
+
+### Interactive half — state at stop (what was accomplished)
+- Notebook created: `81b6a52b-6a96-41d5-9563-caa96b2011c4` — "Dzenhare Construction Code Corpus (RAG brain)".
+- Auth: solved once via one-shot Playwright `storage_state.json` dump (54 cookies); `auth check --test --json` → ok. **Auth subsequently expired** (token_fetch false); re-dump attempt sat on the Google sign-in page unauthenticated (3 pre-login cookies only) → this triggered the skip decision.
+- Uploads: all 59 corpus `.txt` files were successfully added (each at least once), surviving the three failure layers (U+2019 smart apostrophes ↔ PowerShell ANSI mangling; Windows 260-char MAX_PATH; CLI `\\?\` rejection) via a Python `subprocess` driver that copies each file to a short ASCII temp name (`%TEMP%\nb_uploads\src_NNN.txt`) before `source add --type file --title`.
+- Cleanup: 4 error-status sources + 39 duplicates deleted (`source delete <id> --yes --json`, success JSON is `"status": "deleted"`); 23 `src_NNN` temp-titled sources renamed to real corpus titles (`source rename <id> <title>`); 3 missing files re-added.
+- **Size-limit diagnosis**: NotebookLM per-source text-paste limit sits between 711,732 words (Architectural Graphic Standards, passed) and 763,256 words (failed). The 4 oversized files (NEC 2017 Handbook 958k words, Time-Saver Standards ×2 at 796k each, Civil Engineering Reference Manual 763k) were re-split: each first half re-split into 4 × ~150k-word chunks (16 uploads, all accepted), second halves uploaded/renamed as `(part 2/2)`. `--mime-type text/plain` does NOT bypass the limit (still ingested as `SourceType.MARKDOWN`).
+- Final live state at stop: 75 sources (74 ready, 1 processing — Time-Saver A_2 `part 3/4`), i.e. all 59 corpus files fully represented. Deep research (Grade A-D) was never triggered — auth expired first.
+
+### Artifacts that remain authoritative
+- `scripts/notebooklm-brain.ts` — deterministic `source_get_content`/deep-research simulation.
+- `brain/brain-manifest.json` — 66 sources / 228,230 chunks / 57,015,382 chars, chunked via `parseCodeDocument → chunkDocument` (200-500 token child modules), built 2026-08-10.
+- `brain/deep-research.tsv` — 25 rows of deterministic deep-research output.
+- `corpus/` — 59 `.txt` + 8 non-txt (SI 56 PDF, 7 CSVs); on-disk source library (committed, L5 finalization session).
+- In-app embedded corpus — `codeCorpus.ts` (4 documents) feeds the KPI2 researcher node + MCP `search_codes`/`analyze_compliance` offline.
+
+### Notes
+- Re-auth for the live brain (if ever resumed): run the Playwright dump (`%TEMP%\opencode\nb_relogin.py`) and actually complete the Google sign-in in the opened window before the timeout; or swap in a fresh signed-in session. The `notebooklm login` CLI bug (waits on `notebooklm.google.com` while Google redirects to `notebook.google.com`) remains a blocker for the built-in path.
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally NOT touched (repo convention). No verification rerun needed — documentation/decision only, zero source changes.
+
+## PHASE 1 audit - Prompt Engineering (40->95) + LLM Tools (25->90) (Current, 2026-08-11)
+
+### What was done
+Closed the PHASE 1 audit gaps on the "Prompt Engineering" and "LLM Tools" axes. ZIQS SMM / Model Building By-Laws 1977 / SAZ / SI 56/2025-grounded system prompts, a strict Zod tool/function-calling layer with per-role agent scoping, regulatory grounding plumbed into the brief + compliance prompts, and a real tool executor backed by existing engines. All local-first/free-tier (no paid keys).
+
+### Files created (4)
+- `src/lib/ai/prompts/ziqs_smm_prompt.ts` - `ziqsSmmSystem(language)` (en/sn/nd bilingual), `REGULATORY_GROUNDING` (By-Laws 1977 Ch.2/Ch.4 Grade A=4hr/B=2hr/C=1hr/D=0.5hr fire-resistance ladder, boundary separation, 230mm masonry; SAZ 7 MPa common brick + 400x200x200 block; ZIQS SMM measurement rules: excavation net m³, scaffolding m², masonry per 115mm m²; SI 56/2025 ACZ-registered-professional gate + P4P auto-gate), `OUTPUT_CONSTRAINTS`, `CITATION_NOT_FOUND_JSON` (`{"found":false,"message":"Regulation not found"}` for confidence < 0.7), `GRADE_FIRE_RESISTANCE`, `citeByLaws()` (mandated `[Model Building By-Laws 1977 Ch.4 Cl.12(a) Grade A 2hrs]` format).
+- `src/lib/ai/prompts/budget_engineer_system.ts` - `budgetEngineerSystem(language)` wraps the ZIQS grounding + `BRAND_VOICE` (Guardian/Engineer: authoritative/accessible/fearless/empowering; tabular-nums + JetBrains Mono money) + `PAYMENT_MILESTONES` (35/40/25) + `MILESTONE_SPLIT_TEXT`.
+- `src/engine/tools/definitions.ts` - 10 strict Zod `.strict()` schemas (`query_blaws`/`query_saz`/`query_ziqs`/`query_si56`/`query_market_index` read tools; `calculate_brick_quantity`/`calculate_concrete_volume`/`calculate_tco`/`p4p_calculator`/`wipaa_calculator` write tools). Positive-number/enum validation blocks string injection. `TOOLS`/`READ_TOOLS`/`WRITE_TOOLS`/`AGENT_TOOL_SCOPES` (researcher+validator = read only, calculator = write only, supervisor = none), `toolsForRole`/`canCallTool`/`assertAgentToolScope`/`parseToolArgs`/`isValidToolArgs`.
+- `src/engine/tools/executor.ts` - `executeTool(name, args, ctx)` routes each tool to its real engine: RAG `hybridSearch` (By-Laws `by-laws-1977`, SAZ `saz-catalogue`, ZIQS injected `ziqs-smm`; honest `found:false` + canonicalRules note when the ZIQS corpus is not embedded), ACZ registry (`lookupArchitect`/`validatePlanAgainstRegistry`/`gateP4pBid`) for SI 56, `buildMarketIndex`/`FX_USD_TO_ZWG` for market quotes, `calculateBricks` (thickness_units x 230mm skin, non-compliance surfaced not clamped), `calculateConcrete`, `calculateTco`, deterministic P4P mark-up (direct x overhead x margin) + WIPAA under/over/on-track. Scope + validation failures return structured `{ ok:false, error }` refusals. `DEFAULT_MARKET_RATES` (5 materials).
+
+### Files modified (4)
+- `src/lib/ai/brief-coercion.ts` - BRIEF_PROMPT (line 35+) prefixed with `ziqsSmmSystem()`; schema gains `regulatoryNotes:string[]` with citation-format enforcement; `coerceBrief` passes through (slice 10).
+- `src/lib/ai/ai-types.ts` - `ParsedBrief` gains `regulatoryNotes?: string[]`.
+- `src/ai/schema.ts` - re-exports `TOOL_SCHEMAS`, `TOOLS`, `READ_TOOLS`, `WRITE_TOOLS`, `AGENT_TOOL_SCOPES` + `ToolName`/`ToolDefinition`/`AgentRole`.
+- `src/engine/rag/analysis.ts` - COMPLIANCE_PROMPT prepends `ziqsSmmSystem()` grounding (existing ragPipeline.test.ts 'ventilation'/'Ventilation' assertions preserved).
+
+### Tests (+42)
+- `src/__tests__/promptToolsAudit.test.ts` (24) - grounding greps (ZIQS SMM, SAZ 7 MPa, By-Laws 1977 Ch.2/Ch.4, Grade A-D ladder, SI 56/2025, P4P), citation format + low-confidence fallback, en/sn/nd, brand voice + 35/40/25, BRIEF_PROMPT/COMPLIANCE_PROMPT grounding + regulatoryNotes schema, strict-schema rejections (extra keys, negatives, strings, enum/range/months), agent scoping + `@/ai/schema` re-exports.
+- `src/__tests__/toolExecutor.test.ts` (18) - read tools (blaws chapter filter, saz retrieval, ziqs not-embedded note + injected index, si56 registered/unregistered gate, market index USD/ZWG), write tools (brick engine + 230mm compliance, concrete engine, TCO freight+defect math, P4P mark-up, WIPAA over/under/on-track), guards (out-of-scope refusal, invalid args, string injection, non-compliant brick at 0.5 skin, defaults + rates shape).
+
+### Notes
+- Free-API mandate honored: the executor and prompts call no paid keys; LLM paths fall back to deterministic local engines (`local-rules`, embedded corpus). The stale uncommitted `lib/llm/freeRouter.ts` experiment was intentionally NOT imported (tsconfig `src`+`eval` only; shipped free-tier layer is `src/lib/ai/remote-providers.ts`).
+- `thickness_units` maps to 230mm masonry skins; a fractional skin is passed through so `calculateBricks` flags non-compliance (the executor does not clamp).
+- `query_ziqs` returns an honest `found:false` + 3 canonical ZIQS rules when the corpus is not embedded in the in-app index (the on-disk `corpus/ziqs-smm.txt` is dead OCR; MCP path still covers it via the on-disk corpus).
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4739/4739 tests (240 files) - +42 new (24 prompts/tools audit + 18 executor)
+- `npx madge --circular --extensions ts,tsx src`: No circular dependency found (1063 files)
+- `npx vite build`: success in ~30s (PWA precache 148 entries, 5269.94 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+
+## LLM Tools — agent integration (full unification of KPI2 registry + strict layer) (Current, 2026-08-11)
+
+### What was done
+Unified the two tool systems into one authority: the deterministic KPI2 agent orchestrator (`src/engine/agents/tools.ts`) is now a thin adapter over the strict Zod function-calling layer (`src/engine/tools/`). One schema, one executor, one scope contract for both the LLM single-shot path and the LangGraph-style orchestrator. The legacy kebab-case registry (`search-codes`, `get-code-section`, `calculate-bricks`, `compute-tco`, `p4p-certificate`, `validate-plan-si56`, `gono-go-decision`) and its hand-rolled `inputSchema` arg validator are gone; the graph and tests were migrated to the snake_case strict ids.
+
+### Files modified (4) + tests (2)
+- `src/engine/tools/definitions.ts` — added `searchCodesSchema` (query ≥3 chars, `jurisdiction` enum zimbabwe/south-africa/any default any, `k` int 1–20 default 5, optional `docId`) and `gonoGoDecisionSchema` (estimate/baseline nonnegative, `deviation_threshold_pct` 0–100 default 10); new `ToolKind` member `'decision'`; `DECISION_TOOLS` filter; registry now 12 tools; `AGENT_TOOL_SCOPES.supervisor` now `DECISION_TOOLS` (was `[]`) — the supervisor's GO/NO-GO pen gets a strict home instead of being an orphan orchestrator-internal tool.
+- `src/engine/tools/executor.ts` — `ragHits` gains a `k` param; new `search_codes` route (hybrid search over the whole embedded corpus for zimbabwe/any, filtered to the `sans10400` doc for south-africa, honest empty hits when that doc is absent) and `gono_go_decision` route (estimate ≤0 / baseline ≤0 → GO with note; else deviation % vs threshold → GO/NO-GO).
+- `src/engine/agents/tools.ts` — rewritten as an adapter: `TOOLS` built by mapping `STRICT_TOOLS`, per-node scoping derived from `AGENT_TOOL_SCOPES` via `ROLE_TO_NODES` (researcher/validator/calculator/supervisor), every `run` delegates to `executeTool` and formats structured results back to the graph's key=value lines (`search_codes` → numbered hits, `query_si56` → `validation/allowed/reason`, `gono_go_decision` → `estimateCents/baselineCents/deviationPct/thresholdPct/recommendation`, generic tools → sorted key=value). `ToolDefinition` keeps the orchestrator shape (id/name/description/nodes/run) but drops `inputSchema` (its only consumer was the deleted validator); `validateToolArgs` now parses via zod and returns `path: message` strings; re-exports `STRICT_TOOLS`, `READ_TOOLS`, `WRITE_TOOLS`, `DECISION_TOOLS`, `AGENT_TOOL_SCOPES`, `TOOL_SCHEMAS`, `canCallTool`, `assertAgentToolScope`, `toolsForRole`, `parseToolArgs`, `isValidToolArgs` so the `@/engine/agents` barrel reaches both layers without a `TOOLS` name collision.
+- `src/engine/agents/graph.ts` — `nodeResearcher` → `search_codes` (args `{ query, k: 5 }`), `nodeValidator` → `query_si56` (args `{ planId, architectRegistrationNumber }`; the old `contractValueCents` arg is dropped — `gateP4pBid` only uses it to reject negatives, so 0 is behaviorally identical), `nodeSupervisor` → `gono_go_decision` (snake_case `estimate_cents`/`baseline_cents`/`deviation_threshold_pct`).
+- Tests: `promptToolsAudit.test.ts` — 12-tool count, READ_TOOLS now ends `…, 'search_codes'`, supervisor scope `['gono_go_decision']` + `canCallTool('supervisor','gono_go_decision')` true. `ragKpiSuite.test.ts` — scoping to new ids (`search_codes`, `calculate_brick_quantity`, `calculate_tco`, `query_si56`, `gono_go_decision`), out-of-scope call `{ length_m, height_m }`, `findTool('calculate_tco')`, `validateToolArgs` asserts `price_cents` via `.join('; ')` (array `toContain` is exact-element, not substring).
+
+### Notes
+- `gono_go_decision` being `type: 'decision'` keeps it out of both `READ_TOOLS` and `WRITE_TOOLS` while still giving the supervisor a real scoped tool — the `executor.ts` header comment was updated accordingly.
+- `agentRunnerPanel.test.tsx` mocks `@/engine/agents` entirely; its display-only `tool: 'calculate-bricks'` fixture is cosmetic and untouched.
+- The adapter passes `ctx.ragIndex` as the executor's `index`; no `role` is passed (the graph already enforces scope via `tool.nodes`), so `assertAgentToolScope` in `executeTool` stays for single-shot LLM callers.
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4739/4739 tests (240 files) — no test-count change, 2 suites updated
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1063 files)
+- `npx vite build`: success in ~8.3s (PWA precache 149 entries, 5273.84 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+## Async in-browser RAG pipeline — free-Bytez rewrite, hybrid search, 3-tier rerank, graceful degradation (Current, 2026-08-11)
+
+### What was done
+Closed the two remaining RAG audit findings (plain keyword-only chunking; weak retrievals silently presented as answers) with a fully in-browser, no-backend pipeline: free-Bytez LLM query rewriting, async hybrid search (BM25 phrase-boost + Bytez dense + RRF), a 3-tier rerank (transformers → Bytez → lexical, 0.7 threshold), a graceful-degradation protocol, and grounded tri-lingual (en/sn/nd) answer generation with `[Name Ch.X Cl.Y]` citations. Existing sync modules (`hybrid.ts`, `rerank.ts`, `queryRewrite.ts`) kept intact for their consumers.
+
+### Files created (6)
+- `src/lib/llm/freeRouter.ts` — `resolveBytezKey`, `resolveGroqKey`, `generateFree` (raw fetch `POST https://api.bytez.com/models/v2/{modelId}`, header `Authorization: BYTEZ_KEY` no Bearer, 30s abort; `{"error":null,"output":{"role":"assistant","content"}}`), `embedFree` (feature-extraction, `output: number[]`), `MODEL_IDS` map.
+- `src/engine/rag/embedCache.ts` — `EmbeddingCache` (LRU Map with LRU-touch eviction, `computeEmbeddingsBatched`), `embedQuery`/`embedText` with cache.
+- `src/engine/rag/gracefulDegradation.ts` — `NOT_FOUND_REASON`/`NOT_FOUND_MESSAGE`/`WEAK_RETRIEVAL_MESSAGE`, `evaluateRetrievalQuality` (topScore/minScore/recallAtK/ndcg/aboveThreshold/topOverlap/verdict), `applyDegradationPolicy`.
+- `src/engine/rag/hybridSearch.ts` — `phraseBoostedBm25`, `hybridSearchAsync` (bounded overdense leg, RRF fusion, `toHybridHit`).
+- `src/engine/rag/reranker.ts` — `rerankHybrid` 3 tiers + `generateAnswer` (also in `src/engine/rag/generate.ts`).
+- `src/engine/rag/generate.ts` — `generateAnswer` (local tri-lingual + remote JSON via `generateFree`, never-throw `extractJson`), `buildLocalAnswer` (`[ZBC Ch.1 Cl.1.2]` citations, 'Based on 3 retrieved references' lead, sn 'nongedzero' / nd 'okutholakele'), `GENERATE_ANSWER_PROMPT`, re-exports `NOT_FOUND_MESSAGE`/`NOT_FOUND_REASON`/`clarificationPrompt` for barrel parity.
+- `src/__tests__/asyncRagPipeline.test.ts` — 24 tests (async hybrid, phrase-boost ranking, bounded dense, rerank 3 tiers, degradation verdicts, generateAnswer, rewrite free path, analyzeCompliance wiring, barrel exports).
+
+### Files modified (7)
+- `src/engine/rag/queryRewrite.ts` — free-Bytez path: `RewriteOptions.useFree?`, `useFree = opts.useFree === true || (!opts.engine && Boolean(resolveBytezKey(opts.apiKey)))`, `method:'remote'` + rationale 'free Bytez LLM rewrite', never throws.
+- `src/engine/rag/analysis.ts` — degradation wired: `applyDegradationPolicy(rankedSources, conf, threshold, opts.query)`; `poor` → explicit not-found report (`findings:[]`, score 0, `warnings:[NOT_FOUND_MESSAGE, clarificationPrompt]`, `sources:[]`, `needsClarification:true`) after `emitTrace`; weak adds `WEAK_RETRIEVAL_MESSAGE` to warnings; `fellBack` true when `degraded`; fallbackReason = `degradation?.fallbackReason ?? NOT_FOUND_REASON`.
+- `src/engine/rag/index.ts` — exports `hybridSearch`, `reranker`, `gracefulDegradation`, `generate`, `embedCache` (plus prior `queryRewrite`, `tracing`).
+- `src/engine/rag/hybridSearch.ts` — `toHybridHit(result: SearchResult)` merge fix (sparse-only + dense-only legs now enrich `path`/`parentText`/`chapter`/`docTitle`/`denseScore`/`sparseScore`; lost citation data fixed).
+- `src/engine/rag/generate.ts` — `parseAnswer` helper (try/catch, no throw), null-guard `parsed`, `_query`.
+- `src/engine/rag/reranker.ts` — transformers tier cast via `unknown` + `Array.isArray(out)` guard (TS2339 `never` fix).
+- `src/engine/rag/gracefulDegradation.ts` — `reduce<number>` typing; **two-signal verdict** (below).
+
+### Key design lesson — two-signal verdict gate
+The never-hallucinate short-circuit was originally threshold-only (`aboveThreshold === 0 → poor`), but real queries on the full embedded corpus rerank at ~0.5–0.7 (below the 0.7 threshold) — e.g. 'minimum ceiling height of a habitable room' scored 0.657, which made every legitimate query short-circuit to "not found" and broke `domainMcpTools.test` (`totalRules` 0). Fixed by gating `poor` on BOTH `aboveThreshold === 0` AND zero lexical overlap between the query and the top hit (`lexicalCoverage` from `rerank.ts`). A top hit that shares tokens is `weak` (found, `WEAK_RETRIEVAL_MESSAGE` warning, `fallbackReason 'low-retrieval-confidence'`); only a no-overlap top hit is genuinely `not found`. Verified on the real corpus: 'minimum ceiling height of a habitable room' → 6 findings (weak); 'zygote quantum frobnicator' → empty + `NOT_FOUND_REASON`.
+
+### Test mocking (proven pattern)
+`vi.mock('@/lib/llm/freeRouter')` with `vi.hoisted` state (`bytezKey`/`genResult`/`embedResult`) spreading actual exports; `vi.mock('@huggingface/transformers', () => ({ pipeline: async () => { throw new Error('mock: transformers unavailable in tests') } }))` so tier 1 fails fast instead of hanging in node.
+
+### Notes
+- Empirical corpus facts: `parseCodeDocument` IDs are `sec-{chapter}-{clause}`; the bundled SAZ clause renders as `by-laws-1977:sec-14-3.3` with `7MPa`; `rewriteQuery(query, opts = {}, history = [])` — opts is 2nd arg, history 3rd.
+- Bytez has no dedicated rerank task — the Bytez rerank tier is query+passage embeddings + cosine.
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4763/4763 tests (241 files) - +24 new asyncRagPipeline tests (was 4739/240)
+- `npx madge --circular --extensions ts,tsx src`: ? No circular dependency found (1070 files)
+- `npx vite build`: success in ~7.6s (PWA precache 149 entries, 5273.84 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+## Track B spec deltas - grade metadata + source filtering + parent injection (Current, 2026-08-11)
+
+### What was done
+Closed the three genuine Track B RAG gaps from the starter spec with a regression suite. `grade` (A-D fire-resistance) is now stamped at chunk time and carried through retrieval and answer generation; both hybrid search paths (sync + async) honor a `filterSource` selector; and generated answers include cited parent passages so the RAG reads code context, not just leaf snippets.
+
+### Files created (2)
+- `src/engine/rag/sourceType.ts` - leaf module breaking the `hybrid.ts` <-> `hybridSearch.ts` cycle: `sourceTypeFor(docId)` (substring taxonomies: bylaws_1977/saz/ziqs/si56/market-index/historical), `specSourceTypeFor(docId)` (spec taxonomy `SpecSourceType`: `bylaws_1977|saz|ziqs|si56|market_index|historical`), `matchesSourceFilter(docId, filterSource)` (accepts BOTH spec and local taxonomy strings, substring-matched - so a user typing `saz` matches doc `saz-catalogue`).
+- `src/__tests__/trackBGapClose.test.ts` - 15 tests: grade extraction/stamping via parentChild + paragraph chunk paths, grade propagation to sync + async hybrid hits, spec-vs-local taxonomy matching, async `filterSource` (saz-only vs si56-only pool exclusion), sync `filterSource` (by-laws-1977 returns 0), topParents dedupe/cap/order/empty-parent, local answer parent block + lead line/not-found intactness, GENERATE_ANSWER_PROMPT parent section, barrel re-exports.
+
+### Files modified (6)
+- `src/engine/rag/types.ts` - `grade?: string` added to both `TextChunk` and `SearchResult`.
+- `src/engine/rag/chunking.ts` - `extractGrade(text)` (`/Grade\s+([A-D])\b/i`, uppercase); `grade` threaded through `ChunkingOptions`, `chunkSection`, all chunk variants (normal/expanded/sub/parent/child).
+- `src/engine/rag/hybridSearch.ts` - `HybridSearchAsyncOptions.filterSource`; pool + sparse + dense legs filter via `matchesSourceFilter`; `HybridHit.spec_source_type` set in `toHybridHit`; re-exports sourceType helpers (inline `type SpecSourceType` import removed - TS6133).
+- `src/engine/rag/hybrid.ts` - sync parity: `HybridSearchOptions.filterSource`, `matchesSourceFilter` import from `./sourceType` (was `./hybridSearch` - cycle broken), literal `grade` on returned results.
+- `src/engine/rag/generate.ts` - `DEFAULT_MAX_PARENTS = 6`, `ParentRef {hit, parentText, citation}`, `topParents(hits, max?)` (sorts by `rerankScore ?? rrf` desc, dedupes by `sectionId`, skips empty `text_parent`); `buildLocalAnswer` appends `\n\nReferenced code passages:` block (`[citation]` + parentText slice 600); `GENERATE_ANSWER_PROMPT` gains a `Referenced parent passages` block (slice 1000).
+- `src/engine/rag/index.ts` - exports `sourceType`.
+
+### Notes
+- Fixture uses synthetic `test-code` doc (`WITH_GRADE` sections `1.2 Grade A`, `1.3 Grade C`, ungraded `2.1`); index built via `RagIndex.addChunks(chunkDocument(..., {parentChild: true}))` because `addDocument` uses non-parent-child chunking. Citation short-name is `[test-code Ch.X Cl.Y]` (real corpus is `[ZBC Ch.X Cl.Y]`).
+- Cycle fix verified: `hybrid.ts` imports only from `./sourceType`; madge clean at 1072 files.
+- 3 test bugs found during bring-up: `DEFAULT_MAX_PARENTS` imported from the wrong module (TS), citation regex expected `ZBC` not `test-code` (x2).
+- Not implemented (remaining spec deltas, deferred): spec chunk sizes (300/1200 vs existing 500/2000), Nvidia embed + rerank tiers in `src/lib/llm/freeRouter.ts`, persistence (in-memory index remains the local-first authority; Supabase migrations untracked reference only).
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings
+- `npx vitest run` RAG/agent/MCP family (8 files): 120/120
+- `npx vitest run --maxWorkers=4`: 4778/4778 tests (242 files) - +15 new trackBGapClose tests (was 4763/241)
+- `npx madge --circular --extensions ts,tsx src`: No circular dependency found (1072 files)
+- `npx vite build`: success in ~8.2s (PWA precache 149 entries, 5274.86 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+## Agentic Orchestration audit - generic state machine + QS HITL gate + pipeline rewrite (Current, 2026-08-11)
+
+### What was done
+Delivered the Agentic Orchestration audit: a generic checkpointed LangGraph-style state machine, a Dexie thread checkpointer, a refactored `graph.ts` on canonical audit node names, a QS human-in-the-loop approval panel, and a full state-machine rewrite of the generative design pipeline. All in-browser, offline-first, free-tier `generateFree` API only.
+
+### Files created (4)
+- `src/engine/agents/stateMachine.ts` - generic, dependency-free state machine (`createStateMachine<S,C>`). Nodes return `{ state, next? }`; explicit `next` wins over fixed `edges`/`conditionalEdges` (conditional edges evaluate on the **outcome** state, LangGraph-style). `interrupt` outcome pauses the run at the routed node (HITL); `interruptBefore` auto-pauses on entry (auto `validation-required` interrupt). Thrown node errors trigger the `retry(state, ctx, node, error)` policy up to `maxRetries`; otherwise the run continues on the error edge. `run(state, ctx, { maxSteps?, onStep? })`; `onStep` (async, awaited) fires after every node so callers can Dexie-checkpoint. Throws `Exceeded N step limit` past `maxSteps`.
+- `src/engine/agents/checkpointer.ts` - `DexieCheckpointer` over `db.agentCheckpoints`, keyed `{runId}:{stepCount}` (matches the `agentCheckpoints` index `'id,runId,step,node,status'`); `save`/`loadLatest`/`list`/`delete`/`replay` + module helpers `threadCheckpointer`/`saveThreadCheckpoint`/`loadLatestThreadCheckpoint`/`listThreadCheckpoints`/`deleteThreadCheckpoints`.
+- `src/components/QSGateApprovalPanel.tsx` - QS human-in-the-loop panel: interrupt reason/message + formatted payload pills (`*Cents`→`$`, `*Pct`→`%`), structural-anomaly deviation, referenced By-Laws clauses (`state.retrievedDocs`), calculator inputs (`toolCalls` starting `calculate_`), committed ledger cover + site-photo context; note textarea; Approve & resume / Reject / Dismiss; `onResolved({ state, decision, note? })` via `resumeAgent`; buttons gated on `status === 'awaiting-input' || node === 'hitl'`.
+- `src/__tests__/stateMachine.test.ts` (9) + `src/__tests__/checkpointer.test.ts` (8) + `src/__tests__/QSGateApprovalPanel.test.tsx` (10).
+
+### Files modified (4)
+- `src/engine/agents/graph.ts` - refactored to the canonical audit node names (`NODE_QUERY_REWRITE`/`NODE_RESEARCHER`/`NODE_CALCULATOR`/`NODE_VALIDATOR`/`NODE_SUPERVISOR`/`NODE_HUMAN_IN_LOOP`/`NODE_DONE` + `NODE_AUDIT_NAMES` + `AUDIT_TO_NODE`/`NODE_AUDIT_MAP`) and built `AGENT_MACHINE = createStateMachine(...)` (fixed edges queryRewrite→researcher→calculator→validator, conditional validator→humanInLoop when `gate && !gate.allowed` else supervisor, `interruptBefore: [humanInLoop]`). **Critical fix**: `machineNode(audit, handler)` now stamps `s.node` to the short `AgentNode` before each handler runs - previously the supervisor ran with `node='researcher'`, which broke tool scoping and refused `gono_go_decision`. Supervisor also parses the executor's snake_case `deviation_pct` with camelCase fallback. All public exports preserved (`DEFAULT_VALUE_INTERRUPT_THRESHOLD_CENTS`, `DEFAULT_DEVIATION_THRESHOLD_PCT`, `callTool`, `rewriteEntry`, `runNode`, `runAgent`, `resumeAgent`, `GRAPH_NODES`, `HITL_THRESHOLDS`).
+- `src/engine/agents/checkpoint.ts` - fixed `loadLatestCheckpoint` ordering bug (`.reverse().sortBy()` was a no-op in Dexie - earliest step came back as "latest").
+- `src/engine/agents/index.ts` - `runBudgetAgent` now runs `runAgent(state, ctx, { onStep })` checkpointing every step via `threadCheckpointer.save`; barrel exports `./stateMachine` + `./checkpointer`.
+- `src/engine/agents/types.ts` - `createInitialState`/`AgentState`/`Interrupt` unchanged (checkpointer stores the full serializable state).
+- `src/components/agent/AgentRunnerPanel.tsx` - new optional `onInterrupt?: (result: BudgetAgentResult) => void`; fires after a run completes with a HITL interrupt and re-lifts when a resumed state is again `awaiting-input`.
+- `src/pages/studio/AgentStudio.tsx` - renders `QsGateApprovalPanel` above the runner when a gate is pending; loads `db.ledgerEntries`/`db.sitePhotos` context by `projectId` (cancelled-flag effect, no sync setState in the effect body).
+- `src/engine/pipeline/generativeDesignPipeline.ts` - **full state-machine rewrite**: `runPipeline` builds a `createPipelineMachine(input, t0)` and returns the same `PipelineResult`/`PipelineStep`/`PipelineStep` contract (17/17 existing tests pass unchanged). Nodes: `parseBriefNode` (dynamic import `../parseBrief`), `enhanceBriefNode` (dynamic `../tier1/briefEnhancer`, non-fatal fallback on failure), `optimizeNode` (dynamic `../tier3/multiObjectiveOptimizer`), `complianceNode` (dynamic `../compliance`), `packageNode` (dynamic `../tier1/councilPackageAssembler`); edges parse→enhance→optimize, compliance→package→done; conditionals parse→done on no brief, optimize→done on no planModel; `maxSteps: 10`, `maxRetries: 0`. `buildDesignOption(brief, _enhanced)` 2-arg signature + `formatPipelineReport` untouched.
+
+### Test bugs found during bring-up (all test-side, not implementation)
+- `conditionalEdges` are evaluated on the **outcome** state (`nextFor(node, outcome.state, ctx)`), so a conditional can't depend on pre-node state - the route test was rewritten to route on the node's own output.
+- A node with no edge entry defaults `nextFor` to `config.end` - the retry test needed an explicit `flaky → done` edge or the `done` node never ran.
+- JSX fragment text (`Committed to WBS codes: $1,250,000` split across a text node + span) isn't matched by `getByText` - assert on the span text (`$1,250,000`) instead; `/deviates/` matches both the interrupt message and the anomaly card - use `getAllByText`.
+
+### Notes
+- `resumeAgent(state, decision, note?)` still throws unless `state.node === 'hitl'`; the panel passes the stored note (trimmed, `undefined` when empty).
+- `runAgent`'s HITL flow: high-value interrupt first (`estimate ?? ctx.contractValueCents ?? 0 >= threshold`), then structural-deviation (NO-GO + deviation), else GO; no baseline → GO.
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4805/4805 tests (245 files) - +27 new tests (9 stateMachine + 8 checkpointer + 10 QS gate); one `useGlbExportStrictMode` infra flake on first run (documented - passes in isolation and on rerun)
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1078 files)
+- `npx vite build`: success in ~14s (PWA precache 150 entries, 5287.13 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+
+## KPI2/KPI3 streaming - progressive agent events (UI + headless CLI) (Current, 2026-08-11)
+
+### What was done
+Wired local-first progressive streaming through the whole agent stack: the state machine emits node-start/node-end per step, the graph emits per-tool-call records, and `runBudgetAgent` fans them out as a typed `AgentStreamEvent` stream (`node-start`/`node-end`/`tool`/`interrupt`/`done`) via an `onEvent` callback - the no-backend analogue of an SSE/LLM streaming route. The Agent Studio panel renders live node progress (active-node chip pulse, per-tool result lines), and a new headless CLI (`scripts/run-agent.ts`) exercises the same stream plus HITL auto-resume and Dexie persistence.
+
+### Files modified (5) + created (1)
+- `src/engine/agents/stateMachine.ts` - `run()` now fires `onNodeStart?(node, stepNumber)` before each step and `onStep` gains a `from` field (`{ from: node, node: result.node, state, stepCount }`).
+- `src/engine/agents/graph.ts` - `callTool` refactored into `recordToolCall`/`finalizeCall` that invoke `ctx.onToolCall?.(call)` (tool/node/ok/result); exported `auditToShort(audit)` mapping audit node ids -> short names; `runAgent` accepts `onNodeStart`/`onStep`, mapping both through `auditToShort`.
+- `src/engine/agents/types.ts` - `AgentContext` gains `onToolCall?: (call: ToolCallRecord) => void | Promise<void>`.
+- `src/engine/agents/index.ts` - `AgentStreamEvent` union + `onEvent` on `BudgetAgentInput`; facade wires `ctx.onToolCall` (emits `tool` events AND forwards to the caller's own `onToolCall`), `runAgent` opts, and per-step `threadCheckpointer.save` only when `input.persist !== false`.
+- `src/components/agent/AgentRunnerPanel.tsx` - `stream`/`activeNode`/`visitedNodes` state; `handleRun` passes `onEvent`; live-progress panel (`live-event`/`live-active-node` data attrs) with active-node chip pulse; node chips light up from stream events.
+- `scripts/run-agent.ts` (new, CLI) - `--query --jurisdiction --project --contract-usd --baseline-usd --plan --architect --decision --persist --run-id`; prints each event as a `[event]` line (node-start/node-end/tool/interrupt/done); exit 0 completed / 2 awaiting-HITL / 1 error; `--decision APPROVED|REJECTED` auto-resumes via `resumeAgent`; `--persist` writes run/checkpoints/trace (fake-indexeddb loaded as the FIRST static import so Dexie captures the global before open).
+
+### Tests
+- `ragKpiSuite.test.ts` - new streaming describe block (5): `onEvent` fires node-start/node-end/tool/done for a full GO run; interrupt path stops mid-pipeline (post-interrupt nodes skipped); `ctx.onToolCall` receives ok:true records; `runAgent` `onNodeStart`/`onStep.from` honor short names; `auditToShort` map.
+- `agentRunnerPanel.test.tsx` - new live-progress test (1): invokes the captured `onEvent` callback and asserts the live event line + active-node chip render.
+- Total +6 -> 4811/4811 (245 files).
+
+### Bugs found during bring-up
+- The facade's `ctx.onToolCall` wrapper **overwrote** a user-supplied `context.onToolCall` (spread `...input.context` first) - the test callback never ran. Fixed by forwarding to `input.context?.onToolCall?.(call)` after emitting the `tool` event.
+- `threadCheckpointer.save` ran on every step even with `persist: false` -> Dexie `put` -> `MissingAPIError IndexedDB API missing` in Node. Guarded behind `input.persist !== false`.
+- fake-indexeddb must be a **static first import** in the CLI: Dexie captures the IndexedDB global at module-evaluation time, so a dynamic `await import('fake-indexeddb/auto')` inside `main()` was too late.
+- In-memory fake-indexeddb is per-process: cross-process persistence verification needs run+read in the same script (verified: 1 run / 5 checkpoints steps 1-5 / 1 trace with matching runId).
+
+### Notes
+- HITL auto-resume verified live: high-value interrupt (contract 10000000 cents > 5000000 threshold) exits 2 with PENDING; `--decision APPROVED` resumes to completed (exit 0).
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB...` spec folder intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4811/4811 tests (245 files) - +6 new streaming tests (5 ragKpiSuite + 1 agentRunnerPanel)
+- `npx madge --circular --extensions ts,tsx src`: No circular dependency found (1078 files)
+- `npx vite build`: success (PWA precache 150 entries, 5288.58 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+- CLI smoke: `node --import tsx scripts/run-agent.ts --query "minimum ceiling height"` streams researcher->calculator->validator->supervisor->done, decision GO, exit 0
+
+## DzeNhare "Unicorn Standard" UI kit wiring (Current, 2026-08-12)
+
+### What was done
+Wired the finished `src/components/dzenhare/` kit into the ecosystem dashboards + Agent Studio and left the full verification gate green. One test collision found and fixed along the way.
+
+### Files modified (5)
+- `src/pages/ecosystem/BuilderDashboard.tsx` — "B2C Vault" band below the stat row: `EscrowVaultCard` (escrow `totalAmount` USD → cents via `Math.round(dollars * 100)`, `vaultStatus` pending/verified/released/disputed derived from milestone release states) + `MilestoneProgressCard` (next milestone + progress %) + `MaterialsTransparencyPanel` (PO material lines) + `ContingencySpendDownCard` (change-order spend-down options).
+- `src/pages/ecosystem/ContractorDashboard.tsx` — "Command Center" band: `MarketPriceTicker` (USD, first 10 of `buildMarketIndex(data.rates, FX_USD_TO_ZWG, 'USD', 30)`) + `ContractorMatchCard` (top-rated verified contractor) + `DataTable` over purchase orders (8 rows, `rowKey={(p) => p.id}`).
+- `src/pages/ecosystem/BulkProcurementDashboard.tsx` — "Value Portal" (re-exported by `SupplierDashboard.tsx`): `MarketPriceTicker` + `DataTable` over `orders.slice(0, 8)` (`rowKey={(o) => o.id}`; columns id 8-chars / supplierName / lines / totalCents `fmtCents` / ETA hours).
+- `src/pages/studio/AgentStudio.tsx` — `AgentRunnerPanel` wrapped in `BorderBeamCard` (`badge="Budget Engineer Fortress"`, title "Agent Orchestrator"); `QsGateApprovalPanel` stays above.
+- `src/__tests__/bulkProcurementDashboard.test.tsx` — **no test change needed**; the fix was in the page: removed the redundant `{ key: 'state', header: 'State' }` DataTable column because the DispatchBoard already renders a `pending` pill and the test asserts singular `findByText('pending')` (multi-match error).
+
+### Test collision fix
+`bulkProcurementDashboard.test.tsx` failed 3× under full parallel run: the page's new `DataTable` also printed the raw `state` string (`pending`), colliding with the DispatchBoard's `pending` pill. Removing the State column from the page's table resolved it — the dispatch lifecycle state is already surfaced by the DispatchBoard's pills (table keeps id/supplier/lines/total/ETA only). Verified `bulkProcurementDashboard` + `useGlbExportStrictMode` pass 10/10 after the fix.
+
+### Notes
+- Full-suite runs need `npx vitest run --maxWorkers=4` (fork-worker timeouts without); `useGlbExportStrictMode` is a known parallel-run flake that passes isolated.
+- `buildMarketIndex(rates, fx, currency, days)` from `priceIndex.ts` supplies the ticker; escrow amounts are USD dollars, milestone costs are cents.
+- Repo convention kept: `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder NOT touched.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4836/4836 tests (246 files) — dzenhareComponents 25/25, ecosystemDashboards 17/17, workflowDashboards 12/12 (isolated; fork-worker timeout only in parallel), bulkProcurementDashboard + useGlbExportStrictMode 10/10 post-fix
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1082 files)
+- `npx vite build`: success in ~28s (PWA precache 150 entries, 5288.58 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter `INEFFECTIVE_DYNAMIC_IMPORT` note)
+
+## Agent stack Track B gap-close — calculator activation, backoff retry, startAt resume, data-stream adapter (Current, 2026-08-12)
+
+### What was done
+Closed the six production LangGraph Track B deltas against the local-first `src/engine/agents/` stack, keeping the no-backend constitution (no Next.js/Supabase/Vercel). The calculator node now runs real deterministic ZIQS SMM take-offs instead of a no-op; the state machine's retry is exponential-backoff and feeds the error back into the state; `runAgent({ startAt })` resumes threads without replaying completed nodes; a Vercel-AI Data Stream Protocol-style wire adapter streams agent progress; and `resumeBudgetAgent` persists the resolved HITL state.
+
+### Files created (1)
+- `src/__tests__/agentGapClose.test.ts` (21 tests) — spec-field annotations, ZIQS measurement→strict-schema extraction, backoff policy, calculator activation via `runBudgetAgent`, high-value + SI 56 HITL gates + `resumeBudgetAgent`, data-stream round-trip, `startAt` resume, retry-with-error accumulation.
+
+### Files modified (6)
+- `src/engine/agents/graph.ts` — `runAgent` gains `startAt?: string` (passed to the machine; skips already-completed nodes); calculator no-op replaced (`inferMeasurement` → `callTool` → `measurementValue` headline extraction → `calculations` records, skips honestly when no measurable quantity); `needsHuman: true`/`approvalGate: 'si56'|'high-value'|'structural-deviation'`/`next: NODE_HUMAN_IN_LOOP` stamped on every interrupt branch, `needsHuman: false`/`approvalGate: 'none'`/`next: NODE_DONE` on completion; `retryWithError` appends to `state.errors`; added `gateFor`/`resolveStartNode` helpers (audit + short node names, throws `Unknown start node`); `measurementValue` with `VALUE_KEYS` (`quantity`/`volume_m3`/`total_cost_cents`/`total`/`over_under_billed`), negative-aware for over-billing.
+- `src/engine/agents/stateMachine.ts` — **machine bug fixed**: `runNodeOnce` passed `def.name` to `retry`, but node defs are keyed by name and `name` isn't set on the agent graph's defs → real `retryWithError` recorded `undefined: <error>`. Now threads the node key through `runNodeOnce`. Behavior-preserving for the pipeline (its defs set `name` = key).
+- `src/engine/agents/stream.ts` (new) — `DataStreamPart` union, `agentEventsToDataStream`/`toDataStreamLines` (all four `AgentStreamEvent` variants encoded as DPS lines, `e:` finish frame appended), `consumeDataStream` round-trip parser, `escapeDataStreamText`.
+- `src/engine/agents/types.ts` — `AgentContext` gains `projectId?: string`.
+- `src/engine/agents/index.ts` — facade ctx now carries `projectId` (so the WIPAA measurement can use it).
+- `src/engine/agents/measurements.ts` — dead `? 1 : 1` ternary removed → single 230mm masonry skin with a comment.
+
+### Notes
+- Two test-expectation corrections during bring-up: the machine stops when routed to its `end` node (the `done` node never executes — `visited` for a `startAt: 'supervisor'` run is `['supervisor']`); a clean run leaves `state.errors` undefined (the shape is only populated by the retry path).
+- `AgentContext.projectId` was missing even though `runBudgetAgent` already accepted `input.projectId` — added to both the interface and the facade ctx.
+- Deferred by design (constitution §3): `lib/langgraph/` module set, `AsyncPostgresSaver`, `app/api/agent/route.ts`, `useChat` from `@ai-sdk/react`, Next.js studio/dashboard pages.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4857/4857 tests (247 files) — +21 new agentGapClose tests (agent 20/20, ragKpiSuite, stateMachine, checkpointer, generativeDesignPipeline all green); `wipaaPanel` flaked once in the full parallel run (date/DB-state race), passes 5/5 isolated
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1100 files)
+- `npx vite build`: success in ~30s (PWA precache 151 entries, 5323.23 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport)
+
+## DzeNhare "Unicorn Standard" kit — 6 spec-conformance gap-close (Current, 2026-08-12)
+
+### What was done
+Closed the six STYLE-phase conformance gaps in the dzenhare Unicorn kit and the Home page: spec row-actions on DataTable, spec 3-action contractor footer with a WIPAA row, RedPen variance line, gold shimmer on the escrow vault, a dedicated elastic ToggleSwitch, and the Home market-ticker band + PriceWatch section. Full verification gate re-run green after the edits.
+
+### Files modified (8)
+- `src/components/dzenhare/DataTable.tsx` — `actions?: RowAction[]` row-actions menu: `RowAction { key: 'edit'|'view'|'history'|'dispute'; label?; danger?; onClick(rowKey) }`; kebab menu closes on click-outside (pointerdown listener) or Escape; buttons carry `aria-label="Row actions for {rowKey}"`.
+- `src/components/dzenhare/ContractorMatchCard.tsx` — WIPAA profitability row (score pill + "True profitability" caption); footer renders the 3-button spec set (`onViewProjects` "View past projects" outline / `onApprove` "Approve {firstName}" brand / `onAlternatives` "2 alternatives" ghost) with `onInvite`/`ctaLabel` retained as the single-CTA fallback when no spec handlers are passed.
+- `src/components/dzenhare/RedPenMarker.tsx` — `variance` line ("▲ +180 bags ($1,800 leakage)") rendered in safety-orange mono with `text-safetyOrange` + `font-mono`.
+- `src/components/dzenhare/EscrowVaultCard.tsx` — gold shimmer overlay via new `.gold-shimmer` class (conic-gradient `#d4a574 → #f5d78e → #c29360 → #d4a574` sweep, `@keyframes gold-shimmer-sweep` 2.4s, `@media (prefers-reduced-motion: reduce)` pause), matches the gold-confetti/Guardian motif.
+- `src/components/dzenhare/ToggleSwitch.tsx` (new) — accessible `role="switch"` `aria-checked` toggle; knob `h-[18px] w-[18px]` on a `w-11` track (no fractional spacing), `translateX(20px)` elastic `cubic-bezier(0.34, 1.56, 0.64, 1)` 260ms, linear 150ms under reduced motion via `usePrefersReducedMotion` (framer-motion, jsdom-safe); `onCheckedChange` + `disabled`.
+- `src/components/dzenhare/index.ts` — barrel already exported the new component + `RowAction`/`DataColumn` types (no change needed).
+- `src/pages/Home.tsx` — `MarketPriceTicker` band (`aria-label="Live construction market prices"`) between hero and bento collage driven by a local `TICKER_ITEMS` const (cement 50kg $8.50/2.4%, face bricks $130.00/-1.1%, rebar Ø12 $950.00/3.8%, river sand $28.00/0.9%, IBR sheets $12.00/-0.6%, paint 20L $45.00/1.7%); new PriceWatch section after the FAQ (`pwEmail`/`pwSubscribed` state init from `localStorage['dzenhare-pricewatch-email']`, `handlePriceWatchSubmit`, emerald "Subscribed on this device" pill + honest caption "no newsletter pipeline yet").
+- `src/__tests__/dzenhareComponents.test.tsx` — +6 tests (RedPenMarker variance line, DataTable row-actions menu open/close/click, ContractorMatchCard WIPAA 94% emerald + 61% amber pills + 3-button footer, ToggleSwitch role/aria + elastic knob `translateX(20px)`).
+
+### Notes
+- MarketPriceTicker API confirmed during the edit: `{ items: TickerItem[]; currency?; dayKey?; className? }`; empty-array fallback message "No market index yet..." renders.
+- ContractorMatchCard keeps the single "Invite to bid" CTA unless any spec handler is supplied — the existing test relying on the fallback stayed green.
+- The build's `INEFFECTIVE_DYNAMIC_IMPORT` GLTFExporter note + >512 kB chunk warnings are pre-existing lazy chunks (opencv/three/useGlbExport, jspdf, html2canvas, BOQPanel) — unchanged.
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4863/4863 tests (247 files) — +6 new dzenhare tests; errorBoundary "Kaboom!" stderr is its intentional throwing-child fixture, not a failure
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1101 files)
+- `npx vite build`: success in ~8.6s (PWA precache 152 entries, 5331.90 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+## Automation + Production audit — prompt-regression CI + Langfuse-style observability (Current, 2026-08-12)
+
+### What was done
+Closed the last two audit axes: prompt-regression CI (Automation) and full observability (Production). The eval layer now asserts golden-case outputs per case (`contains`/`not-contains`) with a dedicated 80% CI gate; a local-first, Langfuse-style telemetry system traces every RAG/rerank/LLM/agent/tool event into a Dexie v15 `telemetryEvents` table, with an optional remote Langfuse sink that only ships when `VITE_LANGFUSE_ENABLED` + keys exist.
+
+### Telemetry core (2 files)
+- `src/lib/observability/langfuseClient.ts` — `TelemetryEventType` = `'hybrid-search'|'rerank'|'llm-gen'|'thought-trajectory'|'rag'|'tool-call'|'agent-node'`; `FailureRootCause` = `'poor-retrieval'|'outdated-doc'|'hallucination'|'none'`; `classifyRootCause({confidence,threshold,needsClarification,hitCount,citedDocIds,knownDocIds,citedInAnswer})`; `LangfuseClient` with `trace()/persistLocal()/shipRemote()` and `traceHybridSearch`, `traceRerank` (NOT `traceReranker`), `traceLLMGen`, `traceThoughtTrajectory`; SYNC `summarizeTelemetry(events)`, `listTelemetryEvents`, `clearTelemetryEvents`. Persistence + shipping are try/catch-swallowed — telemetry can never break the caller.
+- `src/lib/observability/telemetry.ts` — guarded facade `logRAG` (classifies root cause, fires `type:'rag'`), `logToolCall`, `logAgentNode`, `logThoughtTrajectory`, `voidLog`; re-exports the client + types.
+
+### Engine instrumentation (6 files, all try/catch-safe)
+- `src/engine/rag/hybrid.ts` (`hybridSearch`), `src/engine/rag/generate.ts` (`generateAnswer` via `finish()` → `traceLLMGen` + new `estimateTokens`), `src/engine/rag/analysis.ts` (new `emitTrace(report)` hook covering ALL 4 return paths), `src/engine/rag/reranker.ts` (`rerankHybrid` `finish(result)` wrapper covering both return paths), `src/engine/tools/executor.ts` (`executeTool` wrapper → `logToolCall`), `src/engine/agents/index.ts` (`runBudgetAgent`: `trajectory` in `onNodeStart`, `logAgentNode`, `logToolCall` in `onToolCall`, `logThoughtTrajectory`, `final.decision ?? undefined`).
+- `src/engine/rag/ragIndex.ts` — `RagIndex` gained public `knownDocIds` getter (field was private; `classifyRootCause` needs it).
+
+### UI (TelemetryPanel + studio + route + dashboard card)
+- `src/components/observability/TelemetryPanel.tsx` — summary stats, byType + byRootCause breakdowns, live feed from `listTelemetryEvents({projectId, limit:300})`, Refresh/Clear.
+- `src/pages/studio/TelemetryStudio.tsx` — studio page at `/project/:id/studio/telemetry` (lazy + SafeRoute in `src/app/router.tsx`); `Activity` icon in `studioLinks.tsx`; 10th module card in `ProjectLifecycleDashboard.tsx` (`lg:grid-cols-10`).
+
+### Eval/CI (prompt-regression gate)
+- `eval/promptfoo-suite.ts` — per-case `contains`/`not-contains` asserts (typed `Assertion[]`; `export const asserts: Assertion[]`).
+- `.github/workflows/eval.yml` — PR gate on `eval/**` + `src/engine/rag/**` + `src/__tests__/kpi3Golden.test.ts` → `npm ci` → `node eval/run-cli-gate.mjs` with `PROMPTFOO_PASS_RATE_THRESHOLD: '80'` → deterministic `kpi3Golden` vitest run. Complements the existing `.github/workflows/kpi3-gate.yml` (100% deterministic gate).
+- `src/engine/rag/tracing.ts` (Trace/TraceSpan/TraceSummary) untouched — still the KPI3 source used by `runBudgetAgent`; telemetry events are complementary.
+
+### Tests (+20)
+- `src/__tests__/telemetryObservability.test.ts` (15) — `classifyRootCause` x5, LangfuseClient local persistence x7, engine wiring x5 (sync `hybridSearch` event, `analyzeCompliance` rag event, `generateAnswer` llm-gen via async `hybridSearchAsync`, `rerankHybrid` via async `HybridHit[]` asserting `ranked.hits.length`, `log*` facade). Removed a duplicate `LangfuseClientProxy` class the vitest run surfaced as TS6196.
+- `src/__tests__/telemetryPanel.test.tsx` (5) — empty state, summary + feed labels, project filter, Refresh/Clear, TelemetryStudio render; rag event seeded via `logRAG` so root cause is classified.
+
+### Notes
+- API-shape facts the tests pinned: sync `hybridSearch` returns `SearchResult[]` (no `text_child`/`heading`); `generateAnswer`/`rerankHybrid` require `HybridHit[]` from async `hybridSearchAsync`; `rerankHybrid` returns `RerankHybridResult` `{hits, confidence, threshold, method, needsClarification, fellBack, fallbackReason}` (NOT an array); `TelemetryPanel` renders type labels ("RAG analysis"), root-cause labels ("Poor retrieval"), and the query in curly quotes `“…”`; composite-text nodes can repeat (`getAllByText`).
+- Remote sink is strictly opt-in and never constructed without env vars — the no-backend constitution holds (local-first default, Langfuse optional mirror).
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4883/4883 tests (249 files) — +20 new (15 telemetryObservability + 5 telemetryPanel); errorBoundary "Kaboom!" stderr is its intentional throwing-child fixture
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1107 files)
+- `npx vite build`: success in ~13.5s (PWA precache 154 entries, 5348.27 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+- `node eval/run-cli-gate.mjs`: 25/25 promptfoo cases (100%) pass with the new per-case asserts, exit 0

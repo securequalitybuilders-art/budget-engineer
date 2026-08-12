@@ -1,0 +1,474 @@
+{
+  "name": "DzeNhare SQB — NotebookLM Brain (local source_get_content simulation)",
+  "dir": "./corpus",
+  "sources": 66,
+  "usableSources": 66,
+  "chunks": 228230,
+  "chars": 57015382,
+  "chunking": "parseCodeDocument -> chunkDocument, 200-500 token child modules",
+  "builtAt": "2026-08-10T14:45:54.212Z",
+  "documents": [
+    {
+      "id": "2014-construction-law-update-neal-j-sweeney-neal-j-sweeney-2014-2014-wolters-kluwer-legal-regulatory-u-s-9781454844525-10d8262d01a747f7a2eba6bf4f743c5e-anna-s-archive",
+      "title": "2014 Construction Law Update Neal J Sweeney Neal J Sweeney 2014 2014 Wolters Kluwer Legal Regulatory U S 9781454844525 10d8262d01a747f7a2eba6bf4f743c5e Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    },
+    {
+      "id": "advanced-reinforced-concrete-design-n-krishna-raju-3rd-ed-new-delhi-2016-cbs-publishers-distributors-pvt-ltd-india-9788123929606-1e30e7f50076e2297c728a8c689ffe0b-anna-s-archive",
+      "title": "Advanced Reinforced Concrete Design N Krishna Raju 3rd Ed New Delhi 2016 Cbs Publishers Distributors Pvt Ltd India 9788123929606 1e30e7f50076e2297c728a8c689ffe0b Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 923
+    },
+    {
+      "id": "architectural-graphic-standards-tenth-edition-hoke-jr-john-ray-ramsey-charles-george-hoke-jr-john-american-institute-of-architects-10th-9780471348160-815a7aa016eb0cd1765c3f73b0a31e6f-anna-s-arc",
+      "title": "Architectural Graphic Standards Tenth Edition Hoke Jr John Ray Ramsey Charles George Hoke Jr John American Institute Of Architects 10th 9780471348160 815a7aa016eb0cd1765c3f73b0a31e6f Anna S Arc",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 5779
+    },
+    {
+      "id": "architectural-graphic-standards-tenth-edition-john-ray-hoke-jr-editor-in-chief-10th-2010-john-wiley-sons-incorporated-9780471348160-e9d9a68ba2b7cde406e495deb67a46fb-anna-s-archive",
+      "title": "Architectural Graphic Standards Tenth Edition John Ray Hoke Jr Editor In Chief 10th 2010 John Wiley Sons Incorporated 9780471348160 E9d9a68ba2b7cde406e495deb67a46fb Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 4566
+    },
+    {
+      "id": "bim-handbook-a-guide-to-building-information-modeling-for-charles-m-eastman-chuck-eastman-paul-teicholz-rafael-2nd-ed-hoboken-nj-new-9780470541371-4255e8d9ef4cabb0c10750b15876abe4-anna-s-archive",
+      "title": "Bim Handbook A Guide To Building Information Modeling For Charles M Eastman Chuck Eastman Paul Teicholz Rafael 2nd Ed Hoboken Nj New 9780470541371 4255e8d9ef4cabb0c10750b15876abe4 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 72
+    },
+    {
+      "id": "boq-fully-detailed",
+      "title": "Boq Fully Detailed",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    },
+    {
+      "id": "bar-bending-schedule",
+      "title": "Bar Bending Schedule",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    },
+    {
+      "id": "bill-of-quantity-template",
+      "title": "Bill Of Quantity Template",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    },
+    {
+      "id": "body-memory-and-architecture-yale-paperbound-kent-c-bloomer-charles-willard-moore-robert-j-yudell-a-yale-paperbound-new-haven-9780300021394-275d71e98f1f7ca0395edc1894b9794a-anna-s-archive",
+      "title": "Body Memory And Architecture Yale Paperbound Kent C Bloomer Charles Willard Moore Robert J Yudell A Yale Paperbound New Haven 9780300021394 275d71e98f1f7ca0395edc1894b9794a Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 79
+    },
+    {
+      "id": "boq-calculater-version-1",
+      "title": "Boq Calculater Version 1",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    },
+    {
+      "id": "building-economics-appraisal-and-control-of-building-ivor-h-seeley-bloomsbury-uk-minor-textbooks-london-1996-red-globe-press-9780033335034-06ee557de1f27c8500de09bb226b0067-anna-s-archive",
+      "title": "Building Economics Appraisal And Control Of Building Ivor H Seeley Bloomsbury Uk Minor Textbooks London 1996 Red Globe Press 9780033335034 06ee557de1f27c8500de09bb226b0067 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1416
+    },
+    {
+      "id": "building-procurement-roy-morledge-and-adrian-smith-2012-wiley-blackwell-9780470656358-a758c7705dcb76176dc4999c56d2a280-anna-s-archive",
+      "title": "Building Procurement Roy Morledge And Adrian Smith 2012 Wiley Blackwell 9780470656358 A758c7705dcb76176dc4999c56d2a280 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 53
+    },
+    {
+      "id": "building-regulations-pocket-book-2nd-edition-ray-tricker-samantha-alford-2nd-2022-routledge-9780367774172-38608b0fd48e5c933e94f626cdace95a-anna-s-archive",
+      "title": "Building Regulations Pocket Book 2nd Edition Ray Tricker Samantha Alford 2nd 2022 Routledge 9780367774172 38608b0fd48e5c933e94f626cdace95a Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1348
+    },
+    {
+      "id": "building-typologies-design-guide",
+      "title": "Building Typologies Design Guide",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 4
+    },
+    {
+      "id": "building-surveyors-pocket-book-routledge-pocket-books",
+      "title": "Building Surveyors Pocket Book Routledge Pocket Books",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 91
+    },
+    {
+      "id": "civil-engineering-reference-manual-for-the-pe-exam-lindeburg-pe-michael-r-11th-ed-belmont-ca-2008-professional-publications-9781591261292-21c22f5fc637d03d3ffe25bc6b8090c0-anna-s-archive",
+      "title": "Civil Engineering Reference Manual For The Pe Exam Lindeburg Pe Michael R 11th Ed Belmont Ca 2008 Professional Publications 9781591261292 21c22f5fc637d03d3ffe25bc6b8090c0 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 4319
+    },
+    {
+      "id": "code-check-an-illustrated-guide-to-building-a-safe-house-redwood-kardon-michael-casey-douglas-hansen-5th-ed-newtown-ct-2007-taunton-9781561588398-bbe43944bd6719d5746e87c0d8539a93-anna-s-archive",
+      "title": "Code Check An Illustrated Guide To Building A Safe House Redwood Kardon Michael Casey Douglas Hansen 5th Ed Newtown Ct 2007 Taunton 9781561588398 Bbe43944bd6719d5746e87c0d8539a93 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 38
+    },
+    {
+      "id": "construction-law-1",
+      "title": "Construction Law 1",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 473
+    },
+    {
+      "id": "construction-law-2",
+      "title": "Construction Law 2",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1371
+    },
+    {
+      "id": "construction-law-an-introduction-for-engineers-gail-s-kelley-auth-2012-oct-03-john-wiley-sons-incorporated-9781118229033-62332547d38a0571cc269576d3314909-anna-s-archive",
+      "title": "Construction Law An Introduction For Engineers Gail S Kelley Auth 2012 Oct 03 John Wiley Sons Incorporated 9781118229033 62332547d38a0571cc269576d3314909 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 64
+    },
+    {
+      "id": "construction-planning-equipment-and-methods-the-mcgraw-hill-robert-leroy-peurifoy-william-burl-ledbetter-cliff-j-mcgraw-hill-series-in-9780070498365-e52adc3677edf46eb4794e4753f08f4e-anna-s-archive",
+      "title": "Construction Planning Equipment And Methods The Mcgraw Hill Robert Leroy Peurifoy William Burl Ledbetter Cliff J Mcgraw Hill Series In 9780070498365 E52adc3677edf46eb4794e4753f08f4e Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1757
+    },
+    {
+      "id": "construction-contract-policy-improved-procedures-and-conference-on-construction-contract-policy-london-england-1989-centre-of-9780951486603-b7cc705d0fe61edc2fdca34fbaa6eb79-anna-s-archive",
+      "title": "Construction Contract Policy Improved Procedures And Conference On Construction Contract Policy London England 1989 Centre Of 9780951486603 B7cc705d0fe61edc2fdca34fbaa6eb79 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 628
+    },
+    {
+      "id": "construction-law-and-the-environment-proceedings-of-the-john-uff-helen-garthwaite-john-barber-king-s-college-london-london-new-york-9780471952732-b235b5bb09110da0004fd1550ab6cabf-anna-s-archive",
+      "title": "Construction Law And The Environment Proceedings Of The John Uff Helen Garthwaite John Barber King S College London London New York 9780471952732 B235b5bb09110da0004fd1550ab6cabf Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 521
+    },
+    {
+      "id": "corbusier-le-towards-a-new-architecture-no-ocr",
+      "title": "Corbusier Le Towards A New Architecture No Ocr",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    },
+    {
+      "id": "engineer-to-entrepreneur-success-strategies-to-manage-your-rick-de-la-guardia-american-society-of-civil-engineers-reston-virginia-2016-9780784414415-43c10300613fc4be8c4755cc152c5ebc-anna-s-archive",
+      "title": "Engineer To Entrepreneur Success Strategies To Manage Your Rick De La Guardia American Society Of Civil Engineers Reston Virginia 2016 9780784414415 43c10300613fc4be8c4755cc152c5ebc Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 10
+    },
+    {
+      "id": "fundamentals-of-construction-claims-a-9-step-guide-for-william-j-mcconnell-jd-msce-pe-1-2022-wiley-sons-incorporated-john-9781119679905-da3abc157a23641ae3b68c9e8e484fb3-anna-s-archive",
+      "title": "Fundamentals Of Construction Claims A 9 Step Guide For William J Mcconnell Jd Msce Pe 1 2022 Wiley Sons Incorporated John 9781119679905 Da3abc157a23641ae3b68c9e8e484fb3 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 113
+    },
+    {
+      "id": "how-to-start-and-operate-your-own-design-firm-second-albert-w-rubeling-jr-simon-schuster-new-york-2007-allworth-press-9781581154740-6bc45e454a8168cd1108451c78565bd9-anna-s-archive",
+      "title": "How To Start And Operate Your Own Design Firm Second Albert W Rubeling Jr Simon Schuster New York 2007 Allworth Press 9781581154740 6bc45e454a8168cd1108451c78565bd9 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 14
+    },
+    {
+      "id": "integrating-project-delivery-martin-fischer-howard-w-ashcraft-dean-reed-atul-khanzode-john-wiley-sons-inc-hoboken-new-jersey-2017-9780470587355-3c055f19673e16cfb608249ed379fdcd-anna-s-archive",
+      "title": "Integrating Project Delivery Martin Fischer Howard W Ashcraft Dean Reed Atul Khanzode John Wiley Sons Inc Hoboken New Jersey 2017 9780470587355 3c055f19673e16cfb608249ed379fdcd Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 76
+    },
+    {
+      "id": "international-construction-contract-law-lukas-klee-1-2015-wiley-blackwell-9781118717868-7fc08a38376f2350879008befa85414e-anna-s-archive",
+      "title": "International Construction Contract Law Lukas Klee 1 2015 Wiley Blackwell 9781118717868 7fc08a38376f2350879008befa85414e Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 148
+    },
+    {
+      "id": "manual-of-section-paul-lewis-marc-tsurumaki-david-j-lewis-princeton-first-edition-new-york-new-york-2016-princeton-architectural-press-9781616892555-f31577d42b115c11bb9e51e71d7a3a9e-anna-s-1",
+      "title": "Manual Of Section Paul Lewis Marc Tsurumaki David J Lewis Princeton First Edition New York New York 2016 Princeton Architectural Press 9781616892555 F31577d42b115c11bb9e51e71d7a3a9e Anna S 1",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 152
+    },
+    {
+      "id": "manual-of-section-paul-lewis-marc-tsurumaki-david-j-lewis-princeton-anna-s-archive",
+      "title": "Manual Of Section Paul Lewis Marc Tsurumaki David J Lewis Princeton Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 59
+    },
+    {
+      "id": "mechanics-of-materials-eigth-edition-ferdinand-p-beer-e-russell-johnston-jr-john-t-dewolf-8-2018-mcgraw-hill-mcgraw-hill-education-9781260113273-cba811ae5ca65d497e95f7fdda68adf7-anna-s-arc",
+      "title": "Mechanics Of Materials Eigth Edition Ferdinand P Beer E Russell Johnston Jr John T Dewolf 8 2018 Mcgraw Hill Mcgraw Hill Education 9781260113273 Cba811ae5ca65d497e95f7fdda68adf7 Anna S Arc",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 6288
+    },
+    {
+      "id": "method-of-measurement-for-highway-works-may-2009",
+      "title": "Method Of Measurement For Highway Works May 2009",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 103
+    },
+    {
+      "id": "modern-hospice-design-the-architecture-of-palliative-and-worpole-ken-2-2023-routledge-an-imprint-of-the-taylor-francis-group-an-9781000923612-f1dcbfc2d778df2ee4390eae15605c9d-anna-s-archive",
+      "title": "Modern Hospice Design The Architecture Of Palliative And Worpole Ken 2 2023 Routledge An Imprint Of The Taylor Francis Group An 9781000923612 F1dcbfc2d778df2ee4390eae15605c9d Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 328
+    },
+    {
+      "id": "modern-architecture-since-1900-william-curtis-pdf-free-1",
+      "title": "Modern Architecture Since 1900 William Curtis PDF Free 1",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 13
+    },
+    {
+      "id": "national-electrical-code-2017-handbook-international-nfpa-national-fire-protection-association-14-2020-national-fire-protection-9781455912841-6f514f08be9da97e35deff20fa7cd7cd-anna-s-archive",
+      "title": "National Electrical Code 2017 Handbook International Nfpa National Fire Protection Association 14 2020 National Fire Protection 9781455912841 6f514f08be9da97e35deff20fa7cd7cd Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 6421
+    },
+    {
+      "id": "neufert-architects-data-third-edition-acrobat-4-0-scan-plug-in-for-windows-a21cb4de7c93c38e714e58116c45f356-anna-s-archive-compressed",
+      "title": "Neufert Architects Data Third Edition Acrobat 4 0 Scan Plug In For Windows A21cb4de7c93c38e714e58116c45f356 Anna S Archive Compressed",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    },
+    {
+      "id": "neufert-architects-data-third-edition-acrobat-4-0-scan-plug-in-for-windows-a21cb4de7c93c38e714e58116c45f356-anna-s-archive",
+      "title": "Neufert Architects Data Third Edition Acrobat 4 0 Scan Plug In For Windows A21cb4de7c93c38e714e58116c45f356 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    },
+    {
+      "id": "pmc-estimation-constants-sentula-autosaved",
+      "title": "Pmc Estimation Constants Sentula Autosaved",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    },
+    {
+      "id": "principles-of-geotechnical-engineering-braja-m-das-khaled-sobhan-khaled-sobhan-2016-cengage-learning-f5105991144d305701c8d1f4e5cb30f4-anna-s-archive",
+      "title": "Principles Of Geotechnical Engineering Braja M Das Khaled Sobhan Khaled Sobhan 2016 Cengage Learning F5105991144d305701c8d1f4e5cb30f4 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1846
+    },
+    {
+      "id": "qs-master-template",
+      "title": "Qs Master Template",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    },
+    {
+      "id": "reading-architecture-a-visual-lexicon-owen-hopkins-2012-laurence-king-publishing-9781321321340-699e033416dca0bb5c1f777f4b883757-anna-s-archive",
+      "title": "Reading Architecture A Visual Lexicon Owen Hopkins 2012 Laurence King Publishing 9781321321340 699e033416dca0bb5c1f777f4b883757 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 20
+    },
+    {
+      "id": "residential-and-light-commercial-construction-standards-the-donald-reynolds-rsmeans-eng-2nd-ed-updated-kingston-ma-2002-r-s-means-9780876296585-0911f8ec4562ca4c5e8ea0216fda4d73-anna-s-arch",
+      "title": "Residential And Light Commercial Construction Standards The Donald Reynolds Rsmeans Eng 2nd Ed Updated Kingston Ma 2002 R S Means 9780876296585 0911f8ec4562ca4c5e8ea0216fda4d73 Anna S Arch",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 760
+    },
+    {
+      "id": "si-2025-056-architects-amendment-regulations-2025-no-1",
+      "title": "SI 2025 056 Architects Amendment Regulations 2025 No 1",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    },
+    {
+      "id": "site-analysis-informing-context-sensitive-and-sustainable-james-a-lagro-jr-3rd-ed-hoboken-n-j-chichester-2013-wiley-john-wiley-9781118123676-834a95eed5a585f10ad0f9d33b5b81fd-anna-s-archiv",
+      "title": "Site Analysis Informing Context Sensitive And Sustainable James A Lagro Jr 3rd Ed Hoboken N J Chichester 2013 Wiley John Wiley 9781118123676 834a95eed5a585f10ad0f9d33b5b81fd Anna S Archiv",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 18
+    },
+    {
+      "id": "soil-mechanics-in-engineering-practice-terzaghi-peck-mesri-2009-d741ace98b135a9fd56678dbf4960b8d-anna-s-archive",
+      "title": "Soil Mechanics In Engineering Practice Terzaghi Peck Mesri 2009 D741ace98b135a9fd56678dbf4960b8d Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    },
+    {
+      "id": "space-planning-basics-mark-karlen-rob-fleming-paperback-2016-john-wiley-sons-incorporated-9781118882009-61807baaa404fb618e958686ae1ba0e7-anna-s-archive",
+      "title": "Space Planning Basics Mark Karlen Rob Fleming Paperback 2016 John Wiley Sons Incorporated 9781118882009 61807baaa404fb618e958686ae1ba0e7 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 65
+    },
+    {
+      "id": "structural-analysis-ninth-edition-russell-c-hibbeler-9-2014-pearson-prentice-hall-9780133942842-8192b77c403dee4477ab8d98c35927fc-anna-s-archive",
+      "title": "Structural Analysis Ninth Edition Russell C Hibbeler 9 2014 Pearson Prentice Hall 9780133942842 8192b77c403dee4477ab8d98c35927fc Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 3633
+    },
+    {
+      "id": "the-architects-handbook-edited-by-quentin-pickard-1-2002-wiley-blackwell-an-imprint-of-john-wiley-sons-ltd-9780470695449-0cbe3df1df4fe4a01b49aca6a0374567-anna-s-archive",
+      "title": "The Architects Handbook Edited By Quentin Pickard 1 2002 Wiley Blackwell An Imprint Of John Wiley Sons Ltd 9780470695449 0cbe3df1df4fe4a01b49aca6a0374567 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 2398
+    },
+    {
+      "id": "the-practice-of-construction-management-people-and-business-barry-g-fryer-charles-egbu-robert-ellis-4th-ed-oxford-u-k-c2004-blackwell-9781405111102-166931c94852fda6ec90ab2dee87a170-anna-s-archi-2",
+      "title": "The Practice Of Construction Management People And Business Barry G Fryer Charles Egbu Robert Ellis 4th Ed Oxford U K C2004 Blackwell 9781405111102 166931c94852fda6ec90ab2dee87a170 Anna S Archi 2",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 187
+    },
+    {
+      "id": "the-birth-of-a-building-from-conception-to-delivery-ben-stevens-2021-the-skyline-forum-9780578553658-448d58f18f4352d819b0223a42b4a2e0-anna-s-archive",
+      "title": "The Birth Of A Building From Conception To Delivery Ben Stevens 2021 The Skyline Forum 9780578553658 448d58f18f4352d819b0223a42b4a2e0 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 97
+    },
+    {
+      "id": "the-production-of-space-henri-lefebvre-translated-by-donald-nicholson-smith-oxford-uk-cambridge-massachusetts-usa-england-1991-9780631140481-2bbcd9c27f71308ecdc5def0ff918972-anna-s-archive",
+      "title": "The Production Of Space Henri Lefebvre Translated By Donald Nicholson Smith Oxford Uk Cambridge Massachusetts Usa England 1991 9780631140481 2bbcd9c27f71308ecdc5def0ff918972 Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 149
+    },
+    {
+      "id": "time-saver-standards-for-building-types-edited-by-joseph-de-chiara-and-john-hancock-callender-2nd-ed-reprinted-singapore-singapore-1983-9780070990760-f50a14585d5446a8963839b648fbd025-anna-s-a-2",
+      "title": "Time Saver Standards For Building Types Edited By Joseph De Chiara And John Hancock Callender 2nd Ed Reprinted Singapore Singapore 1983 9780070990760 F50a14585d5446a8963839b648fbd025 Anna S A 2",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 3718
+    },
+    {
+      "id": "time-saver-standards-for-building-types-edited-by-joseph-de-chiara-and-john-hancock-callender-2nd-ed-reprinted-singapore-singapore-1983-9780070990760-f50a14585d5446a8963839b648fbd025-anna-s-archi",
+      "title": "Time Saver Standards For Building Types Edited By Joseph De Chiara And John Hancock Callender 2nd Ed Reprinted Singapore Singapore 1983 9780070990760 F50a14585d5446a8963839b648fbd025 Anna S Archi",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 3718
+    },
+    {
+      "id": "towards-a-new-architecture-dover-architecture-by-le-corbusier-translated-from-the-thirteenth-french-illustrated-1985-dover-publications-9780486250236-85764ca8abe812b6bf912630aceaa695-anna-s-arch",
+      "title": "Towards A New Architecture Dover Architecture By Le Corbusier Translated From The Thirteenth French Illustrated 1985 Dover Publications 9780486250236 85764ca8abe812b6bf912630aceaa695 Anna S Arch",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    },
+    {
+      "id": "transportation-engineering-an-introduction-3rd-edn-c-jotin-khisty-b-kent-lall-3-2016-pearson-india-9789332569706-c986bd1ace46d97cf9bba4604600e62c-anna-s-archive",
+      "title": "Transportation Engineering An Introduction 3rd Edn C Jotin Khisty B Kent Lall 3 2016 Pearson India 9789332569706 C986bd1ace46d97cf9bba4604600e62c Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 80
+    },
+    {
+      "id": "two-worlds-of-andrew-wyeth-kuerners-and-olsons-1976-11a26c2fa8916b0f08abbd823e681b7d-anna-s-archive",
+      "title": "Two Worlds Of Andrew Wyeth Kuerners And Olsons 1976 11a26c2fa8916b0f08abbd823e681b7d Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 29
+    },
+    {
+      "id": "vitruvius-the-ten-books-on-architecture-translated-by-marcus-vitruvius-pollio-transl-morris-hicky-morgan-1st-1914-harvard-university-9781421270104-31662341a0b09b369297afd02a7aa19f-anna-s-arch",
+      "title": "Vitruvius The Ten Books On Architecture Translated By Marcus Vitruvius Pollio Transl Morris Hicky Morgan 1st 1914 Harvard University 9781421270104 31662341a0b09b369297afd02a7aa19f Anna S Arch",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 2
+    },
+    {
+      "id": "water-resources-engineering-mays-larry-w-1st-ed-new-york-new-york-state-2001-john-wiley-sons-incorporated-9780471297833-f7d28fc52629bd55d659707bfd7451ae-anna-s-archive",
+      "title": "Water Resources Engineering Mays Larry W 1st Ed New York New York State 2001 John Wiley Sons Incorporated 9780471297833 F7d28fc52629bd55d659707bfd7451ae Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 3554
+    },
+    {
+      "id": "white-by-law-10th-anniversary-edition-the-legal-by-ian-haney-lopez-critical-america-revised-and-updated-10th-anniversary-new-york-9780814736944-ca883fa12519d520354e3ce57e97577d-anna-s-archive",
+      "title": "White By Law 10th Anniversary Edition The Legal By Ian Haney Lopez Critical America Revised And Updated 10th Anniversary New York 9780814736944 Ca883fa12519d520354e3ce57e97577d Anna S Archive",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 279
+    },
+    {
+      "id": "annas-arch-1598ee903e40",
+      "title": "Annas Arch 1598ee903e40",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 23
+    },
+    {
+      "id": "by-laws-1977",
+      "title": "Model Building By-Laws 1977",
+      "code": "zbc",
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    },
+    {
+      "id": "saz-catalogue",
+      "title": "SAZ Standards Catalogue",
+      "code": "saz",
+      "jurisdiction": "zimbabwe",
+      "sections": 82
+    },
+    {
+      "id": "si-56-2025",
+      "title": "SI 56/2025 Architects Registration",
+      "code": "si562025",
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    },
+    {
+      "id": "whisper-takeoff-list",
+      "title": "Whisper Takeoff List",
+      "code": null,
+      "jurisdiction": "zimbabwe",
+      "sections": 9
+    },
+    {
+      "id": "ziqs-smm",
+      "title": "ZIQS Standard Method of Measurement",
+      "code": "ziqs",
+      "jurisdiction": "zimbabwe",
+      "sections": 1
+    }
+  ]
+}
