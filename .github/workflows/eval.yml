@@ -1,0 +1,38 @@
+name: Prompt Regression Gate
+
+# Fail-on-threshold CI gate for the KPI3 golden-dataset suite plus the
+# prompt/tools layers. Blocks merge when the golden pass rate drops below
+# 80% (the deterministic per-case golden asserts still demand 100% in the
+# kpi3-gate.yml workflow; this wider gate tolerates LLM-route variance).
+
+on:
+  pull_request:
+    paths:
+      - 'eval/**'
+      - 'src/lib/ai/**'
+      - 'src/engine/tools/**'
+      - 'src/engine/estimation/**'
+      - 'src/engine/rag/**'
+      - 'src/lib/observability/**'
+      - 'src/__tests__/kpi3Golden.test.ts'
+      - 'src/__tests__/integration/kpi3Promptfoo.test.ts'
+      - 'package.json'
+      - 'package-lock.json'
+
+jobs:
+  prompt-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run promptfoo golden-dataset eval (fail below 80%)
+        run: npm run eval:kpi3:ci
+        env:
+          PROMPTFOO_PASS_RATE_THRESHOLD: '80'
+      - name: Deterministic golden gate
+        run: npx vitest run src/__tests__/kpi3Golden.test.ts

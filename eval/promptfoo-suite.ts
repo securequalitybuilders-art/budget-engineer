@@ -1,5 +1,5 @@
 import { evaluate } from 'promptfoo'
-import type { EvaluateTestSuite } from 'promptfoo'
+import type { Assertion, EvaluateTestSuite } from 'promptfoo'
 import { GOLDEN_CASES } from './golden-dataset'
 import { runGoldenCase } from './run-golden'
 import { buildGoldenRagIndex } from './compliance-fixture'
@@ -35,17 +35,26 @@ export function buildPromptfooSuite(options: PromptfooSuiteOptions = {}): Evalua
   return {
     providers: [provider as never],
     prompts: ['{{prompt}}'],
-    tests: GOLDEN_CASES.map((caseItem) => ({
-      description: `${caseItem.id} (${caseItem.category})${caseItem.description ? ` — ${caseItem.description}` : ''}`,
-      vars: { caseId: caseItem.id, prompt: caseItem.prompt },
-      assert: [
+    tests: GOLDEN_CASES.map((caseItem) => {
+      const asserts: Assertion[] = [
         {
           type: 'javascript',
           value: (_output: unknown, ctx: { metadata?: Record<string, unknown> }) =>
             ctx.metadata?.goldenSkipped === true || ctx.metadata?.goldenPass === true,
         },
-      ],
-    })),
+      ]
+      for (const token of caseItem.expect.contains ?? []) {
+        asserts.push({ type: 'contains', value: token })
+      }
+      for (const token of caseItem.expect.notContains ?? []) {
+        asserts.push({ type: 'not-contains', value: token })
+      }
+      return {
+        description: `${caseItem.id} (${caseItem.category})${caseItem.description ? ` — ${caseItem.description}` : ''}`,
+        vars: { caseId: caseItem.id, prompt: caseItem.prompt },
+        assert: asserts,
+      }
+    }),
   }
 }
 
