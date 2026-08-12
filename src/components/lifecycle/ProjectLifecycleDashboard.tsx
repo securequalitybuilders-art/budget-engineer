@@ -20,7 +20,8 @@ import {
   computeProcurementLifecycleSummary, computeHandoverLifecycleSummary,
   computeProjectHealthSummary, computeProjectLifecycleSummary,
 } from '@/lib/lifecycle/lifecycleSummary';
-import { ShieldCheck, Flag, ShoppingCart, FolderOpen, AlertTriangle, ArrowRight, BookOpenCheck, Scale, TrendingUp, Camera, Bot } from 'lucide-react';
+import { ShieldCheck, Flag, ShoppingCart, FolderOpen, AlertTriangle, ArrowRight, BookOpenCheck, Scale, TrendingUp, Camera, Bot, Activity } from 'lucide-react';
+import { listTelemetryEvents } from '@/lib/observability/langfuseClient';
 
 interface ProjectLifecycleDashboardProps {
   projectId: string;
@@ -58,6 +59,8 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
     return { total: byProject.length, geoTagged: byProject.filter((p) => p.geo).length };
   }, [sitePhotos, projectId]);
   const [latestAgentRun, setLatestAgentRun] = useState<AgentRunRow | null>(null);
+  const [telemetryCount, setTelemetryCount] = useState(0);
+  const [telemetryFallbackRate, setTelemetryFallbackRate] = useState(0);
 
   useEffect(() => {
     if (!projectId) return;
@@ -68,6 +71,26 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
         if (!cancelled) setLatestAgentRun(rows[0] ?? null);
       } catch {
         if (!cancelled) setLatestAgentRun(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [projectId]);
+
+  useEffect(() => {
+    if (!projectId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const events = await listTelemetryEvents({ projectId, limit: 300 });
+        if (!cancelled) {
+          setTelemetryCount(events.length);
+          setTelemetryFallbackRate(events.length > 0 ? events.filter((e) => e.payload.fellBack === true).length / events.length : 0);
+        }
+      } catch {
+        if (!cancelled) {
+          setTelemetryCount(0);
+          setTelemetryFallbackRate(0);
+        }
       }
     })();
     return () => { cancelled = true; };
@@ -143,8 +166,8 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
           )}
         </div>
 
-        {/* Nine module summary cards */}
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-9">
+        {/* Ten module summary cards */}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-10">
           <ModuleSummaryCard
             icon={<ShieldCheck size={14} />}
             label="Assurance"
@@ -224,6 +247,14 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
             color={latestAgentRun?.status === 'completed' ? 'text-green-400' : latestAgentRun?.status === 'awaiting-input' ? 'text-amber-400' : latestAgentRun?.status === 'failed' ? 'text-red-400' : 'text-gray-400'}
             detail={latestAgentRun ? `latest · ${latestAgentRun.query}` : 'Run the agent'}
             linkTo={`/project/${projectId}/studio/agent`}
+          />
+          <ModuleSummaryCard
+            icon={<Activity size={14} />}
+            label="Telemetry"
+            value={telemetryCount > 0 ? String(telemetryCount) : '—'}
+            color={telemetryCount > 0 ? 'text-cyan-400' : 'text-gray-400'}
+            detail={telemetryCount > 0 ? `${(telemetryFallbackRate * 100).toFixed(0)}% fallback` : 'Local observability'}
+            linkTo={`/project/${projectId}/studio/telemetry`}
           />
         </div>
       </div>

@@ -56,8 +56,10 @@ export async function saveCheckpoint(state: AgentState): Promise<void> {
 }
 
 export async function loadLatestCheckpoint(runId: string): Promise<AgentState | null> {
-  const rows = await db.agentCheckpoints.where('runId').equals(runId).reverse().sortBy('step')
-  return rows[0]?.state ?? null
+  // `.reverse()` before `.sortBy()` is a no-op — sortBy always sorts ascending,
+  // so the *first* row was the earliest step, not the latest. Take the last.
+  const rows = await db.agentCheckpoints.where('runId').equals(runId).sortBy('step')
+  return rows[rows.length - 1]?.state ?? null
 }
 
 export async function listCheckpoints(runId: string): Promise<AgentCheckpointRow[]> {

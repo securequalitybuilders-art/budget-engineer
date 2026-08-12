@@ -38,6 +38,7 @@ const WipaaStudio = lazy(() => import('@/pages/studio/WipaaStudio').then((m) => 
 const MarketIndexStudio = lazy(() => import('@/pages/studio/MarketIndexStudio').then((m) => ({ default: m.MarketIndexStudio })));
 const SitePhotoStudio = lazy(() => import('@/pages/studio/SitePhotoStudio').then((m) => ({ default: m.SitePhotoStudio })));
 const AgentStudio = lazy(() => import('@/pages/studio/AgentStudio').then((m) => ({ default: m.AgentStudio })));
+const TelemetryStudio = lazy(() => import('@/pages/studio/TelemetryStudio').then((m) => ({ default: m.TelemetryStudio })));
 const ProjectControlsStudio = lazy(() => import('@/pages/studio/ProjectControlsStudio').then((m) => ({ default: m.ProjectControlsStudio })));
 const MarketplaceStudio = lazy(() => import('@/components/marketplace/ProviderDashboard'));
 const PilotReviewPage = lazy(() => import('@/pages/pilot/PilotReviewPage').then((m) => ({ default: m.PilotReviewPage })));
@@ -206,6 +207,10 @@ const router = createBrowserRouter([
       {
         path: '/project/:id/studio/agent',
         element: <SafeRoute><AgentStudio /></SafeRoute>,
+      },
+      {
+        path: '/project/:id/studio/telemetry',
+        element: <SafeRoute><TelemetryStudio /></SafeRoute>,
       },
       {
         path: '/site-analysis',

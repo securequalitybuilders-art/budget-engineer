@@ -6,7 +6,7 @@ import { analyzeCompliance } from '@/engine/rag/analysis'
 import { parseCodeDocument } from '@/engine/rag/extraction'
 import { createIndex } from '@/engine/rag/ragIndex'
 import { runBudgetAgent, resumeAgent, createInitialState } from '@/engine/agents'
-import { callTool } from '@/engine/agents/graph'
+import { callTool, runAgent, auditToShort } from '@/engine/agents/graph'
 import { findTool, toolsFor, validateToolArgs } from '@/engine/agents/tools'
 import { loadLatestCheckpoint, listAgentRuns, getAgentRun } from '@/engine/agents/checkpoint'
 import { calculateConcrete } from '@/engine/estimation/concreteCalculator'
@@ -201,27 +201,27 @@ describe('KPI2 — agent orchestrator tools', () => {
     const calculator = toolsFor('calculator').map((t) => t.id)
     const validator = toolsFor('validator').map((t) => t.id)
     const supervisor = toolsFor('supervisor').map((t) => t.id)
-    expect(researcher).toContain('search-codes')
-    expect(researcher).not.toContain('calculate-bricks')
-    expect(calculator).toContain('calculate-bricks')
-    expect(calculator).toContain('compute-tco')
-    expect(validator).toContain('validate-plan-si56')
-    expect(supervisor).toContain('gono-go-decision')
+    expect(researcher).toContain('search_codes')
+    expect(researcher).not.toContain('calculate_brick_quantity')
+    expect(calculator).toContain('calculate_brick_quantity')
+    expect(calculator).toContain('calculate_tco')
+    expect(validator).toContain('query_si56')
+    expect(supervisor).toContain('gono_go_decision')
   })
 
   it('refuses tools outside the active node scope', async () => {
     const index = createIndex([parseCodeDocument({ id: 'code', title: 'ZBC', text: CODE_TEXT })])
     const s0 = createInitialState({ runId: 'r1', query: 'q', jurisdiction: 'zimbabwe' })
-    const out = await callTool(s0, { ragIndex: index }, 'calculate-bricks', { lengthM: 10, heightM: 3, wallThicknessMm: 230 })
+    const out = await callTool(s0, { ragIndex: index }, 'calculate_brick_quantity', { length_m: 10, height_m: 3 })
     expect(out.result).toContain('not scoped to node')
     expect(out.state.toolCalls[0].ok).toBe(false)
   })
 
   it('validates tool args by schema', () => {
-    const tool = findTool('compute-tco')
+    const tool = findTool('calculate_tco')
     expect(tool).toBeDefined()
-    expect(validateToolArgs(tool!, { priceCents: 'bad' })).toContain('priceCents must be a number')
-    expect(validateToolArgs(tool!, { priceCents: 100 })).toEqual([])
+    expect(validateToolArgs(tool!, { price_cents: 'bad' }).join('; ')).toContain('price_cents')
+    expect(validateToolArgs(tool!, { price_cents: 100 })).toEqual([])
   })
 
   it('calculate-concrete returns volumes and materials', () => {
@@ -317,5 +317,100 @@ describe('KPI2 — agent graph + HITL', () => {
     expect(trace?.runId).toBe('traced-run')
     expect(trace?.spans.length).toBeGreaterThan(0)
     expect(trace?.citedDocIds?.length).toBeGreaterThan(0)
+  })
+})
+
+describe('KPI2/KPI3 — streaming progress events', () => {
+  it('emits node/tool/done events through runBudgetAgent onEvent', async () => {
+    const index = createIndex([parseCodeDocument({ id: 'code', title: 'ZBC', text: CODE_TEXT })])
+    const events: string[] = []
+    const result = await runBudgetAgent({
+      query: 'minimum ceiling height',
+      jurisdiction: 'zimbabwe',
+      context: { ragIndex: index },
+      persist: false,
+      onEvent: (e) => {
+        events.push(
+          `${e.type}:${e.type === 'tool' ? e.tool : e.type === 'node-start' || e.type === 'node-end' ? e.node : 'done'}`,
+        )
+      },
+    })
+    expect(result.state.status).toBe('completed')
+    expect(events[0]).toBe('node-start:researcher')
+    expect(events).toContain('tool:search_codes')
+    expect(events[events.length - 1]).toBe('done:done')
+    expect(events.some((e) => e.startsWith('node-end:researcher'))).toBe(true)
+    expect(events.some((e) => e.startsWith('node-end:supervisor'))).toBe(true)
+  })
+
+  it('streams an interrupt event for high-value HITL runs', async () => {
+    const index = createIndex([parseCodeDocument({ id: 'code', title: 'ZBC', text: CODE_TEXT })])
+    const reasons: string[] = []
+    const result = await runBudgetAgent({
+      query: 'ventilation requirements',
+      jurisdiction: 'zimbabwe',
+      context: { ragIndex: index, valueInterruptThresholdCents: 1, contractValueCents: 100 },
+      persist: false,
+      onEvent: (e) => {
+        if (e.type === 'interrupt') reasons.push(e.interrupt.reason)
+      },
+    })
+    expect(result.interrupted).toBe(true)
+    expect(reasons).toContain('high-value')
+  })
+
+  it('streams tool calls through ctx.onToolCall with ok/result', async () => {
+    const index = createIndex([parseCodeDocument({ id: 'code', title: 'ZBC', text: CODE_TEXT })])
+    const calls: string[] = []
+    const result = await runBudgetAgent({
+      query: 'ventilation requirements',
+      jurisdiction: 'zimbabwe',
+      context: {
+        ragIndex: index,
+        valueInterruptThresholdCents: 1,
+        contractValueCents: 100,
+        onToolCall: (call) => {
+          calls.push(`${call.tool}:${call.ok}`)
+        },
+      },
+      persist: false,
+    })
+    expect(result.interrupted).toBe(true)
+    expect(calls.length).toBeGreaterThan(0)
+    expect(calls).toContain('search_codes:true')
+    for (const c of calls) expect(c.endsWith(':true')).toBe(true)
+  })
+
+  it('runAgent onNodeStart emits short names and onStep carries from/node/stepCount', async () => {
+    const index = createIndex([parseCodeDocument({ id: 'code', title: 'ZBC', text: CODE_TEXT })])
+    const starts: string[] = []
+    const steps: { from: string; node: string; stepCount: number }[] = []
+    const state = createInitialState({ runId: 'stream-1', query: 'minimum ceiling height', jurisdiction: 'zimbabwe' })
+    const run = await runAgent(
+      state,
+      { ragIndex: index },
+      {
+        onNodeStart: (node, stepCount) => {
+          starts.push(`${node}:${stepCount}`)
+        },
+        onStep: (step) => {
+          steps.push({ from: step.from, node: step.node, stepCount: step.stepCount })
+        },
+      },
+    )
+    expect(run.state.status).toBe('completed')
+    expect(starts[0]).toBe('researcher:1')
+    expect(starts.length).toBeGreaterThanOrEqual(4)
+    const last = steps[steps.length - 1]
+    expect(last.stepCount).toBe(steps.length)
+    expect(last.node).toBe('doneNode')
+    for (const s of steps) expect(['researcher', 'calculator', 'validator', 'supervisor', 'hitl', 'done']).toContain(s.from)
+  })
+
+  it('auditToShort maps audit names to short graph nodes', () => {
+    expect(auditToShort('researcherNode')).toBe('researcher')
+    expect(auditToShort('humanInLoopNode')).toBe('hitl')
+    expect(auditToShort('doneNode')).toBe('done')
+    expect(auditToShort('unknownNode')).toBe('done')
   })
 })

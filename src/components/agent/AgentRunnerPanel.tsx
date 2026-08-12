@@ -3,7 +3,7 @@ import { Bot, Play, RotateCcw, CheckCircle2, XCircle, Clock, Search, ShieldCheck
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
-import { runBudgetAgent, resumeAgent, type BudgetAgentResult } from '@/engine/agents';
+import { runBudgetAgent, resumeAgent, type BudgetAgentResult, type AgentStreamEvent } from '@/engine/agents';
 import { listAgentRuns, type AgentRunRow } from '@/engine/agents/checkpoint';
 import { buildDefaultRagIndex } from '@/engine/rag/codeCorpus';
 import { GRAPH_NODES } from '@/engine/agents/graph';
@@ -27,9 +27,10 @@ const NODE_ICONS: Record<string, typeof Search> = {
 
 export interface AgentRunnerPanelProps {
   projectId?: string;
+  onInterrupt?: (result: BudgetAgentResult) => void;
 }
 
-export function AgentRunnerPanel({ projectId }: AgentRunnerPanelProps) {
+export function AgentRunnerPanel({ projectId, onInterrupt }: AgentRunnerPanelProps) {
   const [query, setQuery] = useState('');
   const [contractUsd, setContractUsd] = useState('');
   const [planId, setPlanId] = useState('');
@@ -40,6 +41,8 @@ export function AgentRunnerPanel({ projectId }: AgentRunnerPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [resuming, setResuming] = useState(false);
   const [runs, setRuns] = useState<AgentRunRow[]>([]);
+  const [stream, setStream] = useState<AgentStreamEvent[]>([]);
+  const [activeNode, setActiveNode] = useState<string | null>(null);
 
   const ragIndex = useMemo(() => buildDefaultRagIndex(), []);
 
@@ -67,6 +70,8 @@ export function AgentRunnerPanel({ projectId }: AgentRunnerPanelProps) {
     setPhase('running');
     setError(null);
     setResult(null);
+    setStream([]);
+    setActiveNode(null);
     try {
       const res = await runBudgetAgent({
         query: query.trim(),
@@ -81,9 +86,18 @@ export function AgentRunnerPanel({ projectId }: AgentRunnerPanelProps) {
             ? { avgCostCents: Math.round(Number(baselineUsd) * 100) }
             : undefined,
         },
+        onEvent: (event) => {
+          if (event.type === 'node-start') {
+            setActiveNode(event.node);
+          } else if (event.type === 'node-end' || event.type === 'interrupt' || event.type === 'done') {
+            setActiveNode(null);
+          }
+          setStream((prev) => [...prev, event]);
+        },
       });
       setResult(res);
       setPhase('done');
+      if (res.interrupt) onInterrupt?.(res);
       void refreshRuns().catch(() => {});
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -96,7 +110,9 @@ export function AgentRunnerPanel({ projectId }: AgentRunnerPanelProps) {
     setResuming(true);
     try {
       const { state } = await resumeAgent(result.state, decision);
-      setResult({ ...result, state, interrupted: false, interrupt: undefined });
+      const next = { ...result, state, interrupted: false, interrupt: undefined };
+      setResult(next);
+      if (state.status === 'awaiting-input') onInterrupt?.({ ...next, interrupted: true });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -106,12 +122,14 @@ export function AgentRunnerPanel({ projectId }: AgentRunnerPanelProps) {
 
   const visitedNodes = useMemo(() => {
     const visited = new Set<string>(['researcher']);
+    for (const e of stream) if (e.type === 'node-start') visited.add(e.node);
+    if (activeNode) visited.add(activeNode);
     if (!result) return visited;
     for (const call of result.state.toolCalls) visited.add(call.node);
     if (result.state.node === 'hitl') visited.add('hitl');
     if (result.state.node === 'done' || result.state.status === 'completed') visited.add('done');
     return visited;
-  }, [result]);
+  }, [result, stream, activeNode]);
 
   const statusColor =
     !result
@@ -129,15 +147,18 @@ export function AgentRunnerPanel({ projectId }: AgentRunnerPanelProps) {
         {GRAPH_NODES.map((node, i) => {
           const Icon = NODE_ICONS[node] ?? CheckCircle2;
           const active = visitedNodes.has(node);
+          const current = activeNode === node;
           return (
             <div key={node} className="flex items-center gap-1.5">
               {i > 0 && <span className="text-[var(--text-tertiary)]">→</span>}
               <span
                 data-testid={`node-chip-${node}`}
                 className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-medium ${
-                  active
-                    ? 'border-[var(--brand-accent)]/40 bg-[var(--brand-accent)]/10 text-[var(--brand-accent)]'
-                    : 'border-[var(--border-default)] bg-[var(--bg-tertiary)] text-[var(--text-muted)]'
+                  current
+                    ? 'border-cyan-500/50 bg-cyan-500/10 text-cyan-300'
+                    : active
+                      ? 'border-[var(--brand-accent)]/40 bg-[var(--brand-accent)]/10 text-[var(--brand-accent)]'
+                      : 'border-[var(--border-default)] bg-[var(--bg-tertiary)] text-[var(--text-muted)]'
                 }`}
               >
                 <Icon size={10} />
@@ -234,11 +255,26 @@ export function AgentRunnerPanel({ projectId }: AgentRunnerPanelProps) {
       </div>
 
       {phase === 'running' && (
-        <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-tertiary)] p-4">
-          <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)]">
+        <div data-testid="live-panel" className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-tertiary)] p-4">
+          <div className="mb-2 flex items-center gap-2 text-[11px] text-[var(--text-muted)]">
             <Clock size={14} className="animate-spin" />
-            Running researcher → calculator → validator → supervisor…
+            <span data-testid="live-active-node">
+              {activeNode ? `Running node: ${activeNode}…` : 'Running agent…'}
+            </span>
           </div>
+          {stream.length > 0 && (
+            <ul className="space-y-1 font-mono text-[9px] text-[var(--text-secondary)]">
+              {stream.map((e, i) => (
+                <li key={i} data-testid="live-event">
+                  {e.type === 'node-start' && `→ ${e.node} (step ${e.stepCount})`}
+                  {e.type === 'node-end' && `done ${e.node}`}
+                  {e.type === 'tool' && `${e.ok ? 'ok' : 'fail'} ${e.tool} @${e.node} — ${e.result.slice(0, 60)}`}
+                  {e.type === 'interrupt' && `interrupt (${e.interrupt.reason}) — ${e.interrupt.message.slice(0, 80)}`}
+                  {e.type === 'done' && 'completed'}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 

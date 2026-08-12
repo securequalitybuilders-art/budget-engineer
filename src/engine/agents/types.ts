@@ -13,6 +13,9 @@ export type AgentNode = 'researcher' | 'calculator' | 'validator' | 'supervisor'
 export type AgentStatus = 'running' | 'awaiting-input' | 'completed' | 'failed'
 export type AgentDecision = 'GO' | 'NO-GO' | 'PENDING' | 'APPROVED' | 'REJECTED'
 
+/** Which gate paused the run (Track B spec: `approvalGate` annotation). */
+export type ApprovalGate = 'high-value' | 'structural-deviation' | 'validation-required' | 'si56' | 'none'
+
 export interface AgentMessage {
   role: 'user' | 'assistant' | 'system'
   content: string
@@ -38,6 +41,39 @@ export interface AgentTraceSpan {
   metadata?: Record<string, unknown>
 }
 
+// ————— Track B spec domain refs (loaded into the state as annotations) —————
+
+export interface BoqRef {
+  lineCount: number
+  grandTotalCents: number
+  sections: Array<{ id: string; totalCents: number }>
+}
+
+export interface CostBaselineRef {
+  avgCostCents?: number
+  region?: string
+  perM2Cents?: number
+}
+
+export interface WipaaRef {
+  monthKey: string
+  costPctComplete: number
+  overUnderBilledCents: number
+  billingStatus: 'on-track' | 'under-billed' | 'over-billed'
+}
+
+export interface ChangeOrderRef {
+  number: string
+  declaredImpactCents: number
+  status: 'pending' | 'approved' | 'rejected'
+}
+
+export interface EscrowRef {
+  heldCents: number
+  releasedCents: number
+  milestoneCount: number
+}
+
 export interface AgentState {
   runId: string
   query: string
@@ -61,7 +97,28 @@ export interface AgentState {
   stepCount: number
   createdAt: string
   updatedAt: string
+  // ————— Track B spec fields (all optional — backward compatible) —————
+  boq?: BoqRef
+  costBaseline?: CostBaselineRef
+  wipaaEntry?: WipaaRef
+  changeOrder?: ChangeOrderRef
+  escrowBalance?: EscrowRef
+  verificationPhotos?: number
+  /** Audit node the run will route to next (LangGraph `next` annotation). */
+  next?: string
+  /** Accumulated retry / step errors fed back for self-correction. */
+  errors?: string[]
+  needsHuman?: boolean
+  approvalGate?: ApprovalGate
 }
+
+/** Progressive events emitted during a run (local-first streaming). */
+export type AgentStreamEvent =
+  | { type: 'node-start'; node: string; stepCount: number }
+  | { type: 'node-end'; node: string; stepCount: number }
+  | { type: 'tool'; tool: string; node: string; ok: boolean; result: string }
+  | { type: 'interrupt'; interrupt: Interrupt }
+  | { type: 'done'; state: AgentState }
 
 export interface Interrupt {
   reason: 'high-value' | 'structural-deviation' | 'low-confidence' | 'validation-required'
@@ -72,6 +129,7 @@ export interface Interrupt {
 export interface AgentContext {
   ragIndex?: import('@/engine/rag/ragIndex').RagIndex
   contractValueCents?: number
+  projectId?: string
   planId?: string
   architectRegistrationNumber?: string
   historicalBaseline?: {
@@ -81,15 +139,25 @@ export interface AgentContext {
   deviationThresholdPct?: number
   valueInterruptThresholdCents?: number
   onSpan?: (span: AgentTraceSpan) => void
+  /** Streams each completed tool call (result + ok) to the caller. */
+  onToolCall?: (call: ToolCallRecord) => void | Promise<void>
 }
 
-export function createInitialState(input: {
+export interface AgentInitialInput {
   runId: string
   query: string
   jurisdiction?: string
   projectId?: string
   history?: HistoryTurn[]
-}): AgentState {
+  boq?: BoqRef
+  costBaseline?: CostBaselineRef
+  wipaaEntry?: WipaaRef
+  changeOrder?: ChangeOrderRef
+  escrowBalance?: EscrowRef
+  verificationPhotos?: number
+}
+
+export function createInitialState(input: AgentInitialInput): AgentState {
   const now = new Date().toISOString()
   return {
     runId: input.runId,
@@ -112,5 +180,13 @@ export function createInitialState(input: {
     stepCount: 0,
     createdAt: now,
     updatedAt: now,
+    boq: input.boq,
+    costBaseline: input.costBaseline,
+    wipaaEntry: input.wipaaEntry,
+    changeOrder: input.changeOrder,
+    escrowBalance: input.escrowBalance,
+    verificationPhotos: input.verificationPhotos,
+    needsHuman: false,
+    approvalGate: 'none',
   }
 }

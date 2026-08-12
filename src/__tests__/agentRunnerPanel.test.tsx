@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup, waitFor, act } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import type { BudgetAgentResult } from '@/engine/agents'
+import type { BudgetAgentResult, AgentStreamEvent } from '@/engine/agents'
 import type { AgentRunRow } from '@/engine/agents/checkpoint'
 import { AgentRunnerPanel } from '@/components/agent/AgentRunnerPanel'
 import { ProjectLifecycleDashboard } from '@/components/lifecycle/ProjectLifecycleDashboard'
@@ -170,6 +170,30 @@ describe('AgentRunnerPanel', () => {
     const row = screen.getByTestId('agent-run-row')
     expect(row.textContent).toContain('party wall fire resistance')
     expect(row.textContent).toContain('completed')
+  })
+
+  it('streams live progress while the agent runs', async () => {
+    let captured: ((e: AgentStreamEvent) => void) | undefined
+    runBudgetAgent.mockImplementation((input: { onEvent?: (e: AgentStreamEvent) => void }) => {
+      captured = input.onEvent
+      return Promise.resolve(completedResult('party wall fire resistance'))
+    })
+    render(<AgentRunnerPanel projectId={PID} />)
+    fireEvent.change(screen.getByTestId('agent-query'), { target: { value: 'party wall fire resistance' } })
+    fireEvent.click(screen.getByRole('button', { name: /Run agent/ }))
+
+    act(() => {
+      captured?.({ type: 'node-start', node: 'researcher', stepCount: 1 })
+      captured?.({ type: 'node-start', node: 'calculator', stepCount: 2 })
+      captured?.({ type: 'tool', tool: 'calculate_brick_quantity', node: 'calculator', ok: true, result: '293 bricks (SAZ 7MPa)' })
+    })
+    expect(screen.getByTestId('live-panel')).toBeTruthy()
+    expect(screen.getByTestId('live-active-node').textContent).toContain('calculator')
+    expect(screen.getAllByTestId('live-event').length).toBe(3)
+    expect(screen.getByText(/293 bricks/)).toBeTruthy()
+
+    await screen.findByTestId('agent-result')
+    expect(screen.queryByTestId('live-panel')).toBeNull()
   })
 
   it('passes context fields through to the engine', async () => {

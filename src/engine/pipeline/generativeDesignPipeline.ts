@@ -5,6 +5,7 @@ import type { PlanModel } from '../../domain/plan'
 import type { BuildingElement, DesignOption } from '../../domain/boq'
 import type { Tier1ParsedBrief } from '../tier1-types'
 import type { ComplianceReport, ComplianceInput } from '../compliance/types'
+import { createStateMachine, type NodeDefinition, type NodeOutcome, type StateMachine } from '../agents/stateMachine'
 
 export interface PipelineInput {
   rawBriefText: string
@@ -37,6 +38,33 @@ export interface PipelineResult {
   errors: string[]
 }
 
+// The pipeline runs on the shared checkpointable state machine
+// (`src/engine/agents/stateMachine.ts`), the same engine as the KPI2 agent
+// orchestrator. Each stage is a node; the machine records `running`/`passed`/
+// `failed` steps and routes around failures via conditional edges (an
+// optimizer failure skips compliance/package, a brief-parse failure skips
+// everything — exactly the pre-rewrite behaviour).
+
+interface PipelineNodeState {
+  steps: PipelineStep[]
+  errors: string[]
+  brief: Tier1ParsedBrief | null
+  enhancedBrief: EnhancedBrief | null
+  designOption: DesignOption | null
+  optimizerResult: OptimizerResult | null
+  selectedCandidate: TopologyCandidate | null
+  planModel: PlanModel | null
+  councilPackage: CouncilPackage | null
+  complianceReport: ComplianceReport | null
+}
+
+const NODE_PARSE = 'parseBriefNode'
+const NODE_ENHANCE = 'enhanceBriefNode'
+const NODE_OPTIMIZE = 'optimizeNode'
+const NODE_COMPLIANCE = 'complianceNode'
+const NODE_PACKAGE = 'packageNode'
+const NODE_DONE = 'doneNode'
+
 type TimerHandle = ReturnType<typeof performance.now>
 
 function elapsed(from: TimerHandle): number {
@@ -48,115 +76,185 @@ function makeStep(name: string, status: PipelineStep['status'], durationMs?: num
 }
 
 export async function runPipeline(input: PipelineInput): Promise<PipelineResult> {
-  const steps: PipelineStep[] = []
-  const errors: string[] = []
-  const profile: WeightProfileId = input.weightProfile ?? 'balanced'
-
-  let brief: Tier1ParsedBrief
-  let enhancedBrief: EnhancedBrief
-  let optimizerResult: OptimizerResult | null = null
-  let selectedCandidate: TopologyCandidate | null = null
-  let planModel: PlanModel | null = null
-  let councilPackage: CouncilPackage | null = null
-  let complianceReport: ComplianceReport | null = null
-
   const t0 = performance.now()
-
-  const fail = (stepName: string, error: string) => {
-    steps.push(makeStep(stepName, 'failed', elapsed(t0), error))
-    errors.push(`[${stepName}] ${error}`)
+  const initialState: PipelineNodeState = {
+    steps: [],
+    errors: [],
+    brief: null,
+    enhancedBrief: null,
+    designOption: null,
+    optimizerResult: null,
+    selectedCandidate: null,
+    planModel: null,
+    councilPackage: null,
+    complianceReport: null,
   }
-
-  const pass = (stepName: string) => {
-    steps.push(makeStep(stepName, 'passed', elapsed(t0)))
-  }
-
-  try {
-    steps.push(makeStep('Parse Brief', 'running'))
-    const { parseBrief } = await import('../parseBrief')
-    brief = parseBrief(input.rawBriefText, { buildingType: input.uiBuildingType })
-    brief.siteInfo = {
-      widthM: input.siteWidthM ?? brief.siteInfo.widthM,
-      depthM: input.siteDepthM ?? brief.siteInfo.depthM,
-      areaM2: input.siteWidthM && input.siteDepthM ? input.siteWidthM * input.siteDepthM : brief.siteInfo.areaM2,
-      aspect: input.siteWidthM && input.siteDepthM ? (input.siteWidthM / input.siteDepthM).toFixed(2) : brief.siteInfo.aspect,
-    }
-    pass('Parse Brief')
-  } catch (e) {
-    fail('Parse Brief', `Brief parsing failed: ${e instanceof Error ? e.message : String(e)}`)
-    return { success: false, brief: null, enhancedBrief: null, optimizerResult: null, selectedCandidate: null, planModel: null, councilPackage: null, complianceReport: null, designOption: null, steps, errors }
-  }
-
-  try {
-    steps.push(makeStep('Enhance Brief', 'running'))
-    const { enhanceBrief } = await import('../tier1/briefEnhancer')
-    enhancedBrief = enhanceBrief(brief)
-    pass('Enhance Brief')
-  } catch (e) {
-    fail('Enhance Brief', `Brief enhancement failed: ${e instanceof Error ? e.message : String(e)}`)
-    enhancedBrief = { ...brief, spatialConstraints: [] }
-  }
-
-  const designOption = buildDesignOption(brief, enhancedBrief)
-
-  try {
-    steps.push(makeStep('Multi-Objective Optimization', 'running'))
-    const mod = await import('../tier3/multiObjectiveOptimizer')
-    optimizerResult = await mod.optimize(brief, designOption)
-    const top = mod.selectByProfile(optimizerResult, profile, 1)
-    selectedCandidate = top[0] ?? optimizerResult.paretoFront[0] ?? null
-    if (selectedCandidate) {
-      planModel = selectedCandidate.planModel
-      pass('Multi-Objective Optimization')
-    } else {
-      fail('Multi-Objective Optimization', 'No valid candidates generated across all topology/seed combinations')
-    }
-  } catch (e) {
-    fail('Multi-Objective Optimization', `Optimization failed: ${e instanceof Error ? e.message : String(e)}`)
-  }
-
-  if (planModel) {
-    try {
-      steps.push(makeStep('Compliance Check', 'running'))
-      const jurisdiction = input.jurisdiction ?? 'south-africa'
-      const complianceInput: ComplianceInput = {
-        plan: planModel,
-        design: designOption,
-        analysis: null,
-        buildingType: brief.typology?.id ?? 'house',
-      }
-      const { runCompliance } = await import('../compliance')
-      complianceReport = runCompliance(jurisdiction, complianceInput)
-      pass('Compliance Check')
-    } catch (e) {
-      fail('Compliance Check', `Compliance check failed: ${e instanceof Error ? e.message : String(e)}`)
-    }
-
-    try {
-      steps.push(makeStep('Council Package Assembly', 'running'))
-      const { assembleCouncilPackage } = await import('../tier1/councilPackageAssembler')
-      councilPackage = assembleCouncilPackage(planModel, designOption, enhancedBrief, selectedCandidate!, complianceReport, input.projectName)
-      pass('Council Package Assembly')
-    } catch (e) {
-      fail('Council Package Assembly', `Package assembly failed: ${e instanceof Error ? e.message : String(e)}`)
-    }
-  }
-
-  const success = errors.length === 0
+  const machine = createPipelineMachine(input, t0)
+  const { state } = await machine.run(initialState, input, { maxSteps: 10 })
 
   return {
-    success,
-    brief,
-    enhancedBrief,
-    optimizerResult,
-    selectedCandidate,
-    planModel,
-    councilPackage,
-    complianceReport,
-    designOption,
-    steps,
-    errors,
+    success: state.errors.length === 0,
+    brief: state.brief,
+    enhancedBrief: state.enhancedBrief,
+    optimizerResult: state.optimizerResult,
+    selectedCandidate: state.selectedCandidate,
+    planModel: state.planModel,
+    councilPackage: state.councilPackage,
+    complianceReport: state.complianceReport,
+    designOption: state.designOption,
+    steps: state.steps,
+    errors: state.errors,
   }
+}
+
+function createPipelineMachine(input: PipelineInput, t0: TimerHandle): StateMachine<PipelineNodeState, PipelineInput> {
+  const errorOf = (e: unknown): string => (e instanceof Error ? e.message : String(e))
+
+  const failStep = (state: PipelineNodeState, steps: PipelineStep[], name: string, message: string): NodeOutcome<PipelineNodeState> => ({
+    state: {
+      ...state,
+      steps: [...steps, makeStep(name, 'failed', elapsed(t0), message)],
+      errors: [...state.errors, `[${name}] ${message}`],
+    },
+  })
+
+  const parseBriefNode: NodeDefinition<PipelineNodeState, PipelineInput> = {
+    name: NODE_PARSE,
+    run: async (state) => {
+      const steps = [...state.steps, makeStep('Parse Brief', 'running')]
+      try {
+        const { parseBrief } = await import('../parseBrief')
+        const brief = parseBrief(input.rawBriefText, { buildingType: input.uiBuildingType })
+        brief.siteInfo = {
+          widthM: input.siteWidthM ?? brief.siteInfo.widthM,
+          depthM: input.siteDepthM ?? brief.siteInfo.depthM,
+          areaM2: input.siteWidthM && input.siteDepthM ? input.siteWidthM * input.siteDepthM : brief.siteInfo.areaM2,
+          aspect: input.siteWidthM && input.siteDepthM ? (input.siteWidthM / input.siteDepthM).toFixed(2) : brief.siteInfo.aspect,
+        }
+        return { state: { ...state, brief, steps: [...steps, makeStep('Parse Brief', 'passed', elapsed(t0))] } }
+      } catch (e) {
+        return failStep(state, steps, 'Parse Brief', `Brief parsing failed: ${errorOf(e)}`)
+      }
+    },
+  }
+
+  const enhanceBriefNode: NodeDefinition<PipelineNodeState, PipelineInput> = {
+    name: NODE_ENHANCE,
+    run: async (state) => {
+      const steps = [...state.steps, makeStep('Enhance Brief', 'running')]
+      try {
+        const { enhanceBrief } = await import('../tier1/briefEnhancer')
+        const enhancedBrief = enhanceBrief(state.brief!)
+        return {
+          state: {
+            ...state,
+            enhancedBrief,
+            designOption: buildDesignOption(state.brief!, enhancedBrief),
+            steps: [...steps, makeStep('Enhance Brief', 'passed', elapsed(t0))],
+          },
+        }
+      } catch (e) {
+        const message = `Brief enhancement failed: ${errorOf(e)}`
+        const enhancedBrief: EnhancedBrief = { ...state.brief!, spatialConstraints: [] }
+        return {
+          state: {
+            ...state,
+            enhancedBrief,
+            designOption: buildDesignOption(state.brief!, enhancedBrief),
+            steps: [...steps, makeStep('Enhance Brief', 'failed', elapsed(t0), message)],
+            errors: [...state.errors, `[Enhance Brief] ${message}`],
+          },
+        }
+      }
+    },
+  }
+
+  const optimizeNode: NodeDefinition<PipelineNodeState, PipelineInput> = {
+    name: NODE_OPTIMIZE,
+    run: async (state) => {
+      const steps = [...state.steps, makeStep('Multi-Objective Optimization', 'running')]
+      try {
+        const mod = await import('../tier3/multiObjectiveOptimizer')
+        const optimizerResult = await mod.optimize(state.brief!, state.designOption!)
+        const top = mod.selectByProfile(optimizerResult, input.weightProfile ?? 'balanced', 1)
+        const selectedCandidate = top[0] ?? optimizerResult.paretoFront[0] ?? null
+        if (selectedCandidate) {
+          return {
+            state: {
+              ...state,
+              optimizerResult,
+              selectedCandidate,
+              planModel: selectedCandidate.planModel,
+              steps: [...steps, makeStep('Multi-Objective Optimization', 'passed', elapsed(t0))],
+            },
+          }
+        }
+        const message = 'No valid candidates generated across all topology/seed combinations'
+        return {
+          state: {
+            ...state,
+            optimizerResult,
+            steps: [...steps, makeStep('Multi-Objective Optimization', 'failed', elapsed(t0), message)],
+            errors: [...state.errors, `[Multi-Objective Optimization] ${message}`],
+          },
+        }
+      } catch (e) {
+        return failStep(state, steps, 'Multi-Objective Optimization', `Optimization failed: ${errorOf(e)}`)
+      }
+    },
+  }
+
+  const complianceNode: NodeDefinition<PipelineNodeState, PipelineInput> = {
+    name: NODE_COMPLIANCE,
+    run: async (state) => {
+      const steps = [...state.steps, makeStep('Compliance Check', 'running')]
+      try {
+        const jurisdiction = input.jurisdiction ?? 'south-africa'
+        const complianceInput: ComplianceInput = {
+          plan: state.planModel!,
+          design: state.designOption!,
+          analysis: null,
+          buildingType: state.brief?.typology?.id ?? 'house',
+        }
+        const { runCompliance } = await import('../compliance')
+        const complianceReport = runCompliance(jurisdiction, complianceInput)
+        return { state: { ...state, complianceReport, steps: [...steps, makeStep('Compliance Check', 'passed', elapsed(t0))] } }
+      } catch (e) {
+        return failStep(state, steps, 'Compliance Check', `Compliance check failed: ${errorOf(e)}`)
+      }
+    },
+  }
+
+  const packageNode: NodeDefinition<PipelineNodeState, PipelineInput> = {
+    name: NODE_PACKAGE,
+    run: async (state) => {
+      const steps = [...state.steps, makeStep('Council Package Assembly', 'running')]
+      try {
+        const { assembleCouncilPackage } = await import('../tier1/councilPackageAssembler')
+        const councilPackage = assembleCouncilPackage(state.planModel!, state.designOption!, state.enhancedBrief!, state.selectedCandidate!, state.complianceReport, input.projectName)
+        return { state: { ...state, councilPackage, steps: [...steps, makeStep('Council Package Assembly', 'passed', elapsed(t0))] } }
+      } catch (e) {
+        return failStep(state, steps, 'Council Package Assembly', `Package assembly failed: ${errorOf(e)}`)
+      }
+    },
+  }
+
+  return createStateMachine<PipelineNodeState, PipelineInput>({
+    nodes: { [NODE_PARSE]: parseBriefNode, [NODE_ENHANCE]: enhanceBriefNode, [NODE_OPTIMIZE]: optimizeNode, [NODE_COMPLIANCE]: complianceNode, [NODE_PACKAGE]: packageNode },
+    start: NODE_PARSE,
+    end: NODE_DONE,
+    edges: {
+      [NODE_ENHANCE]: NODE_OPTIMIZE,
+      [NODE_COMPLIANCE]: NODE_PACKAGE,
+      [NODE_PACKAGE]: NODE_DONE,
+    },
+    conditionalEdges: {
+      [NODE_PARSE]: (s) => (s.brief ? NODE_ENHANCE : NODE_DONE),
+      [NODE_OPTIMIZE]: (s) => (s.planModel ? NODE_COMPLIANCE : NODE_DONE),
+    },
+    maxSteps: 10,
+    maxRetries: 0,
+  })
 }
 
 function buildDesignOption(brief: Tier1ParsedBrief, _enhanced: EnhancedBrief): DesignOption {
