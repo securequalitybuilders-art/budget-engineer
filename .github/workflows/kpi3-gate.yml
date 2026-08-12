@@ -1,6 +1,9 @@
 name: KPI3 Golden-Dataset Gate
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     paths:
       - 'eval/**'

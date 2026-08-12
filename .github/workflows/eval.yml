@@ -6,6 +6,9 @@ name: Prompt Regression Gate
 # kpi3-gate.yml workflow; this wider gate tolerates LLM-route variance).
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     paths:
       - 'eval/**'
