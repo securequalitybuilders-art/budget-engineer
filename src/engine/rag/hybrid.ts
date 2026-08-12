@@ -1,11 +1,14 @@
 import type { SearchResult, TextChunk } from './types'
 import { tokenize } from './embeddings'
 import type { RagIndex } from './ragIndex'
+import { matchesSourceFilter } from './sourceType'
+import { telemetryClient } from '@/lib/observability/langfuseClient'
 
 export interface HybridSearchOptions {
   k?: number
   minScore?: number
   docId?: string
+  filterSource?: string
   overFetch?: number
   fusionK?: number
 }
@@ -79,13 +82,18 @@ export function rrfFusion(
 }
 
 export function hybridSearch(index: RagIndex, query: string, opts: HybridSearchOptions = {}): SearchResult[] {
+  const startedAt = Date.now()
   const k = opts.k ?? 5
   const overFetch = opts.overFetch ?? 60
   const fusionK = opts.fusionK ?? 60
-  const denseResults = index.search(query, { k: overFetch, minScore: 0, docId: opts.docId })
-  const stats = buildBm25Stats(opts.docId ? index.allChunks().filter((c) => c.docId === opts.docId) : index.allChunks())
+  const denseResults = index
+    .search(query, { k: overFetch, minScore: 0, docId: opts.docId })
+    .filter((r) => matchesSourceFilter(r.docId, opts.filterSource))
+  const stats = buildBm25Stats(
+    (opts.docId ? index.allChunks().filter((c) => c.docId === opts.docId) : index.allChunks()).filter((c) => matchesSourceFilter(c.docId, opts.filterSource)),
+  )
   const sparseResults = [...index.allChunks()]
-    .filter((c) => !opts.docId || c.docId === opts.docId)
+    .filter((c) => (!opts.docId || c.docId === opts.docId) && matchesSourceFilter(c.docId, opts.filterSource))
     .map((chunk) => ({
       chunk: chunk as TextChunk,
       score: bm25Score(query, chunk.text, stats),
@@ -104,6 +112,7 @@ export function hybridSearch(index: RagIndex, query: string, opts: HybridSearchO
       chapter: r.chunk.chapter,
       docTitle: r.chunk.docTitle,
       parentText: r.chunk.parentText,
+      grade: r.chunk.grade,
     }))
 
   const fused = rrfFusion(denseResults, sparseResults, fusionK)
@@ -139,5 +148,15 @@ export function hybridSearch(index: RagIndex, query: string, opts: HybridSearchO
       sparseScore: sparse?.score,
     })
   }
-  return results.sort((a, b) => b.score - a.score).slice(0, k)
+  const ranked = results.sort((a, b) => b.score - a.score).slice(0, k)
+  void telemetryClient
+    .traceHybridSearch({
+      query,
+      k,
+      latencyMs: Date.now() - startedAt,
+      hitCount: ranked.length,
+      topDocIds: [...new Set(ranked.map((r) => r.docId).filter(Boolean))],
+    })
+    .catch(() => {})
+  return ranked
 }

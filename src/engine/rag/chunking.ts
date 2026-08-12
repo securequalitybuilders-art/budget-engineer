@@ -14,6 +14,11 @@ const DEFAULT_OVERLAP = 120
 const DEFAULT_CHILD_CHARS = 500
 const DEFAULT_PARENT_CHARS = 2000
 
+export function extractGrade(text: string): string | undefined {
+  const m = /Grade\s+([A-D])\b/i.exec(text)
+  return m ? m[1].toUpperCase() : undefined
+}
+
 function chapterFromTopSection(sections: CodeSection[], sectionId: string): string | undefined {
   const byId = new Map(sections.map((s) => [s.id, s]))
   let cur = byId.get(sectionId)
@@ -58,6 +63,7 @@ function splitPieces(text: string, maxChars: number, overlap: number, minChars: 
 export function chunkSection(section: CodeSection, docId: string, path: string[], opts: ChunkingOptions = {}): TextChunk[] {
   const maxChars = opts.maxChars ?? DEFAULT_MAX
   const overlap = opts.overlapChars ?? DEFAULT_OVERLAP
+  const grade = extractGrade(section.text)
 
   const tableText = (section.tables ?? []).map((t, ti) => {
     const rows = [t.headers, ...t.rows].map((r) => r.join(' | ')).join('\n')
@@ -71,6 +77,7 @@ export function chunkSection(section: CodeSection, docId: string, path: string[]
       maxChars,
       overlap,
       chapter: opts.chapter,
+      grade,
     })
   }
 
@@ -89,9 +96,9 @@ export function chunkSection(section: CodeSection, docId: string, path: string[]
   if (acc) paragraphBlocks.push(acc)
 
   const blocks = [...paragraphBlocks, ...tableText].filter(Boolean)
-  if (blocks.length === 0) return chunksForBlocks(section, docId, path, [], opts.chapter)
+  if (blocks.length === 0) return chunksForBlocks(section, docId, path, [], opts.chapter, grade)
 
-  const base = chunksForBlocks(section, docId, path, blocks.map((b, i) => ({ block: b, id: `${section.id}-c${i + 1}` })), opts.chapter)
+  const base = chunksForBlocks(section, docId, path, blocks.map((b, i) => ({ block: b, id: `${section.id}-c${i + 1}` })), opts.chapter, grade)
 
   const expanded: TextChunk[] = []
   for (const chunk of base) {
@@ -112,6 +119,7 @@ export function chunkSection(section: CodeSection, docId: string, path: string[]
         text: piece,
         parentId: chunk.parentId,
         chapter: chunk.chapter,
+        grade,
       })
       start += maxChars - overlap
       ci++
@@ -120,7 +128,7 @@ export function chunkSection(section: CodeSection, docId: string, path: string[]
   return expanded
 }
 
-function chunksForBlocks(section: CodeSection, docId: string, path: string[], blocks: { block: string; id: string }[], chapter?: string): TextChunk[] {
+function chunksForBlocks(section: CodeSection, docId: string, path: string[], blocks: { block: string; id: string }[], chapter?: string, grade?: string): TextChunk[] {
   const result: TextChunk[] = []
   for (const { block, id } of blocks) {
     result.push({
@@ -132,6 +140,7 @@ function chunksForBlocks(section: CodeSection, docId: string, path: string[], bl
       text: block,
       parentId: section.parentId,
       chapter,
+      grade,
     })
   }
   return result
@@ -141,7 +150,7 @@ function chunkSectionParentChild(
   section: CodeSection,
   docId: string,
   path: string[],
-  opts: { childChars: number; parentChars: number; maxChars: number; overlap: number; chapter?: string },
+  opts: { childChars: number; parentChars: number; maxChars: number; overlap: number; chapter?: string; grade?: string },
 ): TextChunk[] {
   const fullText = [section.text, ...section.tables?.map((t) => `[Table]\n${[t.headers, ...t.rows].map((r) => r.join(' | ')).join('\n')}`) ?? []]
     .filter(Boolean)
@@ -158,6 +167,7 @@ function chunkSectionParentChild(
     text: p.text,
     parentId: section.parentId,
     chapter: opts.chapter,
+    grade: opts.grade,
   }))
 
   const children = splitPieces(fullText, opts.childChars, opts.overlap, Math.floor(opts.childChars / 2.5))
@@ -179,6 +189,7 @@ function chunkSectionParentChild(
       parentChunkId: parentChunk?.id,
       parentText: parentChunk?.text,
       chapter: opts.chapter,
+      grade: opts.grade,
     }
   })
   return [...parentChunks, ...childChunks]

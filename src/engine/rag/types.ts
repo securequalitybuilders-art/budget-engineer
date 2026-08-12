@@ -35,6 +35,7 @@ export interface TextChunk {
   parentChunkId?: string
   parentText?: string
   chapter?: string
+  grade?: string
   embedding?: number[]
 }
 
@@ -53,6 +54,7 @@ export interface SearchResult {
   rerankScore?: number
   denseScore?: number
   sparseScore?: number
+  grade?: string
 }
 
 export type ConstraintOperator = 'min' | 'max' | 'eq'

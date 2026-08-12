@@ -8,7 +8,10 @@ import { extractJson } from '@/lib/ai/brief-coercion'
 import { getRemoteProvider, completeChat } from '@/lib/ai/remote-providers'
 import { useAiSettingsStore } from '@/stores/aiSettingsStore'
 import type { AiEngine, AiRemoteProvider } from '@/lib/ai/ai-types'
+import { ziqsSmmSystem } from '@/lib/ai/prompts/ziqs_smm_prompt'
 import { createTracer, type Trace } from './tracing'
+import { NOT_FOUND_REASON, applyDegradationPolicy } from './gracefulDegradation'
+import { logRAG } from '@/lib/observability/telemetry'
 
 export interface AnalyzeOptions {
   query: string
@@ -35,7 +38,8 @@ export function buildComplianceContext(ctx: CompliancePromptContext): string {
 }
 
 export const COMPLIANCE_PROMPT = (ctx: CompliancePromptContext) =>
-  `You are a SADC building compliance analyst. Using ONLY the retrieved code sections below, answer the design question and report findings.
+  `${ziqsSmmSystem()}
+You are a SADC building compliance analyst. Using ONLY the retrieved code sections below, answer the design question and report findings. Ground every finding in the regulations above; do not contradict the grounding with retrieved text.
 
 Schema:
 {"findings":[{"ruleId":string,"title":string,"status":"pass"|"warn"|"fail","actual":string,"required":string,"note":string,"sources":[string]}],"score":int,"warnings":[string]}
@@ -96,6 +100,20 @@ export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): 
   const apiKey = opts.apiKey ?? useAiSettingsStore.getState().apiKeys[providerId as AiRemoteProvider]
 
   const emitTrace = (report: RagComplianceReport) => {
+    void logRAG({
+      query: opts.query,
+      jurisdiction: report.jurisdiction,
+      engineUsed: report.engineUsed,
+      fellBack: report.fellBack,
+      fallbackReason: report.fallbackReason,
+      latencyMs: 0,
+      confidence: outcome.confidence,
+      rerankThreshold: threshold,
+      hitCount: rankedSources.length,
+      citedDocIds: rankedSources.map((s) => s.chunkId),
+      knownDocIds: index.knownDocIds,
+      needsClarification: report.needsClarification ?? degraded,
+    }).catch(() => {})
     if (!opts.onTrace) return
     const trace = tracer.snapshot()
     opts.onTrace({
@@ -110,8 +128,33 @@ export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): 
     })
   }
 
+  const degradation = degraded ? applyDegradationPolicy(rankedSources, outcome.confidence, threshold, opts.query) : null
+
+  // Never silently present an empty/weak retrieval as an answer. When the
+  // degradation policy finds nothing above the relevance threshold, return the
+  // explicit not-found report instead of fabricated findings.
+  if (degradation && !degradation.found) {
+    const report: RagComplianceReport = {
+      query: opts.query,
+      jurisdiction: opts.jurisdiction ?? 'zimbabwe',
+      findings: [],
+      score: 0,
+      totalRules: 0,
+      passedRules: 0,
+      warnings: [degradation.message, clarificationPrompt(opts.query, outcome.confidence, threshold)],
+      engineUsed: 'local-rules',
+      fellBack: true,
+      fallbackReason: degradation.fallbackReason,
+      sources: [],
+      confidence: outcome.confidence,
+      needsClarification: true,
+    }
+    emitTrace(report)
+    return report
+  }
+
   const degradationWarning = degraded
-    ? [clarificationPrompt(opts.query, outcome.confidence, threshold)]
+    ? [degradation?.message ?? clarificationPrompt(opts.query, outcome.confidence, threshold), clarificationPrompt(opts.query, outcome.confidence, threshold)]
     : []
 
   if (config && apiKey) {
@@ -165,8 +208,13 @@ export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): 
     passedRules: passed,
     warnings: [...degradationWarning, ...local.warnings],
     engineUsed: providerId === 'webllm' ? 'local-rules' : config?.id ?? 'local-rules',
-    fellBack: !!(config && providerId !== 'local-rules'),
-    fallbackReason: config && providerId !== 'local-rules' ? 'No API key configured — using local constraint extraction' : undefined,
+    fellBack: degraded || !!(config && providerId !== 'local-rules'),
+    fallbackReason:
+      config && providerId !== 'local-rules'
+        ? 'No API key configured — using local constraint extraction'
+        : degraded
+          ? (degradation?.fallbackReason ?? NOT_FOUND_REASON)
+          : undefined,
   }
   emitTrace(report)
   return report

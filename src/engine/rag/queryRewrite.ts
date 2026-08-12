@@ -7,12 +7,16 @@
 // can produce a deeper rewrite when a key is configured.
 
 import { getRemoteProvider, completeChat } from '@/lib/ai/remote-providers'
+import { generateFree, resolveBytezKey } from '@/lib/llm/freeRouter'
 import type { AiRemoteProvider } from '@/lib/ai/ai-types'
 
 export interface RewriteOptions {
   jurisdiction?: string
   engine?: AiRemoteProvider
   apiKey?: string
+  // When true, or when no `engine` is set but a Bytez key is configured,
+  // `rewriteQuery` additionally tries the free Bytez LLM path.
+  useFree?: boolean
 }
 
 export interface RewrittenQuery {
@@ -196,6 +200,35 @@ export async function rewriteQuery(
       }
     } catch {
       // fall through to local
+    }
+  }
+
+  // Free Bytez LLM path — used when explicitly requested or when no keyed
+  // provider is configured but a Bytez key is available. Never throws.
+  const useFree = opts.useFree === true || (!opts.engine && Boolean(resolveBytezKey(opts.apiKey)))
+  if (useFree) {
+    const free = await generateFree([{ role: 'user', content: REWRITE_PROMPT(query, history, opts.jurisdiction) }], {
+      apiKey: opts.apiKey,
+    })
+    if (free.text) {
+      try {
+        const json = JSON.parse(free.text.slice(free.text.indexOf('{'), free.text.lastIndexOf('}') + 1)) as {
+          rewritten?: string
+          vague?: boolean
+          rationale?: string[]
+        }
+        if (typeof json.rewritten === 'string' && json.rewritten.trim().length > 0) {
+          return {
+            original: query,
+            rewritten: json.rewritten.trim(),
+            vague: json.vague ?? vague,
+            method: 'remote',
+            rationale: [...historyRationale, ...localRationale, ...(json.rationale ?? ['free rewrite']), 'free Bytez LLM rewrite'],
+          }
+        }
+      } catch {
+        // fall through to local
+      }
     }
   }
 

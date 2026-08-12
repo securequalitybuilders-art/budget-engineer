@@ -21,6 +21,10 @@ export class RagIndex {
     return this.chunks.size
   }
 
+  get knownDocIds(): string[] {
+    return [...this.docIds]
+  }
+
   getChunk(id: string): TextChunk | undefined {
     return this.chunks.get(id)
   }
