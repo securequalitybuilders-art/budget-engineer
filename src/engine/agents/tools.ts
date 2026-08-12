@@ -1,179 +1,109 @@
-// Tool registry for the agent orchestrator. Every tool declares which node(s)
-// may invoke it — the graph refuses tool calls outside that scope.
+// KPI2 agent tool registry — thin adapter over the unified strict tool layer.
+//
+// The deterministic orchestrator consumes the SAME tools as the LLM
+// function-calling layer (`engine/tools/`): ids are the snake_case strict
+// names, per-node scoping is derived from `AGENT_TOOL_SCOPES`, and every `run`
+// delegates to `executeTool`. One schema, one executor, one scope contract for
+// both paths.
+//
+// The legacy kebab-case ids (`search-codes`, `compute-tco`, …) and the old
+// hand-rolled arg validator are gone — the graph and tests were migrated to
+// the strict names.
 
 import type { AgentNode, AgentContext } from './types'
-import { calculateBricks } from '@/engine/estimation/brickCalculator'
-import { calculateConcrete } from '@/engine/estimation/concreteCalculator'
-import { calculateTco, type TcoInput } from '@/engine/ecosystem/tco'
-import { calculateP4pCertificate, type P4pLineItem, type P4pCertificateOptions } from '@/engine/payment/paymentCalculators'
-import { lookupArchitect, validatePlanAgainstRegistry, gateP4pBid } from '@/engine/compliance/architectRegistry'
+import {
+  TOOLS as STRICT_TOOLS,
+  AGENT_TOOL_SCOPES,
+  parseToolArgs,
+  type AgentRole,
+  type ToolName,
+} from '@/engine/tools/definitions'
+import { executeTool } from '@/engine/tools/executor'
 
 export interface ToolDefinition {
-  id: string
+  id: ToolName
   name: string
   description: string
   nodes: AgentNode[]
-  inputSchema: Record<string, 'string' | 'number' | 'boolean' | 'string[]' | 'object'>
   run: (args: Record<string, unknown>, ctx: AgentContext) => Promise<string> | string
 }
 
-export const TOOLS: ToolDefinition[] = [
-  {
-    id: 'search-codes',
-    name: 'search-codes',
-    description: 'Search the building-code RAG index for the given query, scoped to a jurisdiction and optional document.',
-    nodes: ['researcher'],
-    inputSchema: { query: 'string', jurisdiction: 'string', k: 'number' },
-    run: (args, ctx) => {
-      const index = ctx.ragIndex
-      if (!index) throw new Error('RAG index is not available in this context')
-      const results = index.search(String(args.query ?? ''), { k: Number(args.k ?? 5) })
-      if (results.length === 0) return 'No code sections matched.'
-      return results
-        .map((r, i) => `${i + 1}. [${r.chapter ?? '?'}] ${r.heading} (${r.docTitle ?? r.docId}, score ${r.score.toFixed(3)})\n   ${r.text.slice(0, 220)}`)
-        .join('\n')
-    },
+/** Map a strict agent role to the orchestrator node(s) that exercise it. */
+const ROLE_TO_NODES: Record<AgentRole, AgentNode[]> = {
+  researcher: ['researcher'],
+  calculator: ['calculator'],
+  validator: ['validator'],
+  supervisor: ['supervisor'],
+}
+
+function nodesForTool(name: ToolName): AgentNode[] {
+  const nodes: AgentNode[] = []
+  for (const role of Object.keys(AGENT_TOOL_SCOPES) as AgentRole[]) {
+    if (AGENT_TOOL_SCOPES[role].includes(name)) nodes.push(...ROLE_TO_NODES[role])
+  }
+  return nodes
+}
+
+function stringifyValue(v: unknown): string {
+  if (v === null || v === undefined) return ''
+  if (typeof v === 'object') return JSON.stringify(v)
+  return String(v)
+}
+
+function formatResult(tool: ToolName, data: unknown): string {
+  const obj = (data ?? {}) as Record<string, unknown>
+  if (tool === 'search_codes') {
+    const hits = (obj.hits ?? []) as Array<{
+      chapter?: string | null
+      heading?: string
+      docId?: string
+      docTitle?: string
+      score?: number
+      text?: string
+    }>
+    if (hits.length === 0) return 'No code sections matched.'
+    return hits
+      .map(
+        (h, i) =>
+          `${i + 1}. [${h.chapter ?? '?'}] ${h.heading ?? ''} (${h.docTitle ?? h.docId ?? ''}, score ${(h.score ?? 0).toFixed(3)})\n   ${(h.text ?? '').slice(0, 220)}`,
+      )
+      .join('\n')
+  }
+  if (tool === 'query_si56') {
+    const gate = (obj.gate ?? {}) as Record<string, unknown>
+    const validation = obj.validation as { reference?: string } | null | undefined
+    const lines: string[] = []
+    if (validation?.reference) lines.push(`validation=${validation.reference}`)
+    lines.push(`allowed=${gate.allowed ?? false}`)
+    if (gate.reason) lines.push(`reason=${gate.reason}`)
+    return lines.join('\n')
+  }
+  if (tool === 'gono_go_decision') {
+    return [
+      `estimateCents=${obj.estimate_cents ?? ''}`,
+      `baselineCents=${obj.baseline_cents ?? ''}`,
+      `deviationPct=${obj.deviation_pct ?? ''}`,
+      `thresholdPct=${obj.deviation_threshold_pct ?? ''}`,
+      `recommendation=${obj.recommendation ?? ''}`,
+    ].join('\n')
+  }
+  if (Array.isArray(data) || data === null || typeof data !== 'object') return stringifyValue(data)
+  return Object.entries(obj)
+    .map(([k, v]) => `${k}=${stringifyValue(v)}`)
+    .join('\n')
+}
+
+export const TOOLS: ToolDefinition[] = STRICT_TOOLS.map((t) => ({
+  id: t.name,
+  name: t.name,
+  description: t.description,
+  nodes: nodesForTool(t.name),
+  run: (args, ctx) => {
+    const res = executeTool(t.name, args, { index: ctx.ragIndex })
+    if (!res.ok) throw new Error(res.error)
+    return formatResult(t.name, res.data)
   },
-  {
-    id: 'get-code-section',
-    name: 'get-code-section',
-    description: 'Fetch the full text of a specific retrieved code section by chunk id.',
-    nodes: ['researcher'],
-    inputSchema: { chunkId: 'string' },
-    run: (args, ctx) => {
-      const index = ctx.ragIndex
-      if (!index) throw new Error('RAG index is not available in this context')
-      const chunk = index.getChunk(String(args.chunkId ?? ''))
-      if (!chunk) return 'Section not found.'
-      return `[${chunk.docId} ${chunk.sectionId}] ${chunk.heading}\n${chunk.text}`
-    },
-  },
-  {
-    id: 'calculate-bricks',
-    name: 'calculate-bricks',
-    description: 'Estimate brick/block quantity for a masonry wall (length m, height m, thickness mm). Enforces minimum wall thickness.',
-    nodes: ['calculator'],
-    inputSchema: { lengthM: 'number', heightM: 'number', wallThicknessMm: 'number', purpose: 'string', wastagePct: 'number' },
-    run: (args) => {
-      const result = calculateBricks({
-        lengthM: Number(args.lengthM),
-        heightM: Number(args.heightM),
-        wallThicknessMm: Number(args.wallThicknessMm),
-        purpose: args.purpose === 'internal' ? 'internal' : 'boundary',
-        wastagePct: args.wastagePct === undefined ? undefined : Number(args.wastagePct),
-      })
-      if (!result.valid) return `Error: ${result.error}`
-      return [
-        `quantity=${result.quantity} bricks`,
-        `area=${result.areaM2.toFixed(2)} m2`,
-        `bricksPerM2=${result.bricksPerM2.toFixed(2)}`,
-        `citation=${result.citation}`,
-        ...(result.constructionNote ? [`note=${result.constructionNote}`] : []),
-      ].join('\n')
-    },
-  },
-  {
-    id: 'calculate-concrete',
-    name: 'calculate-concrete',
-    description: 'Estimate concrete volume and 1:2:4 materials (cement bags, sand, aggregate) for a slab/footing (L x W x thickness m).',
-    nodes: ['calculator'],
-    inputSchema: { lengthM: 'number', widthM: 'number', thicknessM: 'number', wastagePct: 'number' },
-    run: (args) => {
-      const result = calculateConcrete({
-        lengthM: Number(args.lengthM),
-        widthM: Number(args.widthM),
-        thicknessM: Number(args.thicknessM),
-        wastagePct: args.wastagePct === undefined ? undefined : Number(args.wastagePct),
-      })
-      if (!result.valid) return `Error: ${result.error}`
-      return `volume=${result.volumeM3.toFixed(2)} m3\ncementBags=${result.cementBags}\nsand=${result.sandM3.toFixed(2)} m3\naggregate=${result.aggregateM3.toFixed(2)} m3\ncitation=${result.citation}`
-    },
-  },
-  {
-    id: 'compute-tco',
-    name: 'compute-tco',
-    description: 'Total Cost of Ownership for a supplier/procurement option (price, freight, on-time %, defect %, downtime cost/day).',
-    nodes: ['calculator'],
-    inputSchema: {
-      priceCents: 'number',
-      freightCents: 'number',
-      onTimeDeliveryPct: 'number',
-      defectRatePct: 'number',
-      laborDowntimeCostCentsPerDay: 'number',
-      leadDays: 'number',
-      typicalLeadDays: 'number',
-    },
-    run: (args) => {
-      const input: TcoInput = {
-        priceCents: Number(args.priceCents),
-        freightCents: Number(args.freightCents),
-        onTimeDeliveryPct: Number(args.onTimeDeliveryPct),
-        defectRatePct: Number(args.defectRatePct),
-        laborDowntimeCostCentsPerDay: Number(args.laborDowntimeCostCentsPerDay),
-        leadDays: Number(args.leadDays),
-        typicalLeadDays: Number(args.typicalLeadDays),
-      }
-      const r = calculateTco(input)
-      return `totalCostCents=${r.totalCostCents}\npriceDeltaCents=${r.priceDeltaCents}\ndowntimeCostCents=${r.downtimeCostCents}\ndefectCostCents=${r.defectCostCents}`
-    },
-  },
-  {
-    id: 'p4p-certificate',
-    name: 'p4p-certificate',
-    description: 'Compute an interim P4P (Payment for Progress) certificate from work-package line items and progress %.',
-    nodes: ['calculator'],
-    inputSchema: { lineItems: 'object', retentionPct: 'number', previousPayments: 'number', practicalCompletionReached: 'boolean' },
-    run: (args) => {
-      const lineItems = (args.lineItems ?? []) as Array<Record<string, unknown>>
-      const items: P4pLineItem[] = lineItems.map((l, i) => ({
-        id: String(l.id ?? `item-${i}`),
-        name: String(l.name ?? `Item ${i + 1}`),
-        contractValue: Number(l.contractValue ?? 0),
-        progressPct: Number(l.progressPct ?? 0),
-      }))
-      const opts: P4pCertificateOptions = {
-        retentionPct: args.retentionPct === undefined ? undefined : Number(args.retentionPct),
-        previousPayments: args.previousPayments === undefined ? undefined : Number(args.previousPayments),
-        practicalCompletionReached: args.practicalCompletionReached === undefined ? undefined : Boolean(args.practicalCompletionReached),
-      }
-      const cert = calculateP4pCertificate(items, opts)
-      return `grossEarned=${cert.grossEarned}\nretentionWithheld=${cert.retentionWithheld}\nnetCertificateValue=${cert.netCertificateValue}\namountDue=${cert.amountDue}`
-    },
-  },
-  {
-    id: 'validate-plan-si56',
-    name: 'validate-plan-si56',
-    description: 'Check a plan/architect against the ACZ Architect Registry under SI 56/2025 and gate a P4P bid.',
-    nodes: ['validator'],
-    inputSchema: { planId: 'string', architectRegistrationNumber: 'string', contractValueCents: 'number' },
-    run: (args, ctx) => {
-      const reg = String(args.architectRegistrationNumber ?? ctx.architectRegistrationNumber ?? '')
-      const architect = lookupArchitect(reg)
-      if (!architect) return `Architect not found in ACZ registry: "${reg}"`
-      const validation = validatePlanAgainstRegistry(String(args.planId ?? ctx.planId ?? 'plan'), architect)
-      if (!validation) return `Architect is not SI 56/2025 accredited.`
-      const gate = gateP4pBid({ validation, contractValueCents: Number(args.contractValueCents ?? ctx.contractValueCents ?? 0) })
-      return `validation=${validation.reference}\nallowed=${gate.allowed}\nreason=${gate.reason}`
-    },
-  },
-  {
-    id: 'gono-go-decision',
-    name: 'gono-go-decision',
-    description: 'Compare an estimated cost against a historical baseline and produce a GO / NO-GO recommendation with deviation %.',
-    nodes: ['supervisor'],
-    inputSchema: { estimateCents: 'number', baselineCents: 'number', deviationThresholdPct: 'number' },
-    run: (args, ctx) => {
-      const estimate = Number(args.estimateCents ?? 0)
-      const baseline = Number(args.baselineCents ?? ctx.historicalBaseline?.avgCostCents ?? 0)
-      if (estimate <= 0) return 'No estimate supplied to compare.'
-      if (baseline <= 0) return `GO (no historical baseline available; estimate=${estimate})`
-      const threshold = Number(args.deviationThresholdPct ?? ctx.deviationThresholdPct ?? 10)
-      const deviationPct = ((estimate - baseline) / baseline) * 100
-      const within = Math.abs(deviationPct) <= threshold
-      return `estimateCents=${estimate}\nbaselineCents=${baseline}\ndeviationPct=${deviationPct.toFixed(2)}\nthresholdPct=${threshold}\nrecommendation=${within ? 'GO' : 'NO-GO'}`
-    },
-  },
-]
+}))
 
 export function toolsFor(node: AgentNode): ToolDefinition[] {
   return TOOLS.filter((t) => t.nodes.includes(node))
@@ -184,13 +114,30 @@ export function findTool(id: string): ToolDefinition | undefined {
 }
 
 export function validateToolArgs(tool: ToolDefinition, args: Record<string, unknown>): string[] {
-  const errors: string[] = []
-  for (const [key, type] of Object.entries(tool.inputSchema)) {
-    const value = args[key]
-    if (value === undefined) continue
-    if (type === 'number' && typeof value !== 'number') errors.push(`${key} must be a number`)
-    if (type === 'string' && typeof value !== 'string') errors.push(`${key} must be a string`)
-    if (type === 'boolean' && typeof value !== 'boolean') errors.push(`${key} must be a boolean`)
+  try {
+    parseToolArgs(tool.id, args)
+    return []
+  } catch (e) {
+    const zod = (e as { issues?: Array<{ path: Array<string | number>; message: string }> }).issues
+    if (zod) return zod.map((i) => `${i.path.join('.')}: ${i.message}`)
+    return [(e as Error).message]
   }
-  return errors
 }
+
+// ————————————————————— unified contract re-exports —————————————————————
+// The strict layer stays reachable through the agents barrel (index.ts does
+// `export * from './tools'`) without colliding with the adapter's `TOOLS`.
+export { STRICT_TOOLS }
+export {
+  READ_TOOLS,
+  WRITE_TOOLS,
+  DECISION_TOOLS,
+  AGENT_TOOL_SCOPES,
+  TOOL_SCHEMAS,
+  canCallTool,
+  assertAgentToolScope,
+  toolsForRole,
+  parseToolArgs,
+  isValidToolArgs,
+} from '@/engine/tools/definitions'
+export type { ToolName, ToolKind, ToolCategory, AgentRole } from '@/engine/tools/definitions'

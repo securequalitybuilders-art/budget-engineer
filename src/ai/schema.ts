@@ -1,9 +1,13 @@
 import { z } from 'zod';
+import { TOOL_SCHEMAS, TOOLS, READ_TOOLS, WRITE_TOOLS, AGENT_TOOL_SCOPES } from '@/engine/tools/definitions';
+import type { ToolName, ToolDefinition, AgentRole } from '@/engine/tools/definitions';
 
 /**
  * Zod schemas for the AI brief-to-design pipeline.
  * These schemas enforce the shape of data that flows from
  * natural-language brief → structured design schema → design objects.
+ * Tool schemas (PHASE 1 audit fix) are re-exported from
+ * src/engine/tools/definitions.ts — the single tool-calling registry.
  */
 
 export const parsedBriefSchema = z.object({
@@ -43,3 +47,7 @@ export const designSchema = z.object({
 });
 
 export type DesignSchema = z.infer<typeof designSchema>;
+
+// ————————————————————— tool schemas (PHASE 1 audit fix) —————————————————————
+export { TOOL_SCHEMAS, TOOLS, READ_TOOLS, WRITE_TOOLS, AGENT_TOOL_SCOPES };
+export type { ToolName, ToolDefinition, AgentRole };

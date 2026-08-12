@@ -11,5 +11,6 @@ export interface ParsedBrief {
   approxAreaM2: number;
   budget?: number;
   features: string[];
+  regulatoryNotes?: string[];
   raw: string;
 }

@@ -1,5 +1,6 @@
 import { ParsedBrief } from './ai-types';
 import { parseBrief } from './brief-parser';
+import { ziqsSmmSystem, citeByLaws } from './prompts/ziqs_smm_prompt';
 
 export function coerceBrief(obj: unknown, raw: string): ParsedBrief {
   const o = (obj ?? {}) as Record<string, unknown>;
@@ -17,6 +18,7 @@ export function coerceBrief(obj: unknown, raw: string): ParsedBrief {
     approxAreaM2: int(o.approxAreaM2, fallback.approxAreaM2, 20, 5000),
     budget: o.budget != null && Number.isFinite(Number(o.budget)) ? Number(o.budget) : fallback.budget,
     features: Array.isArray(o.features) ? o.features.map(String).slice(0, 20) : fallback.features,
+    regulatoryNotes: Array.isArray(o.regulatoryNotes) ? o.regulatoryNotes.map(String).slice(0, 10) : undefined,
     raw,
   };
 }
@@ -33,7 +35,9 @@ export function extractJson(text: string): unknown {
 }
 
 export const BRIEF_PROMPT = (brief: string) =>
-  `You are an architectural brief parser. Read the brief and reply with ONLY a JSON object, no prose.
-Schema: {"buildingType":string,"bedrooms":int,"bathrooms":int,"floors":int,"approxAreaM2":int,"budget":int|null,"features":string[]}
+  `${ziqsSmmSystem()}
+You are an architectural brief parser. Read the brief and reply with ONLY a JSON object, no prose.
+Schema: {"buildingType":string,"bedrooms":int,"bathrooms":int,"floors":int,"approxAreaM2":int,"budget":int|null,"features":string[],"regulatoryNotes":string[]}
+regulatoryNotes: for every item in the brief that touches a regulated matter (fire resistance, boundary separation, party wall, brick strength, concrete mix, excavation, scaffolding, masonry), add a citation string in the format ${citeByLaws({ chapter: '4', clause: '12(a)', grade: 'A', rating: '2hrs' })} or a ZIQS SMM measurement note (example: "net volume = length × width × depth — ZIQS SMM excavation, net, m³"). Never invent a clause that is not in the regulations; when a requirement is not found, omit it.
 Brief: "${brief}"
 JSON:`;
