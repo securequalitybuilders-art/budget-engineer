@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useEcosystemData, fmtCents } from '@/components/ecosystem/useEcosystemData';
 import { Stat } from '@/components/ecosystem/ui';
 import { WorkflowPipeline } from '@/components/ecosystem/WorkflowPipeline';
@@ -8,6 +8,9 @@ import { SupplierMatch } from '@/components/ecosystem/procurement/SupplierMatch'
 import { EscrowGatewayWidget } from '@/components/ecosystem/procurement/EscrowGatewayWidget';
 import { dispatchSummary, listDispatchOrders, listEscrowHolds } from '@/lib/dispatch/dispatchActions';
 import type { DispatchOrder, EscrowHold } from '@/domain/dispatch';
+import { buildMarketIndex } from '@/engine/ecosystem/priceIndex';
+import { MarketPriceTicker, DataTable } from '@/components/dzenhare';
+import type { DataColumn } from '@/components/dzenhare';
 
 export default function BulkProcurementDashboard() {
   const data = useEcosystemData();
@@ -35,6 +38,33 @@ export default function BulkProcurementDashboard() {
 
   const summary = dispatchSummary(orders, holds);
 
+  const tickerItems = useMemo(
+    () =>
+      buildMarketIndex(data.rates, 26, 'USD', 30)
+        .slice(0, 10)
+        .map((i) => ({
+          symbol: i.symbol,
+          label: i.label,
+          unit: i.unit,
+          currentCents: i.currentCents,
+          changePct: i.changePct,
+        })),
+    [data.rates],
+  );
+
+  const orderColumns: DataColumn<DispatchOrder>[] = [
+    { key: 'id', header: 'Dispatch', render: (o) => o.id.slice(0, 8) },
+    { key: 'supplierName', header: 'Supplier' },
+    { key: 'lines', header: 'Lines', align: 'right', render: (o) => String(o.lines.length) },
+    { key: 'totalCents', header: 'Value', align: 'right', render: (o) => fmtCents(o.totalCents) },
+    {
+      key: 'etaMinutes',
+      header: 'ETA',
+      align: 'right',
+      render: (o) => (o.etaMinutes ? `${Math.round(o.etaMinutes / 60)}h` : '—'),
+    },
+  ];
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       <header className="mb-6">
@@ -49,6 +79,16 @@ export default function BulkProcurementDashboard() {
         <Stat label="Released" value={fmtCents(summary.releasedValue)} tone="good" />
         <Stat label="Disputed" value={String(summary.disputedCount)} tone={summary.disputedCount > 0 ? 'bad' : 'default'} />
       </div>
+
+      <div className="mb-6">
+        <MarketPriceTicker items={tickerItems} currency="USD" />
+      </div>
+
+      {orders.length > 0 && (
+        <div className="mb-6">
+          <DataTable columns={orderColumns} rows={orders.slice(0, 8)} rowKey={(o) => o.id} />
+        </div>
+      )}
 
       <div className="mb-6">
         <WorkflowPipeline data={data} />

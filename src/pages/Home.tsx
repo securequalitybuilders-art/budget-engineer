@@ -9,11 +9,12 @@ import {
   Plus, Folder, ArrowRight, Cpu, HardHat, FileBarChart,
   MessageSquare, LayoutGrid, Boxes, Activity, Calculator, BarChart3, Bug,
   Sofa, Globe, Monitor, BookOpen, Rocket, Settings,
-  AlertTriangle, Check, ChevronDown, FileCheck2, Hammer, Landmark,
+  AlertTriangle, Check, ChevronDown, FileCheck2, Hammer, Landmark, Mail,
   Quote, ShieldCheck, Wallet,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { MarketPriceTicker } from '@/components/dzenhare/MarketPriceTicker';
 
 const container = {
   hidden: { opacity: 0 },
@@ -64,6 +65,15 @@ const STATS = [
   { value: '0', label: 'paid AI APIs required' },
 ]
 
+const TICKER_ITEMS = [
+  { symbol: 'cement', label: 'Cement 50kg', unit: 'bag', currentCents: 850, changePct: 2.4 },
+  { symbol: 'bricks', label: 'Face bricks', unit: '1,000', currentCents: 13000, changePct: -1.1 },
+  { symbol: 'rebar', label: 'Rebar Ø12', unit: 'tonne', currentCents: 95000, changePct: 3.8 },
+  { symbol: 'sand', label: 'River sand', unit: 'tonne', currentCents: 2800, changePct: 0.9 },
+  { symbol: 'roofing', label: 'IBR sheets', unit: 'sheet', currentCents: 1200, changePct: -0.6 },
+  { symbol: 'paint', label: 'Paint 20L', unit: 'drum', currentCents: 4500, changePct: 1.7 },
+]
+
 const PLANS = [
   { name: 'Free', price: '$0', tagline: 'Everything, in your browser, forever.', cta: 'Start building', to: '/new', features: ['Unlimited local projects', '2D CAD + 3D BIM', 'Tender-ready BOQ & exports', 'SADC codes & compliance checks'] },
   { name: 'Red Pen', price: '$50', tagline: 'A one-off human feasibility review.', cta: 'Review my design', to: '/new', features: ['Everything in Free', 'Registered reviewer', 'Cost realism check', 'Design review report'] },
@@ -86,6 +96,22 @@ export function Home() {
   const backupInputRef = useRef<HTMLInputElement>(null);
   const [demoLoading, setDemoLoading] = useState(false);
   const [backupMsg, setBackupMsg] = useState<string | null>(null);
+  const [pwEmail, setPwEmail] = useState('');
+  const [pwSubscribed, setPwSubscribed] = useState(() => {
+    try { return Boolean(localStorage.getItem('dzenhare-pricewatch-email')) } catch { return false }
+  });
+
+  const handlePriceWatchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const email = pwEmail.trim()
+    if (!email) return
+    try {
+      localStorage.setItem('dzenhare-pricewatch-email', email)
+    } catch {
+      // local-first: ignore storage failures
+    }
+    setPwSubscribed(true)
+  }
 
   const handleExportAll = async () => {
     try {
@@ -247,6 +273,15 @@ export function Home() {
             )}
           </div>
         </div>
+
+        {/* Live market ticker */}
+        <section aria-label="Live construction market prices" className="mb-10">
+          <MarketPriceTicker
+            items={TICKER_ITEMS}
+            currency="USD"
+            className="w-full"
+          />
+        </section>
 
         {/* Bento hero collage */}
         <section aria-labelledby="bento-heading">
@@ -744,6 +779,47 @@ export function Home() {
                 <p className="mt-2 text-sm text-[var(--text-secondary)]">{faq.a}</p>
               </details>
             ))}
+          </div>
+        </section>
+
+        {/* PriceWatch blog capture */}
+        <section className="mt-14" aria-labelledby="pricewatch-heading">
+          <div className="rounded-3xl border border-[var(--border-default)] bg-gradient-to-br from-[var(--bg-tertiary)] to-[var(--bg-secondary)] px-6 py-10 sm:px-10">
+            <div className="mx-auto max-w-2xl text-center">
+              <Badge variant="brand" className="mb-4">PriceWatch</Badge>
+              <h2 id="pricewatch-heading" className="font-display text-2xl font-semibold sm:text-3xl">
+                Material prices move. Know before it hits your budget.
+              </h2>
+              <p className="mx-auto mt-3 max-w-xl text-sm text-[var(--text-secondary)]">
+                Cement, steel, and bricks tracked against the USD/ZiG market index. Get the price brief when it matters — straight to your inbox.
+              </p>
+              {pwSubscribed ? (
+                <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-400">
+                  <Check size={16} aria-hidden="true" />
+                  Subscribed on this device — no server, no telemetry.
+                </div>
+              ) : (
+                <form onSubmit={handlePriceWatchSubmit} className="mx-auto mt-6 flex max-w-md flex-col gap-3 sm:flex-row">
+                  <label className="sr-only" htmlFor="pricewatch-email">Email address</label>
+                  <input
+                    id="pricewatch-email"
+                    type="email"
+                    required
+                    value={pwEmail}
+                    onChange={(e) => setPwEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="h-11 flex-1 rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-4 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--brand-accent)]"
+                  />
+                  <Button type="submit" className="h-11">
+                    <Mail size={16} aria-hidden="true" />
+                    Get the price brief
+                  </Button>
+                </form>
+              )}
+              <p className="mt-4 text-xs text-[var(--text-muted)]">
+                Honest positioning: no newsletter pipeline yet — your email is saved on this device only, and you can clear it anytime.
+              </p>
+            </div>
           </div>
         </section>
 

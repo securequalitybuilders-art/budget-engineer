@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useEcosystemData, fmtCents } from '@/components/ecosystem/useEcosystemData';
+import { useMemo, useState } from 'react';
+import { useEcosystemData, fmtCents, fmtDate } from '@/components/ecosystem/useEcosystemData';
 import { Stat } from '@/components/ecosystem/ui';
 import { WorkflowPipeline } from '@/components/ecosystem/WorkflowPipeline';
 import { PortfolioWidget } from '@/components/ecosystem/contractor/PortfolioWidget';
@@ -13,6 +13,10 @@ import { WipaaWidget } from '@/components/ecosystem/contractor/WipaaWidget';
 import { ResourceHubsWidget } from '@/components/ecosystem/contractor/ResourceHubsWidget';
 import { PendingAlertsWidget } from '@/components/ecosystem/contractor/PendingAlertsWidget';
 import { closeProject, reopenProject } from '@/lib/ecosystem/workflowActions';
+import { buildMarketIndex } from '@/engine/ecosystem/priceIndex';
+import { MarketPriceTicker, ContractorMatchCard, DataTable } from '@/components/dzenhare';
+import type { DataColumn } from '@/components/dzenhare';
+import type { PurchaseOrder } from '@/domain/procurement';
 
 export default function ContractorDashboard() {
   const data = useEcosystemData();
@@ -21,6 +25,41 @@ export default function ContractorDashboard() {
     (s, e) => s + e.milestones.filter((m) => m.status === 'released').length, 0
   );
   const [rfqProjectId, setRfqProjectId] = useState<string | null>(null);
+
+  const wipaaScore = useMemo(() => {
+    const milestones = data.escrows.flatMap((e) => e.milestones);
+    if (milestones.length === 0) return undefined;
+    return Math.round((milestones.filter((m) => m.status === 'released').length / milestones.length) * 100);
+  }, [data.escrows]);
+
+  const tickerItems = useMemo(
+    () =>
+      buildMarketIndex(data.rates, 26, 'USD', 30)
+        .slice(0, 10)
+        .map((i) => ({
+          symbol: i.symbol,
+          label: i.label,
+          unit: i.unit,
+          currentCents: i.currentCents,
+          changePct: i.changePct,
+        })),
+    [data.rates],
+  );
+
+  const bestProvider = useMemo(() => {
+    const candidates = data.providers.filter(
+      (p) => (p.type === 'contractor' || p.type === 'subcontractor') && p.verificationStatus === 'verified',
+    );
+    return [...candidates].sort((a, b) => b.rating - a.rating)[0];
+  }, [data.providers]);
+
+  const poColumns: DataColumn<PurchaseOrder>[] = [
+    { key: 'poNumber', header: 'Order' },
+    { key: 'title', header: 'Description' },
+    { key: 'status', header: 'Status' },
+    { key: 'totalCents', header: 'Total', align: 'right', render: (p) => fmtCents(p.totalCents) },
+    { key: 'deliveryDate', header: 'Delivery', render: (p) => (p.deliveryDate ? fmtDate(p.deliveryDate) : '—') },
+  ];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
@@ -36,6 +75,41 @@ export default function ContractorDashboard() {
         <Stat label="Milestones released" value={String(released)} tone="good" />
         <Stat label="Open RFQs" value={String(data.procurementRequests.filter((r) => r.status === 'quotes-sought' || r.status === 'quotes-received').length)} tone="accent" />
       </div>
+
+      <div className="mb-6">
+        <MarketPriceTicker items={tickerItems} currency="USD" />
+      </div>
+
+      {bestProvider && (
+        <div className="mb-6 grid gap-4 lg:grid-cols-5">
+          <div className="lg:col-span-2">
+            <ContractorMatchCard
+              name={bestProvider.name}
+              category={bestProvider.category ? String(bestProvider.category) : bestProvider.type}
+              rating={bestProvider.rating}
+              reviews={bestProvider.reviews.length}
+              feeCents={Math.round(contracts * 100 * 0.02)}
+              wipaaScore={wipaaScore}
+              metrics={[
+                { key: 'loc', icon: 'location', label: 'Based in', value: bestProvider.location.city },
+                { key: 'port', icon: 'portfolio', label: 'Projects completed', value: String(bestProvider.completedProjects) },
+                { key: 'time', icon: 'timeline', label: 'Availability', value: bestProvider.availability.status.replace(/_/g, ' ') },
+                { key: 'trend', icon: 'trend', label: 'Rating trend', value: `${bestProvider.rating.toFixed(1)} / 5` },
+              ]}
+              onViewProjects={() => setRfqProjectId(null)}
+              onApprove={() => setRfqProjectId(null)}
+              onAlternatives={() => setRfqProjectId(null)}
+            />
+          </div>
+          <div className="lg:col-span-3">
+            <DataTable
+              columns={poColumns}
+              rows={data.purchaseOrders.slice(0, 8)}
+              rowKey={(p) => p.id}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="mb-6">
         <WorkflowPipeline data={data} />
