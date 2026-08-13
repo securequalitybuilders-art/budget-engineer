@@ -39,3 +39,5 @@ jobs:
           PROMPTFOO_PASS_RATE_THRESHOLD: '80'
       - name: Deterministic golden gate
         run: npx vitest run src/__tests__/kpi3Golden.test.ts
+      - name: Labeled retrieval-eval gate (recall@k / MRR / NDCG)
+        run: npm run test:retrieval-eval

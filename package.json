@@ -18,6 +18,7 @@
     "test:shard2": "set NODE_OPTIONS=--max-old-space-size=8192 && vitest run --shard=2/3",
     "test:shard3": "set NODE_OPTIONS=--max-old-space-size=8192 && vitest run --shard=3/3",
     "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:retrieval-eval": "vitest run src/engine/rag/retrieval-eval.test.ts --reporter=verbose",
     "eval:kpi3": "vitest run --config vitest.integration.config.ts src/__tests__/integration/kpi3Promptfoo.test.ts",
     "eval:kpi3:cli": "node eval/run-cli-gate.mjs",
     "eval:kpi3:ci": "node eval/run-cli-gate.mjs",

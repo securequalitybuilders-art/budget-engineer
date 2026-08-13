@@ -1,0 +1,74 @@
+[
+  {
+    "id": "retrieval_saz_7mpa_common_brick",
+    "query": "SAZ 7 MPa common brick compressive strength minimum",
+    "k": 5,
+    "expectedSectionIds": ["by-laws-1977:sec-14-3.3"],
+    "expectedSourceTypes": ["bylaws_1977", "saz"],
+    "expectedContains": ["7mpa", "common brick"],
+    "minRecall": 0.8,
+    "minMrr": 0.7,
+    "note": "Canonical KPI3 7 MPa common-brick rule; query names the SAZ standard, the compliance clause lives in the By-Laws (cites SAZ)."
+  },
+  {
+    "id": "retrieval_ceiling_height_habitable_room",
+    "query": "ceiling height of a habitable room 2.4 metres finished floor to finished ceiling",
+    "k": 5,
+    "expectedSectionIds": ["by-laws-1977:sec-2-1.1"],
+    "expectedSourceTypes": ["bylaws_1977"],
+    "expectedContains": ["ceiling height"],
+    "minRecall": 0.8,
+    "minMrr": 0.7,
+    "note": "Canonical ceiling-height query shared with domainMcpTools and ragPipeline golden gates."
+  },
+  {
+    "id": "retrieval_saz_common_cement_specification",
+    "query": "ZWS EN 197 common cement composition specification conformity criteria",
+    "k": 5,
+    "expectedSectionIds": ["saz-catalogue:sec-64-43.180"],
+    "expectedSourceTypes": ["saz"],
+    "expectedContains": ["composition, specification and conformity criteria for common cement"],
+    "minRecall": 0.8,
+    "note": "Genuine SAZ catalogue cross-doc retrieval: ZWS EN 197-1 common-cement specification."
+  },
+  {
+    "id": "retrieval_si56_architect_registration_double_storey",
+    "query": "architect registration double storey structures 400 square metres",
+    "k": 5,
+    "expectedSectionIds": ["si-56-2025:sec-6-3.1", "si-56-2025:sec-8-4.1"],
+    "expectedSourceTypes": ["si56"],
+    "expectedContains": ["double storey", "400 square metres"],
+    "minRecall": 0.8,
+    "note": "SI 56/2025 registration tiers: 400 m2 (3.1) and 300 m2 (4.1) double-storey limits both relevant."
+  },
+  {
+    "id": "retrieval_party_wall_fire_resistance_60_min",
+    "query": "party wall fire resistance between attached dwellings minutes",
+    "k": 5,
+    "expectedSectionIds": ["by-laws-1977:sec-10-2.4"],
+    "expectedSourceTypes": ["bylaws_1977"],
+    "expectedContains": ["party wall", "fire resistance"],
+    "minRecall": 0.8,
+    "note": "60-minute party-wall fire-resistance rule."
+  },
+  {
+    "id": "retrieval_ziqs_brickwork_115mm_units",
+    "query": "brickwork measured square metres 115 mm thickness openings deducted",
+    "k": 5,
+    "expectedSectionIds": ["ziqs-smm:sec-7-1.6"],
+    "expectedSourceTypes": ["ziqs"],
+    "expectedContains": ["115 mm", "openings"],
+    "minRecall": 0.8,
+    "note": "ZIQS SMM brickwork measured in 115 mm units with opening deduction."
+  },
+  {
+    "id": "retrieval_red_pen_trench_12m3_variance",
+    "query": "trench excavation measured as net volume cubic metres concrete variance",
+    "k": 5,
+    "expectedSectionIds": ["ziqs-smm:sec-2-1.1"],
+    "expectedSourceTypes": ["ziqs"],
+    "expectedContains": ["net volume"],
+    "minRecall": 0.6,
+    "note": "Red Pen canonical trench case (12 m3 excavation) grounded in ZIQS net-volume measurement."
+  }
+]

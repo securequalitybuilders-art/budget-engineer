@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeAll, afterEach } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, waitFor } from '@testing-library/react'
 import { StrictMode, useEffect, useState } from 'react'
 import { act } from 'react'
 import { useGlbExport } from '@/hooks/useGlbExport'
@@ -70,7 +70,12 @@ describe('useGlbExport under React StrictMode', () => {
       </StrictMode>,
     )
     await flush()
-    expect(screen.getByTestId('status').textContent).toBe('url-set')
+    // Poll rather than sleep a fixed window: the real three.js GLTF export
+    // takes variable time under load, but if the mountedRef regression
+    // returns the status stays 'pending' forever and waitFor times out.
+    await waitFor(() => {
+      expect(screen.getByTestId('status').textContent).toBe('url-set')
+    }, { timeout: 10_000 })
     expect(screen.getByTestId('error').textContent).toBe('')
   })
 })
