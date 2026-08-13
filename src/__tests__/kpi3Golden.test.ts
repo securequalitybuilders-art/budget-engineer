@@ -9,7 +9,7 @@ import { calculateBricks } from '../engine/estimation/brickCalculator'
 import { DEFAULT_BRICK_SIZE } from '../engine/estimation/brickCalculator'
 
 describe('KPI3 golden dataset — deterministic gate', () => {
-  const allCategories = ['tool-quantity', 'tool-correctness', 'safety', 'compliance', 'red-team'] as const
+  const allCategories = ['tool-quantity', 'tool-correctness', 'safety', 'compliance', 'red-team', 'red-pen'] as const
 
   it('has a non-empty dataset with unique ids', () => {
     expect(GOLDEN_CASES.length).toBeGreaterThan(0)
@@ -17,7 +17,7 @@ describe('KPI3 golden dataset — deterministic gate', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 
-  it('dataset covers all five KPI3 categories', () => {
+  it('dataset covers every KPI3 category', () => {
     for (const category of allCategories) {
       expect(GOLDEN_CASES.some((c) => c.category === category), `${category} missing`).toBe(true)
     }

@@ -203,6 +203,18 @@
         { "category": "Plumbing", "description": "WC suite close-coupled 6 L dual flush", "unit": "each", "quantity": 1, "tolerancePct": 0, "formula": "1 fixture" },
         { "category": "Plumbing", "description": "PVC waste pipe 110 mm", "unit": "m", "quantity": 6, "tolerancePct": 2, "formula": "6 m run" }
       ]
+    },
+    {
+      "id": "boq-red-pen-trench-cement",
+      "source": "ZIQS SMM + SAZ",
+      "title": "Red Pen take-off - trench concrete 12 m3, 420 cement bags required vs 600 quoted",
+      "measurementRule": "ZIQS SMM: concrete measured cubic metres net; 35 bags cement/m3 -> 420 bags for 12 m3. 600 quoted = 180-bag Ghost Materials variance, leakage at $10/bag = $1,800.",
+      "input": { "trenchM3": 12, "cementBagsRequired": 420, "cementBagsQuoted": 600, "cementBagCostUsd": 10 },
+      "expected": [
+        { "category": "Substructure", "description": "Trench concrete 12 m3 - cement take-off (required)", "unit": "bags", "quantity": 420, "tolerancePct": 0, "formula": "12 x 35 bags/m3" },
+        { "category": "Substructure", "description": "Cement variance (quoted 600 - required 420)", "unit": "bags", "quantity": 180, "tolerancePct": 0, "formula": "600 - 420" },
+        { "category": "Substructure", "description": "Ghost Materials leakage at $10/bag", "unit": "USD", "quantity": 1800, "tolerancePct": 0, "formula": "180 x 10" }
+      ]
     }
   ]
 }

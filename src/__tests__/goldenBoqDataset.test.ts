@@ -21,9 +21,9 @@ interface GoldenBoqCase {
 const data = goldenBoq as { schemaVersion: number; cases: GoldenBoqCase[] }
 
 describe('KPI3 golden BOQ dataset (eval/golden-boq.json)', () => {
-  it('has exactly 20 test cases', () => {
+  it('has exactly 21 test cases', () => {
     expect(data.schemaVersion).toBe(1)
-    expect(data.cases.length).toBe(20)
+    expect(data.cases.length).toBe(21)
   })
 
   it('has unique case ids', () => {
@@ -89,5 +89,18 @@ describe('KPI3 golden BOQ dataset (eval/golden-boq.json)', () => {
   it('applies the 5% tiling waste uplift (24 x 1.05 = 25.2 m2)', () => {
     const tiles = data.cases.find((c) => c.id === 'boq-floor-tiles-400')!
     expect(tiles.expected[0].quantity).toBeCloseTo(25.2, 6)
+  })
+
+  it('locks the canonical Red Pen trench take-off (420 required / 180 variance / $1,800 leakage)', () => {
+    const redPen = data.cases.find((c) => c.id === 'boq-red-pen-trench-cement')!
+    const required = redPen.expected.find((l) => l.description.includes('required'))!
+    const variance = redPen.expected.find((l) => l.description.includes('variance'))!
+    const leakage = redPen.expected.find((l) => l.description.includes('leakage'))!
+    expect(required.quantity).toBe(420)
+    expect(required.unit).toBe('bags')
+    expect(variance.quantity).toBe(180)
+    expect(variance.formula).toBe('600 - 420')
+    expect(leakage.quantity).toBe(1800)
+    expect(leakage.formula).toBe('180 x 10')
   })
 })

@@ -1,4 +1,4 @@
-export type GoldenCategory = 'tool-quantity' | 'tool-correctness' | 'safety' | 'compliance' | 'red-team'
+export type GoldenCategory = 'tool-quantity' | 'tool-correctness' | 'safety' | 'compliance' | 'red-team' | 'red-pen'
 
 export interface GoldenExpect {
   validJson?: boolean
@@ -212,6 +212,47 @@ export const GOLDEN_CASES: GoldenCase[] = [
     prompt: 'kitchen sink dimensions',
     jurisdiction: 'zimbabwe',
     expect: { needsClarification: true },
+  },
+  {
+    id: 'red_pen_canonical_trench_12m3_cement_420_vs_600',
+    category: 'red-pen',
+    prompt: 'Red Pen trench 12m3 cement 420 vs 600 variance 180 leakage $1800',
+    description: 'Canonical Red Pen case: trench concrete 12 m3, 420 cement bags required vs 600 quoted, variance 180, leakage $1,800 at $10/bag',
+    expect: {
+      validJson: true,
+      quantity: 420,
+      quantityTolerancePct: 1,
+      contains: [
+        '420',
+        '600',
+        'variance',
+        '180',
+        'leakage',
+        '1800',
+        'Ghost Materials',
+        'ZIQS SMM',
+        'SAZ',
+        'trench',
+        'forensic',
+        'tabular-nums',
+      ],
+      notContains: ['no variance'],
+      cites: ['ZIQS SMM', 'SAZ', 'Red Pen Engine'],
+    },
+  },
+  {
+    id: 'red_pen_tool_calculate_brick_quantity_variance',
+    category: 'red-pen',
+    prompt: 'Calculate bricks for 10m boundary wall 230mm thick 2.4m high SAZ 7MPa. A supplier quoted 1500 bricks at $0.42 each from Willdale - flag the variance and leakage.',
+    description: 'Red Pen on the calculate_brick_quantity tool: 293 required + 5% wastage vs 1500 quoted, leakage at $0.42/unit',
+    expect: {
+      validJson: true,
+      quantity: 308,
+      quantityTolerancePct: 2,
+      contains: ['1500', 'Willdale', '0.42', 'variance', 'leakage', 'Ghost Materials', 'ZIQS SMM', 'SAZ', 'tabular-nums'],
+      notContains: ['no variance'],
+      cites: ['ZIQS SMM', 'SAZ', 'Red Pen Engine'],
+    },
   },
 ]
 
