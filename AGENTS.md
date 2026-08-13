@@ -2482,3 +2482,28 @@ Closed the last two audit axes: prompt-regression CI (Automation) and full obser
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1107 files)
 - `npx vite build`: success in ~13.5s (PWA precache 154 entries, 5348.27 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
 - `node eval/run-cli-gate.mjs`: 25/25 promptfoo cases (100%) pass with the new per-case asserts, exit 0
+
+## Production deploy — constitution-compatible push to main (Current, 2026-08-13)
+
+### What was done
+Executed the BLAST-triggered production deploy: committed the session backlog to `test/deploy-workflow`, fast-forwarded `main`, and ran the full CI + Deploy + prompt gates to green, fixing two parallel-run test flakes along the way. Production `https://budget-engineer.vercel.app` confirmed live (HTTP 200, correct title).
+
+### Commits
+- `56ef2ed` RAG pipeline · `e646d15` tools/Zod · `bfd23f8` agents/QS gate · `242f5f1` dzenhare UI · `d59a64f` telemetry+eval CI · `c2c243f` docs · `3300b60` CI-trigger push-to-main
+- `6f9cbfa` — added missing `test:shard1/2/3` scripts (`set NODE_OPTIONS=--max-old-space-size=8192 && vitest run --shard=1/3|2/3|3/3`, Vitest 4.1.10 `--shard` verified) — CI's shard jobs referenced scripts that didn't exist
+- `8050593` — wipaaPanel test: `getByText('Auto-computed snapshot…')` → `findByText` (notice set AFTER rollover store flush)
+- `811696c` — wipaaPanel test: wait for mount auto-rollover to settle before "Run now", then await manual source
+
+### CI flake root causes (both parallel-run races in `wipaaPanel.test.tsx`)
+1. **Line 84**: the auto-computed notice is set in the panel effect AFTER `runAutoRollover` resolves — the test's `getByText` fired before the store flush. → `findByText`.
+2. **Line 94**: the mount auto-rollover (`loadForProject → runAutoRollover`) writes its `auto` snapshot to Dexie + store async. Clicking "Run now" while in flight could let the rollover's `put` land AFTER the manual one, clobbering `source` back to `'auto'` (seen on CI shard-2 at `8050593`: `expected 'auto' to be 'manual'`). → `waitFor(() => snapshots.length > 0)` (store set follows the Dexie put) before the click, then `waitFor` the manual source.
+
+### CI smoke-test flake (not a real regression)
+- Smoke-test failed at `6f9cbfa` but passed at `3300b60` and again at `811696c` — the only diff was `package.json` (CI scripts), zero app-content change → transient rollout/Playwright flake. Local probe confirmed production was healthy (the 2 request-based smoke tests passed; the 4 browser tests fail locally only because the local Playwright browser build doesn't match).
+
+### Verification results (deploy-final)
+- CI `811696c`: typecheck / lint / build / shard-1 / shard-2 / shard-3 / integration / release-gate — **all success** (1856/1856 on shard-2, verified locally pre-push)
+- Deploy `811696c`: validate-build + smoke-test + production-ready — success
+- KPI3 Golden-Dataset Gate + Prompt Regression Gate — success
+- Production: `https://budget-engineer.vercel.app` → HTTP 200, `<title>Budget Engineer - AI CAD BIM BOQ Construction Cost OS</title>`
+- No backend — constitution-compatible deploy (Vite SPA, free-tier keys only)
