@@ -4,6 +4,9 @@ import { embedQuery, embedText, cosineSimilarity } from './embeddings'
 
 export interface RagIndexData {
   chunks: TextChunk[]
+  /** Precomputed embeddings (chunkId -> vector). Persisted so a restored index
+   * does not re-run the expensive embedding pass. Absent for legacy payloads. */
+  embeddings?: [string, number[]][]
 }
 
 export interface SearchOptions {
@@ -110,14 +113,19 @@ export class RagIndex {
   }
 
   toJSON(): RagIndexData {
-    return { chunks: [...this.chunks.values()] }
+    return { chunks: [...this.chunks.values()], embeddings: [...this.chunkEmbeddings.entries()] }
   }
 
   static fromJSON(data: RagIndexData): RagIndex {
     const index = new RagIndex()
+    const embeddings = data.embeddings ? new Map(data.embeddings) : null
     for (const chunk of data.chunks) {
       index.chunks.set(chunk.id, chunk)
-      index.chunkEmbeddings.set(chunk.id, embedText(chunk.text))
+      if (embeddings?.has(chunk.id)) {
+        index.chunkEmbeddings.set(chunk.id, embeddings.get(chunk.id) as number[])
+      } else {
+        index.chunkEmbeddings.set(chunk.id, embedText(chunk.text))
+      }
       if (chunk.docId) index.docIds.add(chunk.docId)
     }
     return index

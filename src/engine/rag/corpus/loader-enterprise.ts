@@ -21,6 +21,7 @@ import { BY_LAWS_1977_DOC, SI_56_2025_DOC } from '../codeCorpus'
 import { SAZ_CATALOGUE_DOC } from '../curatedCorpus'
 import { DEFAULT_CORPUS_DIR, listCorpusFiles, metadataForFile, parseCorpusFile } from '../corpusLoader'
 import { ZIQS_SMM_CLEAN_TEXT, cleanSourceFor, probeText } from './hygiene'
+import { corpusHashFor, loadIndex, scheduleIndexPersist } from '../persistence'
 
 export const REGISTRY_DOC_IDS = ['by-laws-1977', 'si-56-2025', 'saz-catalogue', 'ziqs-smm'] as const
 
@@ -41,13 +42,15 @@ export interface EnterpriseIndexOptions {
 }
 
 /**
- * Builds an index that always contains the four registry documents (from their
- * embedded clean copies) plus every on-disk corpus file that is not a registry
- * id, not dead-OCR, and not already present.
+ * Collects the exact documents `buildEnterpriseIndex` admits: the four registry
+ * documents (embedded clean copies) plus every on-disk corpus file that is not a
+ * registry id, not dead-OCR, and not already present. Used both to build the index
+ * and to fingerprint the corpus for persistence.
  */
-export function buildEnterpriseIndex(dir: string = DEFAULT_CORPUS_DIR, opts: EnterpriseIndexOptions = {}): RagIndex {
+export function collectCleanDocs(dir: string = DEFAULT_CORPUS_DIR, opts: EnterpriseIndexOptions = {}): CodeDocument[] {
   const debug = opts.debug ?? (() => {})
-  const base = createIndex(REGISTRY_DOCS)
+  const docs: CodeDocument[] = [...REGISTRY_DOCS]
+  const seen = new Set(docs.map((doc) => doc.id))
   for (const file of listCorpusFiles(dir)) {
     const { id } = metadataForFile(file)
     if (cleanSourceFor(id)) {
@@ -62,11 +65,40 @@ export function buildEnterpriseIndex(dir: string = DEFAULT_CORPUS_DIR, opts: Ent
     }
     const doc = parseCorpusFile(file, raw)
     if (!doc || doc.sections.length === 0) continue
-    if (base.hasDocument(doc.id)) {
+    if (seen.has(doc.id)) {
       debug(`skip duplicate doc ${file} (id ${doc.id})`)
       continue
     }
-    base.addDocument(doc)
+    seen.add(doc.id)
+    docs.push(doc)
   }
-  return base
+  return docs
+}
+
+/**
+ * Builds an index that always contains the four registry documents (from their
+ * embedded clean copies) plus every on-disk corpus file that is not a registry
+ * id, not dead-OCR, and not already present. Synchronous — the exact behaviour
+ * the corpus tests pin.
+ */
+export function buildEnterpriseIndex(dir: string = DEFAULT_CORPUS_DIR, opts: EnterpriseIndexOptions = {}): RagIndex {
+  return createIndex(collectCleanDocs(dir, opts))
+}
+
+/**
+ * Persistence-aware enterprise index (Data Quality Gap #4): returns a restored
+ * index from IndexedDB when a snapshot with the matching corpus hash exists —
+ * avoiding the 60-90s embedding rebuild on every MCP call. On a miss it builds
+ * the index (the same docs `buildEnterpriseIndex` admits) and schedules a
+ * debounced auto-persist. When IndexedDB is unavailable (bare Node without
+ * fake-indexeddb) this degrades to a plain build, matching `buildEnterpriseIndex`.
+ */
+export async function loadEnterpriseIndex(dir: string = DEFAULT_CORPUS_DIR, opts: EnterpriseIndexOptions = {}): Promise<RagIndex> {
+  const docs = collectCleanDocs(dir, opts)
+  const corpusHash = corpusHashFor(docs)
+  const restored = await loadIndex({ corpusHash, requireHash: true })
+  if (restored) return restored.index
+  const index = createIndex(docs)
+  scheduleIndexPersist(index, { corpusHash })
+  return index
 }

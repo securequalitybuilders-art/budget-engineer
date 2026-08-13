@@ -1,3 +1,7 @@
+// Must be the FIRST import: installs an in-memory IndexedDB global in Node so the
+// persisted RAG index survives across MCP tool calls within a process.
+import 'fake-indexeddb/auto'
+
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'

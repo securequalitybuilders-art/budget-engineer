@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { buildEnterpriseIndex } from '@/engine/rag/corpus/loader-enterprise'
+import { loadEnterpriseIndex } from '@/engine/rag/corpus/loader-enterprise'
 import { hybridSearch } from '@/engine/rag/hybrid'
 import { analyzeCompliance } from '@/engine/rag/analysis'
 import type { RagIndex } from '@/engine/rag/ragIndex'
@@ -247,7 +247,7 @@ export interface SearchCodesOptions {
 }
 
 export async function searchCodes({ query, k = 5, minScore = 0.01, index }: SearchCodesOptions) {
-  const rag = index ?? (await buildEnterpriseIndex())
+  const rag = index ?? (await loadEnterpriseIndex())
     const results = hybridSearch(rag, query, { k, minScore })
   return results.map((r) => ({
     docId: r.docId,
@@ -266,7 +266,7 @@ export interface ComplianceOptions {
 }
 
 export async function runComplianceAnalysis({ query, jurisdiction = 'zimbabwe', index }: ComplianceOptions) {
-  const rag = index ?? (await buildEnterpriseIndex())
+  const rag = index ?? (await loadEnterpriseIndex())
     const report = await analyzeCompliance(rag, {
     query,
     jurisdiction,
