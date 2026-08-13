@@ -1,68 +1,35 @@
-S. I. 56 of 2025
-593
-Statutory Instrument 56 of 2025.
-[CAP. 27:01
-Architects (Amendment) Regulations, 2025 (No. 1)
-IT is hereby notified that the Minister of Local Government and
-Public Works in consultation with the Architects Council has, in terms
-of section 41(3) of the Architects Act [Chapter 27:01] amended the
-Second Schedule to the Architects Act [Chapter 27:01] as follows:—
-1. These regulations may be cited as the Architects (Amendment)
-Regulations, 2025 (No. 1).
-2. The Second Schedule to the Architects Act [Chapter 27:01]
-is amended by the insertion after paragraph 3 of the following—
-“3. A person—
-(a) 	whose structures are limited to double storey, areas
-not exceeding 400 square metres;
-(b) 	whose structures are farm buildings with area limited
-to 500 square metres;
-(c) 	whose structures are residential complexes limited
-to 4 units maximum; and
-(d) 	who holds a bachelor of architectural studies or
-equivalent from accredited tertiary institutions.
-4. A person—
-(a) 	whose structures are limited to double storey, areas
-not exceeding 300 square metres;
-(b) 	whose structures are limited to farm buildings with
-area limited to 350 square metres;
-(c) 	whose structures are limited to mining structures
-area limited to 350 square metres; and
-(d) 	whose structures are limited to residential complexes
-limited to a maximum of 2 units.
-(e) 	who holds a bachelor of technology, diploma or
-equivalent from accredited tertiary institutions.
-DISTRIBUTED BY VERITAS
-e-mail: veritas@mango.zw; website: www.veritaszim.net
-Veritas makes every effort to ensure the provision of reliable information,
-but cannot take legal responsibility for information supplied.
+1 Citation
+1.1 These regulations may be cited as the Architects (Amendment) Regulations, 2025 (No. 1).
 
--- 1 of 2 --
+2 Amendment of Second Schedule
+2.1 The Second Schedule to the Architects Act [Chapter 27:01] is amended by the insertion after paragraph 3 of the following provisions.
 
-Architects (Amendment) Regulations, 2025 (No. 1)
-594
-5. A person—
-(a) 	whose structures are limited to single storey;
-(b) 	whose structures are limited areas not exceeding 200
-square metres;
-(c) 	whose structures are limited farm buildings with
-area limited to 200 square metres;
-(d) 	whose structures are limited mining structures limited
-to 250 square metres;
-(e) 	whose structures are limited to residential structures
-for 1 family (maximum area to apply); and
-(f) 	who holds a certificate from accredited institutions.
-6. A person—
-(a) 	who specialises in interiors and limited to interior
-design works; and
-(b) 	who holds a degree in interior architecture or a
-qualification in interior design, minimum being a
-diploma.
-7. A person—
-(a) 	who specialises in landscape and are limited to
-landscape design works.
-(b) 	who holds a minimum qualification of a diploma in
-landscape design.”.
-Supplement to the Zimbabwean Government Gazette dated the 23rd May, 2025.
-Printed by the Government Printer, Harare.
+3 Registered person — double storey, 400 square metres
+3.1 A person—
+(a) whose structures are limited to double storey, areas not exceeding 400 square metres;
+(b) whose structures are farm buildings with area limited to 500 square metres;
+(c) whose structures are residential complexes limited to 4 units maximum; and
+(d) who holds a bachelor of architectural studies or equivalent from accredited tertiary institutions.
 
--- 2 of 2 --
+4 Registered person — double storey, 300 square metres
+4.1 A person—
+(a) whose structures are limited to double storey, areas not exceeding 300 square metres;
+(b) whose structures are limited to farm buildings with area limited to 350 square metres;
+(c) whose structures are limited to mining structures with area limited to 350 square metres;
+(d) whose structures are limited to residential complexes limited to a maximum of 2 units; and
+(e) who holds a bachelor of technology, diploma or equivalent from accredited tertiary institutions.
+
+5 Registered person — single storey, 200 square metres
+5.1 A person—
+(a) whose structures are limited to single storey;
+(b) whose structures are limited to areas not exceeding 200 square metres;
+(c) whose structures are limited to farm buildings with area limited to 200 square metres;
+(d) whose structures are limited to mining structures limited to 250 square metres;
+(e) whose structures are limited to residential structures for 1 family (maximum area to apply); and
+(f) who holds a certificate from accredited institutions.
+
+6 Registered person — interior design
+6.1 A person who specialises in interiors and is limited to interior design works, and who holds a degree in interior architecture or a qualification in interior design (minimum being a diploma).
+
+7 Registered person — landscape design
+7.1 A person who specialises in landscape and is limited to landscape design works, and who holds a minimum qualification of a diploma in landscape design.

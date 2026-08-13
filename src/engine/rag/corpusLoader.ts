@@ -31,6 +31,7 @@ import { parseCodeDocument } from './extraction'
 import { chunkDocument } from './chunking'
 import { RagIndex, createIndex } from './ragIndex'
 import { buildDefaultRagIndex } from './codeCorpus'
+import { probeText } from './corpus/hygiene'
 
 export const DEFAULT_CORPUS_DIR = process.env.BE_CORPUS_DIR ?? './corpus'
 
@@ -143,14 +144,26 @@ export function listCorpusFiles(dir?: string): string[] {
   const resolved = dir ?? DEFAULT_CORPUS_DIR
   if (!existsSync(resolved)) return []
   return readdirSync(resolved)
-    .filter((f) => CORPUS_EXTENSIONS.test(f))
+    .filter((f) => !f.startsWith('.') && CORPUS_EXTENSIONS.test(f))
     .sort()
 }
 
 export function loadCorpusDocuments(dir?: string): CodeDocument[] {
+  const resolved = dir ?? DEFAULT_CORPUS_DIR
   const docs: CodeDocument[] = []
   for (const file of listCorpusFiles(dir)) {
-    const doc = parseCorpusFile(file, readFileSync(join(dir ?? DEFAULT_CORPUS_DIR, file), 'utf8'))
+    const raw = readFileSync(join(resolved, file), 'utf8')
+    const probe = probeText(raw, file)
+    if (probe.dead) {
+      if (import.meta.env?.DEV) {
+        console.warn(
+          `corpusLoader: skipping dead-OCR file ${file} (${probe.reasons.join('; ')}). ` +
+            'Run "node --import tsx scripts/corpus-dedup.ts --fix" to quarantine it.',
+        )
+      }
+      continue
+    }
+    const doc = parseCorpusFile(file, raw)
     if (doc && doc.sections.length > 0) docs.push(doc)
   }
   return docs

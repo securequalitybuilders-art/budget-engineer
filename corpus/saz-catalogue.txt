@@ -32,8 +32,6 @@ Fax : 263-242-882020
 Email : info@saz.org.zw
 Website : www.saz.org.zw
 
--- 1 of 27 --
-
 2
 SAZ Standards Development Update July –December 2022
 INTRODUCTION
@@ -66,8 +64,6 @@ ensure that the published standard is acceptable to as many interested groups as
 The SAZ Standards Development Update contains a list of all the standards projects that are in progress and a
 list of national Standards and amendments published during the previous six-month period. The SAZ Standards
 Development Update is published twice a year, in January and July.
-
--- 2 of 27 --
 
 3
 SAZ Standards Development Update July –December 2022
@@ -102,8 +98,6 @@ ISO Draft Reginal, Continental or
 International
 ISO Final draft Reginal, Continental or
 International ISO Draft technical report
-
--- 3 of 27 --
 
 4
 SAZ Standards Development Update July –December 2022
@@ -143,8 +137,6 @@ Column 5 indicates the ICS number(s) under which the subject matter is classifie
 2.6 Edition
 Column 6 indicates the edition of the approved standard.
 
--- 4 of 27 --
-
 5
 SAZ Standards Development Update July –December 2022
 2.7 Relationship with Regional Standard (RS), Continental Standard (CS) or International Standard
@@ -177,8 +169,6 @@ the amendment was issued.
 Column 4 indicates the scope of the amendment.
 4.5 International Classification for Standards (lCS)
 The last column indicates the ICS number(s) under which the subject matter is classified.
-
--- 5 of 27 --
 
 6
 SAZ Standards Development Update July –December 2022
@@ -266,8 +256,6 @@ be installed in motor vehicles for the use of
 Published
 43.180 1
 
--- 6 of 27 --
-
 7
 SAZ Standards Development Update July –December 2022
 CNG in their propulsion system
@@ -349,8 +337,6 @@ aggregates. Assessment of surface
 characteristics. Flow coefficient of
 aggregates
 NWIP 81.060 1 Idt BS EN 933-6:2014
-
--- 7 of 27 --
 
 8
 SAZ Standards Development Update July –December 2022
@@ -446,8 +432,6 @@ Draft 71.100.35 1 Idt ISO 6835
 ISO 6837 Surface active agents -- Water dispersing
 power in dry cleaning solvents
 Draft 71.100.35 1 Idt ISO 6837
-
--- 8 of 27 --
 
 9
 SAZ Standards Development Update July –December 2022
@@ -550,8 +534,6 @@ Characteristics and test methods: Part 1:
 General requirements
 Published 97.030 1 Idt IEC 62552: Part 1
 
--- 9 of 27 --
-
 10
 SAZ Standards Development Update July –December 2022
 ZWS IEC 62552- 2 Household refrigerating appliances –
@@ -648,8 +630,6 @@ certification of food safety
 management systems —
 Published 67.060 2 Idt ISO 22003-2
 
--- 10 of 27 --
-
 11
 SAZ Standards Development Update July –December 2022
 Part 2:
@@ -736,8 +716,6 @@ DARS 1218 Handling, Processing, Quality
 Evaluation and Storage of Poultry
 Draft 67.060 1 Idt DARS 1218
 DARS 1219 Poultry glossary of terms Draft 67.060 1 Idt DARS 1219
-
--- 11 of 27 --
 
 12
 SAZ Standards Development Update July –December 2022
@@ -835,8 +813,6 @@ ZWS 1062 The preservative treatment of timber Published 53.040.20 1
 MA 002
 ZWS D 986
 Non-traditional road additives Final draft 93.080.20 1
-
--- 12 of 27 --
 
 13
 SAZ Standards Development Update July –December 2022
@@ -966,8 +942,6 @@ conformity criteria
 Prep 75.140 1 Idt BS EN 13282-
 1:2013
 
--- 13 of 27 --
-
 14
 SAZ Standards Development Update July –December 2022
 BS EN 13282-
@@ -1040,8 +1014,6 @@ Specification for mosquito nets Prep 59.140.30 1
 Non-woven carrier bag -
 Specification
 Prep 59.140.30 1
-
--- 14 of 27 --
 
 15
 SAZ Standards Development Update July –December 2022
@@ -1120,8 +1092,6 @@ Specification for rods Prep 77.140 1
 Specification for angles Prep 77.140 1
 Specification for clad Prep 77.140
 
--- 15 of 27 --
-
 16
 SAZ Standards Development Update July –December 2022
 MA 055
@@ -1143,8 +1113,6 @@ FDARS 1559 Men's open shoes Draft 13.340.50 1 Idt ARS 1559
 FDARS 1560 Men's closed shoes Draft 13.340.50 1 Idt ARS 1560
 FDARS 1563 Children's shoes 0 -2 years Draft 13.340.50 1 Idt ARS 1563
 FDARS 1564 Children's shoes 2 -6 years Draft 13.340.50 1 Idt ARS 1564
-
--- 16 of 27 --
 
 17
 SAZ Standards Development Update July –December 2022
@@ -1280,8 +1248,6 @@ ISO 8212 Soaps and detergents -- Techniques of
 sampling during manufacture
 CD 11.080.20 1 Idt ISO 8212
 
--- 17 of 27 --
-
 18
 SAZ Standards Development Update July –December 2022
 IS 286 Methods of sampling and test for soaps Prep 11.080.20 1 Idt IS 286
@@ -1363,8 +1329,6 @@ EAS 842-1 Hair shampoo-Part 1:Soap based –
 Specification
 Prep 11.080.20 1 Idt EAS 842-1
 
--- 18 of 27 --
-
 19
 SAZ Standards Development Update July –December 2022
 EAS 377-5 Cosmetics and cosmetics products- Part
@@ -1444,8 +1408,6 @@ WD ARS 963 Requirements for packaging and
 labelling of ATM remedies
 WD 11.020 1 Idt ARS 963
 
--- 19 of 27 --
-
 20
 SAZ Standards Development Update July –December 2022
 WD ARS 964 Certification of herbal medicine
@@ -1501,8 +1463,6 @@ assessment -- Principles, requirements
 and guidelines for normalization,
 weighting and interpretation
 AWI 25.080.01 1 Idt ISO 14074
-
--- 20 of 27 --
 
 21
 SAZ Standards Development Update July –December 2022
@@ -1596,8 +1556,6 @@ SA 007* Safe use of x-rays in interventional
 radiology
 Committee 13.280 1
 
--- 21 of 27 --
-
 22
 SAZ Standards Development Update July –December 2022
 Qualification and training of radiation
@@ -1665,8 +1623,6 @@ quality value using step type image
 quality indicators
 IS 19.100 1 Idt ISO 19232-2
 Part 3: Image quality classes IS 19.100 1 Idt ISO 19232-3
-
--- 22 of 27 --
 
 23
 SAZ Standards Development Update July –December 2022
@@ -1774,8 +1730,6 @@ ISO TS 30423:2021 Human resource management –
 Compliance and ethics metrics cluster
 published 03.100.30 1 Idt ISO TS 30423:2021
 
--- 23 of 27 --
-
 24
 SAZ Standards Development Update July –December 2022
 ISO TS 30425:2021 Human resource management –
@@ -1834,8 +1788,6 @@ ZWS 1051:2021 Good agricultural practices for free range
 poultry production
 67.060 1
 ZWS ISO 45003:2021 Occupational health and safety management – 13.100 1 Idt ISO 45003:2021
-
--- 24 of 27 --
 
 25
 SAZ Standards Development Update July –December 2022
@@ -1943,8 +1895,6 @@ conformity criteria for common cement
 ZWS EN 197-2 Part 2: Conformity evaluation 91.100.30 2 Idt EN 197-2
 ZWS EN 413- 1 Masonry cement Part 1: Composition, 91.100.30 2 Idt EN 413- 1
 
--- 25 of 27 --
-
 26
 SAZ Standards Development Update July –December 2022
 specifications
@@ -2031,8 +1981,6 @@ Food safety
 Part 1 – Requirements for bodies providing
 67.060 2 Idt ISO 22003-1
 
--- 26 of 27 --
-
 27
 SAZ Standards Development Update July –December 2022
 audit and certification of food safety
@@ -2057,6 +2005,3 @@ Reference No. Issue Title ICS Edition
 SECTION 4: AMENDMENTS / CONFIRMATION SLIPS /ENDORSEMENT SLIPS PUBLISHED DURING
 THE PRECEDING SIX MONTHS
 Reference No. Standard No. Title Scope of ES ICS
-
--- 27 of 27 --
-
