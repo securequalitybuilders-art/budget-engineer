@@ -22,6 +22,7 @@ const TYPE_LABELS: Record<TelemetryEventType, string> = {
   rag: 'RAG analysis',
   'tool-call': 'Tool call',
   'agent-node': 'Agent node',
+  'rate-limit': 'Rate limit',
 };
 
 const ROOT_CAUSE_LABELS: Record<FailureRootCause, string> = {

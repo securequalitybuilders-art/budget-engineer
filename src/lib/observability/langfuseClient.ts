@@ -17,7 +17,8 @@ export type TelemetryEventType =
   | 'thought-trajectory'
   | 'rag'
   | 'tool-call'
-  | 'agent-node';
+  | 'agent-node'
+  | 'rate-limit';
 
 export type FailureRootCause = 'poor-retrieval' | 'outdated-doc' | 'hallucination' | 'none';
 
@@ -82,6 +83,16 @@ export interface TraceTrajectoryInput {
   decision?: string;
   interrupted?: boolean;
   durationMs: number;
+  projectId?: string;
+  runId?: string;
+}
+
+export interface TraceRateLimitInput {
+  provider: string;
+  model?: string;
+  retryAfterMs?: number;
+  attempt: number;
+  fallbackDecision: 'retry' | 'fallback';
   projectId?: string;
   runId?: string;
 }
@@ -234,6 +245,24 @@ export class LangfuseClient {
         trajectory: input.trajectory,
         decision: input.decision,
         interrupted: input.interrupted ?? false,
+      },
+    };
+    await this.trace(event);
+  }
+
+  async traceRateLimit(input: TraceRateLimitInput): Promise<void> {
+    const event: TelemetryEvent = {
+      id: telemetryEventId('rl'),
+      type: 'rate-limit',
+      projectId: input.projectId,
+      runId: input.runId,
+      createdAt: new Date().toISOString(),
+      payload: {
+        provider: input.provider,
+        model: input.model,
+        retryAfterMs: input.retryAfterMs,
+        attempt: input.attempt,
+        fallbackDecision: input.fallbackDecision,
       },
     };
     await this.trace(event);
