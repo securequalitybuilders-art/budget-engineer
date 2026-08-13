@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import 'fake-indexeddb/auto'
 import { db } from '@/db/db'
@@ -89,9 +89,16 @@ describe('WipaaPanel', () => {
   it('Run now recomputes and marks the snapshot manual', async () => {
     render(<WipaaPanel projectId={PID} />)
     await screen.findByText('Latest snapshot')
+    // Wait for the mount auto-rollover to settle FIRST — if its Dexie put/upsert
+    // lands after the manual one, it clobbers source back to 'auto' (parallel-run race).
+    await waitFor(() => {
+      expect(useWipaaStore.getState().snapshots.length).toBeGreaterThan(0)
+    })
     fireEvent.click(screen.getByText('Run now'))
     expect(await screen.findByText('Snapshot recomputed.')).toBeTruthy()
-    expect(useWipaaStore.getState().snapshots[0].source).toBe('manual')
+    await waitFor(() => {
+      expect(useWipaaStore.getState().snapshots[0].source).toBe('manual')
+    })
     cleanup()
   })
 })
