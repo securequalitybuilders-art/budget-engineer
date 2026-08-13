@@ -81,7 +81,8 @@ describe('WipaaPanel', () => {
     const month = monthKeyFor(new Date())
     expect(screen.getAllByText(month).length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('$80')).toBeTruthy() // over-billed magnitude
-    expect(screen.getByText('Auto-computed snapshot for this month.')).toBeTruthy()
+    // notice is set in the effect AFTER the rollover resolves — await it (parallel-run race)
+    expect(await screen.findByText('Auto-computed snapshot for this month.')).toBeTruthy()
     expect(useWipaaStore.getState().snapshots[0].billingStatus).toBe('over-billed')
   })
 
