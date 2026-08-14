@@ -2654,3 +2654,30 @@ Hardened `src/lib/llm/freeRouter.ts` (the free-tier generate/embed facade behind
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1119 files)
 - `npx vite build`: success in ~11.4s (PWA precache 154 entries, 5348.71 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
 
+## Agent cited-grounding pass — embedded ZIQS SMM + AgentRunnerPanel metrics card (Current, 2026-08-14)
+
+### What was done
+Finished the cited-grounding feature pass for the KPI2 agent stack: the ZIQS SMM measurement rules are now embedded in the in-app browser-safe corpus (5th document), the brief parser writes regulation-cited `regulatoryNotes`, and the Agent Studio runner shows a combined performance + cited-evidence metrics card after each run.
+
+### Files modified (3) + tests (3)
+- `src/engine/rag/codeCorpus.ts` — added `ZIQS_SMM_TEXT` (the 6 ZIQS SMM measurement rules: 1.1 Excavation net volume m³, 1.2 Site preparation separate, 1.3 Scaffolding area of vertical face m², 1.4 Concrete fillet m, 1.5 Random rubble m³, 1.6 Brickwork m² in 115mm units, 230mm = 2×115mm, openings above minimum deducted) + `ZIQS_SMM_DOC` (`code: 'ziqs-smm'`, `jurisdiction: 'zimbabwe'`); `buildDefaultRagIndex()` now `createIndex([BY_LAWS_1977_DOC, SI_56_2025_DOC, SAZ_CATALOGUE_DOC, TYPOLOGIES_GUIDE_DOC, ZIQS_SMM_DOC])` — 5 documents.
+- `src/engine/rag/corpus/hygiene.ts` — `ZIQS_SMM_CLEAN_TEXT = ZIQS_SMM_TEXT` (line 122) so the corpus-dedup CLI's in-place replacement now ships the identical embedded text.
+- `src/lib/ai/brief-parser.ts` — `regulatoryNotes` block written (lines 51–62) via `citeByLaws` (imported line 2); rules cite `[Model Building By-Laws 1977 Ch.4 Cl.12(a) Grade A 2hrs]`-style citations with a 0.7-confidence fallback.
+- `src/components/agent/AgentRunnerPanel.tsx` — new metrics card (`data-testid="agent-metrics"`) rendered in the result section between the interrupt block and the 2-col grid: Steps·time (stepCount + sum of trace span durationMs), Tool calls (ok/fail counts from `state.toolCalls`), Evidence (`retrievedDocs.length` sections · distinct `docId/docTitle/sectionId` sources), Decision (`state.decision` @ `state.node`). Icons `BarChart3`/`Calculator`/`Search`/`ShieldCheck`. Evidence derives from `state.retrievedDocs` — the agent result carries SearchResults, not `RagComplianceReport.citedSections` (that stays on the RAG analysis path).
+- `src/__tests__/agentRunnerPanel.test.tsx` — new test "renders the metrics card with performance + cited grounding" (queries 'party wall fire resistance', awaits `agent-metrics`, asserts Steps/4/12ms spans (substring)/Tool calls 1 ok 0 fail/Evidence 1 sections 1 source/Decision GO); suite now 11 tests. Mocks: `@/engine/agents` → runBudgetAgent/resumeAgent, `@/engine/agents/graph` → GRAPH_NODES, `@/engine/agents/checkpoint` → listAgentRuns, `@/engine/rag/codeCorpus` → buildDefaultRagIndex.
+- `src/__tests__/toolExecutor.test.ts` — replaced the stale "query_ziqs reports the not-embedded corpus honestly" test (ZIQS is now embedded) with "query_ziqs retrieves the embedded ZIQS corpus" (`found: true`, hits include `ziqs-smm` + 'net volume') + "query_ziqs reports a missing corpus honestly" (injects `createIndex([])`, expects `found: false`, note contains `ziqs-smm`, canonicalRules include Excavation).
+- `src/__tests__/curatedCorpus.test.ts` — renamed to "buildDefaultRagIndex indexes five documents" + `expect(index.hasDocument('ziqs-smm')).toBe(true)`.
+
+### Notes
+- `queryZiqs(index, query, section)` at `src/engine/tools/executor.ts:96`: `{ found: false, note, canonicalRules }` when `!index.hasDocument('ziqs-smm')` (the honest fallback is now only reachable via an injected index without the doc — e.g. tests); otherwise `{ found: hits.length > 0, hits }` with a text-substring section filter. `ragHits` at executor.ts:82 = `hybridSearch(index, query, { k, minScore: 0.01, docId })`; `route()` at executor.ts:135–138 = `ctx.index ?? buildDefaultRagIndex()`.
+- No other test asserts a 4-doc default index or `found: false` for embedded ZIQS (grep verified).
+- `agentRunnerPanel.test.tsx` is the known fork-worker timeout flake under `--maxWorkers=4` (passes isolated) — did not reproduce this run.
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder + `lib/`/`supabase/`/`eval/golden-dataset.json`/`eval/promptfooconfig.yaml` intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4`: 4943/4943 tests (255 files) — +2 new toolExecutor tests (agentRunnerPanel 11/11, toolExecutor + promptToolsAudit 43/43); errorBoundary "Kaboom!" stderr is its intentional throwing-child fixture
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1119 files)
+- `npx vite build`: success in ~48s (PWA precache 154 entries, 5352.93 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+

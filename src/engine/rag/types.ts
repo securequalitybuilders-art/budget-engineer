@@ -107,4 +107,6 @@ export interface RagComplianceReport {
   sources: SearchResult[]
   confidence?: number
   needsClarification?: boolean
+  /** Source section ids that back the report findings (grounding for the answer). */
+  citedSections?: string[]
 }

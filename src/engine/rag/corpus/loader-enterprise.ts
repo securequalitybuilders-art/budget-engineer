@@ -25,8 +25,9 @@ import { corpusHashFor, loadIndex, scheduleIndexPersist } from '../persistence'
 
 export const REGISTRY_DOC_IDS = ['by-laws-1977', 'si-56-2025', 'saz-catalogue', 'ziqs-smm'] as const
 
-/** ZIQS SMM has no full-code source in-repo; the clean text is composed from the
- * grounded ZIQS rules in `ziqs_smm_prompt.ts` (see `hygiene.ts`). */
+/** ZIQS SMM is embedded in `codeCorpus.ts` as the fifth in-app doc; its clean text
+ * is composed from the grounded ZIQS rules in `ziqs_smm_prompt.ts`. This mirror
+ * shares the same text so the enterprise index and the in-app index agree. */
 export const ZIQS_SMM_DOC: CodeDocument = parseCodeDocument({
   id: 'ziqs-smm',
   code: 'ziqs',

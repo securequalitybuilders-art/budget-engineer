@@ -24,7 +24,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs'
 import { basename, extname, join } from 'node:path'
 import { createHash } from 'node:crypto'
-import { BY_LAWS_1977_TEXT, SI_56_2025_TEXT } from '../codeCorpus'
+import { BY_LAWS_1977_TEXT, SI_56_2025_TEXT, ZIQS_SMM_TEXT } from '../codeCorpus'
 import { SAZ_CATALOGUE_TEXT } from '../curatedCorpus'
 
 const CORPUS_EXTENSIONS = /\.(txt|md|csv)$/i
@@ -110,24 +110,16 @@ export function probeText(text: string, fileName: string): TextProbe {
 }
 
 /**
- * The clean, embedded source of truth for the four registry documents. Any
- * on-disk corpus file whose id matches a registry id is replaced with this text
- * when its hash differs — the embedded copies are the single authority.
- *
- * `ziqs-smm` has no full-code source in-repo; the clean text is composed from
- * the exact ZIQS SMM measurement rules in `ziqs_smm_prompt.ts` (the only
- * grounded ZIQS text in the codebase). Each rule ends with a full stop so
- * `extractSections` treats it as a clause with searchable text.
- */
-export const ZIQS_SMM_CLEAN_TEXT = [
-  '1 ZIQS SMM measurement rules',
-  '1.1 Excavation is measured as net volume (m³), with no allowance beyond the net dimensions; working space and disposal are itemised separately.',
-  '1.2 Site preparation is measured separately (topsoil strip, clearance).',
-  '1.3 Scaffolding is measured by the area (m²) of the vertical face supported.',
-  '1.4 Concrete fillet (upstand/capping) is measured in linear metres (m).',
-  '1.5 Random rubble masonry is measured in cubic metres (m³).',
-  '1.6 Brickwork (walls) is measured in square metres (m²) stated in units of 115 mm thickness; a 230 mm one-brick wall equals 2 × 115 mm units, and openings above the stated minimum are deducted.',
-].join('\n')
+  * The clean, embedded source of truth for the four registry documents. Any
+  * on-disk corpus file whose id matches a registry id is replaced with this text
+  * when its hash differs — the embedded copies are the single authority.
+  *
+  * `ziqs-smm` is now embedded in `codeCorpus.ts` (the fifth in-app doc) with the
+  * exact ZIQS SMM measurement rules composed from `ziqs_smm_prompt.ts` (the only
+  * grounded ZIQS text in the codebase). Each rule ends with a full stop so
+  * `extractSections` treats it as a clause with searchable text.
+  */
+export const ZIQS_SMM_CLEAN_TEXT = ZIQS_SMM_TEXT
 
 export const REGISTRY_CLEAN: Record<string, { text: string; source: string }> = {
   'by-laws-1977': { text: BY_LAWS_1977_TEXT, source: 'embedded clean copy (codeCorpus.ts)' },

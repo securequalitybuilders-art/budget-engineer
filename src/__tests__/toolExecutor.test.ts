@@ -47,8 +47,19 @@ describe('tool executor — read tools', () => {
     expect(data.hits.some((h) => h.docId === 'saz-catalogue')).toBe(true)
   })
 
-  it('query_ziqs reports the not-embedded corpus honestly', () => {
+  it('query_ziqs retrieves the embedded ZIQS corpus', () => {
     const res = executeTool('query_ziqs', { query: 'excavation net volume' })
+    expect(res.ok).toBe(true)
+    if (!res.ok) return
+    const data = res.data as { found: boolean; hits: { docId: string; text: string }[] }
+    expect(data.found).toBe(true)
+    expect(data.hits.some((h) => h.docId === 'ziqs-smm')).toBe(true)
+    expect(data.hits.some((h) => h.text.includes('net volume'))).toBe(true)
+  })
+
+  it('query_ziqs reports a missing corpus honestly', () => {
+    const index = createIndex([])
+    const res = executeTool('query_ziqs', { query: 'excavation net volume' }, { index })
     expect(res.ok).toBe(true)
     if (!res.ok) return
     const data = res.data as { found: boolean; note: string; canonicalRules: string[] }

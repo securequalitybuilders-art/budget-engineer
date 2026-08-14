@@ -129,6 +129,27 @@ describe('AgentRunnerPanel', () => {
     expect(screen.getByText(/run agent-test-1/)).toBeTruthy()
   })
 
+  it('renders the metrics card with performance + cited grounding', async () => {
+    runBudgetAgent.mockResolvedValue(completedResult('party wall fire resistance'))
+    render(<AgentRunnerPanel projectId={PID} />)
+    fireEvent.change(screen.getByTestId('agent-query'), { target: { value: 'party wall fire resistance' } })
+    fireEvent.click(screen.getByRole('button', { name: /Run agent/ }))
+    await screen.findByTestId('agent-metrics')
+    const card = screen.getByTestId('agent-metrics')
+    expect(card.textContent).toContain('Steps')
+    expect(card.textContent).toContain('4')
+    expect(card.textContent).toContain('12ms spans')
+    expect(card.textContent).toContain('Tool calls')
+    expect(card.textContent).toContain('1')
+    expect(card.textContent).toContain('ok')
+    expect(card.textContent).toContain('0 fail')
+    expect(card.textContent).toContain('Evidence')
+    expect(card.textContent).toContain('1 sections')
+    expect(card.textContent).toContain('1 source')
+    expect(card.textContent).toContain('Decision')
+    expect(card.textContent).toContain('GO')
+  })
+
   it('shows an interrupt with Approve/Reject and resumes on APPROVED', async () => {
     const interrupted = completedResult('proposed 2-storey block')
     interrupted.interrupt = { reason: 'high-value', message: 'Contract value $120,000 exceeds the $50,000 high-value threshold.' }

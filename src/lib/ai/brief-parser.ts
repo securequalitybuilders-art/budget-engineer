@@ -1,4 +1,5 @@
 import { ParsedBrief } from './ai-types';
+import { citeByLaws } from './prompts/ziqs_smm_prompt';
 
 const num = (s: string, re: RegExp): number | undefined => {
   const m = s.match(re);
@@ -46,7 +47,22 @@ export function parseBrief(text: string): ParsedBrief {
     if (t.includes(kw)) features.push(label);
   }
 
-  return { buildingType, bedrooms, bathrooms, floors, approxAreaM2, budget, features, raw: text };
+  const residential = buildingType === 'house' || buildingType === 'apartment';
+  const regulatoryNotes: string[] = [];
+  regulatoryNotes.push(`${citeByLaws({ chapter: '1', clause: '1.1' })} Habitable rooms require a minimum ceiling height of 2.4m measured finished floor to finished ceiling.`);
+  regulatoryNotes.push(`${citeByLaws({ chapter: '1', clause: '1.2' })} Every habitable room requires natural ventilation through openable windows totalling at least 5% of the floor area.`);
+  if (residential) {
+    regulatoryNotes.push(`${citeByLaws({ chapter: '2', clause: '2.1' })} Travel distance from any point in a room to the nearest exit must not exceed 18m in a residential occupancy.`);
+  }
+  if (floors >= 2) {
+    regulatoryNotes.push(`${citeByLaws({ chapter: '2', clause: '2.4' })} Party walls between attached dwellings require a fire resistance of at least 60 minutes.`);
+    regulatoryNotes.push(`${citeByLaws({ chapter: '6', clause: '6.1' })} Staircases serving a habitable building require a minimum clear width of 900mm.`);
+  }
+  if (bathrooms >= 1) {
+    regulatoryNotes.push(`${citeByLaws({ chapter: '7', clause: '7.1' })} Every dwelling must be provided with at least one water closet, a wash basin, and a bath or shower.`);
+  }
+
+  return { buildingType, bedrooms, bathrooms, floors, approxAreaM2, budget, features, raw: text, regulatoryNotes };
 }
 
 export async function parseBriefAsync(text: string): Promise<ParsedBrief> {

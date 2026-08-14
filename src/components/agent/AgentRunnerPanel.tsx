@@ -332,6 +332,58 @@ export function AgentRunnerPanel({ projectId, onInterrupt }: AgentRunnerPanelPro
             </div>
           )}
 
+          {/* Metrics — performance + cited grounding */}
+          {(() => {
+            const toolOk = result.state.toolCalls.filter((c) => c.ok).length;
+            const toolFail = result.state.toolCalls.length - toolOk;
+            const totalSpanMs = result.trace.spans.reduce((sum, s) => sum + s.durationMs, 0);
+            const sourceIds = Array.from(
+              new Set(result.state.retrievedDocs.map((d) => d.docId ?? d.docTitle ?? d.sectionId).filter(Boolean)),
+            );
+            return (
+              <div data-testid="agent-metrics" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-3">
+                  <div className="text-[9px] font-medium uppercase text-[var(--text-muted)]">Steps · time</div>
+                  <div className="mt-1 flex items-center gap-2 text-[16px] font-semibold text-[var(--text-primary)]">
+                    <BarChart3 size={13} className="text-[var(--text-muted)]" />
+                    {result.state.stepCount}
+                    <span className="text-[10px] font-normal text-[var(--text-tertiary)]">
+                      {totalSpanMs}ms spans
+                    </span>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-3">
+                  <div className="text-[9px] font-medium uppercase text-[var(--text-muted)]">Tool calls</div>
+                  <div className="mt-1 flex items-center gap-2 text-[16px] font-semibold text-[var(--text-primary)]">
+                    <Calculator size={13} className="text-[var(--text-muted)]" />
+                    {toolOk}
+                    <span className="text-[10px] font-normal text-[var(--text-tertiary)]">
+                      ok · {toolFail} fail
+                    </span>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-3">
+                  <div className="text-[9px] font-medium uppercase text-[var(--text-muted)]">Evidence</div>
+                  <div className="mt-1 flex items-center gap-2 text-[16px] font-semibold text-[var(--text-primary)]">
+                    <Search size={13} className="text-[var(--text-muted)]" />
+                    {result.state.retrievedDocs.length}
+                    <span className="text-[10px] font-normal text-[var(--text-tertiary)]">
+                      {' '}sections · {sourceIds.length} source{sourceIds.length === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-3">
+                  <div className="text-[9px] font-medium uppercase text-[var(--text-muted)]">Decision</div>
+                  <div className="mt-1 flex items-center gap-2 text-[16px] font-semibold text-[var(--text-primary)]">
+                    <ShieldCheck size={13} className="text-[var(--text-muted)]" />
+                    {result.state.decision ?? '—'}
+                    <span className="text-[10px] font-normal text-[var(--text-tertiary)]">@ {result.state.node}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {/* Retrieved evidence */}
             <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-4">

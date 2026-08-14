@@ -24,6 +24,8 @@ export interface AnalyzeOptions {
   engine?: AiEngine
   apiKey?: string
   onTrace?: (trace: Trace) => void
+  projectId?: string
+  runId?: string
 }
 
 export interface CompliancePromptContext {
@@ -67,6 +69,10 @@ function localFindings(_query: string, sources: SearchResult[], degraded: boolea
   }))
   const warnings = sources.length === 0 ? ['No code sections retrieved for the query'] : []
   return { findings, warnings }
+}
+
+function citedSectionsFrom(findings: RagComplianceFinding[]): string[] {
+  return Array.from(new Set(findings.flatMap((f) => f.sources).filter(Boolean)))
 }
 
 export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): Promise<RagComplianceReport> {
@@ -113,6 +119,8 @@ export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): 
       citedDocIds: rankedSources.map((s) => s.chunkId),
       knownDocIds: index.knownDocIds,
       needsClarification: report.needsClarification ?? degraded,
+      projectId: opts.projectId,
+      runId: opts.runId,
     }).catch(() => {})
     if (!opts.onTrace) return
     const trace = tracer.snapshot()
@@ -146,6 +154,7 @@ export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): 
       fellBack: true,
       fallbackReason: degradation.fallbackReason,
       sources: [],
+      citedSections: [],
       confidence: outcome.confidence,
       needsClarification: true,
     }
@@ -176,6 +185,7 @@ export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): 
         passedRules: passed,
         warnings: [...degradationWarning, ...(Array.isArray(json.warnings) ? json.warnings : [])],
         engineUsed: config.id,
+        citedSections: citedSectionsFrom(findings),
       }
       emitTrace(report)
       return report
@@ -191,6 +201,7 @@ export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): 
         engineUsed: 'local-rules',
         fellBack: true,
         fallbackReason: err instanceof Error ? err.message : String(err),
+        citedSections: citedSectionsFrom(local.findings),
       }
       emitTrace(report)
       return report
@@ -215,6 +226,7 @@ export async function analyzeCompliance(index: RagIndex, opts: AnalyzeOptions): 
         : degraded
           ? (degradation?.fallbackReason ?? NOT_FOUND_REASON)
           : undefined,
+    citedSections: citedSectionsFrom(local.findings),
   }
   emitTrace(report)
   return report

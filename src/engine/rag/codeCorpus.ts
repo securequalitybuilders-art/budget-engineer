@@ -4,11 +4,13 @@
 // ships a compact browser-safe corpus (same ingestion path as production: raw
 // text -> parseCodeDocument -> chunkDocument) so the agent can retrieve code
 // evidence fully offline. It bundles the Model Building By-Laws 1977, the
-// SI 56/2025 Architects (Amendment) Regulations, plus the curated SAZ standards
-// catalogue and Building Typologies guide (see `curatedCorpus.ts`). The full
-// extracted `corpus/` directory holds the larger source library (textbooks,
-// estimation files) for the Node-only MCP path; these four docs are small
-// enough to bundle for the in-app browser agent.
+// SI 56/2025 Architects (Amendment) Regulations, the curated SAZ standards
+// catalogue and Building Typologies guide (see `curatedCorpus.ts`), plus the
+// ZIQS SMM measurement rules (composed from `ziqs_smm_prompt.ts` — the only
+// grounded ZIQS source in-repo). The full extracted `corpus/` directory holds
+// the larger source library (textbooks, estimation files) for the Node-only
+// MCP path; these five docs are small enough to bundle for the in-app browser
+// agent.
 
 import type { CodeDocument } from './types'
 import { parseCodeDocument } from './extraction'
@@ -112,6 +114,24 @@ export const SI_56_2025_DOC: CodeDocument = parseCodeDocument({
   text: SI_56_2025_TEXT,
 })
 
+export const ZIQS_SMM_TEXT = [
+  '1 ZIQS SMM measurement rules',
+  '1.1 Excavation is measured as net volume (m³), with no allowance beyond the net dimensions; working space and disposal are itemised separately.',
+  '1.2 Site preparation is measured separately (topsoil strip, clearance).',
+  '1.3 Scaffolding is measured by the area (m²) of the vertical face supported.',
+  '1.4 Concrete fillet (upstand/capping) is measured in linear metres (m).',
+  '1.5 Random rubble masonry is measured in cubic metres (m³).',
+  '1.6 Brickwork (walls) is measured in square metres (m²) stated in units of 115 mm thickness; a 230 mm one-brick wall equals 2 × 115 mm units, and openings above the stated minimum are deducted.',
+].join('\n')
+
+export const ZIQS_SMM_DOC: CodeDocument = parseCodeDocument({
+  id: 'ziqs-smm',
+  code: 'ziqs',
+  jurisdiction: 'zimbabwe',
+  title: 'ZIQS Standard Method of Measurement',
+  text: ZIQS_SMM_TEXT,
+})
+
 export function buildDefaultRagIndex(): RagIndex {
-  return createIndex([BY_LAWS_1977_DOC, SI_56_2025_DOC, SAZ_CATALOGUE_DOC, TYPOLOGIES_GUIDE_DOC])
+  return createIndex([BY_LAWS_1977_DOC, SI_56_2025_DOC, SAZ_CATALOGUE_DOC, TYPOLOGIES_GUIDE_DOC, ZIQS_SMM_DOC])
 }
