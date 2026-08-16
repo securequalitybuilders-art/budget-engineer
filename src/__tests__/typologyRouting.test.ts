@@ -85,3 +85,25 @@ describe('new strategy generators', () => {
     expect(warehouse.rooms.length).toBeGreaterThan(0)
   })
 })
+
+describe('bubble diagram emission', () => {
+  const PROGRAM = [{ name: 'Living Room', ratio: 1 }, { name: 'Kitchen', ratio: 0.4 }, { name: 'Bedroom', ratio: 0.6 }]
+
+  it('stamps a bubbleDiagram on every typology-kb layout', () => {
+    for (const [id] of KB_TYPOLOGY_ROUTES) {
+      const result = generateLayoutByTypology(id, PROGRAM, 18, 14, 7)
+      expect(result.rooms.length).toBeGreaterThan(0)
+      expect(result.bubbleDiagram).toBeDefined()
+      expect(result.bubbleDiagram!.nodes.length).toBe(result.rooms.length)
+      expect(result.bubbleDiagram!.nodes[0].areaM2).toBeGreaterThan(0)
+      expect(result.bubbleDiagram!.programSummary.roomCount).toBe(result.rooms.length)
+    }
+  })
+
+  it('keeps the rich strategy stamp for office layouts (rules-based edges, no generic fallback)', () => {
+    const result = generateLayoutByTypology('office-commercial', [{ name: 'Open Plan', ratio: 1 }, { name: 'Reception', ratio: 0.15 }, { name: 'Corridor', ratio: 0.2 }], 24, 24, 0)
+    expect(result.bubbleDiagram).toBeDefined()
+    expect(result.bubbleDiagram!.typologyId).toBe('office-commercial')
+    expect(result.bubbleDiagram!.edges.length).toBeGreaterThan(0)
+  })
+})

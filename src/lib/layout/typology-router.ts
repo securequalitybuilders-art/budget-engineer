@@ -4,6 +4,7 @@ import { generateOfficeLayout } from './typologies/office-strategy'
 import { generateClinicLayout } from './typologies/clinic-strategy'
 import { generateHotelLayout } from './typologies/hotel-strategy'
 import { generateZonedLayout } from '../geometry/plan-intelligence'
+import { bubbleFromRooms } from '../../engine/spatial/topological-graph'
 import { templateForTypology, pickHouseTemplate } from './layout-templates'
 import { packTemplate } from './grid-packer'
 import type { PlanningZoneMarker, EntranceMarkerClass } from '../../domain/plan'
@@ -247,5 +248,9 @@ export function generateLayoutByTypology(
   floorContext?: FloorContext,
 ): FloorLayoutResult {
   const strategy = getStrategy(buildingType)
-  return strategy.generate(program, width, height, seed, floorContext)
+  const result = strategy.generate(program, width, height, seed, floorContext)
+  if (result.rooms && !result.bubbleDiagram) {
+    result.bubbleDiagram = bubbleFromRooms(result.rooms, { typologyId: strategy.id })
+  }
+  return result
 }

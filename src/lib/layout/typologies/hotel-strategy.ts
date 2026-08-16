@@ -1,6 +1,7 @@
 import { placeAdjacencyLayout, GRID, snap, hasOverlaps, type AdjacencyProgramRoom } from '../../../engine/spatial/graph-placer'
 import { HOTEL_ADJACENCY_RULES, roomGroupForHotel, computeAdjacencyScore, rectsTouch, type HotelRoomGroup, type AdjacencyRoom } from '../../../engine/spatial/adjacency-graph'
 import { coreMinDimsFor } from '../../../engine/spatial/core-planning'
+import { bubbleFromRooms } from '../../../engine/spatial/topological-graph'
 import { getTypology } from '../../../engine/typology-kb'
 import { templateForTypology } from '../layout-templates'
 import { packTemplate } from '../grid-packer'
@@ -244,6 +245,11 @@ export function generateHotelLayout(
         ...doubleLoaded,
         adjacencyGraph: doubleLoaded.adjacencyGraph,
         structuralGrid: grid,
+        bubbleDiagram: bubbleFromRooms(doubleLoaded.rooms, {
+          typologyId: 'hotel-fullservice',
+          adjacencyRules,
+          groupFor: roomGroupForHotel,
+        }),
       }
     }
   }
@@ -272,6 +278,10 @@ export function generateHotelLayout(
         efficiency: result.floorPlate.efficiency > 0 ? result.floorPlate.efficiency : floorPlateEfficiency,
       },
       adjacencyGraph: result.adjacency,
+      bubbleDiagram: bubbleFromRooms(
+        result.rooms.map(r => ({ id: r.id, name: r.name, width: r.width, height: r.height })),
+        { typologyId: 'hotel-fullservice', adjacencyRules, groupFor: roomGroupForHotel },
+      ),
       valid: true,
     }
   }
@@ -289,6 +299,11 @@ export function generateHotelLayout(
   return {
     rooms: packed.rooms,
     warnings: packed.warnings.map(w => w.message),
+    bubbleDiagram: bubbleFromRooms(packed.rooms, {
+      typologyId: 'hotel-fullservice',
+      adjacencyRules,
+      groupFor: roomGroupForHotel,
+    }),
     valid,
     structuralGrid: grid,
   }

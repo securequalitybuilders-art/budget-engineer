@@ -2822,3 +2822,83 @@ Committed and pushed (`1a7754d..286f8a3` → `origin/test/deploy-workflow`) the 
 - Targeted `npx vitest run` (5 files: enterprise-typology, clinic-strategy, hotel-strategy, typologyRouting, free-router-providers): 146/146 passed. Full suite NOT rerun this session (prior full-suite state documented above: 5089/5089 at 259 files).
 - Push: `1a7754d..286f8a3  test/deploy-workflow -> test/deploy-workflow` (exit 0); commit message `feat(typology): office/clinic/hotel strategies + router gap-fix; freeRouter multi-provider`.
 
+## Track 1 — topological-graph.ts module + 22-test suite (Current, 2026-08-16)
+
+### What was done
+Wrote the first Track 1 module: `src/engine/spatial/topological-graph.ts` (bubble-diagram domain primitives) plus a 22-test suite. First run surfaced 3 test bugs (all test-side, no module changes needed); root-caused and fixed them — `npx vitest run src/__tests__/topologicalGraph.test.ts` 22/22, tsc 0 errors, eslint clean for the module + test.
+
+### Files created (2)
+- `src/engine/spatial/topological-graph.ts` — imports `SpatialRole`/`SpatialNode`/`AdjacencyRule`/`TopologicalEdge`/`BubbleDiagram` from tier1-types (role/group/type literals re-declared locally to stay type-safe), `computeAdjacencyScore`/`rectsTouch`/`buildGroupClassifier`/`roomGroupFor` from `./adjacency-graph`, `getRoomStandard` from roomStandards. Exports `classifySpatialRole(name)` (zone-driven: circulation/public/service → same, else private; falls back to `genericGroupFor` when no standard), `expandProgram` (count>1 → `'Name 1'`/`'Name 2'`, `item.count || 1`, `item.areaM2 || 0.5`, slug ids `living-room-0`, `group` via `genericGroupFor`, `role` via `classifySpatialRole`), `edgesFromRules` (node-pair edges between rooms in the rule groups, seen-set dedup by sorted `a.id|b.id`, first wins, `type: 'door'`, carries `must`), `edgesToRules` (group-level collapse, insertion order, max weight, carries `must`, skips ungrouped/unknown node ids), `bubbleFromProgram(program, opts?)` (uses `opts.adjacencyRules` when non-empty else `GENERIC_ADJACENCY_RULES`; `programSummary {totalAreaM2, roomCount}`; optional `typologyId`), `diagramAdjacencyScore(diagram, rooms, { rules?, touch?, groupFor? })` (defaults `rules = edgesToRules(diagram.edges, diagram.nodes)`, `touch = rectsTouch`, `groupFor = genericGroupFor`; wraps `computeAdjacencyScore`), `genericGroupFor`, `GENERIC_ADJACENCY_RULES` (5 group-level rules with `must`), `GENERIC_ROOM_GROUPS` (19 groups), `CORE_SPATIAL_GROUPS = ['stair','lift']`.
+- `src/__tests__/topologicalGraph.test.ts` — 22 tests / 8 describes (classifySpatialRole x6, expandProgram x3, edgesFromRules x3, edgesToRules x2, bubbleFromProgram x3, diagramAdjacencyScore x2, generic group registry x3).
+
+### The 3 test bugs fixed (root causes)
+1. `classifySpatialRole('Banquet Hall')` expected `'private'` but got `'circulation'` — not a bug: roomStandards keyword table (`roomStandards.ts:272`) maps `'Hall' → 'Corridor'`, so `'Banquet Hall'` legitimately resolves to corridor. Test now uses `'Undefined Space'` (no exact/prefix/keyword match → `DEFAULT_STANDARD.zone 'private'`).
+2. `edgesToRules` max-weight test built two same-group-pair rules and expected weight 3 — impossible: `edgesFromRules` dedups node-pair edges first-wins, so the weight-3 rule never materializes. Max-weight collapse is only reachable with distinct node-pair edges (or handcrafted edges). Rewritten to handcraft two `TopologicalEdge`s (`living-room-0→kitchen` w2, `living-room-1→kitchen` w3) from a `count: 2` program → collapse `living→kitchen` weight 3.
+3. `diagramAdjacencyScore` custom-options test used a single room → `computeAdjacencyScore` counts only *applicable* rules (both groups present) → `totalWeight` 0, `score` 1 (by the `totalWeight > 0 ? … : 1` guard at `adjacency-graph.ts:195`). Rewritten with two rooms + custom `groupFor` (Living Room→reception, Kitchen→corridor) + custom `touch: () => true` → applicable = `reception→corridor` (w3) → `totalWeight` 3, `score` 1.
+
+### Type-model discovery (test write-up)
+- `ProgramItem` (`tier1-types.ts:38-44`) requires `count` and `areaM2` (both non-optional) — every `ProgramItem[]` literal fixture must carry both; `expandProgram`'s `|| 1`/`|| 0.5` coercions are runtime-defensive only.
+- `computeAdjacencyScore(rules, rooms, touch = rectsTouch, groupFor = roomGroupFor)` (`adjacency-graph.ts:143-200`): `totalWeight` accumulates only applicable rules' weights (both groups present); `score = totalWeight > 0 ? satisfiedWeight/totalWeight : 1`; satisfied requires a same-group-pair room pair with `a.id !== b.id` and `touch(a,b)`.
+
+### Notes
+- `OFFICE_ADJACENCY_RULES` contents confirmed (`adjacency-graph.ts:126-137`, 10 rules, reception→corridor w3 top) — used by the custom-options test.
+- House/other typologies stay on existing template paths; the module is additive.
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…/`, `lib/`, `supabase/`, `eval/`, `test-results/` intentionally NOT touched (repo convention). NOT committed — repo convention is no commit without explicit request.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings (only the pre-existing excluded `duplex-overlap-probe.test.ts` warning)
+- `npx vitest run src/__tests__/topologicalGraph.test.ts`: 22/22
+
+## Track 1 wiring — BubbleDiagram emission from typology strategies (Current)
+
+### What was done
+Closed Track 1 wiring (todo #4): the office/clinic/hotel typology strategies now emit derived `BubbleDiagram`s from their realized layouts via `bubbleFromRooms`, the field is typed on `FloorLayoutResult` and `PlanModel`, and `stampSpatialExtras` copies it through so consumers (realizer, bubble-diagram panel) read the built plan's bubble graph.
+
+### Files modified (7) + new modules from prior session (3)
+- `src/engine/spatial/topological-graph.ts` — `bubbleFromRooms(rooms, options?)` helper added: nodes `{ id, name, areaM2: width * height (min 0.5), group: groupFor(name), role: classifySpatialRole(name, group) }`, edges via `edgesFromRules` (options.adjacencyRules or `GENERIC_ADJACENCY_RULES`), default `groupFor = genericGroupFor`, plus `programSummary { totalAreaM2, roomCount }` reflecting the realized layout.
+- `src/lib/layout/typology-types.ts` — `FloorLayoutResult.bubbleDiagram?: BubbleDiagram` (type-only import).
+- `src/domain/plan.ts` — `PlanModel.bubbleDiagram?: BubbleDiagram` (type-only import via `@/` alias; canonical mirror untouched).
+- `src/engine/plan-generator.ts` — `stampSpatialExtras` copies `layoutResult.bubbleDiagram` onto `planModel`.
+- `src/lib/layout/typologies/office-strategy.ts` — both return paths emit `bubbleFromRooms(rooms, { typologyId: 'office-commercial', adjacencyRules, groupFor: roomGroupFor })`.
+- `src/lib/layout/typologies/clinic-strategy.ts` — bubble on valid + fallback paths with `{ typologyId: 'clinic-health', adjacencyRules, groupFor: roomGroupForClinic }`.
+- `src/lib/layout/typologies/hotel-strategy.ts` — bubble on doubleLoaded, adjacency-valid, and fallback branches with `{ typologyId: 'hotel-fullservice', adjacencyRules, groupFor: roomGroupForHotel }` (fallback template stays `'apartment'`, pre-existing behavior).
+- `src/engine/spatial/bubble-diagram.ts` + `src/engine/spatial/topological-realizer.ts` + their tests — already shipped (prior session); realizer exports preserved (`realizeBubbleDiagram` et al.).
+
+### Cycle safety
+`topological-graph` imports only `adjacency-graph`, `roomStandards`, `tier1-types`; `typology-types`/`domain/plan` import `BubbleDiagram` type-only. Madge clean.
+
+### Pre-existing failures (2 — untouched, verified at baseline via stash)
+- `src/__tests__/p48-multi-storey-acceptance.test.ts` — "never has dimension issues" (160m² 2-storey); reproduces with my changes stashed (HEAD `a97f6f5`), pre-existing regression.
+- `src/__tests__/duplex-overlap-probe.test.ts` — untracked scratch probe, documented as failing on known Stair Hall/Bedroom overlaps, excluded from commits.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint` (7 changed files): 0 errors / 0 warnings
+- Targeted `npx vitest run` (9 files: topologicalGraph, topologicalRealizer, bubbleDiagram, enterprise-typology, clinic-strategy, hotel-strategy, typologyRouting, activePlanConsistency, benchmark_stability): 208/208
+- `npx vitest run --maxWorkers=4`: 5160 passed / 2 failed (both pre-existing, verified via stash)
+- `npx madge --circular --extensions ts,tsx src`: No circular dependency found (1141 files)
+- `npx vite build`: success (PWA precache 154 entries, 5377.01 KiB)
+
+## Track 1 wiring follow-up — BubbleDiagram emitted for all 16 typologies (Current)
+
+### What was done
+Closed the coverage gap the first wiring pass left: only the three graph-based strategies (office/clinic/hotel) emitted `bubbleDiagram`. The other 13 KB ids route through `packTemplate`/`generateZonedLayout`/`generateApartmentLayout`/`generateDuplexLayout` and returned rooms without a bubble. Now `generateLayoutByTypology` stamps a generic bubble centrally for every typology, so all 16 KB ids produce a diagram.
+
+### Files modified (2)
+- `src/lib/layout/typology-router.ts` — `generateLayoutByTypology` now runs the strategy, then stamps `if (result.rooms && !result.bubbleDiagram)` a `bubbleFromRooms(result.rooms, { typologyId: strategy.id })` diagram. The `!result.bubbleDiagram` guard preserves the three richer strategy stamps (custom adjacency rules + group classifier); all other paths fall back to `GENERIC_ADJACENCY_RULES` + `genericGroupFor`. New import `bubbleFromRooms` from `../../engine/spatial/topological-graph` (no cycle — that module depends only on adjacency-graph/roomStandards/tier1-types).
+- `src/__tests__/typologyRouting.test.ts` — new `bubble diagram emission` describe (2 tests): every KB typology id (`KB_TYPOLOGY_ROUTES`) yields `bubbleDiagram` with `nodes.length === rooms.length`, positive first area, matching `programSummary.roomCount`; and the office strategy keeps its rich stamp (`typologyId 'office-commercial'`, non-empty edges).
+
+### Notes
+- `FloorLayoutResult.rooms` elements (`{ id, name, x, y, width, height }`) are structurally compatible with `bubbleFromRooms`'s `{ id, name, width, height }` — the strategies already passed them, so no cast needed.
+- The stamp runs per-floor through the same `generateLayoutByTypology` entry the plan generator uses, so every realized floor (and thus `PlanModel` via `stampSpatialExtras`) carries a bubble graph.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint` (router + topological-graph): 0 errors / 0 warnings
+- Targeted `npx vitest run` (6 files: topologicalGraph, bubbleDiagram, topologicalRealizer, enterprise-typology, typologyRouting, activePlanConsistency): 148/148; typologyRouting alone 17/17 (15 + 2 new)
+- `npx vitest run --maxWorkers=4`: 5160 passed / 2 failed (unchanged baseline — p48 + duplex scratch probe)
+- `npx madge --circular --extensions ts,tsx src`: No circular dependency found (1141 files)
+- `npx vite build`: success in ~30s
+
+

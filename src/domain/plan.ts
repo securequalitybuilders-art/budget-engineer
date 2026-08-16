@@ -6,6 +6,7 @@ import type {
   FloorPlateMetrics,
   StructuralGrid,
 } from '@/engine/tier1-types'
+import type { BubbleDiagram } from '@/engine/spatial/topological-graph'
 
 export interface Point {
   x: number
@@ -94,6 +95,7 @@ export interface PlanModel {
   coreLayout?: CoreLayout
   floorPlateMetrics?: FloorPlateMetrics
   adjacencyGraph?: AdjacencyGraphModel
+  bubbleDiagram?: BubbleDiagram
 }
 
 export function getPlanSource(plan: PlanModel): PlanSource {

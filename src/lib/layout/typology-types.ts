@@ -5,6 +5,7 @@ import type {
   FloorPlateMetrics,
   StructuralGrid,
 } from '../../engine/tier1-types'
+import type { BubbleDiagram } from '../../engine/spatial/topological-graph'
 
 export type BuildingTypology =
   | 'house'
@@ -38,6 +39,7 @@ export interface FloorLayoutResult {
   coreLayout?: CoreLayout
   floorPlateMetrics?: FloorPlateMetrics
   adjacencyGraph?: AdjacencyGraphModel
+  bubbleDiagram?: BubbleDiagram
 }
 
 export interface TypologyStrategy {

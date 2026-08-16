@@ -1,5 +1,6 @@
 import { placeAdjacencyLayout, type AdjacencyProgramRoom } from '../../../engine/spatial/graph-placer'
-import { OFFICE_ADJACENCY_RULES } from '../../../engine/spatial/adjacency-graph'
+import { OFFICE_ADJACENCY_RULES, roomGroupFor } from '../../../engine/spatial/adjacency-graph'
+import { bubbleFromRooms } from '../../../engine/spatial/topological-graph'
 import { getTypology } from '../../../engine/typology-kb'
 import { templateForTypology } from '../layout-templates'
 import { packTemplate } from '../grid-packer'
@@ -59,6 +60,10 @@ export function generateOfficeLayout(
         efficiency: result.floorPlate.efficiency > 0 ? result.floorPlate.efficiency : floorPlateEfficiency,
       },
       adjacencyGraph: result.adjacency,
+      bubbleDiagram: bubbleFromRooms(
+        result.rooms.map(r => ({ id: r.id, name: r.name, width: r.width, height: r.height })),
+        { typologyId: 'office-commercial', adjacencyRules, groupFor: roomGroupFor },
+      ),
       valid: true,
     }
   }
@@ -70,6 +75,11 @@ export function generateOfficeLayout(
   return {
     rooms: packed.rooms,
     warnings: packed.warnings.map(w => w.message),
+    bubbleDiagram: bubbleFromRooms(packed.rooms, {
+      typologyId: 'office-commercial',
+      adjacencyRules,
+      groupFor: roomGroupFor,
+    }),
     valid,
     structuralGrid: grid,
   }

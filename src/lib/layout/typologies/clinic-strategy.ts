@@ -1,5 +1,6 @@
 import { placeAdjacencyLayout, type AdjacencyProgramRoom } from '../../../engine/spatial/graph-placer'
 import { CLINIC_ADJACENCY_RULES, roomGroupForClinic, type ClinicRoomGroup } from '../../../engine/spatial/adjacency-graph'
+import { bubbleFromRooms } from '../../../engine/spatial/topological-graph'
 import { getTypology } from '../../../engine/typology-kb'
 import { templateForTypology } from '../layout-templates'
 import { packTemplate } from '../grid-packer'
@@ -118,6 +119,10 @@ export function generateClinicLayout(
         efficiency: result.floorPlate.efficiency > 0 ? result.floorPlate.efficiency : floorPlateEfficiency,
       },
       adjacencyGraph: result.adjacency,
+      bubbleDiagram: bubbleFromRooms(
+        result.rooms.map(r => ({ id: r.id, name: r.name, width: r.width, height: r.height })),
+        { typologyId: 'clinic-health', adjacencyRules, groupFor: roomGroupForClinic },
+      ),
       valid: true,
     }
   }
@@ -135,6 +140,11 @@ export function generateClinicLayout(
   return {
     rooms: packed.rooms,
     warnings: packed.warnings.map(w => w.message),
+    bubbleDiagram: bubbleFromRooms(packed.rooms, {
+      typologyId: 'clinic-health',
+      adjacencyRules,
+      groupFor: roomGroupForClinic,
+    }),
     valid,
     structuralGrid: grid,
   }
