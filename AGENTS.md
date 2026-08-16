@@ -2796,3 +2796,29 @@ Wrote `src/__tests__/hotel-strategy.test.ts` (18 tests / 7 describes) locking th
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1130 files)
 - `npx vite build`: success (PWA precache 154 entries, 5371.19 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
 
+## Typology + freeRouter batch — committed & pushed (Current, Commit: `286f8a3`)
+
+### What was done
+Committed and pushed (`1a7754d..286f8a3` → `origin/test/deploy-workflow`) the accumulated uncommitted batch: the adjacency-graph typology strategies (office/clinic/hotel), the 16-KB-id typology-router gap-fix, apartment/grid-packer layout rework, and the multi-provider free-tier router + RAG wiring.
+
+### Files committed (8 created + 19 modified + AGENTS.md)
+- `src/engine/spatial/{adjacency-graph,core-planning,graph-placer}.ts` — shared graph-based placer: `buildGroupClassifier` (longest-pattern-first substring), adjacency rules, Path A/B band placement, core block assembly, floor-plate metrics, `rectsTouch`/`computeAdjacencyScore`/`hasOverlaps`, KB field fallbacks (`DEFAULT_GRID {7.2,7.2}`/`DEFAULT_CORE`/`DEFAULT_EFFICIENCY`).
+- `src/lib/layout/typologies/{office,clinic,hotel}-strategy.ts` — per-typology strategies delegating to the placer (office: central/side/dual cores; clinic: treatment/consultation/wc + dropped-rooms fallback to template packing; hotel: double-loaded corridor + front band).
+- `src/lib/layout/typology-router.ts` — `getStrategy` rewritten to exact-match-first then whole-token matching (`tokens.includes(key)`), killing the `'townhouse'.includes('house')`/`'warehouse'.includes('house')` substring misroutes; all 16 KB ids now route (`hotel`→double-loaded, `retail`/`restaurant`/`market`→commercial front-back, `hall`→worship, `petrol`→warehouse shed); `office` block moved BEFORE `commercial` so `office-commercial` routes to the office strategy.
+- `src/lib/layout/apartment-units.ts` — `verticalStack` distributes height/width + enforces `MIN_UNIT_WIDTH`/`MIN_UNIT_DEPTH` per row so corridor-wrapped stacks never produce sub-minimum units.
+- `src/lib/layout/grid-packer.ts` — snapped zone rect (r4/c4, 1.8-m spacing per corridor rule) + row/col-count guard (a zone never claims more rows/cols than the grid has).
+- `src/lib/llm/freeRouter.ts` — free-tier multi-provider router (bytez/nvidia/huggingface/openrouter/groq `MODEL_IDS`), `resolveKey`/`generateFree`/`embedFree` with 30s abort + graceful per-provider fallback; `resetProviderKeys` test hook.
+- `src/engine/rag/{hybridSearch,queryRewrite,reranker}.ts` + `src/lib/observability/langfuseClient.ts` — multi-provider rerank/rewrite/embed paths wired through the router.
+- `src/engine/{tier1-types,plan-generator,roomPrograms,typology-kb}.ts`, `src/domain/plan.ts`, `src/lib/geometry/room-roles.ts` — spatial-extras types (`StructuralGrid`/`CoreLayout`/`FloorPlateMetrics`/`AdjacencyGraphModel`), `stampSpatialExtras` in `plan-generator`, adjacencyRules/grid fields on KB entries.
+- Tests: `src/__tests__/{enterprise-typology,clinic-strategy,hotel-strategy,typologyRouting,free-router-providers}.test.ts` (the 5 real suites).
+
+### Not committed (intentional)
+- `src/__tests__/*probe*.test.ts` (`apartment-units-probe`, `duplex-overlap-probe`, `typology-probe{1..3}`) — scratch diagnostics; `duplex-overlap-probe` fails on known Stair Hall/Bedroom overlaps (confirms scratch status). Excluded by the earlier staging decision.
+- `test-results/`, `typology-probe-output*.txt`, `budget-engineer-canonical` submodule, `DZENHARE SQB…/`, `lib/`, `supabase/`, `eval/golden-dataset.json`, `eval/promptfooconfig.yaml` — repo convention.
+
+### Verification results (this session)
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings (1 warning surfaced only in the excluded `duplex-overlap-probe.test.ts` — unused eslint-disable)
+- Targeted `npx vitest run` (5 files: enterprise-typology, clinic-strategy, hotel-strategy, typologyRouting, free-router-providers): 146/146 passed. Full suite NOT rerun this session (prior full-suite state documented above: 5089/5089 at 259 files).
+- Push: `1a7754d..286f8a3  test/deploy-workflow -> test/deploy-workflow` (exit 0); commit message `feat(typology): office/clinic/hotel strategies + router gap-fix; freeRouter multi-provider`.
+
