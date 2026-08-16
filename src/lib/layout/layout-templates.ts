@@ -234,6 +234,56 @@ const RETAIL_FRONT_BACK: LayoutTemplate = {
 
 export const RETAIL_TEMPLATES: LayoutTemplate[] = [RETAIL_FRONT_BACK]
 
+const OFFICE_CENTRAL_CORE: LayoutTemplate = {
+  id: 'office-central-core',
+  name: 'Office Central Core',
+  typology: 'office',
+  minArea: 0,
+  maxArea: 9999,
+  cols: 6,
+  rows: 4,
+  zones: [
+    { id: 'public-front', label: 'Public / Open Plan', role: 'public', colStart: 0, colEnd: 2, rowStart: 0, rowEnd: 2, acceptRoles: ['public', 'service'], priority: 2 },
+    { id: 'circulation-spine', label: 'Central Spine', role: 'circulation', colStart: 2, colEnd: 3, rowStart: 0, rowEnd: 4, acceptRoles: ['circulation'], priority: 4 },
+    { id: 'wet-service', label: 'Wet / Service', role: 'wet', colStart: 0, colEnd: 2, rowStart: 2, rowEnd: 4, acceptRoles: ['wet', 'service'], priority: 3 },
+    { id: 'private-wing', label: 'Cellular Offices', role: 'private', colStart: 3, colEnd: 6, rowStart: 0, rowEnd: 4, acceptRoles: ['private', 'service'], priority: 1 },
+  ],
+}
+
+const OFFICE_SIDE_CORE: LayoutTemplate = {
+  id: 'office-side-core',
+  name: 'Office Side Core',
+  typology: 'office',
+  minArea: 0,
+  maxArea: 9999,
+  cols: 5,
+  rows: 4,
+  zones: [
+    { id: 'public-front', label: 'Public / Open Plan', role: 'public', colStart: 0, colEnd: 4, rowStart: 0, rowEnd: 1, acceptRoles: ['public', 'service'], priority: 2 },
+    { id: 'circulation-spine', label: 'Side Corridor', role: 'circulation', colStart: 4, colEnd: 5, rowStart: 0, rowEnd: 4, acceptRoles: ['circulation'], priority: 4 },
+    { id: 'wet-service', label: 'Wet / Service', role: 'wet', colStart: 0, colEnd: 1, rowStart: 2, rowEnd: 4, acceptRoles: ['wet', 'service'], priority: 3 },
+    { id: 'private-rear', label: 'Cellular Offices', role: 'private', colStart: 1, colEnd: 4, rowStart: 1, rowEnd: 4, acceptRoles: ['private', 'service'], priority: 1 },
+  ],
+}
+
+const OFFICE_OPEN_PLAN: LayoutTemplate = {
+  id: 'office-open-plan',
+  name: 'Open-Plan Office Bar',
+  typology: 'office',
+  minArea: 0,
+  maxArea: 9999,
+  cols: 6,
+  rows: 4,
+  zones: [
+    { id: 'public-front', label: 'Open Plan / Public', role: 'public', colStart: 0, colEnd: 6, rowStart: 0, rowEnd: 2, acceptRoles: ['public', 'wet', 'service'], priority: 2 },
+    { id: 'circulation-spine', label: 'Central Spine', role: 'circulation', colStart: 2, colEnd: 3, rowStart: 2, rowEnd: 4, acceptRoles: ['circulation'], priority: 4 },
+    { id: 'private-left', label: 'Cellular Left', role: 'private', colStart: 0, colEnd: 2, rowStart: 2, rowEnd: 4, acceptRoles: ['private'], priority: 1 },
+    { id: 'private-right', label: 'Cellular Right', role: 'private', colStart: 3, colEnd: 6, rowStart: 2, rowEnd: 4, acceptRoles: ['private'], priority: 1 },
+  ],
+}
+
+export const OFFICE_TEMPLATES: LayoutTemplate[] = [OFFICE_CENTRAL_CORE, OFFICE_SIDE_CORE, OFFICE_OPEN_PLAN]
+
 const MIXED_USE_PODIUM: LayoutTemplate = {
   id: 'mixed-use-podium',
   name: 'Podium + Upper Residential',
@@ -314,8 +364,9 @@ export function templateForTypology(
     case 'school':
       return SCHOOL_CORRIDOR_BAR
     case 'commercial':
-    case 'office':
       return RETAIL_FRONT_BACK
+    case 'office':
+      return OFFICE_CENTRAL_CORE
     case 'mixed-use':
       return MIXED_USE_PODIUM
     case 'warehouse':

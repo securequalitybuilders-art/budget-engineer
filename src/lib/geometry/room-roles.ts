@@ -8,8 +8,10 @@ const ROLE_MAP: Record<string, RoomRole> = {
   'Hall': 'circulation',
   'Lobby': 'circulation',
   'Stairwell': 'circulation',
+  'Stair Hall': 'circulation',
   'Gallery': 'circulation',
   'Lounge / Dining': 'public',
+  'Living / Dining': 'public',
   'Living / Kitchen / Dining': 'public',
   'Living Room': 'public',
   'Lounge': 'public',
@@ -22,6 +24,7 @@ const ROLE_MAP: Record<string, RoomRole> = {
   'Main Hall / Sanctuary': 'public',
   'Sales Floor': 'public',
   'Retail Floor': 'public',
+  'Shop / Convenience': 'public',
   'Open Plan Office': 'public',
   'Bedroom': 'private',
   'Master Bedroom': 'private',
@@ -38,6 +41,7 @@ const ROLE_MAP: Record<string, RoomRole> = {
   'Kitchenette': 'wet',
   'Laundry': 'wet',
   'Guest WC': 'wet',
+  'Toilet': 'wet',
   'Store': 'service',
   'Store Room': 'service',
   'Storage': 'service',
@@ -49,6 +53,11 @@ const ROLE_MAP: Record<string, RoomRole> = {
   'Staff Room': 'service',
   'Office': 'service',
   'Admin Office': 'service',
+  'Warehouse Floor': 'service',
+  'Loading Bay': 'service',
+  'Fuel Bay (canopy)': 'service',
+  'Car Wash': 'service',
+  'Pump Island': 'service',
 }
 
 export function classifyRoom(name: string): RoomRole {

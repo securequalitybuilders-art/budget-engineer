@@ -1,5 +1,11 @@
 import type { LevelSlabAssignment } from '@/lib/structure/slab-system'
 import type { StructuralLevel } from '@/lib/structure/structural-bridge'
+import type {
+  AdjacencyGraphModel,
+  CoreLayout,
+  FloorPlateMetrics,
+  StructuralGrid,
+} from '@/engine/tier1-types'
 
 export interface Point {
   x: number
@@ -84,6 +90,10 @@ export interface PlanModel {
   egressCompliant?: boolean
   slabAssignments?: LevelSlabAssignment[]
   structuralLevels?: StructuralLevel[]
+  structuralGrid?: StructuralGrid
+  coreLayout?: CoreLayout
+  floorPlateMetrics?: FloorPlateMetrics
+  adjacencyGraph?: AdjacencyGraphModel
 }
 
 export function getPlanSource(plan: PlanModel): PlanSource {

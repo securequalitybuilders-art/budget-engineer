@@ -79,33 +79,75 @@ type TemplateParams = {
   entrySide: 'top' | 'bottom' | 'left' | 'right'
 }
 
+function verticalStack(total: number, parts: { frac: number; min: number }[]): number[] {
+  const len = parts.length
+  if (len === 0) return []
+  const items = parts.map(p => ({ ...p, hi: Math.max(p.frac * total, p.min) }))
+  const sum = items.reduce((s, p) => s + p.hi, 0)
+  const excess = total - sum
+  if (excess > 0.001) {
+    for (const p of items) p.hi += excess * p.frac
+  } else if (excess < -0.001) {
+    const slack = items.reduce((s, p) => s + Math.max(p.hi - p.min, 0), 0)
+    if (slack > 0.0001) {
+      for (const p of items) {
+        if (p.hi > p.min) p.hi = Math.max(p.min, p.hi + excess * ((p.hi - p.min) / slack))
+      }
+    } else {
+      const scale = total / sum
+      for (const p of items) p.hi *= scale
+    }
+  }
+  const out: number[] = []
+  let used = 0
+  for (let i = 0; i < len - 1; i++) {
+    const v = Number(items[i].hi.toFixed(2))
+    out.push(v)
+    used += v
+  }
+  out.push(Number((total - used).toFixed(2)))
+  return out
+}
+
 export function generateStudioTemplate(params: TemplateParams): ApartmentUnitRoom[] {
   const { ux, uy, uw, uh, entrySide } = params
-  const entryD = Math.min(1.0, Math.min(uw, uh) * 0.15)
+  const entryDc = Math.max(Math.min(1.0, Math.min(uw, uh) * 0.15), 1.0)
+  const bathWc = Math.max(Math.min(1.5, uw * 0.25), 1.0)
+  const mainW = uw - bathWc - (entrySide === 'top' || entrySide === 'bottom' ? 0 : entryDc)
+  const mainH = uh - 1.2 - (entrySide === 'top' || entrySide === 'bottom' ? entryDc : 0)
+  const kitchenW = Math.min(1.5, mainW * 0.5)
+  const kitchenH = Math.min(1.5, mainH * 0.5)
   const rooms: ApartmentUnitRoom[] = []
-  const bathW = Math.min(1.5, uw * 0.25)
 
   switch (entrySide) {
     case 'top':
-      rooms.push({ name: 'Entry', x: ux + uw * 0.3, y: uy, width: Math.min(1.5, uw * 0.3), height: entryD })
-      rooms.push({ name: 'Studio Living / Sleeping', x: ux, y: uy + entryD, width: uw - bathW, height: uh - entryD - 1.2 })
-      rooms.push({ name: 'Kitchenette', x: ux, y: uy + entryD, width: Math.min(1.5, uw * 0.25), height: 1.5 })
-      rooms.push({ name: 'Bathroom', x: ux + uw - bathW, y: uy + entryD, width: bathW, height: 1.8 })
+      rooms.push({ name: 'Entry', x: ux + uw * 0.3, y: uy, width: Math.min(1.5, uw * 0.3), height: entryDc })
+      rooms.push({ name: 'Kitchenette', x: ux, y: uy + entryDc, width: kitchenW, height: kitchenH })
+      rooms.push({ name: 'Studio Living / Sleeping', x: ux, y: uy + entryDc + kitchenH, width: mainW, height: mainH - kitchenH })
+      rooms.push({ name: 'Bathroom', x: ux + mainW, y: uy + entryDc, width: bathWc, height: mainH })
       rooms.push({ name: 'Balcony', x: ux, y: uy + uh - 1.2, width: uw, height: 1.2 })
       break
     case 'bottom':
-      rooms.push({ name: 'Entry', x: ux + uw * 0.3, y: uy + uh - entryD, width: Math.min(1.5, uw * 0.3), height: entryD })
-      rooms.push({ name: 'Studio Living / Sleeping', x: ux, y: uy, width: uw - bathW, height: uh - entryD - 1.2 })
-      rooms.push({ name: 'Kitchenette', x: ux, y: uy + uh - entryD - 1.5, width: Math.min(1.5, uw * 0.25), height: 1.5 })
-      rooms.push({ name: 'Bathroom', x: ux + uw - bathW, y: uy, width: bathW, height: 1.8 })
+      rooms.push({ name: 'Entry', x: ux + uw * 0.3, y: uy + uh - entryDc, width: Math.min(1.5, uw * 0.3), height: entryDc })
+      rooms.push({ name: 'Kitchenette', x: ux, y: uy + uh - entryDc - kitchenH, width: kitchenW, height: kitchenH })
+      rooms.push({ name: 'Studio Living / Sleeping', x: ux, y: uy + 1.2, width: mainW, height: mainH - kitchenH })
+      rooms.push({ name: 'Bathroom', x: ux + mainW, y: uy + 1.2, width: bathWc, height: mainH })
       rooms.push({ name: 'Balcony', x: ux, y: uy, width: uw, height: 1.2 })
       break
-    default:
-      rooms.push({ name: 'Entry', x: ux, y: uy + uh * 0.3, width: entryD, height: Math.min(1.5, uh * 0.3) })
-      rooms.push({ name: 'Studio Living / Sleeping', x: ux + entryD, y: uy, width: uw - entryD - bathW, height: uh - 1.2 })
-      rooms.push({ name: 'Kitchenette', x: ux + entryD, y: uy, width: 1.5, height: 1.5 })
-      rooms.push({ name: 'Bathroom', x: ux + uw - bathW, y: uy, width: bathW, height: 1.8 })
+    case 'left':
+      rooms.push({ name: 'Entry', x: ux, y: uy + uh * 0.3, width: entryDc, height: Math.min(1.5, uh * 0.3) })
+      rooms.push({ name: 'Kitchenette', x: ux + entryDc, y: uy, width: kitchenW, height: kitchenH })
+      rooms.push({ name: 'Studio Living / Sleeping', x: ux + entryDc, y: uy + kitchenH, width: mainW, height: mainH - kitchenH })
+      rooms.push({ name: 'Bathroom', x: ux + mainW + entryDc, y: uy, width: bathWc, height: mainH })
       rooms.push({ name: 'Balcony', x: ux, y: uy + uh - 1.2, width: uw, height: 1.2 })
+      break
+    case 'right':
+      rooms.push({ name: 'Entry', x: ux + uw - entryDc, y: uy + uh * 0.3, width: entryDc, height: Math.min(1.5, uh * 0.3) })
+      rooms.push({ name: 'Kitchenette', x: ux + bathWc, y: uy, width: kitchenW, height: kitchenH })
+      rooms.push({ name: 'Studio Living / Sleeping', x: ux + bathWc, y: uy + kitchenH, width: mainW, height: mainH - kitchenH })
+      rooms.push({ name: 'Bathroom', x: ux, y: uy, width: bathWc, height: mainH })
+      rooms.push({ name: 'Balcony', x: ux, y: uy + uh - 1.2, width: uw, height: 1.2 })
+      break
   }
 
   return rooms.map(r => ({ ...r, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(Math.max(r.width, 1.0).toFixed(2)), height: Number(Math.max(r.height, 1.0).toFixed(2)) }))
@@ -113,108 +155,151 @@ export function generateStudioTemplate(params: TemplateParams): ApartmentUnitRoo
 
 export function generateOneBedCompactTemplate(params: TemplateParams): ApartmentUnitRoom[] {
   const { ux, uy, uw, uh } = params
-  const entryD = Math.min(1.2, uh * 0.15)
-  const bathW = Math.min(1.8, uw * 0.22)
-  const balconyD = Math.min(1.5, uh * 0.12)
+  const entryDc = Math.max(Math.min(1.2, uh * 0.15), 1.0)
+  const bathWc = Math.max(Math.min(1.8, uw * 0.22), 1.0)
+  const balconyDc = Math.max(Math.min(1.5, uh * 0.12), 1.0)
   const rooms: ApartmentUnitRoom[] = []
 
-  rooms.push({ name: 'Entry', x: ux + Math.min(2.0, uw * 0.25), y: uy, width: Math.min(2.0, uw * 0.25), height: entryD })
+  rooms.push({ name: 'Entry', x: ux + Math.min(2.0, uw * 0.25), y: uy, width: Math.min(2.0, uw * 0.25), height: entryDc })
 
-  const remainY = uy + entryD
-  const remainH = uh - entryD - balconyD
-  const livingH = remainH * 0.45
-  const kitchenH = remainH * 0.20
-  const bedH = remainH - livingH - kitchenH
+  const remainY = uy + entryDc
+  const remainH = uh - entryDc - balconyDc
+  const heights = verticalStack(remainH, [
+    { frac: 0.45, min: 2.0 },
+    { frac: 0.2, min: 1.2 },
+    { frac: 0.35, min: 2.0 },
+  ])
+  const livingH = heights[0]
+  const kitchenH = heights[1]
+  const bedH = heights[2]
+  const mainW = uw - bathWc
 
-  rooms.push({ name: 'Living / Dining', x: ux, y: remainY, width: uw - bathW, height: Math.max(livingH, 2.0) })
-  rooms.push({ name: 'Kitchen', x: ux, y: remainY + livingH, width: Math.max((uw - bathW) * 0.7, 1.5), height: Math.max(kitchenH, 1.2) })
-  rooms.push({ name: 'Bedroom 1', x: ux, y: remainY + livingH + kitchenH, width: Math.max(uw - bathW, 2.5), height: Math.max(bedH, 2.0) })
-  rooms.push({ name: 'Bathroom', x: ux + uw - bathW, y: remainY, width: bathW, height: Math.max(remainH, 1.5) })
-  rooms.push({ name: 'Balcony', x: ux, y: uy + uh - balconyD, width: uw, height: balconyD })
+  rooms.push({ name: 'Living / Dining', x: ux, y: remainY, width: mainW, height: livingH })
+  rooms.push({ name: 'Kitchen', x: ux, y: remainY + livingH, width: Math.max(mainW * 0.7, 1.5), height: kitchenH })
+  rooms.push({ name: 'Bedroom 1', x: ux, y: remainY + livingH + kitchenH, width: mainW, height: bedH })
+  rooms.push({ name: 'Bathroom', x: ux + uw - bathWc, y: remainY, width: bathWc, height: remainH })
+  rooms.push({ name: 'Balcony', x: ux, y: uy + uh - balconyDc, width: uw, height: balconyDc })
 
   return rooms.map(r => ({ ...r, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(Math.max(r.width, 1.0).toFixed(2)), height: Number(Math.max(r.height, 1.0).toFixed(2)) }))
 }
 
 export function generateTwoBedStandardTemplate(params: TemplateParams): ApartmentUnitRoom[] {
   const { ux, uy, uw, uh } = params
-  const entryD = Math.min(1.2, uh * 0.15)
-  const bathW = Math.min(1.8, uw * 0.20)
-  const balconyD = Math.min(1.5, uh * 0.12)
+  const entryDc = Math.max(Math.min(1.2, uh * 0.15), 1.0)
+  const bathWc = Math.max(Math.min(1.8, uw * 0.2), 1.0)
+  const balconyDc = Math.max(Math.min(1.5, uh * 0.12), 1.0)
   const rooms: ApartmentUnitRoom[] = []
 
-  rooms.push({ name: 'Entry', x: ux + Math.min(2.0, uw * 0.25), y: uy, width: Math.min(2.0, uw * 0.25), height: entryD })
+  rooms.push({ name: 'Entry', x: ux + Math.min(2.0, uw * 0.25), y: uy, width: Math.min(2.0, uw * 0.25), height: entryDc })
 
-  const remainY = uy + entryD
-  const remainH = uh - entryD - balconyD
-  const livingH = remainH * 0.38
-  const kitchenH = remainH * 0.17
-  const bedH = remainH - livingH - kitchenH
-  const bed1W = (uw - bathW) * 0.52
-  const bed2W = (uw - bathW) - bed1W
+  const remainY = uy + entryDc
+  const remainH = uh - entryDc - balconyDc
+  const heights = verticalStack(remainH, [
+    { frac: 0.38, min: 2.5 },
+    { frac: 0.17, min: 1.5 },
+    { frac: 0.45, min: 2.0 },
+  ])
+  const livingH = heights[0]
+  const kitchenH = heights[1]
+  const bedH = heights[2]
+  const availW = uw - bathWc
+  const widths = verticalStack(availW, [
+    { frac: 0.52, min: 2.5 },
+    { frac: 0.48, min: 2.0 },
+  ])
+  const bed1W = widths[0]
+  const bed2W = widths[1]
 
-  rooms.push({ name: 'Living / Dining', x: ux, y: remainY, width: uw - bathW, height: Math.max(livingH, 2.5) })
-  rooms.push({ name: 'Kitchen', x: ux, y: remainY + livingH, width: Math.max((uw - bathW) * 0.7, 1.5), height: Math.max(kitchenH, 1.5) })
-  rooms.push({ name: 'Bedroom 1', x: ux, y: remainY + livingH + kitchenH, width: Math.max(bed1W, 2.5), height: Math.max(bedH, 2.0) })
-  rooms.push({ name: 'Bedroom 2', x: ux + bed1W, y: remainY + livingH + kitchenH, width: Math.max(bed2W, 2.0), height: Math.max(bedH, 2.0) })
-  rooms.push({ name: 'Bathroom', x: ux + uw - bathW, y: remainY, width: bathW, height: Math.max(remainH, 1.5) })
-  rooms.push({ name: 'Balcony', x: ux, y: uy + uh - balconyD, width: uw, height: balconyD })
+  rooms.push({ name: 'Living / Dining', x: ux, y: remainY, width: availW, height: livingH })
+  rooms.push({ name: 'Kitchen', x: ux, y: remainY + livingH, width: Math.max(availW * 0.7, 1.5), height: kitchenH })
+  rooms.push({ name: 'Bedroom 1', x: ux, y: remainY + livingH + kitchenH, width: bed1W, height: bedH })
+  rooms.push({ name: 'Bedroom 2', x: ux + bed1W, y: remainY + livingH + kitchenH, width: bed2W, height: bedH })
+  rooms.push({ name: 'Bathroom', x: ux + uw - bathWc, y: remainY, width: bathWc, height: remainH })
+  rooms.push({ name: 'Balcony', x: ux, y: uy + uh - balconyDc, width: uw, height: balconyDc })
 
   return rooms.map(r => ({ ...r, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(Math.max(r.width, 1.0).toFixed(2)), height: Number(Math.max(r.height, 1.0).toFixed(2)) }))
 }
 
 export function generateTwoBedCornerTemplate(params: TemplateParams): ApartmentUnitRoom[] {
   const { ux, uy, uw, uh } = params
-  const entryD = Math.min(1.2, uh * 0.12)
-  const bathW = Math.min(2.0, uw * 0.18)
-  const balconyD = Math.min(2.0, uh * 0.15)
+  const entryDc = Math.max(Math.min(1.2, uh * 0.12), 1.0)
+  const bathWc = Math.max(Math.min(2.0, uw * 0.18), 1.0)
+  const balconyDc = Math.max(Math.min(2.0, uh * 0.15), 1.0)
   const rooms: ApartmentUnitRoom[] = []
 
-  rooms.push({ name: 'Entry', x: ux + Math.min(2.5, uw * 0.2), y: uy, width: Math.min(2.5, uw * 0.2), height: entryD })
+  rooms.push({ name: 'Entry', x: ux + Math.min(2.5, uw * 0.2), y: uy, width: Math.min(2.5, uw * 0.2), height: entryDc })
 
-  const remainY = uy + entryD
-  const remainH = uh - entryD - balconyD
-  const livingH = remainH * 0.40
-  const kitchenH = remainH * 0.16
-  const bedH = remainH - livingH - kitchenH
-  const bed1W = (uw - bathW) * 0.48
-  const bed2W = (uw - bathW) * 0.52
+  const remainY = uy + entryDc
+  const remainH = uh - entryDc - balconyDc
+  const heights = verticalStack(remainH, [
+    { frac: 0.4, min: 2.5 },
+    { frac: 0.16, min: 1.5 },
+    { frac: 0.44, min: 2.0 },
+  ])
+  const livingH = heights[0]
+  const kitchenH = heights[1]
+  const bedH = heights[2]
+  const availW = uw - bathWc
+  const widths = verticalStack(availW, [
+    { frac: 0.48, min: 2.5 },
+    { frac: 0.52, min: 2.5 },
+  ])
+  const bed1W = widths[0]
+  const bed2W = widths[1]
 
-  rooms.push({ name: 'Living / Dining', x: ux, y: remainY, width: uw - bathW, height: Math.max(livingH, 2.5) })
-  rooms.push({ name: 'Kitchen', x: ux, y: remainY + livingH, width: Math.max((uw - bathW) * 0.65, 1.5), height: Math.max(kitchenH, 1.5) })
-  rooms.push({ name: 'Bedroom 1', x: ux, y: remainY + livingH + kitchenH, width: Math.max(bed1W, 2.5), height: Math.max(bedH, 2.0) })
-  rooms.push({ name: 'Bedroom 2', x: ux + bed1W, y: remainY + livingH + kitchenH, width: Math.max(bed2W, 2.5), height: Math.max(bedH, 2.0) })
-  rooms.push({ name: 'Bathroom', x: ux + uw - bathW, y: remainY, width: bathW, height: Math.max(remainH, 1.5) })
-  rooms.push({ name: 'Balcony', x: ux, y: uy + uh - balconyD, width: Math.max(uw * 1.2, 2.5), height: balconyD })
+  rooms.push({ name: 'Living / Dining', x: ux, y: remainY, width: availW, height: livingH })
+  rooms.push({ name: 'Kitchen', x: ux, y: remainY + livingH, width: Math.max(availW * 0.65, 1.5), height: kitchenH })
+  rooms.push({ name: 'Bedroom 1', x: ux, y: remainY + livingH + kitchenH, width: bed1W, height: bedH })
+  rooms.push({ name: 'Bedroom 2', x: ux + bed1W, y: remainY + livingH + kitchenH, width: bed2W, height: bedH })
+  rooms.push({ name: 'Bathroom', x: ux + uw - bathWc, y: remainY, width: bathWc, height: remainH })
+  rooms.push({ name: 'Balcony', x: ux, y: uy + uh - balconyDc, width: Math.min(Math.max(uw * 1.2, 2.5), uw), height: balconyDc })
 
   return rooms.map(r => ({ ...r, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(Math.max(r.width, 1.0).toFixed(2)), height: Number(Math.max(r.height, 1.0).toFixed(2)) }))
 }
 
 export function generateFamilyUnitTemplate(params: TemplateParams): ApartmentUnitRoom[] {
   const { ux, uy, uw, uh } = params
-  const entryD = Math.min(1.5, uh * 0.12)
-  const bathW = Math.min(2.2, uw * 0.17)
-  const balconyD = Math.min(2.0, uh * 0.15)
+  const entryDc = Math.max(Math.min(1.5, uh * 0.12), 1.0)
+  const bathWc = Math.max(Math.min(2.2, uw * 0.17), 1.0)
+  const balconyDc = Math.max(Math.min(2.0, uh * 0.15), 1.0)
   const rooms: ApartmentUnitRoom[] = []
 
-  rooms.push({ name: 'Entry / Hall', x: ux + Math.min(2.5, uw * 0.2), y: uy, width: Math.min(3.0, uw * 0.25), height: entryD })
+  rooms.push({ name: 'Entry / Hall', x: ux + Math.min(2.5, uw * 0.2), y: uy, width: Math.min(3.0, uw * 0.25), height: entryDc })
 
-  const remainY = uy + entryD
-  const remainH = uh - entryD - balconyD
-  const livingH = remainH * 0.35
-  const kitchenH = remainH * 0.15
-  const bedH = remainH - livingH - kitchenH
-  const bed1W = (uw - bathW) * 0.35
-  const bed2W = (uw - bathW) * 0.35
-  const bed3W = (uw - bathW) - bed1W - bed2W
+  const remainY = uy + entryDc
+  const remainH = uh - entryDc - balconyDc
+  const heights = verticalStack(remainH, [
+    { frac: 0.35, min: 2.5 },
+    { frac: 0.15, min: 1.5 },
+    { frac: 0.5, min: 2.0 },
+  ])
+  const livingH = heights[0]
+  const kitchenH = heights[1]
+  const bedH = heights[2]
+  const availW = uw - bathWc
+  const widths = verticalStack(availW, [
+    { frac: 0.35, min: 2.5 },
+    { frac: 0.35, min: 2.5 },
+    { frac: 0.3, min: 2.0 },
+  ])
+  const bed1W = widths[0]
+  const bed2W = widths[1]
+  const bed3W = widths[2]
+  const bathHeights = verticalStack(remainH, [
+    { frac: 0.55, min: 1.5 },
+    { frac: 0.45, min: 1.5 },
+  ])
+  const bath1H = bathHeights[0]
+  const bath2H = bathHeights[1]
 
-  rooms.push({ name: 'Living / Dining', x: ux, y: remainY, width: uw - bathW, height: Math.max(livingH, 2.5) })
-  rooms.push({ name: 'Kitchen', x: ux, y: remainY + livingH, width: Math.max((uw - bathW) * 0.65, 2.0), height: Math.max(kitchenH, 1.5) })
-  rooms.push({ name: 'Bedroom 1', x: ux, y: remainY + livingH + kitchenH, width: Math.max(bed1W, 2.5), height: Math.max(bedH, 2.0) })
-  rooms.push({ name: 'Bedroom 2', x: ux + bed1W, y: remainY + livingH + kitchenH, width: Math.max(bed2W, 2.5), height: Math.max(bedH, 2.0) })
-  rooms.push({ name: 'Bedroom 3', x: ux + bed1W + bed2W, y: remainY + livingH + kitchenH, width: Math.max(bed3W, 2.0), height: Math.max(bedH, 2.0) })
-  rooms.push({ name: 'Bathroom 1', x: ux + uw - bathW, y: remainY, width: bathW, height: Math.max(remainH * 0.55, 1.5) })
-  rooms.push({ name: 'Bathroom 2', x: ux + uw - bathW, y: remainY + Math.max(remainH * 0.55, 1.5), width: bathW, height: Math.max(remainH * 0.45, 1.5) })
-  rooms.push({ name: 'Balcony', x: ux, y: uy + uh - balconyD, width: Math.max(uw * 1.3, 3.0), height: balconyD })
+  rooms.push({ name: 'Living / Dining', x: ux, y: remainY, width: availW, height: livingH })
+  rooms.push({ name: 'Kitchen', x: ux, y: remainY + livingH, width: Math.max(availW * 0.65, 2.0), height: kitchenH })
+  rooms.push({ name: 'Bedroom 1', x: ux, y: remainY + livingH + kitchenH, width: bed1W, height: bedH })
+  rooms.push({ name: 'Bedroom 2', x: ux + bed1W, y: remainY + livingH + kitchenH, width: bed2W, height: bedH })
+  rooms.push({ name: 'Bedroom 3', x: ux + bed1W + bed2W, y: remainY + livingH + kitchenH, width: bed3W, height: bedH })
+  rooms.push({ name: 'Bathroom 1', x: ux + uw - bathWc, y: remainY, width: bathWc, height: bath1H })
+  rooms.push({ name: 'Bathroom 2', x: ux + uw - bathWc, y: remainY + bath1H, width: bathWc, height: bath2H })
+  rooms.push({ name: 'Balcony', x: ux, y: uy + uh - balconyDc, width: Math.min(Math.max(uw * 1.3, 3.0), uw), height: balconyDc })
 
   return rooms.map(r => ({ ...r, x: Number(r.x.toFixed(2)), y: Number(r.y.toFixed(2)), width: Number(Math.max(r.width, 1.0).toFixed(2)), height: Number(Math.max(r.height, 1.0).toFixed(2)) }))
 }

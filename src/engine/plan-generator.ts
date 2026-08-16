@@ -18,6 +18,15 @@ import { computeLevelProgrammes, getAllocationProgramme, getLevelFloorRole } fro
 import { computeStructuralBridge } from '../lib/structure/structural-bridge'
 import { validateEntranceSeparation } from '../lib/layout/typologies/non-residential'
 
+/** Copy spatial extras (structural grid, core, plate metrics, adjacency graph) from a layout result onto the plan model. */
+function stampSpatialExtras(planModel: PlanModel, layoutResult: FloorLayoutResult | null | undefined): void {
+  if (!layoutResult) return
+  if (layoutResult.structuralGrid) planModel.structuralGrid = layoutResult.structuralGrid
+  if (layoutResult.coreLayout) planModel.coreLayout = layoutResult.coreLayout
+  if (layoutResult.floorPlateMetrics) planModel.floorPlateMetrics = layoutResult.floorPlateMetrics
+  if (layoutResult.adjacencyGraph) planModel.adjacencyGraph = layoutResult.adjacencyGraph
+}
+
 function postProcessRooms(rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[], fpW: number, fpH: number): { id: string; name: string; x: number; y: number; width: number; height: number }[] {
   const result = rooms.map(r => ({ ...r }))
 
@@ -317,12 +326,13 @@ export function generatePlanModel(design: DesignOption): PlanModel {
         if (allWarnings.length > 0) {
           if (import.meta.env.DEV) console.warn(`[plan-generator] ${allWarnings.length} warnings:`, allWarnings.slice(0, 8))
         }
+        stampSpatialExtras(planModel, layoutResult)
         return planModel
       }
 
       // Track best despite rejection for fallback
       if (!bestLayout || result.warnings.length < bestRejectedWarnings.length) {
-        bestLayout = { rooms: layoutResult.rooms, warnings: layoutResult.warnings, entranceMarkers: layoutResult.entranceMarkers, valid: false }
+        bestLayout = { ...layoutResult, rooms: layoutResult.rooms, warnings: layoutResult.warnings, entranceMarkers: layoutResult.entranceMarkers, valid: false }
         bestRejectedWarnings = result.warnings
       }
     }
@@ -364,12 +374,14 @@ export function generatePlanModel(design: DesignOption): PlanModel {
     if (allWarnings.length > 0 && import.meta.env.DEV) {
       console.warn(`[plan-generator] ${allWarnings.length} warnings (fallback):`, allWarnings.slice(0, 8))
     }
+    stampSpatialExtras(planModel, bestLayout)
     return planModel
   }
 
   // Multi-storey: generate per-floor rooms with level-specific programmes
   const allRooms: { id: string; name: string; x: number; y: number; width: number; height: number; color?: string }[] = []
   const allEntranceMarkers: PlanningZoneMarker[] = []
+  let groundLayoutResult: FloorLayoutResult | null = null
   const palette = ['#1d4ed8', '#0f766e', '#7c3aed', '#9a3412', '#0369a1', '#4d7c0f', '#be185d', '#b45309']
 
   for (let fi = 0; fi < floors; fi++) {
@@ -416,6 +428,7 @@ export function generatePlanModel(design: DesignOption): PlanModel {
           rawRooms = candidateRooms
           layoutWarnings = candidateResult.warnings || []
           floorEntranceMarkers = candidateResult.entranceMarkers || []
+          if (fi === 0) groundLayoutResult = candidateResult
           genSuccess = true
           break
         }
@@ -437,6 +450,7 @@ export function generatePlanModel(design: DesignOption): PlanModel {
       rawRooms = fallbackResult.rooms
       layoutWarnings = fallbackResult.warnings || []
       floorEntranceMarkers = fallbackResult.entranceMarkers || []
+      if (fi === 0) groundLayoutResult = fallbackResult
       verticalWarnings.push(`[Level ${fi}] fallback generation used after retries`)
     }
 
@@ -531,6 +545,8 @@ export function generatePlanModel(design: DesignOption): PlanModel {
     planModel.entranceMarkers = allEntranceMarkers
   }
 
+  stampSpatialExtras(planModel, groundLayoutResult)
+
   // Add constraint markers to the final plan model (post-assemblePlan to avoid false overlap rejection)
   planModel.rooms.push(...allConstraintMarkers)
 
@@ -600,6 +616,8 @@ export function generateVariedPlanModel(
   if (layoutResult.entranceMarkers && layoutResult.entranceMarkers.length > 0) {
     planModel.entranceMarkers = layoutResult.entranceMarkers
   }
+
+  stampSpatialExtras(planModel, layoutResult)
 
   // Preserve canonical planSource (do NOT override to 'advanced-generated-plan')
   const planWithSource = rejected

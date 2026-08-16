@@ -1,5 +1,8 @@
 import { generateDuplexLayout } from './typologies/residential'
 import { generateApartmentLayout } from './typologies/non-residential'
+import { generateOfficeLayout } from './typologies/office-strategy'
+import { generateClinicLayout } from './typologies/clinic-strategy'
+import { generateHotelLayout } from './typologies/hotel-strategy'
 import { generateZonedLayout } from '../geometry/plan-intelligence'
 import { templateForTypology, pickHouseTemplate } from './layout-templates'
 import { packTemplate } from './grid-packer'
@@ -55,10 +58,8 @@ const STRATEGIES: Record<string, TypologyStrategy> = {
   'clinic': {
     id: 'clinic',
     name: 'Clinic',
-    generate: (program, width, height, seed) => {
-      const t = templateForTypology('clinic', width * height, seed)
-      const result = packTemplate(t, program, width, height, seed ?? 0)
-      return { rooms: result.rooms, warnings: result.warnings.map(w => w.message), valid: result.valid }
+    generate: (program, width, height, seed, floorContext) => {
+      return generateClinicLayout(program, width, height, seed, floorContext)
     },
   },
   'school': {
@@ -70,6 +71,20 @@ const STRATEGIES: Record<string, TypologyStrategy> = {
       return { rooms: result.rooms, warnings: result.warnings.map(w => w.message), valid: result.valid }
     },
   },
+  'hotel': {
+    id: 'hotel',
+    name: 'Hotel / Guesthouse',
+    generate: (program, width, height, seed, floorContext) => {
+      return generateHotelLayout(program, width, height, seed, floorContext)
+    },
+  },
+  'office': {
+    id: 'office',
+    name: 'Office',
+    generate: (program, width, height, seed, floorContext) => {
+      return generateOfficeLayout(program, width, height, seed, floorContext)
+    },
+  },
   'commercial': {
     id: 'commercial',
     name: 'Commercial / Retail',
@@ -79,11 +94,38 @@ const STRATEGIES: Record<string, TypologyStrategy> = {
       return { rooms: result.rooms, warnings: result.warnings.map(w => w.message), valid: result.valid }
     },
   },
-  'office': {
-    id: 'office',
-    name: 'Office',
+  'retail': {
+    id: 'retail',
+    name: 'Retail / Shop',
     generate: (program, width, height, seed) => {
-      const t = templateForTypology('office', width * height, seed)
+      const t = templateForTypology('commercial', width * height, seed)
+      const result = packTemplate(t, program, width, height, seed ?? 0)
+      return { rooms: result.rooms, warnings: result.warnings.map(w => w.message), valid: result.valid }
+    },
+  },
+  'restaurant': {
+    id: 'restaurant',
+    name: 'Restaurant',
+    generate: (program, width, height, seed) => {
+      const t = templateForTypology('commercial', width * height, seed)
+      const result = packTemplate(t, program, width, height, seed ?? 0)
+      return { rooms: result.rooms, warnings: result.warnings.map(w => w.message), valid: result.valid }
+    },
+  },
+  'market': {
+    id: 'market',
+    name: 'Market',
+    generate: (program, width, height, seed) => {
+      const t = templateForTypology('commercial', width * height, seed)
+      const result = packTemplate(t, program, width, height, seed ?? 0)
+      return { rooms: result.rooms, warnings: result.warnings.map(w => w.message), valid: result.valid }
+    },
+  },
+  'hall': {
+    id: 'hall',
+    name: 'Community Hall',
+    generate: (program, width, height, seed) => {
+      const t = templateForTypology('worship', width * height, seed)
       const result = packTemplate(t, program, width, height, seed ?? 0)
       return { rooms: result.rooms, warnings: result.warnings.map(w => w.message), valid: result.valid }
     },
@@ -152,6 +194,15 @@ const STRATEGIES: Record<string, TypologyStrategy> = {
       return { rooms: result.rooms, warnings: result.warnings.map(w => w.message), valid: result.valid }
     },
   },
+  'petrol': {
+    id: 'petrol',
+    name: 'Petrol / Filling Station',
+    generate: (program, width, height, seed) => {
+      const t = templateForTypology('warehouse', width * height, seed)
+      const result = packTemplate(t, program, width, height, seed ?? 0)
+      return { rooms: result.rooms, warnings: result.warnings.map(w => w.message), valid: result.valid }
+    },
+  },
   'worship': {
     id: 'worship',
     name: 'Worship / Community Hall',
@@ -173,11 +224,16 @@ const STRATEGIES: Record<string, TypologyStrategy> = {
 }
 
 export function getStrategy(buildingType: string): TypologyStrategy {
-  const normalized = buildingType?.toLowerCase().trim() || 'house'
+  const normalized = (buildingType || 'house').toLowerCase().trim()
   const keys = Object.keys(STRATEGIES)
   for (const key of keys) {
     if (normalized === key) return STRATEGIES[key]
-    if (normalized.includes(key) || key.includes(normalized)) return STRATEGIES[key]
+  }
+  // Whole-token match: split on non-alphanumeric separators so 'townhouse'
+  // and 'warehouse-industrial' are not swallowed by the 'house' substring.
+  const tokens = normalized.split(/[^a-z0-9]+/).filter(Boolean)
+  for (const key of keys) {
+    if (tokens.includes(key)) return STRATEGIES[key]
   }
   return STRATEGIES['house']
 }

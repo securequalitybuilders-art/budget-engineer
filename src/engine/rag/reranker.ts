@@ -3,9 +3,10 @@
 // Tiers (best available wins; each failure degrades to the next):
 //   1. transformers — on-device `bge-reranker-base` (ONNX, optional heavy dep,
 //      loaded lazily so the app bundle only pays when it runs)
-//   2. bytez — free Bytez sentence-similarity: query + passage embeddings via
-//      `embedFree` (IndexedDB cached), cosine ranking. (Bytez exposes no
-//      dedicated rerank task — cosine over feature-extraction is its rerank.)
+//   2. remote embeddings — free sentence-similarity via `embedFree`
+//      (IndexedDB cached), cosine ranking. Auto mode tries bytez, then nvidia.
+//      (Neither exposes a dedicated rerank task — cosine over
+//      feature-extraction is their rerank.)
 //   3. lexical — deterministic `localRerankScore` (always available, offline).
 //
 // The 0.7 threshold is authoritative: any result set whose top confidence is
@@ -20,7 +21,7 @@ import { embedFree } from '@/lib/llm/freeRouter'
 import { NOT_FOUND_MESSAGE, NOT_FOUND_REASON } from './gracefulDegradation'
 import { telemetryClient } from '@/lib/observability/langfuseClient'
 
-export type RerankMethod = 'auto' | 'transformers' | 'bytez' | 'lexical'
+export type RerankMethod = 'auto' | 'transformers' | 'bytez' | 'nvidia' | 'lexical'
 
 export interface RerankHybridOptions {
   threshold?: number
@@ -33,7 +34,7 @@ export interface RerankHybridResult {
   hits: HybridHit[]
   confidence: number
   threshold: number
-  method: 'transformers' | 'bytez' | 'lexical'
+  method: 'transformers' | 'bytez' | 'nvidia' | 'lexical'
   needsClarification: boolean
   fellBack: boolean
   fallbackReason?: string
@@ -70,16 +71,21 @@ async function tryTransformersRank(query: string, hits: HybridHit[]): Promise<Ra
   }
 }
 
-async function tryBytezRank(query: string, hits: HybridHit[], opts: RerankHybridOptions): Promise<Ranked[] | null> {
+async function tryRemoteRank(
+  query: string,
+  hits: HybridHit[],
+  opts: RerankHybridOptions,
+  provider: 'bytez' | 'nvidia',
+): Promise<Ranked[] | null> {
   const embedder: (text: string) => Promise<number[] | null> =
-    opts.embedder ?? (async (text) => (await embedFree(text, { apiKey: opts.apiKey })).embedding)
+    opts.embedder ?? (async (text) => (await embedFree(text, { apiKey: opts.apiKey, provider })).embedding)
   try {
     const cache = await EmbeddingCache.open()
     const queryVector = await embedder(query)
     if (!queryVector) return null
     const ranked: Ranked[] = []
     for (const hit of hits) {
-      const key = `rerank:${hit.chunkId}`
+      const key = `rerank:${provider}:${hit.chunkId}`
       let vector = await cache.get(key)
       if (!vector) {
         vector = (await embedder(hit.text_child)) ?? undefined
@@ -130,9 +136,12 @@ export async function rerankHybrid(query: string, hits: HybridHit[], opts: Reran
     ranked = await tryTransformersRank(query, hits)
     if (ranked) methodUsed = 'transformers'
   }
-  if (!ranked && (method === 'bytez' || method === 'auto')) {
-    ranked = await tryBytezRank(query, hits, opts)
-    if (ranked) methodUsed = 'bytez'
+  const remoteProviders: Array<'bytez' | 'nvidia'> =
+    method === 'auto' ? ['bytez', 'nvidia'] : method === 'bytez' ? ['bytez'] : method === 'nvidia' ? ['nvidia'] : []
+  for (const provider of remoteProviders) {
+    if (ranked) break
+    ranked = await tryRemoteRank(query, hits, opts, provider)
+    if (ranked) methodUsed = provider
   }
   if (!ranked) {
     ranked = rankLexical(query, hits)

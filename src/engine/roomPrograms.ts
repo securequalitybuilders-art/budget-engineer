@@ -80,7 +80,9 @@ export const ROOM_PROGRAMS: Record<string, RoomDef[]> = {
     { name: 'Kitchenette', ratio: 0.04 },
     { name: 'WC', ratio: 0.06 },
     { name: 'Reception', ratio: 0.06 },
-    { name: 'Circulation', ratio: 0.17 },
+    { name: 'Circulation', ratio: 0.09 },
+    { name: 'Staircase', ratio: 0.05 },
+    { name: 'Lift', ratio: 0.03 },
   ],
   other: [
     { name: 'Main Hall', ratio: 0.3 },

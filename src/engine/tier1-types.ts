@@ -29,6 +29,10 @@ export interface Typology {
   structure?: TypologyStructure
   fireResistanceMin?: number
   maxTravelDistanceM?: number
+  adjacencyRules?: AdjacencyRule[]
+  structuralGrid?: StructuralGrid
+  coreType?: CoreType
+  floorPlateEfficiency?: number
 }
 
 export interface ProgramItem {
@@ -85,6 +89,58 @@ export interface QualityGate {
 export interface QualityIssue {
   severity: 'error' | 'warning' | 'info'
   message: string
+}
+
+export interface AdjacencyRule {
+  from: string
+  to: string
+  weight: number
+  must?: boolean
+}
+
+export interface StructuralGrid {
+  spanX: number
+  spanY: number
+  offsetX?: number
+  offsetY?: number
+}
+
+export type CoreType = 'central' | 'side' | 'dual'
+
+export interface CoreBlock {
+  roomIds: string[]
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+export interface CoreLayout {
+  coreType: CoreType
+  blocks: CoreBlock[]
+  x: number
+  y: number
+}
+
+export interface FloorPlateMetrics {
+  totalAreaM2: number
+  programAreaM2: number
+  circulationAreaM2: number
+  coreAreaM2: number
+  efficiency: number
+  grid: StructuralGrid
+  columns: number
+  rows: number
+}
+
+export interface AdjacencyGraphModel {
+  rules: AdjacencyRule[]
+  satisfiedWeight: number
+  totalWeight: number
+  score: number
+  satisfied: AdjacencyRule[]
+  violated: AdjacencyRule[]
+  edges: Array<{ from: string; to: string; weight: number; satisfied: boolean }>
 }
 
 export interface Tier1ParsedBrief {

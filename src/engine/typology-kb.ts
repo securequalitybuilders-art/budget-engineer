@@ -1,5 +1,6 @@
 import type { Typology } from './tier1-types'
 import { getMinimumDimensions } from './standards/roomStandards'
+import { OFFICE_ADJACENCY_RULES, CLINIC_ADJACENCY_RULES } from './spatial/adjacency-graph'
 
 const TYPOLOGIES: Typology[] = [
   {
@@ -86,6 +87,10 @@ const TYPOLOGIES: Typology[] = [
     maxStructuralSpan: 6.0,
     site: { minPlotM2: 500, maxCoveragePct: 40, frontSetbackM: 6 },
     structure: { wallSystem: 'Masonry 230mm', roofSystem: 'Flat parapet', foundation: 'Strip foundations' },
+    adjacencyRules: CLINIC_ADJACENCY_RULES,
+    structuralGrid: { spanX: 7.2, spanY: 7.2 },
+    coreType: 'central',
+    floorPlateEfficiency: 0.72,
     notes: 'Rural clinics require water tank + solar backup. ZBC Part 4 applies for public assembly.',
   },
   {
@@ -168,6 +173,10 @@ const TYPOLOGIES: Typology[] = [
     maxStructuralSpan: 8.0,
     site: { minPlotM2: 500, maxCoveragePct: 60, far: 2.5 },
     structure: { wallSystem: 'RC frame', floorHeightM: 3.5 },
+    adjacencyRules: OFFICE_ADJACENCY_RULES,
+    structuralGrid: { spanX: 7.2, spanY: 7.2 },
+    coreType: 'central',
+    floorPlateEfficiency: 0.78,
     notes: 'Common in Harare CBD and Borrowdale. Open-plan layout with cellular offices. SANS 10400 Part N: ventilation.',
   },
   {

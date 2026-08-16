@@ -1,4 +1,10 @@
 import type { PlanningZoneMarker } from '../../domain/plan'
+import type {
+  AdjacencyGraphModel,
+  CoreLayout,
+  FloorPlateMetrics,
+  StructuralGrid,
+} from '../../engine/tier1-types'
 
 export type BuildingTypology =
   | 'house'
@@ -28,10 +34,14 @@ export interface FloorLayoutResult {
   entranceMarkers?: PlanningZoneMarker[]
   warnings?: string[]
   valid?: boolean
+  structuralGrid?: StructuralGrid
+  coreLayout?: CoreLayout
+  floorPlateMetrics?: FloorPlateMetrics
+  adjacencyGraph?: AdjacencyGraphModel
 }
 
 export interface TypologyStrategy {
-  id: BuildingTypology
+  id: string
   name: string
   generate: (
     program: { name: string; ratio: number }[],

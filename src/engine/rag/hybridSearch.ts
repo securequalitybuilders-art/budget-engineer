@@ -13,7 +13,7 @@ import type { RagIndex } from './ragIndex'
 import { buildBm25Stats, bm25Score, rrfFusion } from './hybrid'
 import { cosineSimilarity } from './embeddings'
 import { EmbeddingCache } from './embedCache'
-import { embedFree, resolveBytezKey } from '@/lib/llm/freeRouter'
+import { embedFree, resolveBytezKey, resolveNvidiaKey, resolveHuggingFaceKey } from '@/lib/llm/freeRouter'
 import { clauseFromSectionId } from './citation'
 import { sourceTypeFor, specSourceTypeFor, matchesSourceFilter } from './sourceType'
 import type { SearchResult, TextChunk } from './types'
@@ -106,7 +106,12 @@ export async function hybridSearchAsync(index: RagIndex, query: string, opts: Hy
 
   // Dense leg — local feature-hash for recall, then a remote (Bytez) rescore
   // over the sparse pool when a key/embedder is available (bounded + cached).
-  const useRemote = opts.useRemoteDense ?? (Boolean(resolveBytezKey(opts.apiKey)) || Boolean(opts.embedder))
+  const useRemote =
+    opts.useRemoteDense ??
+    (Boolean(opts.embedder) ||
+      Boolean(resolveBytezKey(opts.apiKey)) ||
+      Boolean(resolveNvidiaKey(opts.apiKey)) ||
+      Boolean(resolveHuggingFaceKey(opts.apiKey)))
   let denseResults: SearchResult[] = index
     .search(query, { k: overFetch, minScore: 0, docId: opts.docId })
     .filter((r) => matchesSourceFilter(r.docId, opts.filterSource))

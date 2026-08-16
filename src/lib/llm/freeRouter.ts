@@ -1,24 +1,42 @@
-// Free-tier LLM router (Bytez open-source models).
+// Free-tier LLM router (multi-provider).
 //
 // Local-first, no-backend constitution: the app never requires a key. When a
-// Bytez API key is present (VITE_BYTEZ_API_KEY or an explicit `apiKey`), this
-// module routes chat completions and embeddings to Bytez's serverless open-
-// source endpoint; otherwise it returns a structured miss so callers can fall
-// back to deterministic local engines. The module never throws — callers read
-// the `error` field and degrade.
+// free-tier API key is present (an env var or an explicit `apiKey`), this
+// module routes chat completions and embeddings to that provider; otherwise it
+// returns a structured miss so callers can fall back to deterministic local
+// engines. The module never throws — callers read the `error` field and
+// degrade.
+//
+// Providers (all free tiers, no credit card):
+//   bytez       — Bytez open-source serverless models (chat + embed)
+//   nvidia      — NVIDIA NIM / integrate.api.nvidia.com (chat + embed)
+//   huggingface — HF Inference API, open-source models (chat + embed)
+//   openrouter  — OpenRouter :free models (chat only)
+//   groq        — Groq LPU, llama-3.3-70b-versatile (chat only)
+//
+// Provider selection:
+//   - `opts.providers`  — explicit ordered chain (highest precedence).
+//   - `opts.provider`   — a single provider.
+//   - `opts.apiKey`     — treated as a Bytez key (backward-compat: the router
+//     was Bytez-only; a raw key kept as `Authorization` for Bytez).
+//   - otherwise         — auto chain: every provider whose key is present, in
+//     registry order (bytez, nvidia, huggingface, openrouter, groq).
+//   On failure (network/rate-limit/parse) the router tries the next provider
+//   in the chain and returns the last error if all fail.
 //
 // Free-tier rate-limit guardrail (Gap #5):
-//   - Per-window request/token budget (`BYTEZ_RATE_LIMIT`, overridable via
+//   - Per-window request/token budget per provider (overridable via
 //     `opts.rateLimit`). Once the window's request or token budget is spent,
 //     further calls return a structured miss BEFORE hitting the network.
 //   - On HTTP 429, the `Retry-After` header is honoured (numeric seconds or
 //     HTTP-date) and the request is retried with exponential backoff
 //     `min(2^attempt * baseMs + jitter, maxMs)`, up to `maxRetries` (default
-//     3). After that the provider is considered exhausted and we fall back
-//     (structured miss) so callers degrade to local engines.
-//   - Circuit breaker: 3× 429 within a 5-minute window trips the breaker
-//     open for 10 minutes; while open the provider is skipped entirely
-//     without a network call.
+//     3). After that the provider is considered exhausted and we fall back to
+//     the next provider in the chain (structured miss) so callers degrade to
+//     local engines.
+//   - Circuit breaker: 3× 429 within a 5-minute window trips the breaker open
+//     for 10 minutes; while open the provider is skipped entirely without a
+//     network call.
 //   - Every 429 (and the retry/fallback decision) is traced to the local
 //     Langfuse-style telemetry store (`rate-limit` events) unless
 //     `opts.trace === false`.
@@ -29,12 +47,15 @@
 //   feature-extraction: { "text": "…" } -> { "error": null, "output": number[] }
 //   chat: { "messages": [{role,content}], "params": {…} }
 //         -> { "error": null, "output": { "role": "assistant", "content": "…" } }
-// Open-source models are free; closed-source require a provider key.
 
 import type { ChatMessage } from '@/lib/ai/remote-providers'
 import { telemetryClient } from '@/lib/observability/langfuseClient'
 
 const BYTEZ_BASE = 'https://api.bytez.com/models/v2'
+const NVIDIA_BASE = 'https://integrate.api.nvidia.com/v1'
+const OPENROUTER_BASE = 'https://openrouter.ai/api/v1'
+const GROQ_BASE = 'https://api.groq.com/openai/v1'
+const HF_BASE = 'https://api-inference.huggingface.co'
 const REQUEST_TIMEOUT_MS = 30_000
 const PROVIDER_ID = 'bytez'
 const BACKOFF_BASE_MS = 1_000
@@ -78,6 +99,30 @@ export const BYTEZ_RATE_LIMIT: ProviderRateLimit = {
   maxTokensPerWindow: 40_000,
 }
 
+export const NVIDIA_RATE_LIMIT: ProviderRateLimit = {
+  requestsPerWindow: 60,
+  windowMs: 60_000,
+  maxTokensPerWindow: 40_000,
+}
+
+export const HF_RATE_LIMIT: ProviderRateLimit = {
+  requestsPerWindow: 30,
+  windowMs: 60_000,
+  maxTokensPerWindow: 20_000,
+}
+
+export const OPENROUTER_RATE_LIMIT: ProviderRateLimit = {
+  requestsPerWindow: 60,
+  windowMs: 60_000,
+  maxTokensPerWindow: 40_000,
+}
+
+export const GROQ_RATE_LIMIT: ProviderRateLimit = {
+  requestsPerWindow: 30,
+  windowMs: 60_000,
+  maxTokensPerWindow: 30_000,
+}
+
 /** Live budget snapshot for a provider (testable/observable). */
 export interface RateLimitState {
   requests: number
@@ -93,8 +138,195 @@ interface BreakerState {
 const budgets = new Map<string, RateLimitState>()
 const breakers = new Map<string, BreakerState>()
 
+export type FreeProviderId = 'bytez' | 'nvidia' | 'huggingface' | 'openrouter' | 'groq'
+export type ProviderKind = 'chat' | 'embed'
+
+export interface FreeProviderConfig {
+  id: FreeProviderId
+  label: string
+  envKey: string
+  kinds: ProviderKind[]
+  chatModel: string
+  embedModel?: string
+  rateLimit: ProviderRateLimit
+  auth: (apiKey: string) => string
+  chatUrl: (model: string) => string
+  embedUrl?: (model: string) => string
+  chatBody: (messages: ChatMessage[], opts: { model: string; temperature?: number; maxTokens?: number }) => unknown
+  embedBody?: (text: string, model: string) => unknown
+  parseChat: (data: unknown) => string
+  parseEmbed?: (data: unknown) => number[]
+}
+
+const BYTEZ: FreeProviderConfig = {
+  id: 'bytez',
+  label: 'Bytez',
+  envKey: 'VITE_BYTEZ_API_KEY',
+  kinds: ['chat', 'embed'],
+  chatModel: BYTEZ_MODELS.chat,
+  embedModel: BYTEZ_MODELS.embed,
+  rateLimit: BYTEZ_RATE_LIMIT,
+  auth: (apiKey) => apiKey,
+  chatUrl: (model) => `${BYTEZ_BASE}/${encodeURIComponent(model)}`,
+  embedUrl: (model) => `${BYTEZ_BASE}/${encodeURIComponent(model)}`,
+  chatBody: (messages, opts) => ({
+    messages,
+    params: { temperature: opts.temperature ?? 0, max_tokens: opts.maxTokens ?? 512 },
+  }),
+  embedBody: (text) => ({ text }),
+  parseChat: (data) => {
+    const d = data as { error?: string | null; output?: { role?: string; content?: string } }
+    if (d.error) throw new Error(String(d.error))
+    const text = d.output?.content?.trim()
+    if (!text) throw new Error('Empty response')
+    return text
+  },
+  parseEmbed: (data) => {
+    const d = data as { error?: string | null; output?: unknown }
+    if (d.error) throw new Error(String(d.error))
+    if (Array.isArray(d.output) && d.output.length > 0 && d.output.every((v) => typeof v === 'number')) {
+      return d.output as number[]
+    }
+    throw new Error('Invalid embedding')
+  },
+}
+
+const NVIDIA: FreeProviderConfig = {
+  id: 'nvidia',
+  label: 'Nvidia',
+  envKey: 'VITE_NVIDIA_API_KEY',
+  kinds: ['chat', 'embed'],
+  chatModel: 'meta/llama-3.3-70b-instruct',
+  embedModel: 'nvidia/nv-embed-qa-4',
+  rateLimit: NVIDIA_RATE_LIMIT,
+  auth: (apiKey) => `Bearer ${apiKey}`,
+  chatUrl: () => `${NVIDIA_BASE}/chat/completions`,
+  embedUrl: () => `${NVIDIA_BASE}/embeddings`,
+  chatBody: (messages, opts) => ({
+    model: opts.model,
+    messages,
+    temperature: opts.temperature ?? 0,
+    max_tokens: opts.maxTokens ?? 512,
+  }),
+  embedBody: (text, model) => ({ model, input: [text] }),
+  parseChat: (data) => {
+    const d = data as { error?: string | null; choices?: { message?: { content?: string } }[] }
+    if (d.error) throw new Error(String(d.error))
+    const text = d.choices?.[0]?.message?.content?.trim()
+    if (!text) throw new Error('Empty response')
+    return text
+  },
+  parseEmbed: (data) => {
+    const d = data as { error?: string | null; data?: { embedding?: number[] }[] }
+    if (d.error) throw new Error(String(d.error))
+    const embedding = d.data?.[0]?.embedding
+    if (Array.isArray(embedding) && embedding.length > 0) return embedding
+    throw new Error('Invalid embedding')
+  },
+}
+
+const HUGGING_FACE: FreeProviderConfig = {
+  id: 'huggingface',
+  label: 'Hugging Face',
+  envKey: 'VITE_HF_TOKEN',
+  kinds: ['chat', 'embed'],
+  chatModel: 'mistralai/Mistral-7B-Instruct-v0.3',
+  embedModel: 'BAAI/bge-m3',
+  rateLimit: HF_RATE_LIMIT,
+  auth: (apiKey) => `Bearer ${apiKey}`,
+  chatUrl: (model) => `${HF_BASE}/models/${encodeURIComponent(model)}/v1/chat/completions`,
+  embedUrl: (model) => `${HF_BASE}/pipeline/feature-extraction/${encodeURIComponent(model)}`,
+  chatBody: (messages, opts) => ({
+    model: opts.model,
+    messages,
+    temperature: opts.temperature ?? 0,
+    max_tokens: opts.maxTokens ?? 512,
+  }),
+  embedBody: (text) => ({ inputs: text }),
+  parseChat: (data) => {
+    const d = data as { error?: string | null; choices?: { message?: { content?: string } }[] }
+    if (d.error) throw new Error(String(d.error))
+    const text = d.choices?.[0]?.message?.content?.trim()
+    if (!text) throw new Error('Empty response')
+    return text
+  },
+  parseEmbed: (data) => {
+    if (Array.isArray(data) && data.length > 0 && data.every((v) => typeof v === 'number')) return data as number[]
+    const d = data as { error?: string | null; embedding?: number[] }
+    if (d.error) throw new Error(String(d.error))
+    if (Array.isArray(d.embedding) && d.embedding.length > 0) return d.embedding
+    throw new Error('Invalid embedding')
+  },
+}
+
+const OPENROUTER: FreeProviderConfig = {
+  id: 'openrouter',
+  label: 'OpenRouter',
+  envKey: 'VITE_OPENROUTER_API_KEY',
+  kinds: ['chat'],
+  chatModel: 'meta-llama/llama-3.3-70b-instruct:free',
+  rateLimit: OPENROUTER_RATE_LIMIT,
+  auth: (apiKey) => `Bearer ${apiKey}`,
+  chatUrl: () => `${OPENROUTER_BASE}/chat/completions`,
+  chatBody: (messages, opts) => ({
+    model: opts.model,
+    messages,
+    temperature: opts.temperature ?? 0,
+    max_tokens: opts.maxTokens ?? 512,
+  }),
+  parseChat: (data) => {
+    const d = data as { error?: string | null; choices?: { message?: { content?: string } }[] }
+    if (d.error) throw new Error(String(d.error))
+    const text = d.choices?.[0]?.message?.content?.trim()
+    if (!text) throw new Error('Empty response')
+    return text
+  },
+}
+
+const GROQ: FreeProviderConfig = {
+  id: 'groq',
+  label: 'Groq',
+  envKey: 'VITE_GROQ_API_KEY',
+  kinds: ['chat'],
+  chatModel: 'llama-3.3-70b-versatile',
+  rateLimit: GROQ_RATE_LIMIT,
+  auth: (apiKey) => `Bearer ${apiKey}`,
+  chatUrl: () => `${GROQ_BASE}/chat/completions`,
+  chatBody: (messages, opts) => ({
+    model: opts.model,
+    messages,
+    temperature: opts.temperature ?? 0,
+    max_tokens: opts.maxTokens ?? 512,
+  }),
+  parseChat: (data) => {
+    const d = data as { error?: string | null; choices?: { message?: { content?: string } }[] }
+    if (d.error) throw new Error(String(d.error))
+    const text = d.choices?.[0]?.message?.content?.trim()
+    if (!text) throw new Error('Empty response')
+    return text
+  },
+}
+
+export const PROVIDER_CONFIGS: readonly FreeProviderConfig[] = [
+  BYTEZ,
+  NVIDIA,
+  HUGGING_FACE,
+  OPENROUTER,
+  GROQ,
+]
+
+const PROVIDER_BY_ID: Record<FreeProviderId, FreeProviderConfig> = {
+  bytez: BYTEZ,
+  nvidia: NVIDIA,
+  huggingface: HUGGING_FACE,
+  openrouter: OPENROUTER,
+  groq: GROQ,
+}
+
 export interface FreeChatOptions {
   apiKey?: string
+  provider?: FreeProviderId
+  providers?: FreeProviderId[]
   model?: string
   temperature?: number
   maxTokens?: number
@@ -112,6 +344,8 @@ export interface FreeChatOptions {
 
 export interface FreeEmbedOptions {
   apiKey?: string
+  provider?: FreeProviderId
+  providers?: FreeProviderId[]
   model?: string
   rateLimit?: ProviderRateLimit
   maxRetries?: number
@@ -125,14 +359,52 @@ export interface FreeEmbedOptions {
   runId?: string
 }
 
-export function resolveBytezKey(override?: string): string | undefined {
+/** Resolve a provider's API key: explicit override wins, else its env var. */
+export function resolveProviderKey(provider: FreeProviderId, override?: string): string | undefined {
   if (override && override.trim()) return override.trim()
-  const fromEnv = (import.meta.env?.VITE_BYTEZ_API_KEY as string | undefined)?.trim()
+  const config = PROVIDER_BY_ID[provider]
+  const fromEnv = (import.meta.env?.[config.envKey] as string | undefined)?.trim()
   return fromEnv || undefined
+}
+
+export function resolveBytezKey(override?: string): string | undefined {
+  return resolveProviderKey('bytez', override)
+}
+
+export function resolveNvidiaKey(override?: string): string | undefined {
+  return resolveProviderKey('nvidia', override)
+}
+
+export function resolveHuggingFaceKey(override?: string): string | undefined {
+  return resolveProviderKey('huggingface', override)
+}
+
+export function resolveOpenRouterKey(override?: string): string | undefined {
+  return resolveProviderKey('openrouter', override)
+}
+
+export function resolveGroqKey(override?: string): string | undefined {
+  return resolveProviderKey('groq', override)
 }
 
 export function bytezAvailable(override?: string): boolean {
   return Boolean(resolveBytezKey(override))
+}
+
+export function nvidiaAvailable(override?: string): boolean {
+  return Boolean(resolveNvidiaKey(override))
+}
+
+export function huggingFaceAvailable(override?: string): boolean {
+  return Boolean(resolveHuggingFaceKey(override))
+}
+
+export function openRouterAvailable(override?: string): boolean {
+  return Boolean(resolveOpenRouterKey(override))
+}
+
+export function groqAvailable(override?: string): boolean {
+  return Boolean(resolveGroqKey(override))
 }
 
 /** Rough token estimate: ~4 chars per token, clamped to a minimum of 1. */
@@ -250,10 +522,25 @@ export function resetRateLimitState(): void {
 
 function estimateTokensForBody(body: unknown): number {
   if (!body || typeof body !== 'object') return 0
-  const b = body as { messages?: ChatMessage[]; text?: string; params?: { max_tokens?: number } }
-  const textTokens = estimateTokens((b.messages ?? []).map((m) => m.content).join(' ') || b.text || '')
-  const maxTokens = typeof b.params?.max_tokens === 'number' ? b.params.max_tokens : 0
-  return textTokens + maxTokens
+  const b = body as {
+    messages?: ChatMessage[]
+    text?: string
+    input?: unknown
+    params?: { max_tokens?: number }
+    max_tokens?: number
+  }
+  const chatText = (b.messages ?? []).map((m) => m.content).join(' ')
+  const single =
+    typeof b.text === 'string'
+      ? b.text
+      : typeof b.input === 'string'
+        ? b.input
+        : Array.isArray(b.input)
+          ? b.input.join(' ')
+          : ''
+  const maxTokens =
+    typeof b.params?.max_tokens === 'number' ? b.params.max_tokens : typeof b.max_tokens === 'number' ? b.max_tokens : 0
+  return estimateTokens(chatText || single || '') + maxTokens
 }
 
 type PostResult =
@@ -266,10 +553,12 @@ type PostResult =
       error: string
     }
 
-interface PostBytezOpts {
+interface PostProviderOpts {
+  provider: FreeProviderConfig
   apiKey: string
-  model: string
+  url: string
   body: unknown
+  model: string
   rateLimit: ProviderRateLimit
   maxRetries: number
   backoffBaseMs?: number
@@ -282,36 +571,45 @@ interface PostBytezOpts {
   runId?: string
 }
 
-async function postBytezWithRetry(opts: PostBytezOpts): Promise<PostResult> {
+async function postProviderWithRetry(opts: PostProviderOpts): Promise<PostResult> {
+  const providerId = opts.provider.id
   const now = opts.now ?? Date.now
   const sleep = opts.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)))
   const trace = opts.trace !== false
 
-  if (isCircuitOpen(PROVIDER_ID, now())) {
-    return { ok: false, fallbackDecision: 'circuit-open', error: 'Bytez degraded: circuit open (repeated rate limiting)' }
+  if (isCircuitOpen(providerId, now())) {
+    return {
+      ok: false,
+      fallbackDecision: 'circuit-open',
+      error: `${opts.provider.label} degraded: circuit open (repeated rate limiting)`,
+    }
   }
-  if (!budgetAllows(PROVIDER_ID, opts.rateLimit, now())) {
-    return { ok: false, fallbackDecision: 'budget-exhausted', error: 'Bytez rate limit budget exhausted for this window' }
+  if (!budgetAllows(providerId, opts.rateLimit, now())) {
+    return {
+      ok: false,
+      fallbackDecision: 'budget-exhausted',
+      error: `${opts.provider.label} rate limit budget exhausted for this window`,
+    }
   }
 
   for (let attempt = 0; attempt <= opts.maxRetries; attempt++) {
-    consumeBudget(PROVIDER_ID, estimateTokensForBody(opts.body), opts.rateLimit, now())
+    consumeBudget(providerId, estimateTokensForBody(opts.body), opts.rateLimit, now())
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
     try {
-      const res = await fetch(`${BYTEZ_BASE}/${encodeURIComponent(opts.model)}`, {
+      const res = await fetch(opts.url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: opts.apiKey },
+        headers: { 'Content-Type': 'application/json', Authorization: opts.provider.auth(opts.apiKey) },
         body: JSON.stringify(opts.body),
         signal: controller.signal,
       })
       if (res.status === 429) {
         const retryAfterMs = parseRetryAfter(res.headers.get('retry-after'))
-        recordRateLimit429(PROVIDER_ID, now())
+        recordRateLimit429(providerId, now())
         if (trace) {
           void telemetryClient
             .traceRateLimit({
-              provider: PROVIDER_ID,
+              provider: providerId,
               model: opts.model,
               retryAfterMs,
               attempt,
@@ -327,7 +625,7 @@ async function postBytezWithRetry(opts: PostBytezOpts): Promise<PostResult> {
             status: 429,
             retryAfterMs,
             fallbackDecision: 'retry-exhausted',
-            error: `Bytez rate limited (429) after ${opts.maxRetries + 1} attempts`,
+            error: `${opts.provider.label} rate limited (429) after ${opts.maxRetries + 1} attempts`,
           }
         }
         const delay = backoffDelayMs(
@@ -357,56 +655,93 @@ async function postBytezWithRetry(opts: PostBytezOpts): Promise<PostResult> {
   return { ok: false, fallbackDecision: 'error', error: 'Unreachable' }
 }
 
+function chainFor(opts: { provider?: FreeProviderId; providers?: FreeProviderId[]; apiKey?: string }, kind: ProviderKind): FreeProviderId[] {
+  if (opts.providers && opts.providers.length > 0) return opts.providers
+  if (opts.provider) return [opts.provider]
+  if (opts.apiKey && opts.apiKey.trim()) return [PROVIDER_ID]
+  return PROVIDER_CONFIGS.filter((p) => p.kinds.includes(kind))
+    .map((p) => p.id)
+    .filter((id) => Boolean(resolveProviderKey(id)))
+}
+
 export async function generateFree(messages: ChatMessage[], opts: FreeChatOptions = {}): Promise<FreeGenResult> {
-  const apiKey = resolveBytezKey(opts.apiKey)
-  if (!apiKey) return { text: null, error: 'No Bytez API key configured' }
-  const result = await postBytezWithRetry({
-    apiKey,
-    model: opts.model ?? BYTEZ_MODELS.chat,
-    body: {
-      messages,
-      params: { temperature: opts.temperature ?? 0, max_tokens: opts.maxTokens ?? 512 },
-    },
-    rateLimit: opts.rateLimit ?? BYTEZ_RATE_LIMIT,
-    maxRetries: opts.maxRetries ?? DEFAULT_MAX_RETRIES,
-    backoffBaseMs: opts.backoffBaseMs,
-    backoffMaxMs: opts.backoffMaxMs,
-    jitterMs: opts.jitterMs,
-    sleep: opts.sleep,
-    now: opts.now,
-    trace: opts.trace,
-    projectId: opts.projectId,
-    runId: opts.runId,
-  })
-  if (!result.ok) return { text: null, error: result.error }
-  const data = result.data as { error?: string | null; output?: { role?: string; content?: string } }
-  if (data.error) return { text: null, error: data.error }
-  const text = data.output?.content?.trim()
-  if (!text) return { text: null, error: 'Empty response from Bytez' }
-  return { text }
+  const chain = chainFor(opts, 'chat')
+  if (chain.length === 0) return { text: null, error: 'No free-tier chat API key configured' }
+  let lastError: string | undefined
+  for (const id of chain) {
+    const provider = PROVIDER_BY_ID[id]
+    const apiKey = resolveProviderKey(id, opts.apiKey)
+    if (!apiKey) continue
+    const model = opts.model ?? provider.chatModel
+    const result = await postProviderWithRetry({
+      provider,
+      apiKey,
+      url: provider.chatUrl(model),
+      body: provider.chatBody(messages, { model, temperature: opts.temperature, maxTokens: opts.maxTokens }),
+      model,
+      rateLimit: opts.rateLimit ?? provider.rateLimit,
+      maxRetries: opts.maxRetries ?? DEFAULT_MAX_RETRIES,
+      backoffBaseMs: opts.backoffBaseMs,
+      backoffMaxMs: opts.backoffMaxMs,
+      jitterMs: opts.jitterMs,
+      sleep: opts.sleep,
+      now: opts.now,
+      trace: opts.trace,
+      projectId: opts.projectId,
+      runId: opts.runId,
+    })
+    if (!result.ok) {
+      lastError = result.error
+      continue
+    }
+    try {
+      const text = provider.parseChat(result.data).trim()
+      return { text }
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err)
+    }
+  }
+  return { text: null, error: lastError ?? 'All free-tier providers unavailable' }
 }
 
 export async function embedFree(text: string, opts: FreeEmbedOptions = {}): Promise<FreeEmbedResult> {
-  const apiKey = resolveBytezKey(opts.apiKey)
-  if (!apiKey) return { embedding: null, error: 'No Bytez API key configured' }
-  const result = await postBytezWithRetry({
-    apiKey,
-    model: opts.model ?? BYTEZ_MODELS.embed,
-    body: { text },
-    rateLimit: opts.rateLimit ?? BYTEZ_RATE_LIMIT,
-    maxRetries: opts.maxRetries ?? DEFAULT_MAX_RETRIES,
-    backoffBaseMs: opts.backoffBaseMs,
-    backoffMaxMs: opts.backoffMaxMs,
-    jitterMs: opts.jitterMs,
-    sleep: opts.sleep,
-    now: opts.now,
-    trace: opts.trace,
-    projectId: opts.projectId,
-    runId: opts.runId,
-  })
-  if (!result.ok) return { embedding: null, error: result.error }
-  const data = result.data as { error?: string | null; output?: number[] }
-  if (data.error) return { embedding: null, error: data.error }
-  if (!Array.isArray(data.output) || data.output.length === 0) return { embedding: null, error: 'Invalid embedding from Bytez' }
-  return { embedding: data.output }
+  const chain = chainFor(opts, 'embed')
+  if (chain.length === 0) return { embedding: null, error: 'No free-tier embedding API key configured' }
+  let lastError: string | undefined
+  for (const id of chain) {
+    const provider = PROVIDER_BY_ID[id]
+    if (!provider.embedModel || !provider.embedUrl || !provider.embedBody || !provider.parseEmbed) continue
+    const apiKey = resolveProviderKey(id, opts.apiKey)
+    if (!apiKey) continue
+    const model = opts.model ?? provider.embedModel
+    const result = await postProviderWithRetry({
+      provider,
+      apiKey,
+      url: provider.embedUrl(model),
+      body: provider.embedBody(text, model),
+      model,
+      rateLimit: opts.rateLimit ?? provider.rateLimit,
+      maxRetries: opts.maxRetries ?? DEFAULT_MAX_RETRIES,
+      backoffBaseMs: opts.backoffBaseMs,
+      backoffMaxMs: opts.backoffMaxMs,
+      jitterMs: opts.jitterMs,
+      sleep: opts.sleep,
+      now: opts.now,
+      trace: opts.trace,
+      projectId: opts.projectId,
+      runId: opts.runId,
+    })
+    if (!result.ok) {
+      lastError = result.error
+      continue
+    }
+    try {
+      const embedding = provider.parseEmbed(result.data)
+      if (Array.isArray(embedding) && embedding.length > 0) return { embedding }
+      lastError = `${provider.label} returned an invalid embedding`
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err)
+    }
+  }
+  return { embedding: null, error: lastError ?? 'All free-tier providers unavailable' }
 }

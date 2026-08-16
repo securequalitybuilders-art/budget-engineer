@@ -2681,3 +2681,118 @@ Finished the cited-grounding feature pass for the KPI2 agent stack: the ZIQS SMM
 - `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1119 files)
 - `npx vite build`: success in ~48s (PWA precache 154 entries, 5352.93 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
 
+## Enterprise office typology — full validation suite + router reorder (Current, 2026-08-15)
+
+### What was done
+Wrote `src/__tests__/enterprise-typology.test.ts` (65 tests / 14 describes) covering the office (enterprise-typology) layout strategies end-to-end: office-vs-mock determinism, 24×24 central/side/dual core geometry, adjacency scoring (score 1 with 9 satisfied rules; 0.5 with 2 violated), core-layout invariant (blocks.length === 1), and the mock/fallback guards. Wired the office strategy as the router's first matching entry so `office-commercial` typologies route to it, and fixed the one lint error it surfaced. 5-suite verification gate fully green.
+
+### Files created (1)
+- `src/__tests__/enterprise-typology.test.ts` — 65 tests, 14 describes (mock/fallback describe LAST so per-layout tests run against the real office strategy). Locked geometry: Central (block 0,0,24,9.85; WC 3.5×9.85; Stair 18.7×5.5; Lift 18.7×2.4; Meeting/Kitchenette 9.35×3.5 at y 7.9; Open Plan 18.7×9.6 at y 11.4; Reception y 21; corridor 1.8×21; score 1, 9 rules). Side (block 3.5 wide, height ~21; coreArea ~73.51; Open Plan 18.7×10.8 at y 3.5; 1 violation). Dual (block height ~13.18; coreArea ~316.29; PO 3.5×7.85; WC 18.7×2.0; Open Plan at y 5.5). All core layouts `blocks.length === 1`.
+
+### Files modified (2)
+- `src/lib/layout/typology-router.ts` — `STRATEGIES`: the `'office'` block now sits BEFORE `'commercial'` and calls `generateOfficeLayout(program, width, height, seed, floorContext)`; old office template/packTemplate block removed. `getStrategy` matches the normalized key in insertion order → `office-commercial` routes to office.
+- `src/engine/spatial/core-planning.ts` — line 64 `let roomIds` → `const roomIds: string[] = []` (eslint `prefer-const`).
+
+### Notes
+- Test-side fixes during bring-up (engine was correct; all float artifacts are IEEE-754): use `toBeCloseTo(x, 2)` for product/sum-derived geometry — `snap(9.8743)` = 9.850000000000001, `5.3+9.35` = 14.649999999999999, `24*9.85` = 236.40000000000003, `21−9.85−8.75` = 2.4000000000000004; exact `toBe` only for integers/direct snapped inputs. `rectsTouch` counts edge-adjacency (disjoint fixture needs B at x=13, not x=12). `computeAdjacencyScore` y=6 fixture = totalWeight 6 / satisfiedWeight 4 / satisfied 2 / violated 1. `isCoreRoom` takes an `AdjacencyRoom` object (test helper `room(name)` adds id/x/y/w/h); CORE_GROUPS = `['stair','lift','wc','server','kitchenette']`.
+- Gate: 5 suites 189/189 (enterprise 65 + parametricEngine + planQualityAcceptance + tier3LayoutEngine + typologyDistinctPlans); tsc 0 errors; eslint 0 errors / 0 warnings; build success in ~42s (warnings pre-existing: opencv/three/useGlbExport lazy chunks, GLTFExporter dynamic-vs-static note, >512 kB chunk advice).
+- NOT committed — working tree carries a large unrelated uncommitted batch (`src/engine/spatial/`, `src/lib/layout/typologies/`, `eval/`, `supabase/`, `lib/`, `test-results/` + 13 modified engine files); repo convention is no commit without explicit request.
+- Windows env note: `rg` not installed and the `grep` tool ignored path scoping — verify via file reads or test runs.
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder intentionally NOT touched (repo convention).
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings
+- `npx vitest run --maxWorkers=4` (5 files: enterprise-typology, parametricEngine, planQualityAcceptance, tier3LayoutEngine, typologyDistinctPlans): 189/189 passed
+- `npx vite build`: success in ~42s (PWA precache unchanged); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+## Typology routing gap-fix — all 16 KB ids routed + substring bug (Current, 2026-08-15)
+
+### What was done
+Fixed typology routing in `src/lib/layout/typology-router.ts` so all 16 typology-kb ids route to sensible template-based strategies. Prior `getStrategy` used `normalized.includes(key)`/`key.includes(normalized)` substring matching, which silently misrouted 8 of 16 ids: `townhouse` (`'townhouse'.includes('house')`) and `warehouse-industrial` (`'warehouse'.includes('house')`) were swallowed by the first `house` key, and six KB ids (`hotel-fullservice`, `retail-shop`, `restaurant`, `community-hall`, `market`, `petrol-station`) had no matching key at all and fell back to `house`.
+
+### Files modified (2) + created (1)
+- `src/lib/layout/typology-router.ts` — `getStrategy` rewritten to exact-match-first then **whole-token** matching (`normalized.split(/[^a-z0-9]+/).filter(Boolean)` → `tokens.includes(key)`), dropping substring matching entirely; unknown/empty still falls back to `house`. Added 6 new STRATEGIES keys reusing existing templates (no `BuildingTypology` union change): `hotel` → `templateForTypology('apartment', …)` (DOUBLE_LOADED corridor for guest rooms off corridor), `retail`/`restaurant`/`market` → `commercial` (RETAIL_FRONT_BACK: sales/dining front + store/kitchen rear), `hall` → `worship` (WORSHIP_HALL_SUPPORT), `petrol` → `warehouse` (WAREHOUSE_SHED_OFFICE: shop front + bay/office). Full corrected table: house-residential→house, apartment-multi→apartment, townhouse→townhouse, clinic-health→clinic, school-classroom→school, hotel-fullservice→hotel, office-commercial→office, retail-shop→retail, restaurant→restaurant, church-worship→worship, warehouse-industrial→warehouse, community-hall→hall, market→market, petrol-station→petrol, mixed-use→mixed-use, duplex→duplex.
+- `src/lib/layout/typology-types.ts` — `TypologyStrategy.id: BuildingTypology` → `id: string` (new strategy keys `hotel`/`retail`/`restaurant`/`hall`/`market`/`petrol` aren't union members; grep confirmed `id` is consumed only by tests as a string and `BuildingTypology` otherwise stays confined to typology-router/layout-templates).
+- `src/__tests__/typologyRouting.test.ts` (new, 15 tests) — 16-id routing table, non-house-id never-falls-to-house, townhouse/warehouse substring-bug regressions, case/whitespace normalisation for new keys, exact-vs-token precedence (commercial vs retail), unknown/empty→house, and `generateLayoutByTypology` smoke tests for the 6 new strategies + townhouse/warehouse via their own templates.
+
+### Notes
+- The `it.each` smoke programs use realistic room names (Guest Room/Corridor/Toilet, Sales Floor/Store, Dining/Kitchen, Main Hall/Store, Shop/Store) — all pack to ≥1 room on 18×14 @ seed 7.
+- Existing getStrategy asserts in enterprise-typology.test.ts (office, ' Office ', office-commercial, commercial, unknown→house) and benchmark_stability plain-key iteration are preserved by exact/token matching; activePlanConsistency (default `hotel-fullservice`) now routes to the hotel strategy and still passes.
+- `budget-engineer-canonical` submodule (own copy of typology-router, line 38/52/214) + untracked `DZENHARE SQB…` spec folder intentionally NOT touched (repo convention). NOT committed — same convention.
+- Windows env note: `rg` not installed — grep/tests used for verification.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings
+- Targeted gate (8 files: typologyRouting, enterprise-typology, benchmark_stability, activePlanConsistency, typologyDistinctPlans, parseBriefOverride, p12_7, p12_4): 213/213
+- `npx vitest run --maxWorkers=4`: 5054/5054 tests (257 files); errorBoundary "Kaboom!" stderr is its intentional throwing-child fixture
+- `npx vite build`: success in ~7.4s (3362 modules transformed)
+
+## Clinic adjacency typology — full validation suite + dropped-rooms fallback (Current, 2026-08-15)
+
+### What was done
+Added a graph-based clinic floor strategy (`generateClinicLayout`) behind the typology router, wired the clinic-health KB entry as its single authority (structural grid {7.2, 7.2}, central core, floor-plate efficiency 0.72, adjacency rules), and fixed a regression the strategy introduced: the shared adjacency placer could report `valid` while dropping program rooms on small plates (breaking the `briefDrivenDesign` "every program room appears" invariant).
+
+### Files created (2)
+- `src/lib/layout/typologies/clinic-strategy.ts` — `generateClinicLayout(program, width, height, seed, floorContext?)` with two paths: (1) primary adjacency placement via `placeAdjacencyLayout` (1.8m corridor spine, wc core in the left column, treatment/staff/store band, reception + pharmacy front band); (2) template-packing fallback when the placer under-places. `clinicRoleFor(name)` maps clinic groups onto the generic office placement roles; `CLINIC_MIN_DEPTH` covers reception/pharmacy/private-office/meeting/kitchenette/wc. KB fields fall back to `DEFAULT_GRID`/`DEFAULT_CORE`/`DEFAULT_EFFICIENCY`.
+- `src/__tests__/clinic-strategy.test.ts` — 17 tests: role/group classification (every `ROOM_PROGRAMS.clinic` name except the intentional `Office` maps to a group; `roomGroupForClinic('Office')` stays null), 6 adjacency rules + weights sum 15, `CLINIC_MIN_DEPTH` coverage, 20×20 CLINIC_FIXTURE geometry (front band y 15.5, corridor 1.8×15.5 at x 3.5, treatment 7.35×4.0 at 5.3, three consultation cells 3.5×3.5 at x 0 y 4/7.5/11, two stacked toilets y 0/2), wc-only core block (3.5×4.0, 2 roomIds), perfect adjacency (score 1, 6 satisfied, 0 violated, no overlaps), floor-plate metrics, no room escapes the plate, KB authority fields + router wiring.
+
+### Dropped-rooms fix (fallback-on-drop)
+- **Root cause**: the adjacency placer can report `valid: true` while dropping rooms that don't fit a role/depth. Probe `generateLayoutByTypology('clinic-health', prog, 11, 11, 0)` (grossFloorArea 120) placed 8/10 — dropped `Office` (no role; `Office → null` is intentional and test-asserted) and `Consultation Room 2` (private-office min-depth 3.5 overflow on a small plate).
+- **Rejected option**: classifying bare `'office'` → staff in `adjacency-graph.ts` (applied then reverted — conflicts with the asserted null classification).
+- **Adopted fix**: `clinic-strategy.ts` takes the adjacency path only when `result.valid && result.rooms.length === rooms.length`; otherwise falls back to `templateForTypology('clinic', totalAreaM2, seed)` + `packTemplate` (places every program room), preserving the pre-strategy baseline behavior on small plates. At 20×20 all 11 fixture rooms place, so the adjacency path (and its geometry) stays active.
+
+### Files modified (3)
+- `src/lib/layout/typology-router.ts` — `clinic` strategy key routes to `generateClinicLayout` (KB id `clinic-health`; prior substring-routing work in the prior entry).
+- `src/engine/typology-kb.ts` — clinic-health entry: `adjacencyRules` = `CLINIC_ADJACENCY_RULES`, `structuralGrid {7.2, 7.2}`, `coreType 'central'`, `floorPlateEfficiency 0.72` (verified in prior session).
+- `src/engine/spatial/adjacency-graph.ts` + `src/engine/spatial/graph-placer.ts` — generalized the shared placer (role/group mappers, min depths, front/band groups); net clinic entry additions only.
+
+### Test-file tsc fixes
+- `src/__tests__/clinic-strategy.test.ts` line 8 import split (`type AdjacencyRoom` from `adjacency-graph`; `hasOverlaps` from `graph-placer`) and lines 222-225 `kb` narrowing (`expect(kb).toBeDefined()` then `kb!`) — tsc now 0 errors.
+
+### Notes
+- `Office` is intentionally the one `ROOM_PROGRAMS.clinic` room with no clinic group (`clinicRoleFor('Office') === null`); dropping it at small footprints is why the all-placed guard exists.
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder + `lib/`/`supabase/`/`eval/`/`test-results/` intentionally NOT touched (repo convention). NOT committed — working tree carries a large unrelated uncommitted batch; repo convention is no commit without explicit request.
+- Windows env note: `rg` not installed — grep/tests used for verification.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings
+- Targeted gate (3 files: clinic-strategy, briefDrivenDesign, typologyRouting): 45/45
+- `npx vitest run --maxWorkers=4`: 5071/5071 tests (258 files); errorBoundary "Kaboom!" stderr is its intentional throwing-child fixture
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1128 files)
+- `npx vite build`: success in ~14.4s (PWA precache 154 entries, 5365.98 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+
+## Hotel adjacency typology — full validation suite (Current, 2026-08-15)
+
+### What was done
+Wrote `src/__tests__/hotel-strategy.test.ts` (18 tests / 7 describes) locking the hotel (double-loaded) floor strategy end-to-end: classification + role maps, the 10 hotel adjacency rules, the deterministic 20×20 double-loaded geometry, the shared-placer public floor, the template-packing fallback, and KB/router wiring. The strategy file (`src/lib/layout/typologies/hotel-strategy.ts`), its router slot, and the `adjacency-graph.ts` hotel additions were created/fixed in the prior session; this session verified the rule bodies and delivered the suite.
+
+### Locked geometry (20×20, 400 m²; four 51 m² guest rooms + stair + WC + restaurant + corridor)
+- **Core column (left, stacked)**: Staircase `(0,0,3,6.65)` (h = snap(max(5.5, min(20/3, 20)))), Toilet `(0,6.65,3,2)`; coreBlock `(0,0,3,8.65)` = 25.95 m².
+- **Double-loaded corridor**: Guest1 `(3,0,8.5,6)`, Guest2 `(11.5,0,8.5,6)` (top band), Guest3 `(3,7.8,8.5,6)`, Guest4 `(11.5,7.8,8.5,6)` (bottom band, y = 6+1.8); Corridor `(3,6,17,1.8)`.
+- **Front band**: Restaurant (sole cell, stretches) `(3,13.8,17,6.2)`.
+- **Adjacency**: applicable = guest→corridor 3, restaurant→corridor 2, wc→corridor 2, stair→corridor 2 → totalWeight 9; satisfiedWeight 7 (stair/wc touch the corridor at x=3 with 0.65/1.15 overlap, guests share the corridor edge); violated exactly `[restaurant→corridor]`; score 7/9 ≈ 0.778.
+- **Metrics**: efficiency ≈ 0.8586, core 25.95 / circulation 30.6 / program 309.4 m², columns/rows 3/3, grid `{7.2,7.2}`, coreType 'central'.
+
+### Verified facts baked into the suite
+- `HOTEL_ADJACENCY_RULES` (`adjacency-graph.ts:281`): 10 rules, weight sum 21 — guest→corridor 3, lobby→corridor 3, restaurant→kitchen 3, restaurant→corridor 2, conference→corridor 2, wc→corridor 2, stair→corridor 2, lift→corridor 2, kitchen→corridor 1, lobby→restaurant 1 (exact `toEqual`).
+- `buildGroupClassifier` is longest-pattern-first substring match; classification map: Guest Room/Guest Suite→guest, Reception / Lobby→lobby, Restaurant→restaurant, Kitchen (Commercial)→kitchen, Conference Room→conference, Laundry/Storage→back-of-house, Admin Office/Office→admin, Toilet→wc, Staircase→stair, Lift Core→lift, Corridor→corridor, Parking/Garden→null. `hotelRoleFor` maps via ROLE_MAP (guest/admin→private-office, lobby→reception, restaurant/conference→meeting, kitchen/back-of-house→kitchenette, wc/stair/lift/corridor→same, null for unclassified). `HOTEL_ROOM_GROUPS` = 11 groups, each non-empty patterns.
+- `placeAdjacencyLayout` Path B: public floor places Lobby `(0,17,20,3)` front band + Corridor `(3.5,0,1.8,17)` + WC stack + Restaurant/Kitchen band cells `(5.3,0,7.35,3.5)`/`(12.65,0,7.35,3.5)` (last cell stretches to bandDepth 3.5); core block `(0,0,3.5,2)` [toilet].
+- **Fallback fixture**: 24 guest rooms @0.1275 + stair + corridor on 20×20 (Path A underflows — cell w 1.4 < 1.5; Path B places 4/26 → rejected) → template packing; asserts `valid` is boolean, rooms non-empty and ≤ program length, grid `{7.2,7.2}`.
+
+### Notes
+- Float-artifact lesson (same as clinic): `6 + 1.8` yields `7.800000000000001`, so the geometry test asserts via a local `near()` helper using `toBeCloseTo(x, 2)` (initial `toMatchObject` version failed 1/18 on Guest3.y).
+- `hotel-fullservice` KB entry (`typology-kb.ts:122-149`) carries no authority fields — the strategy falls back to `DEFAULT_GRID {7.2,7.2}` / 'central' / `HOTEL_ADJACENCY_RULES`; `getStrategy('hotel-fullservice').id === 'hotel'`; `generateLayoutByTypology('hotel-fullservice', HOTEL_FIXTURE, 20, 20, 0)` valid.
+- `budget-engineer-canonical` submodule + untracked `DZENHARE SQB…` spec folder + `lib/`/`supabase/`/`eval/`/`test-results/` intentionally NOT touched (repo convention). NOT committed — working tree carries a large unrelated uncommitted batch; repo convention is no commit without explicit request.
+- Windows env note: `rg` not installed — file reads/tests used for verification.
+
+### Verification results
+- `npx tsc --noEmit --skipLibCheck`: 0 errors
+- `npx eslint . --ext ts,tsx,mjs,cjs`: 0 errors / 0 warnings
+- Targeted `npx vitest run src/__tests__/hotel-strategy.test.ts`: 18/18
+- `npx vitest run --maxWorkers=4`: 5089/5089 tests (259 files) — +18 new hotel tests; errorBoundary "Kaboom!" stderr is its intentional throwing-child fixture
+- `npx madge --circular --extensions ts,tsx src`: ✔ No circular dependency found (1130 files)
+- `npx vite build`: success (PWA precache 154 entries, 5371.19 KiB); chunk warnings unchanged (pre-existing lazy chunks: opencv/three/useGlbExport; GLTFExporter dynamic-vs-static note)
+

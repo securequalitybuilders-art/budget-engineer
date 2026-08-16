@@ -7,7 +7,14 @@
 // can produce a deeper rewrite when a key is configured.
 
 import { getRemoteProvider, completeChat } from '@/lib/ai/remote-providers'
-import { generateFree, resolveBytezKey } from '@/lib/llm/freeRouter'
+import {
+  generateFree,
+  resolveBytezKey,
+  resolveNvidiaKey,
+  resolveOpenRouterKey,
+  resolveGroqKey,
+  resolveHuggingFaceKey,
+} from '@/lib/llm/freeRouter'
 import type { AiRemoteProvider } from '@/lib/ai/ai-types'
 
 export interface RewriteOptions {
@@ -203,9 +210,16 @@ export async function rewriteQuery(
     }
   }
 
-  // Free Bytez LLM path — used when explicitly requested or when no keyed
-  // provider is configured but a Bytez key is available. Never throws.
-  const useFree = opts.useFree === true || (!opts.engine && Boolean(resolveBytezKey(opts.apiKey)))
+  // Free LLM path — used when explicitly requested or when no keyed provider
+  // is configured but any free-tier key is available. Never throws.
+  const useFree =
+    opts.useFree === true ||
+    (!opts.engine &&
+      (Boolean(resolveBytezKey(opts.apiKey)) ||
+        Boolean(resolveNvidiaKey(opts.apiKey)) ||
+        Boolean(resolveOpenRouterKey(opts.apiKey)) ||
+        Boolean(resolveGroqKey(opts.apiKey)) ||
+        Boolean(resolveHuggingFaceKey(opts.apiKey))))
   if (useFree) {
     const free = await generateFree([{ role: 'user', content: REWRITE_PROMPT(query, history, opts.jurisdiction) }], {
       apiKey: opts.apiKey,

@@ -55,7 +55,7 @@ export interface TraceHybridSearchInput {
 
 export interface TraceRerankInput {
   query: string;
-  method: 'transformers' | 'bytez' | 'lexical';
+  method: 'transformers' | 'bytez' | 'nvidia' | 'lexical';
   confidence: number;
   threshold: number;
   needsClarification: boolean;

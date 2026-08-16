@@ -10,6 +10,25 @@ const ungrid = (g: number) => g * GRID
 const snapGrid = (v: number) => ungrid(grid(v))
 const snap05 = snapGrid
 
+/**
+ * Snapped zone rectangle derived from the actual snapped cell boundaries,
+ * so a zone never extends past the last snapped column/row edge.
+ */
+function zoneRect(
+  zone: ZoneDefinition,
+  cellW: number,
+  cellH: number,
+): { x: number; y: number; w: number; h: number } {
+  const x = snap05(zone.colStart * cellW)
+  const y = snap05(zone.rowStart * cellH)
+  return {
+    x,
+    y,
+    w: snap05(zone.colEnd * cellW) - x,
+    h: snap05(zone.rowEnd * cellH) - y,
+  }
+}
+
 export interface GridCell {
   col: number
   row: number
@@ -196,7 +215,7 @@ function packHorizontalBand(
     while (rowCount > 1 && zoneH / rowCount < ordered[ordered.length - 1]?.minDepth * 0.9) {
       rowCount--
     }
-    if (rowCount >= 2 || (rowCount === 1 && zoneH >= ordered[0]?.minDepth)) {
+    if (rowCount >= ordered.length && (rowCount >= 2 || (rowCount === 1 && zoneH >= ordered[0]?.minDepth))) {
       const rowH = zoneH / rowCount
       const result: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
       for (let i = 0; i < ordered.length; i++) {
@@ -305,7 +324,7 @@ function packVerticalBand(
     while (colCount > 1 && zoneW / colCount < ordered[ordered.length - 1]?.minWidth * 0.9) {
       colCount--
     }
-    if (colCount >= 2 || (colCount === 1 && zoneW >= ordered[0]?.minWidth)) {
+    if (colCount >= ordered.length && (colCount >= 2 || (colCount === 1 && zoneW >= ordered[0]?.minWidth))) {
       const colW = zoneW / colCount
       const result: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
       for (let i = 0; i < ordered.length; i++) {
@@ -388,19 +407,16 @@ function packZone(
   zone: ZoneDefinition,
   cellW: number,
   cellH: number,
-  zoneOriginX: number,
-  zoneOriginY: number,
   seed: number,
   warnings: PackWarning[],
 ): { id: string; name: string; x: number; y: number; width: number; height: number }[] {
-  const zoneW = (zone.colEnd - zone.colStart) * cellW
-  const zoneH = (zone.rowEnd - zone.rowStart) * cellH
+  const rect = zoneRect(zone, cellW, cellH)
   const direction = pickDirection(zone, cellW, cellH)
 
   if (direction === 'horizontal') {
-    return packHorizontalBand(zoneRooms, zoneOriginX, zoneOriginY, zoneW, zoneH, seed, warnings)
+    return packHorizontalBand(zoneRooms, rect.x, rect.y, rect.w, rect.h, seed, warnings)
   }
-  return packVerticalBand(zoneRooms, zoneOriginX, zoneOriginY, zoneW, zoneH, seed, warnings)
+  return packVerticalBand(zoneRooms, rect.x, rect.y, rect.w, rect.h, seed, warnings)
 }
 
 /**
@@ -451,10 +467,9 @@ export function packTemplate(
     for (const r of zoneRooms) usedNames.add(r.name)
     zoneRoomMap.set(zone.id, zoneRooms)
 
-    const zoneOriginX = zone.colStart * cellW
-    const zoneOriginY = zone.rowStart * cellH
+    const zoneRectSnapped = zoneRect(zone, cellW, cellH)
 
-    const placed = packZone(zoneRooms, zone, cellW, cellH, zoneOriginX, zoneOriginY, seed, warnings)
+    const placed = packZone(zoneRooms, zone, cellW, cellH, seed, warnings)
 
     // Check which rooms from this zone were placed
     const placedNames = new Set(placed.map(r => r.name))
@@ -468,9 +483,7 @@ export function packTemplate(
           const altZones = findAlternativeZones(r, zone.id, template.zones)
           let placedElsewhere = false
           for (const altZone of altZones) {
-            const altOriginX = altZone.colStart * cellW
-            const altOriginY = altZone.rowStart * cellH
-            const altPlaced = packZone([r], altZone, cellW, cellH, altOriginX, altOriginY, seed, warnings)
+            const altPlaced = packZone([r], altZone, cellW, cellH, seed, warnings)
             if (altPlaced.length > 0) {
               for (const p of altPlaced) {
                 allRooms.push(p)
@@ -499,16 +512,16 @@ export function packTemplate(
       // Round 3: for remaining overflow rooms, place required rooms at minimum size in original zone
       for (const r of remaining) {
         if (!r.flexible) {
-          const zoneW = (zone.colEnd - zone.colStart) * cellW
-          const zoneH = (zone.rowEnd - zone.rowStart) * cellH
+          const zoneW = zoneRectSnapped.w
+          const zoneH = zoneRectSnapped.h
           const w = Math.min(r.minWidth, zoneW)
           const h = Math.min(r.minDepth, zoneH)
           if (w >= 0.5 && h >= 0.5) {
             allRooms.push({
               id: uid(),
               name: r.name,
-              x: snap05(zoneOriginX + Math.max(0, zoneW - w)),
-              y: snap05(zoneOriginY + Math.max(0, zoneH - h)),
+              x: snap05(zoneRectSnapped.x + Math.max(0, zoneW - w)),
+              y: snap05(zoneRectSnapped.y + Math.max(0, zoneH - h)),
               width: snap05(w),
               height: snap05(h),
             })
