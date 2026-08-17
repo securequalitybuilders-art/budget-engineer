@@ -6,6 +6,7 @@ import type {
   StructuralGrid,
 } from '../../engine/tier1-types'
 import type { BubbleDiagram } from '../../engine/spatial/topological-graph'
+import type { ConstraintEvaluation } from '../../engine/architecture/typologies/types'
 
 export type BuildingTypology =
   | 'house'
@@ -40,6 +41,7 @@ export interface FloorLayoutResult {
   floorPlateMetrics?: FloorPlateMetrics
   adjacencyGraph?: AdjacencyGraphModel
   bubbleDiagram?: BubbleDiagram
+  constraintEvaluation?: ConstraintEvaluation
 }
 
 export interface TypologyStrategy {

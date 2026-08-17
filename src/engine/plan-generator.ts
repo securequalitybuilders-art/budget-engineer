@@ -26,6 +26,7 @@ function stampSpatialExtras(planModel: PlanModel, layoutResult: FloorLayoutResul
   if (layoutResult.floorPlateMetrics) planModel.floorPlateMetrics = layoutResult.floorPlateMetrics
   if (layoutResult.adjacencyGraph) planModel.adjacencyGraph = layoutResult.adjacencyGraph
   if (layoutResult.bubbleDiagram) planModel.bubbleDiagram = layoutResult.bubbleDiagram
+  if (layoutResult.constraintEvaluation) planModel.constraintEvaluation = layoutResult.constraintEvaluation
 }
 
 function postProcessRooms(rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[], fpW: number, fpH: number): { id: string; name: string; x: number; y: number; width: number; height: number }[] {

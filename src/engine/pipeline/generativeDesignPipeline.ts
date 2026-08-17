@@ -5,6 +5,7 @@ import type { PlanModel } from '../../domain/plan'
 import type { BuildingElement, DesignOption } from '../../domain/boq'
 import type { Tier1ParsedBrief } from '../tier1-types'
 import type { ComplianceReport, ComplianceInput } from '../compliance/types'
+import type { ConstraintEvaluation } from '../architecture/typologies/types'
 import { createStateMachine, type NodeDefinition, type NodeOutcome, type StateMachine } from '../agents/stateMachine'
 
 export interface PipelineInput {
@@ -33,6 +34,7 @@ export interface PipelineResult {
   planModel: PlanModel | null
   councilPackage: CouncilPackage | null
   complianceReport: ComplianceReport | null
+  constraintEvaluation: ConstraintEvaluation | null
   designOption: DesignOption | null
   steps: PipelineStep[]
   errors: string[]
@@ -56,6 +58,7 @@ interface PipelineNodeState {
   planModel: PlanModel | null
   councilPackage: CouncilPackage | null
   complianceReport: ComplianceReport | null
+  constraintEvaluation: ConstraintEvaluation | null
 }
 
 const NODE_PARSE = 'parseBriefNode'
@@ -88,6 +91,7 @@ export async function runPipeline(input: PipelineInput): Promise<PipelineResult>
     planModel: null,
     councilPackage: null,
     complianceReport: null,
+    constraintEvaluation: null,
   }
   const machine = createPipelineMachine(input, t0)
   const { state } = await machine.run(initialState, input, { maxSteps: 10 })
@@ -101,6 +105,7 @@ export async function runPipeline(input: PipelineInput): Promise<PipelineResult>
     planModel: state.planModel,
     councilPackage: state.councilPackage,
     complianceReport: state.complianceReport,
+    constraintEvaluation: state.constraintEvaluation,
     designOption: state.designOption,
     steps: state.steps,
     errors: state.errors,
@@ -185,6 +190,7 @@ function createPipelineMachine(input: PipelineInput, t0: TimerHandle): StateMach
               optimizerResult,
               selectedCandidate,
               planModel: selectedCandidate.planModel,
+              constraintEvaluation: selectedCandidate.planModel?.constraintEvaluation ?? null,
               steps: [...steps, makeStep('Multi-Objective Optimization', 'passed', elapsed(t0))],
             },
           }
@@ -320,6 +326,23 @@ export function formatPipelineReport(result: PipelineResult): string {
     if (cr.warnings.length > 0) {
       lines.push('  Warnings:')
       for (const w of cr.warnings) lines.push(`    • ${w}`)
+    }
+  }
+  lines.push('')
+  if (result.constraintEvaluation) {
+    const ce = result.constraintEvaluation
+    lines.push(`── Typology Constraints (${ce.typologyId}) ──`)
+    lines.push(`  Score: ${(ce.score * 100).toFixed(0)}% (${ce.summary.passed}/${ce.summary.totalRules} passed)`)
+    lines.push(`  Errors: ${ce.summary.errors}  Warnings: ${ce.summary.warnings}  Info: ${ce.summary.info}`)
+    const errors = ce.findings.filter(f => f.severity === 'error')
+    if (errors.length > 0) {
+      lines.push('  Errors:')
+      for (const e of errors) lines.push(`    • [${e.domain}] ${e.message}`)
+    }
+    const warnings = ce.findings.filter(f => f.severity === 'warning')
+    if (warnings.length > 0) {
+      lines.push('  Warnings:')
+      for (const w of warnings) lines.push(`    • [${w.domain}] ${w.message}`)
     }
   }
   lines.push('')

@@ -7,6 +7,7 @@ import { generateZonedLayout } from '../geometry/plan-intelligence'
 import { bubbleFromRooms } from '../../engine/spatial/topological-graph'
 import { templateForTypology, pickHouseTemplate } from './layout-templates'
 import { packTemplate } from './grid-packer'
+import { evaluateTypologyConstraints, getConstraintsForTypology } from '../../engine/architecture/typologies/constraintEvaluator'
 import type { PlanningZoneMarker, EntranceMarkerClass } from '../../domain/plan'
 import type { FloorContext, FloorLayoutResult, TypologyStrategy } from './typology-types'
 
@@ -252,5 +253,36 @@ export function generateLayoutByTypology(
   if (result.rooms && !result.bubbleDiagram) {
     result.bubbleDiagram = bubbleFromRooms(result.rooms, { typologyId: strategy.id })
   }
+
+  // Run typology constraint evaluation when constraints exist for this building type
+  if (result.rooms && result.rooms.length > 0) {
+    const constraintId = resolveConstraintId(buildingType)
+    if (constraintId && getConstraintsForTypology(constraintId)) {
+      result.constraintEvaluation = evaluateTypologyConstraints(constraintId, {
+        rooms: result.rooms,
+        totalWidth: width,
+        totalHeight: height,
+        buildingType,
+      })
+    }
+  }
+
   return result
+}
+
+/** Map a buildingType string (as passed to generateLayoutByTypology) to the constraint registry id. */
+function resolveConstraintId(buildingType: string): string | undefined {
+  const lower = buildingType.toLowerCase().trim()
+  // Exact match first
+  if (getConstraintsForTypology(lower)) return lower
+  // Common KB-style ids (e.g. 'house-residential', 'office-commercial')
+  const candidates = [
+    'house-residential', 'apartment-multi', 'clinic-health', 'school-classroom',
+    'church-worship', 'office-commercial', 'retail-shop', 'hotel-fullservice',
+    'warehouse-industrial', 'petrol-station', 'community-hall', 'mixed-use',
+  ]
+  for (const c of candidates) {
+    if (lower === c || lower.includes(c.split('-')[0])) return c
+  }
+  return undefined
 }

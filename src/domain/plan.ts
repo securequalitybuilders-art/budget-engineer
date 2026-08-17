@@ -7,6 +7,7 @@ import type {
   StructuralGrid,
 } from '@/engine/tier1-types'
 import type { BubbleDiagram } from '@/engine/spatial/topological-graph'
+import type { ConstraintEvaluation } from '@/engine/architecture/typologies/types'
 
 export interface Point {
   x: number
@@ -96,6 +97,7 @@ export interface PlanModel {
   floorPlateMetrics?: FloorPlateMetrics
   adjacencyGraph?: AdjacencyGraphModel
   bubbleDiagram?: BubbleDiagram
+  constraintEvaluation?: ConstraintEvaluation
 }
 
 export function getPlanSource(plan: PlanModel): PlanSource {
