@@ -96,7 +96,7 @@ describe('bubble diagram emission', () => {
       expect(result.bubbleDiagram).toBeDefined()
       expect(result.bubbleDiagram!.nodes.length).toBe(result.rooms.length)
       expect(result.bubbleDiagram!.nodes[0].areaM2).toBeGreaterThan(0)
-      expect(result.bubbleDiagram!.programSummary.roomCount).toBe(result.rooms.length)
+      expect(result.bubbleDiagram!.programSummary!.roomCount).toBe(result.rooms.length)
     }
   })
 
