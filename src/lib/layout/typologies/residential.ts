@@ -45,8 +45,8 @@ export function generateDuplexLayout(
     ratio: p.ratio * 0.5,
   }))
 
-  const template = pickHouseTemplate(halfW * height, seed || 1)
   const unitW = Number((halfW - 0.1).toFixed(2))
+  const template = pickHouseTemplate(halfW * height, seed || 1, unitW)
   const unitResult = packTemplate(template, halfProgram, unitW, height, seed)
   const unitRooms = unitResult.rooms
   const rooms: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []

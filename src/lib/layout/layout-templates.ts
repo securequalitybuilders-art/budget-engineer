@@ -63,12 +63,12 @@ const L_PLAN: LayoutTemplate = {
   minArea: 95,
   maxArea: 9999,
   cols: 4,
-  rows: 4,
+  rows: 5,
   zones: [
     { id: 'front-public', label: 'Front Public', role: 'public', colStart: 0, colEnd: 4, rowStart: 0, rowEnd: 2, acceptRoles: ['public', 'service', 'wet'], priority: 2 },
-    { id: 'circulation', label: 'Central Hall', role: 'circulation', colStart: 1, colEnd: 3, rowStart: 2, rowEnd: 3, acceptRoles: ['circulation'], priority: 4 },
-    { id: 'rear-private', label: 'Rear Private', role: 'private', colStart: 0, colEnd: 4, rowStart: 2, rowEnd: 4, acceptRoles: ['private'], priority: 1 },
-    { id: 'courtyard-void', label: 'Courtyard', role: 'void', colStart: 0, colEnd: 1, rowStart: 2, rowEnd: 3, acceptRoles: [], priority: 0 },
+    { id: 'circulation', label: 'Central Hall', role: 'circulation', colStart: 2, colEnd: 4, rowStart: 2, rowEnd: 3, acceptRoles: ['circulation'], priority: 4 },
+    { id: 'rear-private', label: 'Rear Private', role: 'private', colStart: 2, colEnd: 4, rowStart: 3, rowEnd: 5, acceptRoles: ['private'], priority: 1 },
+    { id: 'courtyard-void', label: 'Courtyard', role: 'void', colStart: 0, colEnd: 2, rowStart: 2, rowEnd: 5, acceptRoles: [], priority: 0 },
   ],
 }
 
@@ -99,7 +99,7 @@ const VILLA_QUAD: LayoutTemplate = {
   rows: 4,
   zones: [
     { id: 'public-tl', label: 'Public Living', role: 'public', colStart: 0, colEnd: 2, rowStart: 0, rowEnd: 2, acceptRoles: ['public'], priority: 2 },
-    { id: 'service-tr', label: 'Service Wing', role: 'service', colStart: 2, colEnd: 4, rowStart: 0, rowEnd: 1, acceptRoles: ['service', 'public'], priority: 3 },
+    { id: 'service-tr', label: 'Service Wing', role: 'service', colStart: 2, colEnd: 4, rowStart: 0, rowEnd: 1, acceptRoles: ['service'], priority: 3 },
     { id: 'wet-core', label: 'Wet Core', role: 'wet', colStart: 3, colEnd: 4, rowStart: 1, rowEnd: 2, acceptRoles: ['wet'], priority: 3 },
     { id: 'circ-spine', label: 'Central Spine', role: 'circulation', colStart: 2, colEnd: 3, rowStart: 1, rowEnd: 4, acceptRoles: ['circulation'], priority: 5 },
     { id: 'private-bl', label: 'Private Suite', role: 'private', colStart: 0, colEnd: 2, rowStart: 2, rowEnd: 4, acceptRoles: ['private', 'wet'], priority: 1 },
@@ -399,8 +399,11 @@ export function isRequiredRoom(name: string): boolean {
   return true
 }
 
-export function pickHouseTemplate(area: number, seed = 0): LayoutTemplate {
-  const valid = HOUSE_TEMPLATES.filter(t => area >= t.minArea && area <= t.maxArea)
+export function pickHouseTemplate(area: number, seed = 0, width?: number): LayoutTemplate {
+  let valid = HOUSE_TEMPLATES.filter(t => area >= t.minArea && area <= t.maxArea)
+  if (width !== undefined) {
+    valid = valid.filter(t => width / t.cols >= 1.8)
+  }
   if (valid.length === 0) return L_PLAN
   return valid[seed % valid.length]
 }

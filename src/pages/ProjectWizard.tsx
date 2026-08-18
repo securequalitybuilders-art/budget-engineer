@@ -24,9 +24,16 @@ import {
   Package,
   Hammer,
   KeyRound,
+  Pen,
 } from 'lucide-react';
 import type { UserProfile, Region, Currency } from '@/types';
 import { cn } from '@/lib/utils';
+import type { PlanModel, WallSegment, Opening, RoomRect } from '@/domain/plan';
+import { generateFullSetSync } from '@/engine/architecture/fullSetGenerator';
+import { PlotterSimulator } from '@/lib/plotter/plotterSimulator';
+import { optimizePlotterPaths } from '@/lib/plotter/pathOptimizer';
+import { PAPER_DIMENSIONS } from '@/lib/plotter/types';
+import { getTypology } from '@/engine/typology-kb';
 import {
   DREAM_PHASES,
   JOURNEY_STEPS,
@@ -213,6 +220,69 @@ export function ProjectWizard() {
     return SPEND_DOWN_OPTIONS.filter((o) => spendDown.includes(o.id)).reduce((sum, o) => sum + o.priceCents, 0);
   }, [spendDown]);
 
+  // ── Synthetic PlanModel from concept + typology ──────────────
+  const syntheticPlan = useMemo<PlanModel>(() => {
+    const conceptDef = concepts.find((c) => c.id === concept) ?? concepts[1];
+    const areaM2 = conceptDef.grossAreaM2;
+    const side = Math.round(Math.sqrt(areaM2) * 10) / 10;
+    const t = getTypology(buildingType);
+    const programme = t?.defaultProgram ?? [];
+    const roomW = Math.max(1.5, side / Math.ceil(Math.sqrt(programme.length || 4)));
+    const roomH = Math.max(1.8, side / Math.ceil((programme.length || 4) / Math.ceil(Math.sqrt(programme.length || 4))));
+    const cols = Math.ceil(Math.sqrt(programme.length || 4));
+    const rooms: RoomRect[] = programme.slice(0, 12).map((p, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const w = Math.max(1.8, Math.min(roomW, p.areaM2 / 2.0 + 0.5));
+      const h = Math.max(2.0, Math.min(roomH, p.areaM2 / w + 0.3));
+      return { id: `room-${i}`, name: p.name, x: Math.round(col * (roomW + 0.3) * 100) / 100, y: Math.round(row * (roomH + 0.3) * 100) / 100, width: Math.round(w * 100) / 100, height: Math.round(h * 100) / 100 };
+    });
+    const wallThk = 0.23;
+    const perimeter = [
+      { id: 'ext-n', start: { x: 0, y: 0 }, end: { x: side, y: 0 }, thickness: wallThk, type: 'external' as const },
+      { id: 'ext-e', start: { x: side, y: 0 }, end: { x: side, y: side }, thickness: wallThk, type: 'external' as const },
+      { id: 'ext-s', start: { x: side, y: side }, end: { x: 0, y: side }, thickness: wallThk, type: 'external' as const },
+      { id: 'ext-w', start: { x: 0, y: side }, end: { x: 0, y: 0 }, thickness: wallThk, type: 'external' as const },
+    ];
+    const walls: WallSegment[] = [...perimeter];
+    const openings: Opening[] = [];
+    rooms.forEach((_r, i) => {
+      openings.push({ id: `door-${i}`, wallId: perimeter[i % 4].id, kind: 'door', offset: 0.5, width: 0.9 });
+      if (i % 3 === 0) openings.push({ id: `win-${i}`, wallId: perimeter[(i + 1) % 4].id, kind: 'window', offset: 0.4, width: 1.2 });
+    });
+    return {
+      id: `plan-${concept}`,
+      designOptionId: `opt-${concept}`,
+      width: side,
+      height: side,
+      wallThickness: wallThk,
+      rooms,
+      walls,
+      openings,
+      scaleLabel: '1:100',
+    };
+  }, [concept, concepts, buildingType]);
+
+  // ── Full-set generation (sync, no RAG) ──────────────────────
+  const fullSet = useMemo(() => generateFullSetSync({
+    plan: syntheticPlan,
+    buildingType,
+    projectName: name || 'Budget Engineer Project',
+    jurisdiction: region,
+    floors: 1,
+    storeyHeight: 3,
+  }), [syntheticPlan, buildingType, name, region]);
+
+  const [selectedDrawingId, setSelectedDrawingId] = useState<string>(fullSet.drawings[0]?.id ?? 'cover-sheet');
+  const selectedDrawing = useMemo(() => fullSet.drawings.find((d) => d.id === selectedDrawingId) ?? fullSet.drawings[0], [fullSet.drawings, selectedDrawingId]);
+
+  const plotterResult = useMemo(() => {
+    if (!selectedDrawing || selectedDrawing.plotterPaths.length === 0) return null;
+    const segments = selectedDrawing.plotterPaths.flatMap((p) => p.segments);
+    if (segments.length === 0) return null;
+    return optimizePlotterPaths(segments);
+  }, [selectedDrawing]);
+
   const canNext = (() => {
     switch (currentStep.id) {
       case 'dream-welcome':
@@ -227,6 +297,10 @@ export function ProjectWizard() {
         return planChoice.length > 0;
       case 'plan-sketches':
         return concept.length > 0;
+      case 'plan-drawings':
+        return fullSet.drawings.length > 0;
+      case 'plan-plotter':
+        return true;
       case 'plan-finishes':
         return true;
       case 'plan-lock':
@@ -549,6 +623,117 @@ export function ProjectWizard() {
                     </button>
                   );
                 })}
+              </div>
+            )}
+
+            {currentStep.id === 'plan-drawings' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-[var(--text-secondary)]">
+                    19 SADC-code drawings generated from your <span className="font-semibold text-[var(--brand-accent)]">{concept}</span> concept &middot;{' '}
+                    {fullSet.totalPenUpMetres.toFixed(1)}m pen-up travel &middot; {fullSet.generationTimeMs}ms
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  {/* Drawing thumbnail grid */}
+                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 lg:grid-cols-6 flex-1 max-h-[50vh] overflow-y-auto pr-1">
+                    {fullSet.drawings.map((d) => (
+                      <button
+                        key={d.id}
+                        data-drawing-id={d.id}
+                        onClick={() => setSelectedDrawingId(d.id)}
+                        className={cn(
+                          'group relative rounded-lg border p-1.5 text-left transition-all',
+                          d.id === selectedDrawingId
+                            ? 'border-[var(--brand-accent)] bg-[var(--brand-accent)]/10 ring-1 ring-[var(--brand-accent)]/30'
+                            : 'border-[var(--border-default)] bg-[var(--bg-tertiary)] hover:border-[var(--text-muted)]'
+                        )}
+                      >
+                        <div className="aspect-[4/3] overflow-hidden rounded bg-white">
+                          <svg
+                            viewBox={`0 0 ${d.dimensions.width} ${d.dimensions.height}`}
+                            className="h-full w-full"
+                            dangerouslySetInnerHTML={{ __html: d.svg.replace(/<svg[^>]*>/, '').replace(/<\/svg>$/, '') }}
+                          />
+                        </div>
+                        <p className="mt-1 truncate text-[10px] font-medium leading-tight">{d.sadcCode}</p>
+                        <p className="truncate text-[9px] text-[var(--text-muted)] leading-tight">{d.title}</p>
+                      </button>
+                    ))}
+                  </div>
+                  {/* Full-size selected drawing */}
+                  {selectedDrawing && (
+                    <div className="hidden flex-1 sm:block">
+                      <div className="rounded-xl border border-[var(--border-default)] bg-white p-2 overflow-hidden">
+                        <svg
+                          viewBox={`0 0 ${selectedDrawing.dimensions.width} ${selectedDrawing.dimensions.height}`}
+                          className="h-auto w-full"
+                          dangerouslySetInnerHTML={{ __html: selectedDrawing.svg.replace(/<svg[^>]*>/, '').replace(/<\/svg>$/, '') }}
+                        />
+                      </div>
+                      <div className="mt-2 flex items-center gap-3 text-xs text-[var(--text-muted)]">
+                        <Badge variant="outline">{selectedDrawing.sadcCode}</Badge>
+                        <span>{selectedDrawing.title}</span>
+                        <span>Scale {selectedDrawing.scale}</span>
+                        {selectedDrawing.citations.length > 0 && (
+                          <Badge variant="secondary">{selectedDrawing.citations.length} citations</Badge>
+                        )}
+                        {selectedDrawing.ifcAnnotations.length > 0 && (
+                          <Badge variant="secondary">{selectedDrawing.ifcAnnotations.length} IFC entities</Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {currentStep.id === 'plan-plotter' && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Pen size={16} className="text-[var(--brand-accent)]" />
+                  <p className="text-sm text-[var(--text-secondary)]">
+                    Pen plotter simulation for <span className="font-semibold">{selectedDrawing?.sadcCode}</span> &middot;{' '}
+                    {plotterResult ? (
+                      <>{plotterResult.stats.outputPenLifts} pen lifts, {plotterResult.stats.penUpReductionPct.toFixed(0)}% travel reduction</>
+                    ) : (
+                      'No plotter paths available for this drawing'
+                    )}
+                  </p>
+                </div>
+                {plotterResult && plotterResult.groups.length > 0 ? (
+                  <PlotterSimulator
+                    groups={plotterResult.groups}
+                    stats={plotterResult.stats}
+                    paperWidth={PAPER_DIMENSIONS.A1.widthMm}
+                    paperHeight={PAPER_DIMENSIONS.A1.heightMm}
+                  />
+                ) : (
+                  <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-tertiary)] p-12 text-center">
+                    <Pen size={32} className="mx-auto mb-3 text-[var(--text-muted)]" />
+                    <p className="text-sm text-[var(--text-muted)]">
+                      This drawing has no pen-plotter paths. Try a plan-view drawing (A-101 to A-105).
+                    </p>
+                  </div>
+                )}
+                {selectedDrawing && (
+                  <div className="flex gap-2 overflow-x-auto">
+                    {fullSet.drawings.filter((d) => d.plotterPaths.length > 0).map((d) => (
+                      <button
+                        key={d.id}
+                        onClick={() => setSelectedDrawingId(d.id)}
+                        className={cn(
+                          'flex-shrink-0 rounded-lg border px-3 py-2 text-xs transition-all',
+                          d.id === selectedDrawingId
+                            ? 'border-[var(--brand-accent)] bg-[var(--brand-accent)]/10 text-[var(--brand-accent)]'
+                            : 'border-[var(--border-default)] bg-[var(--bg-tertiary)] text-[var(--text-muted)] hover:border-[var(--text-muted)]'
+                        )}
+                      >
+                        {d.sadcCode} &middot; {d.title}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

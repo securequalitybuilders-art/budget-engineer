@@ -188,11 +188,13 @@ function packHorizontalBand(
     const spare = zoneW - totalMinW
     const result: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
     let x = 0
+    let prevRightEdge = zoneX
     for (let i = 0; i < ordered.length; i++) {
       const r = ordered[i]
       const extra = spare * (r.ratio / ratioSum)
       const w = r.minWidth + extra
-      const roomX = snap05(zoneX + x)
+      const rawX = snap05(zoneX + x)
+      const roomX = Math.abs(rawX - prevRightEdge) < 0.01 ? prevRightEdge : rawX
       const remaining = zoneW - (roomX - zoneX)
       const clippedW = snap05(Math.min(w, remaining))
       result.push({
@@ -203,6 +205,7 @@ function packHorizontalBand(
         width: clippedW,
         height: snap05(zoneH),
       })
+      prevRightEdge = roomX + clippedW
       x = (roomX - zoneX) + clippedW
     }
     return result
@@ -246,35 +249,77 @@ function packHorizontalBand(
   const result: { id: string; name: string; x: number; y: number; width: number; height: number }[] = []
   let x = 0
 
-  // Reserve minimum widths for all rooms, distribute any excess proportionally
   const totalMin = ordered.reduce((s, r) => s + r.minWidth, 0)
-  const deficit = Math.max(0, totalMin - zoneW)
+  const lastRoom = ordered[ordered.length - 1]
+  const lastMinW = lastRoom.minWidth
+  const lastDeficit = Math.max(0, lastMinW - zoneW + (totalMin - lastMinW))
 
-  for (let i = 0; i < ordered.length; i++) {
-    const r = ordered[i]
-    const roomX = snap05(zoneX + x)
-    const remainingW = Math.max(0, zoneW - (roomX - zoneX))
-    // Each room gets at least minWidth, deficit is subtracted proportionally
-    const reduction = deficit * (r.minWidth / totalMin)
-    const w = Math.max(0.5, Math.min(r.minWidth - reduction, remainingW))
-
-    if (belowMinimum(r, w, zoneH) && !r.flexible) {
-      warnings.push({
-        message: `Required room "${r.name}" placed below minimum size in overflow — layout invalid`,
-        roomName: r.name,
+  if (lastDeficit > 0 && ordered.length > 1) {
+    // Last room would be below minimum: steal proportionally from earlier rooms
+    const totalSurplus = ordered.slice(0, -1).reduce((s, r) => s + Math.max(0, zoneW / ordered.length - r.minWidth), 0)
+    let prevRightEdge = zoneX
+    for (let i = 0; i < ordered.length; i++) {
+      const r = ordered[i]
+      const rawX = snap05(zoneX + x)
+      const roomX = Math.abs(rawX - prevRightEdge) < 0.01 ? prevRightEdge : rawX
+      const remainingW = Math.max(0, zoneW - (roomX - zoneX))
+      let w: number
+      if (i < ordered.length - 1) {
+        const surplus = Math.max(0, zoneW / ordered.length - r.minWidth)
+        const reduction = totalSurplus > 0 ? lastDeficit * (surplus / totalSurplus) : lastDeficit / (ordered.length - 1)
+        w = Math.max(0.5, Math.min(r.minWidth + surplus - reduction, remainingW))
+      } else {
+        w = Math.max(0.5, Math.min(lastMinW, remainingW))
+      }
+      const snappedW = snap05(Math.min(w, remainingW))
+      if (belowMinimum(r, snappedW, zoneH) && !r.flexible) {
+        warnings.push({
+          message: `Required room "${r.name}" placed below minimum size in overflow — layout invalid`,
+          roomName: r.name,
+        })
+      }
+      result.push({
+        id: uid(),
+        name: r.name,
+        x: roomX,
+        y: snap05(zoneY),
+        width: snappedW,
+        height: snap05(zoneH),
       })
+      prevRightEdge = roomX + snappedW
+      x = (roomX - zoneX) + snappedW
     }
+  } else {
+    // Original proportional deficit distribution
+    const deficit = Math.max(0, totalMin - zoneW)
+    let prevRightEdge = zoneX
+    for (let i = 0; i < ordered.length; i++) {
+      const r = ordered[i]
+      const rawX = snap05(zoneX + x)
+      const roomX = Math.abs(rawX - prevRightEdge) < 0.01 ? prevRightEdge : rawX
+      const remainingW = Math.max(0, zoneW - (roomX - zoneX))
+      const reduction = deficit * (r.minWidth / totalMin)
+      const w = Math.max(0.5, Math.min(r.minWidth - reduction, remainingW))
 
-    const snappedW = snap05(Math.min(w, remainingW))
-    result.push({
-      id: uid(),
-      name: r.name,
-      x: roomX,
-      y: snap05(zoneY),
-      width: snappedW,
-      height: snap05(zoneH),
-    })
-    x = (roomX - zoneX) + snappedW
+      if (belowMinimum(r, w, zoneH) && !r.flexible) {
+        warnings.push({
+          message: `Required room "${r.name}" placed below minimum size in overflow — layout invalid`,
+          roomName: r.name,
+        })
+      }
+
+      const snappedW = snap05(Math.min(w, remainingW))
+      result.push({
+        id: uid(),
+        name: r.name,
+        x: roomX,
+        y: snap05(zoneY),
+        width: snappedW,
+        height: snap05(zoneH),
+      })
+      prevRightEdge = roomX + snappedW
+      x = (roomX - zoneX) + snappedW
+    }
   }
 
   return result

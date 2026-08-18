@@ -24,6 +24,8 @@ export const JOURNEY_STEPS: JourneyStepDef[] = [
   { id: 'dream-feasibility', phase: 'dream', title: 'Feasibility Go / No-Go', description: 'An early ROM check of your budget against the build.' },
   { id: 'dream-activate', phase: 'dream', title: 'Activate', description: 'Pick your plan — Red Pen or Guardian.' },
   { id: 'plan-sketches', phase: 'plan', title: 'Review 3 AI sketches', description: 'Choose the concept that feels like home.' },
+  { id: 'plan-drawings', phase: 'plan', title: 'Working drawings', description: '19 SADC-code architectural drawings generated from your concept.' },
+  { id: 'plan-plotter', phase: 'plan', title: 'Pen plotter preview', description: 'Watch your drawings come alive as pen-on-paper strokes.' },
   { id: 'plan-finishes', phase: 'plan', title: 'Pick finishes', description: 'Choose finishes with clear price tags.' },
   { id: 'plan-lock', phase: 'plan', title: 'Approve Build Plan', description: 'Lock the total, contingency, and milestones in one click.' },
   { id: 'pick-contractor', phase: 'pick', title: 'Your matched contractor', description: 'Why this contractor? The match rationale is shown, not just a profile.' },

@@ -24,8 +24,8 @@ describe('dreamJourney phases & steps', () => {
     expect(DREAM_PHASES.map((p) => p.label)).toEqual(['Dream', 'Plan', 'Pick', 'Build', 'Move In']);
   });
 
-  it('has 12 journey steps covering all 5 phases', () => {
-    expect(JOURNEY_STEPS).toHaveLength(12);
+  it('has 14 journey steps covering all 5 phases', () => {
+    expect(JOURNEY_STEPS).toHaveLength(14);
     expect(new Set(JOURNEY_STEPS.map((s) => s.phase))).toEqual(new Set(DREAM_PHASES.map((p) => p.id)));
     expect(JOURNEY_STEPS.map((s) => s.title)).toContain('Who is building?');
     expect(JOURNEY_STEPS.map((s) => s.title)).toContain('Your matched contractor');

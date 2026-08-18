@@ -92,7 +92,7 @@ describe('ProjectWizard dream journey', () => {
   it('gates the approve-build-plan button until the plan is locked', async () => {
     renderWizard();
     await seedNameAndBudget();
-    await advance(6);
+    await advance(8);
 
     expect(screen.getByText('Approve Build Plan')).toBeTruthy();
     const next = screen.getByRole('button', { name: 'Next' });
@@ -104,7 +104,7 @@ describe('ProjectWizard dream journey', () => {
   it('shows the recommended contractor and gates materials confirmation', async () => {
     renderWizard();
     await seedNameAndBudget();
-    await advance(7);
+    await advance(9);
 
     expect(screen.getByText('Your matched contractor')).toBeTruthy();
     expect(screen.getByText('Kudakwashe Chirinda')).toBeTruthy();
@@ -122,7 +122,7 @@ describe('ProjectWizard dream journey', () => {
   it('shows 3 build milestones with 35/40/25 splits', async () => {
     renderWizard();
     await seedNameAndBudget();
-    await advance(9);
+    await advance(11);
 
     expect(screen.getByText('Your 3 milestones')).toBeTruthy();
     expect(screen.getAllByText(/Foundation & Bones/i).length).toBeGreaterThanOrEqual(2);
@@ -136,7 +136,7 @@ describe('ProjectWizard dream journey', () => {
   it('ends on Move In with the contingency spend-down and rating', async () => {
     renderWizard();
     await seedNameAndBudget();
-    await advance(10);
+    await advance(12);
 
     expect(screen.getAllByText('Move In').length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByText(/Contingency spend-down/i).length).toBeGreaterThanOrEqual(1);
