@@ -3,6 +3,126 @@ import type { Milestone } from '@/domain/milestone'
 import type { PlanModel, RoomRect } from '@/domain/plan'
 import { PHASES } from '@/engine/construction/constructionPhases'
 
+const WET_ROOM_KEYWORDS = ['bathroom', 'kitchen', 'toilet', 'laundry', 'ensuite', 'wc']
+
+function totalWallLength(plan: PlanModel): number {
+  return plan.walls.reduce((sum, w) => {
+    const dx = w.end.x - w.start.x
+    const dy = w.end.y - w.start.y
+    return sum + Math.sqrt(dx * dx + dy * dy)
+  }, 0)
+}
+
+function wetRooms(plan: PlanModel): RoomRect[] {
+  return plan.rooms.filter((r) =>
+    WET_ROOM_KEYWORDS.some((kw) => r.name.toLowerCase().includes(kw)),
+  )
+}
+
+function wetFloorArea(plan: PlanModel): number {
+  return wetRooms(plan).reduce((sum, r) => sum + r.width * r.height, 0)
+}
+
+export interface PlanMetrics {
+  totalFloorArea: number
+  wallLength: number
+  roomCount: number
+  doorCount: number
+  windowCount: number
+  wetRoomCount: number
+  wetFloorArea: number
+}
+
+export function computePlanMetrics(plan: PlanModel): PlanMetrics {
+  const totalFloorArea = plan.rooms.reduce((sum, r) => sum + r.width * r.height, 0)
+  const wallLength = totalWallLength(plan)
+  const doorCount = plan.openings.filter((o) => o.kind === 'door').length
+  const windowCount = plan.openings.filter((o) => o.kind === 'window').length
+  const wetArea = wetFloorArea(plan)
+  return {
+    totalFloorArea,
+    wallLength,
+    roomCount: plan.rooms.length,
+    doorCount,
+    windowCount,
+    wetRoomCount: wetRooms(plan).length,
+    wetFloorArea: wetArea,
+  }
+}
+
+function scaleBom(bom: PhaseBomEntry[], overrides: Partial<Record<string, number>>): PhaseBomEntry[] {
+  return bom.map((entry) => {
+    const override = overrides[entry.item]
+    if (override === undefined) return entry
+    return { ...entry, qty: Math.max(0, Math.round(override)) }
+  })
+}
+
+function buildMaterialOverrides(plan: PlanModel, metrics: PlanMetrics): Partial<Record<string, number>> {
+  const overrides: Partial<Record<string, number>> = {}
+  const perimeter = planPerimeter(plan)
+
+  // rough-in: pipes scale with room/wet-room count and wall length
+  overrides['Copper pipe 15mm'] = Math.max(6, metrics.roomCount * 6)
+  overrides['PVC conduit 20mm'] = Math.max(10, Math.round(metrics.wallLength * 2))
+  overrides['PE pipe 25mm'] = Math.max(4, metrics.wetRoomCount * 4)
+
+  // substrates: plaster/ceiling scale with perimeter and floor area
+  overrides['Cement plaster 1:4'] = Math.max(20, Math.round(perimeter * 2.4 * 0.02))
+  overrides['Cement board 6mm'] = Math.max(6, Math.round(metrics.totalFloorArea * 0.9))
+  overrides['Acrylic membrane'] = Math.max(4, Math.round(metrics.wetFloorArea * 0.5))
+  overrides['Floor screed 1:4'] = Math.max(6, Math.round(metrics.totalFloorArea * 0.9))
+
+  // finishes: tiles/wood/paint/skirting scale with floor areas and perimeter
+  overrides['Porcelain tile 600x600'] = Math.max(6, Math.round(metrics.wetFloorArea * 1.1))
+  overrides['Engineered oak 14mm'] = Math.max(6, Math.round((metrics.totalFloorArea - metrics.wetFloorArea) * 1.05))
+  overrides['Matt emulsion paint'] = Math.max(6, Math.round(perimeter * 2.4 * 2 * 0.08))
+  overrides['MDF skirting 100x12'] = Math.max(6, Math.round(perimeter * 0.85))
+  overrides['Epoxy grout'] = Math.max(1, Math.round(metrics.wetFloorArea * 0.2))
+  overrides['MDF architrave 70x12'] = Math.max(1, metrics.doorCount * 3)
+
+  // millwork: kitchen-specific items
+  const hasKitchen = plan.rooms.some((r) => r.name.toLowerCase().includes('kitchen'))
+  overrides['Marine ply 18mm'] = hasKitchen ? 6 : 1
+  overrides['Granite countertop'] = hasKitchen ? 3 : 0
+
+  // appliances: downlights scale with room count
+  overrides['LED downlight'] = Math.max(4, metrics.roomCount * 2)
+
+  return overrides
+}
+
+function planPerimeter(plan: PlanModel): number {
+  return plan.rooms.reduce((sum, r) => sum + 2 * (r.width + r.height), 0)
+}
+
+const REFERENCE_AREA = 120
+const REFERENCE_ROOMS = 6
+const REFERENCE_PERIMETER = 85
+
+export function scalePhasesToPlan(plan: PlanModel, phases: ConstructionPhase[]): ConstructionPhase[] {
+  if (plan.rooms.length === 0) return phases
+
+  const metrics = computePlanMetrics(plan)
+  const overrides = buildMaterialOverrides(plan, metrics)
+  const perimeter = planPerimeter(plan)
+
+  return phases.map((phase) => {
+    const scaledBom = scaleBom(phase.bom, overrides)
+
+    let estimatedDays = phase.estimatedDays
+    if (phase.id === 'rough-in') {
+      estimatedDays = Math.max(7, Math.round(phase.estimatedDays * (metrics.roomCount / REFERENCE_ROOMS)))
+    } else if (phase.id === 'substrates') {
+      estimatedDays = Math.max(5, Math.round(phase.estimatedDays * (perimeter / REFERENCE_PERIMETER)))
+    } else if (phase.id === 'finishes') {
+      estimatedDays = Math.max(7, Math.round(phase.estimatedDays * (metrics.totalFloorArea / REFERENCE_AREA)))
+    }
+
+    return { ...phase, bom: scaledBom, estimatedDays }
+  })
+}
+
 export interface SequenceItem {
   phase: ConstructionPhase
   startDay: number

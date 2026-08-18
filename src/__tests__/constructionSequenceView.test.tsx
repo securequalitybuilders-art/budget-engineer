@@ -34,7 +34,7 @@ describe('ConstructionSequenceView', () => {
 
   it('renders the timeline header, play button and 5 phases', () => {
     render(<ConstructionSequenceView activePlan={plan} />)
-    expect(screen.getByText(/Day 0 of 49/)).toBeTruthy()
+    expect(screen.getByText(/Day 0 of 34/)).toBeTruthy()
     expect(screen.getByText('Play')).toBeTruthy()
     const rows = document.querySelectorAll('[data-phase]')
     expect(rows).toHaveLength(5)
@@ -52,18 +52,18 @@ describe('ConstructionSequenceView', () => {
   it('scrubbing into the substrates phase marks rough-in complete', () => {
     render(<ConstructionSequenceView activePlan={plan} />)
     const slider = screen.getByRole('slider', { name: 'Construction timeline' })
-    fireEvent.change(slider, { target: { value: '18' } })
+    fireEvent.change(slider, { target: { value: '10' } })
     const roughIn = screen.getByText('Rough-in & Infrastructure').closest('[data-phase]') as HTMLElement
     expect(roughIn.getAttribute('data-stage')).toBe('completed')
     const substrates = screen.getByText('Substrates & Enclosures').closest('[data-phase]') as HTMLElement
     expect(substrates.getAttribute('data-stage')).toBe('in-progress')
-    expect(screen.getByText(/Day 18 of 49/)).toBeTruthy()
+    expect(screen.getByText(/Day 10 of 34/)).toBeTruthy()
   })
 
   it('renders an isometric layer group for an in-progress phase', () => {
     render(<ConstructionSequenceView activePlan={plan} />)
     const slider = screen.getByRole('slider', { name: 'Construction timeline' })
-    fireEvent.change(slider, { target: { value: '18' } })
+    fireEvent.change(slider, { target: { value: '10' } })
     const layer = document.querySelector('[data-layer="iso-layer-rough-in"]') as HTMLElement
     expect(layer).not.toBeNull()
     expect(layer.getAttribute('data-stage')).toBe('completed')
@@ -75,7 +75,7 @@ describe('ConstructionSequenceView', () => {
   it('shows materials arriving for the active phase', () => {
     render(<ConstructionSequenceView activePlan={plan} />)
     const slider = screen.getByRole('slider', { name: 'Construction timeline' })
-    fireEvent.change(slider, { target: { value: '7' } })
+    fireEvent.change(slider, { target: { value: '3' } })
     expect(screen.getByText('Materials on site')).toBeTruthy()
     const materials = document.querySelectorAll('[data-material]')
     expect(materials.length).toBeGreaterThan(0)
@@ -89,18 +89,18 @@ describe('ConstructionSequenceView', () => {
     act(() => {
       vi.advanceTimersByTime(240)
     })
-    expect(screen.queryByText(/Day 0 of 49/)).toBeNull()
+    expect(screen.queryByText(/Day 0 of 34/)).toBeNull()
     fireEvent.click(screen.getByText('Pause'))
     fireEvent.click(screen.getByText('Reset'))
-    expect(screen.getByText(/Day 0 of 49/)).toBeTruthy()
+    expect(screen.getByText(/Day 0 of 34/)).toBeTruthy()
   })
 
   it('renders all five layers when scrubbed to the final day', () => {
     render(<ConstructionSequenceView activePlan={plan} />)
     const slider = screen.getByRole('slider', { name: 'Construction timeline' })
-    fireEvent.change(slider, { target: { value: '49' } })
+    fireEvent.change(slider, { target: { value: '34' } })
     const layers = document.querySelectorAll('[data-layer^="iso-layer"]')
     expect(layers).toHaveLength(5)
-    expect(screen.getByText(/Day 49 of 49/)).toBeTruthy()
+    expect(screen.getByText(/Day 34 of 34/)).toBeTruthy()
   })
 })

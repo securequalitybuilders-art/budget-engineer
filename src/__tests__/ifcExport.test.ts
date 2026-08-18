@@ -250,4 +250,98 @@ describe('planModelToIfcStep', () => {
     expect(ifc).toContain('.AREAUNIT.,$,.SQUARE_METRE.')
     expect(ifc).toContain('.VOLUMEUNIT.,$,.CUBIC_METRE.')
   })
+
+  it('emits IFCDOOR for door openings', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'door-1', wallId: 'w-int-1', kind: 'door', offset: 0.5, width: 0.9, height: 2.1 },
+      ],
+    })
+    const ifc = planModelToIfcStep(plan, CTX)!
+    expect(ifc).toContain('IFCDOOR(')
+    expect(ifc).toContain('.DOOR.')
+    expect(ifc).toContain('IFCPOSITIVELENGTHMEASURE(0.9)')
+    expect(ifc).toContain('IFCPOSITIVELENGTHMEASURE(2.1)')
+  })
+
+  it('emits IFCWINDOW for window openings', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'win-1', wallId: 'w-ext-1', kind: 'window', offset: 0.3, width: 1.2, height: 1.2, sillHeight: 0.9 },
+      ],
+    })
+    const ifc = planModelToIfcStep(plan, CTX)!
+    expect(ifc).toContain('IFCWINDOW(')
+    expect(ifc).toContain('.WINDOW.')
+    expect(ifc).toContain('IFCPOSITIVELENGTHMEASURE(1.2)')
+  })
+
+  it('emits IFCOPENINGELEMENT and IFCRELVOIDSELEMENT per opening', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'door-1', wallId: 'w-int-1', kind: 'door', offset: 0.5, width: 0.9 },
+        { id: 'win-1', wallId: 'w-ext-1', kind: 'window', offset: 0.3, width: 1.2 },
+      ],
+    })
+    const ifc = planModelToIfcStep(plan, CTX)!
+    const openingCount = (ifc.match(/IFCOPENINGELEMENT\(/g) || []).length
+    const voidsCount = (ifc.match(/IFCRELVOIDSELEMENT\(/g) || []).length
+    expect(openingCount).toBe(2)
+    expect(voidsCount).toBe(2)
+  })
+
+  it('emits Pset_DoorCommon with FireRating', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'door-1', wallId: 'w-ext-1', kind: 'door', offset: 0.5, width: 0.9, height: 2.1 },
+      ],
+    })
+    const ifc = planModelToIfcStep(plan, CTX)!
+    // House → B2 → fireRating 30 → "0.5HR"
+    expect(ifc).toContain("'DoorCommon'")
+    expect(ifc).toContain("IFCPROPERTYSINGLEVALUE('FireRating',$,IFCTEXT('0.5HR'),$)")
+  })
+
+  it('emits Pset_WindowCommon with SillHeight', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'win-1', wallId: 'w-ext-1', kind: 'window', offset: 0.3, width: 1.2, height: 1.2, sillHeight: 0.9 },
+      ],
+    })
+    const ifc = planModelToIfcStep(plan, CTX)!
+    expect(ifc).toContain("'WindowCommon'")
+    expect(ifc).toContain("'SillHeight'")
+  })
+
+  it('contains doors and windows in IFCRELCONTAINEDINSPATIALSTRUCTURE', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'door-1', wallId: 'w-int-1', kind: 'door', offset: 0.5, width: 0.9 },
+      ],
+    })
+    const ifc = planModelToIfcStep(plan, CTX)!
+    const containedLines = (ifc.match(/IFCRELCONTAINEDINSPATIALSTRUCTURE\(/g) || []).length
+    // One for spaces + one for the door+opening pair
+    expect(containedLines).toBeGreaterThanOrEqual(2)
+  })
+
+  it('uses default door height 2.1 when height omitted', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'door-1', wallId: 'w-int-1', kind: 'door', offset: 0.5, width: 0.9 },
+      ],
+    })
+    const ifc = planModelToIfcStep(plan, CTX)!
+    expect(ifc).toContain('IFCPOSITIVELENGTHMEASURE(2.1)')
+  })
+
+  it('uses default window height 1.2 when height omitted', () => {
+    const plan = makePlan({
+      openings: [
+        { id: 'win-1', wallId: 'w-ext-1', kind: 'window', offset: 0.3, width: 1.2 },
+      ],
+    })
+    const ifc = planModelToIfcStep(plan, CTX)!
+    expect(ifc).toContain('IFCPOSITIVELENGTHMEASURE(1.2)')
+  })
 })

@@ -12,6 +12,8 @@
  * - `IfcRelSpaceBoundary` per adjacency edge (room-to-room, lenient typing)
  * - `IfcWallStandardCase` per wall segment (thickness, material name, fire
  *   rating)
+ * - `IfcDoor` / `IfcWindow` per opening (overall dimensions, fire rating)
+ * - `IfcOpeningElement` + `IfcRelVoidsElement` per wall penetration
  *
  * Additional exports: `resolveUseTypeForBuilding`, `designPopulationForPlan`,
  * `ifcSpaceLongName`, `formatFireRating`.
@@ -196,6 +198,7 @@ export function planModelToIfcStep(plan: PlanModel, ctx?: IfcDesignContext): str
   // ── IFCSPACE per room ──
   const spaceRefs: string[] = []
   const wallRefs: string[] = []
+  const openingElementRefs: string[] = []
 
   for (const room of plan.rooms) {
     const areaM2 = Math.round(room.width * room.height * 100) / 100
@@ -258,6 +261,66 @@ export function planModelToIfcStep(plan: PlanModel, ctx?: IfcDesignContext): str
       `IFCELEMENTQUANTITY('${guid()}',#${ownerHistory},'WallBaseQuantities',$,$,(#${push(`IFCQUANTITYLENGTH('Length',$,$,${Math.round(Math.sqrt((wall.end.x - wall.start.x) ** 2 + (wall.end.y - wall.start.y) ** 2) * 100) / 100},$,$)`)}),#${push(`IFCQUANTITYLENGTH('Width',$,$,${thickness},$,$)`)},#${push(`IFCQUANTITYLENGTH('Height',$,$,${DEFAULT_STOREY_HEIGHT},$,$)`)}))`,
     )
     push(`IFCRELDEFINESBYPROPERTIES('${guid()}',#${ownerHistory},$,$,(#${wallRef}),#${qtoRef})`)
+  }
+
+  // ── IFCOPENINGELEMENT + IFCDOOR / IFCWINDOW per opening ──
+  for (const opening of plan.openings) {
+    const wall = plan.walls.find((w) => w.id === opening.wallId)
+    const wallRef = wall ? wallRefs[plan.walls.indexOf(wall)] : wallRefs[0]
+    if (!wallRef) continue
+
+    // Compute opening centre from wall offset ratio
+    const wallStart = wall?.start ?? plan.walls[0].start
+    const wallEnd = wall?.end ?? plan.walls[0].end
+    const cx = wallStart.x + (wallEnd.x - wallStart.x) * opening.offset
+    const cz = wallStart.y + (wallEnd.y - wallStart.y) * opening.offset
+    const openingWidth = opening.width
+    const openingHeight = opening.height ?? (opening.kind === 'door' ? 2.1 : 1.2)
+    const sillHeight = opening.sillHeight ?? (opening.kind === 'door' ? 0 : 0.9)
+
+    // IfcOpeningElement — the void carved into the wall
+    const openingPlace = push(
+      `IFCLOCALPLACEMENT(#${projPlacement},IFCAXIS2PLACEMENT3D(IFCCARTESIANPOINT((${cx},0,${cz})),IFCDIRECTION((0,0,1)),IFCDIRECTION((1,0,0))))`,
+    )
+    const openingRef = push(
+      `IFCOPENINGELEMENT('${guid()}',#${ownerHistory},'${escapeStep(opening.id)}',$,$,#${openingPlace},$)`,
+    )
+    // IfcRelVoidsElement — connects opening to its parent wall
+    push(`IFCRELVOIDSELEMENT('${guid()}',#${ownerHistory},$,$,#${wallRef},#${openingRef})`)
+
+    // IfcDoor or IfcWindow
+    const elementPlace = openingPlace
+    let doorWindowRef: string
+    if (opening.kind === 'door') {
+      doorWindowRef = push(
+        `IFCDOOR('${guid()}',#${ownerHistory},'${escapeStep(opening.id)}',$,$,#${elementPlace},$,IFCDOORTYPEENUM(.DOOR.),IFCPOSITIVELENGTHMEASURE(${openingWidth}),IFCPOSITIVELENGTHMEASURE(${openingHeight}))`,
+      )
+      // Pset_DoorCommon
+      const psetRef = buildPset('DoorCommon', {
+        FireRating: fireRatingStr,
+        IsExternal: wall?.type === 'external',
+        Reference: MATERIAL_NAME,
+      })
+      push(`IFCRELDEFINESBYPROPERTIES('${guid()}',#${ownerHistory},$,$,(#${doorWindowRef}),#${psetRef})`)
+    } else {
+      doorWindowRef = push(
+        `IFCWINDOW('${guid()}',#${ownerHistory},'${escapeStep(opening.id)}',$,$,#${elementPlace},$,IFCWINDOWTYPEENUM(.WINDOW.),IFCPOSITIVELENGTHMEASURE(${openingWidth}),IFCPOSITIVELENGTHMEASURE(${openingHeight}))`,
+      )
+      // Pset_WindowCommon
+      const psetRef = buildPset('WindowCommon', {
+        FireRating: fireRatingStr,
+        IsExternal: wall?.type === 'external',
+        Reference: 'Glazing',
+        SillHeight: sillHeight,
+      })
+      push(`IFCRELDEFINESBYPROPERTIES('${guid()}',#${ownerHistory},$,$,(#${doorWindowRef}),#${psetRef})`)
+    }
+
+    // IfcRelContainedInSpatialStructure — opening + door/window in the storey
+    push(
+      `IFCRELCONTAINEDINSPATIALSTRUCTURE('${guid()}',#${ownerHistory},$,$,(#${openingRef},#${doorWindowRef}),#${storeyRef})`,
+    )
+    openingElementRefs.push(openingRef, doorWindowRef)
   }
 
   // ── IFCRELCONTAINEDINSPATIALSTRUCTURE (rooms in storey) ──

@@ -11,12 +11,15 @@ import {
   buildIsoTransform,
   isoPoint,
   roomIsoPoints,
+  computePlanMetrics,
+  scalePhasesToPlan,
   PHASE_LIST,
   PHASE_IDS,
 } from '@/lib/construction/sequence'
 import type { ConstructionPhase } from '@/domain/construction'
 import type { Milestone } from '@/domain/milestone'
 import type { PlanModel } from '@/domain/plan'
+import { PHASES } from '@/engine/construction/constructionPhases'
 
 const phases: ConstructionPhase[] = [
   { id: 'rough-in', title: 'Rough-in & Infrastructure', description: '', workItems: [], materials: [], bom: [], estimatedDays: 14, trade: 'MEP' },
@@ -165,5 +168,186 @@ describe('construction sequence helpers', () => {
       expect(Number.isFinite(x)).toBe(true)
       expect(Number.isFinite(y)).toBe(true)
     }
+  })
+})
+
+const scaledPlan: PlanModel = {
+  id: 'p2',
+  designOptionId: 'd2',
+  width: 14,
+  height: 12,
+  wallThickness: 0.22,
+  scaleLabel: '1:100',
+  rooms: [
+    { id: 'r1', name: 'Living Room', x: 0, y: 0, width: 5, height: 4 },
+    { id: 'r2', name: 'Kitchen', x: 5, y: 0, width: 4, height: 3 },
+    { id: 'r3', name: 'Bedroom 1', x: 9, y: 0, width: 4, height: 3 },
+    { id: 'r4', name: 'Bathroom', x: 5, y: 3, width: 3, height: 2.5 },
+    { id: 'r5', name: 'Bedroom 2', x: 0, y: 4, width: 4, height: 3 },
+    { id: 'r6', name: 'Dining', x: 4, y: 4, width: 3.5, height: 3 },
+    { id: 'r7', name: 'Store', x: 7.5, y: 4, width: 2.5, height: 2 },
+    { id: 'r8', name: 'Toilet', x: 10, y: 3, width: 3, height: 2 },
+  ],
+  walls: [
+    { id: 'w1', start: { x: 0, y: 0 }, end: { x: 14, y: 0 }, thickness: 0.22, type: 'external' },
+    { id: 'w2', start: { x: 0, y: 0 }, end: { x: 0, y: 7 }, thickness: 0.22, type: 'external' },
+    { id: 'w3', start: { x: 14, y: 0 }, end: { x: 14, y: 7 }, thickness: 0.22, type: 'external' },
+    { id: 'w4', start: { x: 0, y: 7 }, end: { x: 14, y: 7 }, thickness: 0.22, type: 'external' },
+  ],
+  openings: [
+    { id: 'o1', wallId: 'w1', kind: 'door', offset: 3, width: 0.9 },
+    { id: 'o2', wallId: 'w2', kind: 'window', offset: 1, width: 1.2 },
+    { id: 'o3', wallId: 'w3', kind: 'door', offset: 2, width: 0.9 },
+    { id: 'o4', wallId: 'w4', kind: 'window', offset: 4, width: 1.5 },
+    { id: 'o5', wallId: 'w1', kind: 'window', offset: 7, width: 1.2 },
+    { id: 'o6', wallId: 'w2', kind: 'door', offset: 3, width: 0.9 },
+  ],
+}
+
+const noKitchensPlan: PlanModel = {
+  ...scaledPlan,
+  id: 'p3',
+  rooms: scaledPlan.rooms.filter((r) => r.name !== 'Kitchen'),
+}
+
+const emptyPlan: PlanModel = {
+  id: 'p4',
+  designOptionId: 'd4',
+  width: 10,
+  height: 8,
+  wallThickness: 0.22,
+  scaleLabel: '1:100',
+  rooms: [],
+  walls: [],
+  openings: [],
+}
+
+describe('computePlanMetrics', () => {
+  it('computes total floor area from room dimensions', () => {
+    const m = computePlanMetrics(scaledPlan)
+    const expected = 5 * 4 + 4 * 3 + 4 * 3 + 3 * 2.5 + 4 * 3 + 3.5 * 3 + 2.5 * 2 + 3 * 2
+    expect(m.totalFloorArea).toBeCloseTo(expected, 1)
+  })
+
+  it('counts rooms, doors, and windows', () => {
+    const m = computePlanMetrics(scaledPlan)
+    expect(m.roomCount).toBe(8)
+    expect(m.doorCount).toBe(3)
+    expect(m.windowCount).toBe(3)
+  })
+
+  it('identifies wet rooms by keyword', () => {
+    const m = computePlanMetrics(scaledPlan)
+    expect(m.wetRoomCount).toBe(3)
+    expect(m.wetFloorArea).toBeCloseTo(4 * 3 + 3 * 2.5 + 3 * 2, 1)
+  })
+
+  it('computes wall length from wall segments', () => {
+    const m = computePlanMetrics(scaledPlan)
+    const expectedLen = 14 + 7 + 14 + 7
+    expect(m.wallLength).toBeCloseTo(expectedLen, 1)
+  })
+
+  it('returns zero metrics for empty plan', () => {
+    const m = computePlanMetrics(emptyPlan)
+    expect(m.roomCount).toBe(0)
+    expect(m.totalFloorArea).toBe(0)
+    expect(m.wallLength).toBe(0)
+    expect(m.wetRoomCount).toBe(0)
+    expect(m.wetFloorArea).toBe(0)
+  })
+})
+
+describe('scalePhasesToPlan', () => {
+  const allPhases: ConstructionPhase[] = Object.values(PHASES)
+
+  it('returns raw phases when plan has no rooms', () => {
+    const result = scalePhasesToPlan(emptyPlan, allPhases)
+    expect(result).toEqual(allPhases)
+  })
+
+  it('scales copper pipe BOM by room count', () => {
+    const result = scalePhasesToPlan(scaledPlan, allPhases)
+    const roughIn = result.find((p) => p.id === 'rough-in')!
+    const copper = roughIn.bom.find((b) => b.item === 'Copper pipe 15mm')
+    expect(copper).toBeDefined()
+    expect(copper!.qty).toBe(Math.max(6, 8 * 6))
+  })
+
+  it('scales PVC conduit BOM by wall length', () => {
+    const result = scalePhasesToPlan(scaledPlan, allPhases)
+    const roughIn = result.find((p) => p.id === 'rough-in')!
+    const conduit = roughIn.bom.find((b) => b.item === 'PVC conduit 20mm')
+    expect(conduit).toBeDefined()
+    expect(conduit!.qty).toBe(Math.max(10, Math.round(42 * 2)))
+  })
+
+  it('scales porcelain tile BOM by wet floor area', () => {
+    const result = scalePhasesToPlan(scaledPlan, allPhases)
+    const finishes = result.find((p) => p.id === 'finishes')!
+    const tile = finishes.bom.find((b) => b.item === 'Porcelain tile 600x600')
+    expect(tile).toBeDefined()
+    const wetArea = 4 * 3 + 3 * 2.5 + 3 * 2
+    expect(tile!.qty).toBe(Math.max(6, Math.round(wetArea * 1.1)))
+  })
+
+  it('scales engineered oak by dry floor area', () => {
+    const result = scalePhasesToPlan(scaledPlan, allPhases)
+    const finishes = result.find((p) => p.id === 'finishes')!
+    const oak = finishes.bom.find((b) => b.item === 'Engineered oak 14mm')
+    expect(oak).toBeDefined()
+    const totalArea = 5 * 4 + 4 * 3 + 4 * 3 + 3 * 2.5 + 4 * 3 + 3.5 * 3 + 2.5 * 2 + 3 * 2
+    const wetArea = 4 * 3 + 3 * 2.5 + 3 * 2
+    const dryArea = totalArea - wetArea
+    expect(oak!.qty).toBe(Math.max(6, Math.round(dryArea * 1.05)))
+  })
+
+  it('returns 0 granite countertop when no kitchen', () => {
+    const result = scalePhasesToPlan(noKitchensPlan, allPhases)
+    const millwork = result.find((p) => p.id === 'millwork')!
+    const granite = millwork.bom.find((b) => b.item === 'Granite countertop')
+    expect(granite).toBeDefined()
+    expect(granite!.qty).toBe(0)
+  })
+
+  it('returns 3 granite countertop when kitchen present', () => {
+    const result = scalePhasesToPlan(scaledPlan, allPhases)
+    const millwork = result.find((p) => p.id === 'millwork')!
+    const granite = millwork.bom.find((b) => b.item === 'Granite countertop')
+    expect(granite).toBeDefined()
+    expect(granite!.qty).toBe(3)
+  })
+
+  it('scales rough-in days proportionally to room count', () => {
+    const result = scalePhasesToPlan(scaledPlan, allPhases)
+    const roughIn = result.find((p) => p.id === 'rough-in')!
+    const expected = Math.max(7, Math.round(14 * (8 / 6)))
+    expect(roughIn.estimatedDays).toBe(expected)
+  })
+
+  it('scales finishes days proportionally to floor area', () => {
+    const result = scalePhasesToPlan(scaledPlan, allPhases)
+    const finishes = result.find((p) => p.id === 'finishes')!
+    const m = computePlanMetrics(scaledPlan)
+    const expected = Math.max(7, Math.round(12 * (m.totalFloorArea / 120)))
+    expect(finishes.estimatedDays).toBe(expected)
+  })
+
+  it('does not mutate the original phases array', () => {
+    const originals = allPhases.map((p) => p.estimatedDays)
+    scalePhasesToPlan(scaledPlan, allPhases)
+    allPhases.forEach((p, i) => {
+      expect(p.estimatedDays).toBe(originals[i])
+    })
+  })
+
+  it('preserves phase metadata (id, title, trade)', () => {
+    const result = scalePhasesToPlan(scaledPlan, allPhases)
+    expect(result).toHaveLength(allPhases.length)
+    result.forEach((p, i) => {
+      expect(p.id).toBe(allPhases[i].id)
+      expect(p.title).toBe(allPhases[i].title)
+      expect(p.trade).toBe(allPhases[i].trade)
+    })
   })
 })

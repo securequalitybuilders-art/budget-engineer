@@ -13,6 +13,7 @@ import {
   phaseStageAt,
   progressAtDay,
   roomIsoPoints,
+  scalePhasesToPlan,
   type SequenceItem,
 } from '@/lib/construction/sequence'
 
@@ -35,11 +36,11 @@ function calendarDay(startDate: string | undefined, day: number): string {
 export function ConstructionSequenceView({ activePlan, projectId, budgetCents, startDate }: ConstructionSequenceViewProps) {
   const { milestones } = useMilestonePlan(projectId, budgetCents)
   const seq = useMemo(() => {
-    const phases = Object.values(PHASES)
+    const phases = activePlan ? scalePhasesToPlan(activePlan, Object.values(PHASES)) : Object.values(PHASES)
     const { items, totalDays } = buildSequence(phases)
     const merged = mergeMilestoneProgress(items, milestones)
     return { items: merged, totalDays }
-  }, [milestones])
+  }, [activePlan, milestones])
 
   const [day, setDay] = useState(0)
   const [playing, setPlaying] = useState(false)
