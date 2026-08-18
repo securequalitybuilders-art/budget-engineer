@@ -1,4 +1,4 @@
-import { ShieldCheck, FileSpreadsheet, FolderOpen, ShoppingCart, BarChart3, Flag, Wallet, Scale, TrendingUp, Camera, Bot, Activity, ArrowRight } from 'lucide-react'
+import { ShieldCheck, FileSpreadsheet, FolderOpen, ShoppingCart, BarChart3, Flag, Wallet, Scale, TrendingUp, Camera, Bot, Activity, Pen, Layers, ArrowRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 export interface StudioLink {
@@ -23,6 +23,8 @@ function iconForStudio(studio: string): ReactNode {
     case 'site-photos': return <Camera size={12} />
     case 'agent': return <Bot size={12} />
     case 'telemetry': return <Activity size={12} />
+    case 'plotter': return <Pen size={12} />
+    case 'full-set': return <Layers size={12} />
     default: return <ArrowRight size={12} />
   }
 }

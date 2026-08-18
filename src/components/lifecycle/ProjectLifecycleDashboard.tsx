@@ -20,7 +20,7 @@ import {
   computeProcurementLifecycleSummary, computeHandoverLifecycleSummary,
   computeProjectHealthSummary, computeProjectLifecycleSummary,
 } from '@/lib/lifecycle/lifecycleSummary';
-import { ShieldCheck, Flag, ShoppingCart, FolderOpen, AlertTriangle, ArrowRight, BookOpenCheck, Scale, TrendingUp, Camera, Bot, Activity } from 'lucide-react';
+import { ShieldCheck, Flag, ShoppingCart, FolderOpen, AlertTriangle, ArrowRight, BookOpenCheck, Scale, TrendingUp, Camera, Bot, Activity, Pen, Layers } from 'lucide-react';
 import { listTelemetryEvents } from '@/lib/observability/langfuseClient';
 
 interface ProjectLifecycleDashboardProps {
@@ -167,7 +167,7 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
         </div>
 
         {/* Ten module summary cards */}
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-10">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-12">
           <ModuleSummaryCard
             icon={<ShieldCheck size={14} />}
             label="Assurance"
@@ -255,6 +255,22 @@ export function ProjectLifecycleDashboard({ projectId }: ProjectLifecycleDashboa
             color={telemetryCount > 0 ? 'text-cyan-400' : 'text-gray-400'}
             detail={telemetryCount > 0 ? `${(telemetryFallbackRate * 100).toFixed(0)}% fallback` : 'Local observability'}
             linkTo={`/project/${projectId}/studio/telemetry`}
+          />
+          <ModuleSummaryCard
+            icon={<Pen size={14} />}
+            label="Plotter"
+            value="SVG/HPGL"
+            color="text-cyan-400"
+            detail="Pen plotter pipeline"
+            linkTo={`/project/${projectId}/studio/plotter`}
+          />
+          <ModuleSummaryCard
+            icon={<Layers size={14} />}
+            label="Full Set"
+            value="19 sheets"
+            color="text-cyan-400"
+            detail="City council submission"
+            linkTo={`/project/${projectId}/studio/full-set`}
           />
         </div>
       </div>
