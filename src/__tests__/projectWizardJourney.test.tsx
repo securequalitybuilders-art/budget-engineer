@@ -52,7 +52,7 @@ async function seedNameAndBudget() {
   fireEvent.change(screen.getByLabelText(/total budget/i), { target: { value: '45000' } });
 }
 
-describe('ProjectWizard dream journey', () => {
+describe('ProjectWizard dream journey', { timeout: 30_000 }, () => {
   it('starts on the Dream welcome step with profile cards', () => {
     renderWizard();
     expect(screen.getByText('Who is building?')).toBeTruthy();

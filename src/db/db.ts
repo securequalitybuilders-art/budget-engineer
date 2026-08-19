@@ -32,6 +32,27 @@ import type { WipaaSnapshot } from '@/engine/payment/wipaaAutoRun';
 import type { MarketIndexSnapshot } from '@/engine/ecosystem/marketIndexScheduler';
 import type { SitePhoto } from '@/engine/offline/sitePhotos';
 import type { TelemetryEvent } from '@/lib/observability/langfuseClient';
+import type {
+  ResourceRecord,
+  ContractorScorecard,
+  SupplierScorecard,
+  ForwardCommitment,
+  CostBaseline,
+  BoqItem,
+  TeamAssignment,
+} from '@/domain/greenflag';
+import type {
+  WbsDictionaryEntry,
+  ScheduleRecord,
+  ResourceScheduleRow,
+  LogisticsRecord,
+  DigitalTwinTimelineEntry,
+  VerificationReport,
+  EscrowMilestoneRecord,
+  EscrowReleaseRecord,
+  VariationPenalty,
+  WipaaEntry,
+} from '@/domain/sitehawk';
 
 export class BudgetEngineerDB extends Dexie {
   projects!: Table<Project, string>;
@@ -94,6 +115,23 @@ export class BudgetEngineerDB extends Dexie {
   marketIndexSnapshots!: Table<MarketIndexSnapshot, string>;
   sitePhotos!: Table<SitePhoto, string>;
   telemetryEvents!: Table<TelemetryEvent, string>;
+  resources!: Table<ResourceRecord, string>;
+  teamAssignments!: Table<TeamAssignment, string>;
+  contractorScorecards!: Table<ContractorScorecard, string>;
+  supplierScorecards!: Table<SupplierScorecard, string>;
+  forwardCommitments!: Table<ForwardCommitment, string>;
+  costBaselines!: Table<CostBaseline, string>;
+  boqItems!: Table<BoqItem, string>;
+  wbsDictionary!: Table<WbsDictionaryEntry, string>;
+  schedules!: Table<ScheduleRecord, string>;
+  resourceSchedules!: Table<ResourceScheduleRow, string>;
+  logistics!: Table<LogisticsRecord, string>;
+  digitalTwinTimeline!: Table<DigitalTwinTimelineEntry, string>;
+  verificationReports!: Table<VerificationReport, string>;
+  escrowMilestones!: Table<EscrowMilestoneRecord, string>;
+  escrowReleases!: Table<EscrowReleaseRecord, string>;
+  variationPenalties!: Table<VariationPenalty, string>;
+  wipaaEntries!: Table<WipaaEntry, string>;
 
   constructor() {
     super('BudgetEngineerDB');
@@ -714,6 +752,84 @@ export class BudgetEngineerDB extends Dexie {
       marketIndexSnapshots: 'id,dayKey,computedAt,source',
       sitePhotos: 'id,projectId,milestoneId,capturedAt',
       telemetryEvents: 'id,type,projectId,runId,createdAt',
+    });
+
+    this.version(16).stores({
+      projects: 'id, [ownerId+status], updatedAt',
+      briefs: 'projectId',
+      designs: 'id, projectId, [projectId+optionIndex]',
+      boqs: 'id, projectId, designId',
+      transactions: 'id, [projectId+createdAt], entityType',
+      rates: 'id, [region+code], source',
+      cadDocs: 'id,name,projectId',
+      bimModels: 'id,name,projectId',
+      governance: 'projectId,approvalState,lastUpdated',
+      snapshots: 'id,timestamp,name,projectId',
+      planModels: 'id,projectId,designId,savedAt',
+      projectIntakes: 'id,projectId,status',
+      feasibilityAssessments: 'id,projectId',
+      riskGates: 'id,projectId,gateType,status',
+      riskRegister: 'id,projectId,category,status',
+      solvencyChecks: 'id,projectId',
+      milestones: 'id,projectId,releaseState,category',
+      contractorProfiles: 'id,projectId,trade,verificationState',
+      subcontractorProfiles: 'id,projectId,contractorId',
+      supplierProfiles: 'id,projectId,category,verificationState',
+      consultantProfiles: 'id,projectId,discipline',
+      procurementRequests: 'id,projectId,status',
+      supplierQuotes: 'id,projectId,procurementRequestId,supplierId',
+      purchaseOrders: 'id,projectId,status',
+      deliveryRecords: 'id,projectId,purchaseOrderId',
+      deliveryProjects: 'id,projectId',
+      changeOrders: 'id,projectId,status,category',
+      rfis: 'id,projectId,status,assignedTo',
+      submittals: 'id,projectId,status',
+      siteInspections: 'id,projectId,status,inspectionType',
+      ncrs: 'id,projectId,severity,status',
+      snagItems: 'id,projectId,priority,status',
+      completionStages: 'id,projectId,stage,status',
+      snagLists: 'id,projectId',
+      handoverPackages: 'id,projectId,status',
+      assetRegister: 'id,projectId,category,status',
+      warrantyRecords: 'id,projectId,warrantyType,status',
+      oAndMRecords: 'id,projectId',
+      projectControlsBaselines: 'id,projectId',
+      projectControlsSnapshots: 'id,projectId,snapshotDate',
+      escrows: 'id,projectId,providerId,status,updatedAt',
+      dispatchOrders: 'id,projectId,supplierId,state',
+      dispatchHolds: 'id,orderId,projectId,supplierId,status',
+      sovs: 'id,projectId',
+      finalAccounts: 'projectId',
+      lienWaivers: 'id,projectId,status',
+      gainFades: 'id,projectId',
+      historicalCosts: 'id,projectId,category,region',
+      lessons: 'id,projectId,category,severity',
+      planValidations: 'planId',
+      agentRuns: 'id,projectId,status,updatedAt',
+      agentCheckpoints: 'id,runId,step,node,status',
+      traces: 'id,projectId,runId,source,createdAt',
+      ledgerEntries: 'id,projectId,wbsCode,codingMethod,codedAt',
+      changeLensAnalyses: 'id,changeOrderNumber,analysisDate',
+      wipaaSnapshots: 'id,projectId,monthKey,computedAt,billingStatus',
+      marketIndexSnapshots: 'id,dayKey,computedAt,source',
+      sitePhotos: 'id,projectId,milestoneId,capturedAt',
+      resources: 'id,projectId,category,region',
+      teamAssignments: 'id,projectId,path,contractRef',
+      contractorScorecards: 'id,projectId,contractorId,tier',
+      supplierScorecards: 'id,projectId,supplierId,tier',
+      forwardCommitments: 'id,projectId,material,status',
+      costBaselines: 'id,projectId,status',
+      boqItems: 'id,projectId,lineIndex,wbsCode,source',
+      wbsDictionary: 'id,projectId,code,level',
+      schedules: 'id,projectId,wbsCode,critical',
+      resourceSchedules: 'id,projectId,date,trade',
+      logistics: 'id,projectId,status',
+      digitalTwinTimeline: 'id,projectId,milestoneId,status',
+      verificationReports: 'id,projectId,milestoneId,verdict',
+      escrowMilestones: 'id,projectId,escrowId,status',
+      escrowReleases: 'id,projectId,milestoneId,releasedAt',
+      variationPenalties: 'id,projectId,changeOrderId,lens',
+      wipaaEntries: 'id,projectId,monthKey,alertLevel',
     });
   }
 }

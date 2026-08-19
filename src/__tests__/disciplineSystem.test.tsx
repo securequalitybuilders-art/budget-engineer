@@ -82,8 +82,8 @@ describe('discipline.ts', () => {
 // ── stageRegistry.ts ──
 
 describe('stageRegistry.ts', () => {
-  it('defines 7 stages', () => {
-    expect(ALL_STAGES.length).toBe(7)
+  it('defines 18 stages', () => {
+    expect(ALL_STAGES.length).toBe(18)
   })
 
   it('each StageDef has an id, label, shortLabel, description, icon', () => {
@@ -106,14 +106,14 @@ describe('stageRegistry.ts', () => {
   })
 
   it('getStagesForDiscipline returns discipline-specific stages', () => {
-    expect(getStagesForDiscipline('ARCH').length).toBe(7)
-    expect(getStagesForDiscipline('STR').length).toBe(7)
-    expect(getStagesForDiscipline('MEP').length).toBe(6)
-    expect(getStagesForDiscipline('ELEC').length).toBe(6)
-    expect(getStagesForDiscipline('PLUM').length).toBe(6)
-    expect(getStagesForDiscipline('INT').length).toBe(7)
-    expect(getStagesForDiscipline('LAND').length).toBe(7)
-    expect(getStagesForDiscipline('CIVIL').length).toBe(7)
+    expect(getStagesForDiscipline('ARCH').length).toBe(18)
+    expect(getStagesForDiscipline('STR').length).toBe(18)
+    expect(getStagesForDiscipline('MEP').length).toBe(17)
+    expect(getStagesForDiscipline('ELEC').length).toBe(17)
+    expect(getStagesForDiscipline('PLUM').length).toBe(17)
+    expect(getStagesForDiscipline('INT').length).toBe(18)
+    expect(getStagesForDiscipline('LAND').length).toBe(18)
+    expect(getStagesForDiscipline('CIVIL').length).toBe(18)
   })
 
   it('ARCH and INT have correct first stages', () => {
@@ -123,7 +123,11 @@ describe('stageRegistry.ts', () => {
 
   it('getStageIdsForDiscipline returns stage IDs', () => {
     const ids = getStageIdsForDiscipline('ARCH')
-    expect(ids).toEqual(['brief', 'concept', 'design', 'bim', 'docs-bim', 'budget', 'budget-engineered'])
+    expect(ids).toEqual([
+      'brief', 'concept', 'design', 'bim', 'docs-bim', 'budget', 'budget-engineered',
+      'c1-resource-hub', 'c2-team-assembly', 'c3-green-flag-cert', 'c4-bulk-procurement', 'c5-cost-lock',
+      'p1-critical-path', 'p2-site-mobilization', 'p3-digital-twin', 'p4-escrow-release', 'p5-variation-vault', 'p6-wipaa-handover',
+    ])
   })
 
   it('getDefaultStage returns the first stage', () => {
@@ -145,7 +149,8 @@ describe('stageRegistry.ts', () => {
     expect(nextStage('brief', 'ARCH')).toBe('concept')
     expect(nextStage('concept', 'ARCH')).toBe('design')
     expect(nextStage('design', 'ARCH')).toBe('bim')
-    expect(nextStage('budget-engineered', 'ARCH')).toBeNull()
+    expect(nextStage('budget-engineered', 'ARCH')).toBe('c1-resource-hub')
+    expect(nextStage('p6-wipaa-handover', 'ARCH')).toBeNull()
     expect(nextStage('docs-bim', 'ARCH')).toBe('budget')
   })
 

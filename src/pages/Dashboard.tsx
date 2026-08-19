@@ -24,6 +24,17 @@ const BimStage = lazy(() => import('@/components/dashboard/stages/BimStage').the
 const CostDeliverStage = lazy(() => import('@/components/dashboard/stages/CostDeliverStage').then(m => ({ default: m.CostDeliverStage })));
 const BudgetEngineeredStage = lazy(() => import('@/components/dashboard/stages/BudgetEngineeredStage').then(m => ({ default: m.BudgetEngineeredStage })));
 const DocsBimStage = lazy(() => import('@/components/dashboard/stages/DocsBimStage').then(m => ({ default: m.DocsBimStage })));
+const C1ResourceHubStage = lazy(() => import('@/components/dashboard/stages/C1ResourceHubStage').then(m => ({ default: m.C1ResourceHubStage })));
+const C2TeamAssemblyStage = lazy(() => import('@/components/dashboard/stages/C2TeamAssemblyStage').then(m => ({ default: m.C2TeamAssemblyStage })));
+const C3GreenFlagCertStage = lazy(() => import('@/components/dashboard/stages/C3GreenFlagCertStage').then(m => ({ default: m.C3GreenFlagCertStage })));
+const C4BulkProcurementStage = lazy(() => import('@/components/dashboard/stages/C4BulkProcurementStage').then(m => ({ default: m.C4BulkProcurementStage })));
+const C5CostLockStage = lazy(() => import('@/components/dashboard/stages/C5CostLockStage').then(m => ({ default: m.C5CostLockStage })));
+const P1CriticalPathStage = lazy(() => import('@/components/dashboard/stages/P1CriticalPathStage').then(m => ({ default: m.P1CriticalPathStage })));
+const P2SiteMobilizationStage = lazy(() => import('@/components/dashboard/stages/P2SiteMobilizationStage').then(m => ({ default: m.P2SiteMobilizationStage })));
+const P3DigitalTwinStage = lazy(() => import('@/components/dashboard/stages/P3DigitalTwinStage').then(m => ({ default: m.P3DigitalTwinStage })));
+const P4EscrowReleaseStage = lazy(() => import('@/components/dashboard/stages/P4EscrowReleaseStage').then(m => ({ default: m.P4EscrowReleaseStage })));
+const P5VariationVaultStage = lazy(() => import('@/components/dashboard/stages/P5VariationVaultStage').then(m => ({ default: m.P5VariationVaultStage })));
+const P6WipaaHandoverStage = lazy(() => import('@/components/dashboard/stages/P6WipaaHandoverStage').then(m => ({ default: m.P6WipaaHandoverStage })));
 const LazyDesignOptionsPanel = lazy(() => import('@/components/dashboard/DesignOptionsPanel').then(m => ({ default: m.DesignOptionsPanel })));
 const LazyImportWorkflow = lazy(() => import('@/components/import/ImportWorkflow').then(m => ({ default: m.ImportWorkflow })));
 import { GovernancePanel } from '@/components/dashboard/GovernancePanel';
@@ -662,7 +673,7 @@ export function Dashboard() {
 
           {/* Main content area */}
           <div className="relative flex flex-1 flex-col overflow-hidden bg-[var(--bg-primary)]">
-            {(['brief', 'concept', 'design', 'bim', 'docs-bim', 'budget', 'budget-engineered'] as StageId[]).includes(activeView as StageId) ? (
+            {(['brief', 'concept', 'design', 'bim', 'docs-bim', 'budget', 'budget-engineered', 'c1-resource-hub', 'c2-team-assembly', 'c3-green-flag-cert', 'c4-bulk-procurement', 'c5-cost-lock', 'p1-critical-path', 'p2-site-mobilization', 'p3-digital-twin', 'p4-escrow-release', 'p5-variation-vault', 'p6-wipaa-handover'] as StageId[]).includes(activeView as StageId) ? (
               <>
                 {activeStageId === 'brief' && (
                   <Suspense fallback={<PageLoader />}>
@@ -765,6 +776,63 @@ export function Dashboard() {
                       buildingType={buildingType}
                       projectRegion={currentProject?.region}
                     />
+                  </Suspense>
+                )}
+
+                {activeStageId === 'c1-resource-hub' && (
+                  <Suspense fallback={<PageLoader />}>
+                    <C1ResourceHubStage boq={currentBoq} />
+                  </Suspense>
+                )}
+                {activeStageId === 'c2-team-assembly' && (
+                  <Suspense fallback={<PageLoader />}>
+                    <C2TeamAssemblyStage boq={currentBoq} />
+                  </Suspense>
+                )}
+                {activeStageId === 'c3-green-flag-cert' && (
+                  <Suspense fallback={<PageLoader />}>
+                    <C3GreenFlagCertStage />
+                  </Suspense>
+                )}
+                {activeStageId === 'c4-bulk-procurement' && (
+                  <Suspense fallback={<PageLoader />}>
+                    <C4BulkProcurementStage />
+                  </Suspense>
+                )}
+                {activeStageId === 'c5-cost-lock' && (
+                  <Suspense fallback={<PageLoader />}>
+                    <C5CostLockStage />
+                  </Suspense>
+                )}
+
+                {activeStageId === 'p1-critical-path' && (
+                  <Suspense fallback={<PageLoader />}>
+                    <P1CriticalPathStage />
+                  </Suspense>
+                )}
+                {activeStageId === 'p2-site-mobilization' && (
+                  <Suspense fallback={<PageLoader />}>
+                    <P2SiteMobilizationStage />
+                  </Suspense>
+                )}
+                {activeStageId === 'p3-digital-twin' && (
+                  <Suspense fallback={<PageLoader />}>
+                    <P3DigitalTwinStage />
+                  </Suspense>
+                )}
+                {activeStageId === 'p4-escrow-release' && (
+                  <Suspense fallback={<PageLoader />}>
+                    <P4EscrowReleaseStage />
+                  </Suspense>
+                )}
+                {activeStageId === 'p5-variation-vault' && (
+                  <Suspense fallback={<PageLoader />}>
+                    <P5VariationVaultStage />
+                  </Suspense>
+                )}
+                {activeStageId === 'p6-wipaa-handover' && (
+                  <Suspense fallback={<PageLoader />}>
+                    <P6WipaaHandoverStage />
                   </Suspense>
                 )}
 
