@@ -3,7 +3,7 @@ import { buildResourceHub, buildDemandRadar, tradeForDescription, lockedUntilFor
 import { bestFitContractor, generateContract, ASSEMBLY_PATHS, MILESTONE_SPLIT } from '@/engine/greenflag/teamAssembly';
 import { certifyEntity, buildContractorScorecard, buildSupplierScorecard, tierForScore, rebateForTier, TIER_THRESHOLDS, CREDENTIAL_CHECKS } from '@/engine/greenflag/certification';
 import { valueDrivenQuote, createForwardCommitment, commitmentTotals } from '@/engine/greenflag/bulkProcurement';
-import { tagBoqWithWbs, dynamicCostBuildUp, redPenAudit, valueEngineeringSuggestions, lockCostBaseline, ZIQS_WBS_TEMPLATE, RED_PEN_THRESHOLD_PCT } from '@/engine/greenflag/costClarification';
+import { tagBoqWithWbs, dynamicCostBuildUp, redPenAudit, valueEngineeringSuggestions, lockCostBaseline, detectGhostMaterials, cashFlowForecast, volatilityAdjustedContingency, deriveMilestoneEscrow, mustHavesTracker, buildCostAtGlance, ZIQS_WBS_TEMPLATE, RED_PEN_THRESHOLD_PCT } from '@/engine/greenflag/costClarification';
 import type { BoqItem } from '@/domain/greenflag';
 import type { ContractorCandidate } from '@/domain/greenflag';
 import type { BoqResult } from '@/adapters/designToBoq';
@@ -365,5 +365,187 @@ describe('C5 Cost Clarification', () => {
     expect(baseline.status).toBe('locked');
     expect(baseline.lockedAt).toBe(ISO);
     expect(baseline.lines).toHaveLength(2);
+  });
+
+  describe('Ghost Materials', () => {
+    it('detects undelivered BOQ lines as total ghost', () => {
+      const items = makeBoqItems();
+      const ghosts = detectGhostMaterials(items, []);
+      expect(ghosts).toHaveLength(2);
+      expect(ghosts[0].severity).toBe('total');
+      expect(ghosts[0].ghostQuantity).toBe(120);
+      expect(ghosts[0].ghostCostCents).toBe(120 * 1800);
+    });
+
+    it('computes partial ghost when some delivered', () => {
+      const items = makeBoqItems();
+      const ghosts = detectGhostMaterials(items, [
+        { description: '230mm masonry wall', quantityDelivered: 50, unit: 'm2' },
+      ]);
+      expect(ghosts).toHaveLength(2);
+      const masonry = ghosts.find((g) => g.description === '230mm masonry wall');
+      expect(masonry).toBeDefined();
+      expect(masonry!.deliveredQuantity).toBe(50);
+      expect(masonry!.ghostQuantity).toBe(70);
+      expect(masonry!.severity).toBe('partial');
+    });
+
+    it('excludes fully delivered lines', () => {
+      const items = makeBoqItems();
+      const ghosts = detectGhostMaterials(items, [
+        { description: '230mm masonry wall', quantityDelivered: 120, unit: 'm2' },
+        { description: 'IBR roof sheets', quantityDelivered: 140, unit: 'm2' },
+      ]);
+      expect(ghosts).toHaveLength(0);
+    });
+  });
+
+  describe('Cash Flow Forecast', () => {
+    it('splits the baseline via 35/40/25 milestone split', () => {
+      const baseline = lockCostBaseline({ projectId: 'p1', lines: makeBoqItems(), contingencyCents: 37958, now });
+      const cf = cashFlowForecast({ projectId: 'p1', baseline, now });
+      expect(cf.milestones).toHaveLength(3);
+      expect(cf.milestones[0].pct).toBe(35);
+      expect(cf.milestones[1].pct).toBe(40);
+      expect(cf.milestones[2].pct).toBe(25);
+      const total = cf.milestones.reduce((s, m) => s + m.amountCents, 0);
+      expect(total).toBe(baseline.totalCents - baseline.contingencyCents);
+    });
+
+    it('accumulates cumulative amounts', () => {
+      const baseline = lockCostBaseline({ projectId: 'p1', lines: makeBoqItems(), contingencyCents: 37958, now });
+      const cf = cashFlowForecast({ projectId: 'p1', baseline, now });
+      expect(cf.milestones[0].cumulativeCents).toBe(cf.milestones[0].amountCents);
+      expect(cf.milestones[1].cumulativeCents).toBe(cf.milestones[0].amountCents + cf.milestones[1].amountCents);
+    });
+
+    it('uses custom due dates when provided', () => {
+      const baseline = lockCostBaseline({ projectId: 'p1', lines: makeBoqItems(), contingencyCents: 37958, now });
+      const dueDates = ['2026-09-01', '2026-12-01', '2027-03-01'];
+      const cf = cashFlowForecast({ projectId: 'p1', baseline, milestoneDueDates: dueDates, now });
+      expect(cf.milestones[0].dueDate).toBe('2026-09-01');
+      expect(cf.milestones[2].dueDate).toBe('2027-03-01');
+    });
+  });
+
+  describe('Volatility-Adjusted Contingency', () => {
+    it('returns base pct with insufficient history', () => {
+      const result = volatilityAdjustedContingency(9, [{ rateCents: 850 }, { rateCents: 900 }]);
+      expect(result.adjustedPct).toBe(9);
+      expect(result.factor).toBe('stable');
+    });
+
+    it('increases contingency under high volatility', () => {
+      const history = [
+        { rateCents: 800 }, { rateCents: 1200 }, { rateCents: 600 },
+        { rateCents: 1400 }, { rateCents: 500 },
+      ];
+      const result = volatilityAdjustedContingency(9, history);
+      expect(result.adjustedPct).toBeGreaterThan(9);
+      expect(result.factor).toBe('high-volatility');
+    });
+
+    it('decreases contingency under stable rates', () => {
+      const history = [
+        { rateCents: 850 }, { rateCents: 860 }, { rateCents: 840 },
+        { rateCents: 855 }, { rateCents: 845 },
+      ];
+      const result = volatilityAdjustedContingency(9, history);
+      expect(result.adjustedPct).toBeLessThan(9);
+      expect(result.factor).toBe('stable');
+    });
+
+    it('caps at 15% for extreme volatility', () => {
+      const history = [
+        { rateCents: 100 }, { rateCents: 2000 }, { rateCents: 50 },
+        { rateCents: 3000 }, { rateCents: 80 },
+      ];
+      const result = volatilityAdjustedContingency(9, history);
+      expect(result.adjustedPct).toBeLessThanOrEqual(15);
+    });
+
+    it('floors at 5% for very stable rates', () => {
+      const history = [
+        { rateCents: 850 }, { rateCents: 851 }, { rateCents: 849 },
+        { rateCents: 850 }, { rateCents: 850 },
+      ];
+      const result = volatilityAdjustedContingency(9, history);
+      expect(result.adjustedPct).toBeGreaterThanOrEqual(5);
+    });
+  });
+
+  describe('Milestone Escrow Derivation', () => {
+    it('splits total baseline via 35/40/25', () => {
+      const baseline = lockCostBaseline({ projectId: 'p1', lines: makeBoqItems(), contingencyCents: 37958, now });
+      const escrows = deriveMilestoneEscrow(baseline);
+      expect(escrows).toHaveLength(3);
+      const total = escrows.reduce((s, e) => s + e.amountCents, 0);
+      expect(total).toBe(baseline.totalCents);
+    });
+
+    it('amounts include contingency pro-rata', () => {
+      const baseline = lockCostBaseline({ projectId: 'p1', lines: makeBoqItems(), contingencyCents: 37958, now });
+      const escrows = deriveMilestoneEscrow(baseline);
+      expect(escrows[0].amountCents).toBe(Math.round(baseline.totalCents * 0.35));
+      expect(escrows[2].amountCents).toBe(Math.round(baseline.totalCents * 0.25));
+    });
+  });
+
+  describe('Must-Haves Tracker', () => {
+    it('tracks budget vs actual with correct variance', () => {
+      const items = mustHavesTracker([
+        { name: 'Granite Countertop', category: 'Kitchen', budgetAllowanceCents: 500000, actualCostCents: 450000 },
+        { name: 'Solar Panels', category: 'Electrical', budgetAllowanceCents: 2000000, actualCostCents: 2200000 },
+      ], 'p1');
+      expect(items).toHaveLength(2);
+      expect(items[0].status).toBe('under');
+      expect(items[0].varianceCents).toBe(-50000);
+      expect(items[1].status).toBe('over');
+      expect(items[1].varianceCents).toBe(200000);
+    });
+
+    it('generates deterministic ids', () => {
+      const items = mustHavesTracker([
+        { name: 'Item A', category: 'X', budgetAllowanceCents: 100, actualCostCents: 100 },
+      ], 'p1');
+      expect(items[0].id).toBe('mh-p1-0');
+      expect(items[0].status).toBe('on-target');
+    });
+  });
+
+  describe('Cost at a Glance', () => {
+    it('aggregates baseline + ghost + leakage into summary', () => {
+      const baseline = lockCostBaseline({ projectId: 'p1', lines: makeBoqItems(), contingencyCents: 37958, now });
+      const lag = buildCostAtGlance({
+        projectId: 'p1',
+        baseline,
+        ghostMaterialCostCents: 50000,
+        redPenLeakageCents: 30000,
+        valueEngineeringSavingsCents: 15000,
+      });
+      expect(lag.totalBudgetCents).toBe(baseline.totalCents);
+      expect(lag.directCostCents).toBe(baseline.totalCents - baseline.contingencyCents);
+      expect(lag.ghostMaterialCostCents).toBe(50000);
+      expect(lag.redPenLeakageCents).toBe(30000);
+      expect(lag.valueEngineeringSavingsCents).toBe(15000);
+      expect(lag.budgetUtilisationPct).toBe(0);
+      expect(lag.remainingCents).toBe(baseline.totalCents);
+    });
+
+    it('computes utilisation when spent and committed provided', () => {
+      const baseline = lockCostBaseline({ projectId: 'p1', lines: makeBoqItems(), contingencyCents: 37958, now });
+      const lag = buildCostAtGlance({
+        projectId: 'p1',
+        baseline,
+        ghostMaterialCostCents: 0,
+        redPenLeakageCents: 0,
+        valueEngineeringSavingsCents: 0,
+        spentToDateCents: 100000,
+        committedCents: 200000,
+      });
+      const expectedPct = Math.round((300000 / baseline.totalCents) * 1000) / 10;
+      expect(lag.budgetUtilisationPct).toBe(expectedPct);
+      expect(lag.remainingCents).toBe(baseline.totalCents - 300000);
+    });
   });
 });

@@ -2,12 +2,19 @@
  * C5 Cost Clarification engine.
  * ZIQS SMM-aligned WBS dictionary, dynamic cost build-up (the "live BOQ"),
  * Red Pen variance audit against the SADC market rate catalogue, value
- * engineering suggestions, and the locked Cost Baseline.
+ * engineering suggestions, ghost material detection, cash flow forecast,
+ * volatility-adjusted contingency, milestone escrow derivation, and the
+ * locked Cost Baseline.
  */
 import type {
   BoqItem,
+  CashFlowForecast,
+  CashFlowMilestone,
+  CostAtGlance,
   CostBaseline,
   CostBaselineLine,
+  GhostMaterial,
+  MustHaveItem,
   RedPenAuditResult,
   RedPenVariance,
   ValueEngineeringSuggestion,
@@ -140,7 +147,7 @@ export interface LockBaselineInput {
   now?: Date;
 }
 
-/** Lock the Cost Baseline with the 9% contingency. */
+/** Lock the Cost Baseline with the contingency. */
 export function lockCostBaseline(input: LockBaselineInput): CostBaseline {
   const now = input.now ?? new Date();
   const tagged = tagBoqWithWbs(input.lines);
@@ -164,5 +171,265 @@ export function lockCostBaseline(input: LockBaselineInput): CostBaseline {
     lines,
     status: 'locked',
     lockedAt: now.toISOString(),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Ghost Materials: detect BOQ items billed but not delivered to site
+// ---------------------------------------------------------------------------
+
+export interface DeliveryRecord {
+  description: string;
+  quantityDelivered: number;
+  unit: string;
+}
+
+/**
+ * Cross-reference BOQ line items against delivery records to find ghost
+ * materials — items billed but not (fully) delivered on site.
+ */
+export function detectGhostMaterials(
+  boqLines: BoqItem[],
+  deliveries: DeliveryRecord[],
+): GhostMaterial[] {
+  const deliveredMap = new Map<string, number>();
+  for (const d of deliveries) {
+    const key = d.description.toLowerCase().trim();
+    deliveredMap.set(key, (deliveredMap.get(key) ?? 0) + d.quantityDelivered);
+  }
+
+  const ghosts: GhostMaterial[] = [];
+  for (const line of tagBoqWithWbs(boqLines)) {
+    const key = line.description.toLowerCase().trim();
+    const delivered = deliveredMap.get(key) ?? 0;
+    if (delivered >= line.quantity) continue;
+
+    const ghostQty = line.quantity - delivered;
+    const severity: GhostMaterial['severity'] =
+      delivered === 0 ? 'total' : ghostQty / Math.max(line.quantity, 1) > 0.5 ? 'partial' : 'partial';
+
+    ghosts.push({
+      id: `ghost-${line.id}`,
+      projectId: line.projectId,
+      wbsCode: line.wbsCode,
+      description: line.description,
+      unit: line.unit,
+      billedQuantity: line.quantity,
+      deliveredQuantity: delivered,
+      ghostQuantity: ghostQty,
+      unitCostCents: line.unitCostCents,
+      ghostCostCents: Math.round(ghostQty * line.unitCostCents),
+      severity,
+    });
+  }
+  return ghosts;
+}
+
+// ---------------------------------------------------------------------------
+// Cash Flow Forecast: 35/40/25 milestone split from the locked baseline
+// ---------------------------------------------------------------------------
+
+const DEFAULT_MILESTONE_SPLITS = [
+  { name: 'Milestone 1 — Foundation & Slab', pct: 35 },
+  { name: 'Milestone 2 — Superstructure & Roof', pct: 40 },
+  { name: 'Milestone 3 — Finishes & Handover', pct: 25 },
+];
+
+export interface CashFlowInput {
+  projectId: string;
+  baseline: CostBaseline;
+  milestoneSplits?: Array<{ name: string; pct: number }>;
+  /** Projected due dates for each milestone (ISO strings). */
+  milestoneDueDates?: string[];
+  now?: Date;
+}
+
+/**
+ * Build a milestone-based cash flow forecast from the locked Cost Baseline.
+ * The default split is 35% / 40% / 25% (foundation → superstructure → finishes).
+ */
+export function cashFlowForecast(input: CashFlowInput): CashFlowForecast {
+  const splits = input.milestoneSplits ?? DEFAULT_MILESTONE_SPLITS;
+  const now = input.now ?? new Date();
+  const availableCents = input.baseline.totalCents - input.baseline.contingencyCents;
+  let cumulative = 0;
+
+  const milestones: CashFlowMilestone[] = splits.map((split, i) => {
+    const amountCents = Math.round(availableCents * (split.pct / 100));
+    cumulative += amountCents;
+    return {
+      name: split.name,
+      pct: split.pct,
+      amountCents,
+      cumulativeCents: cumulative,
+      dueDate: input.milestoneDueDates?.[i] ?? new Date(now.getTime() + (i + 1) * 90 * 86400000).toISOString(),
+      status: 'projected' as const,
+    };
+  });
+
+  return {
+    projectId: input.projectId,
+    baselineId: input.baseline.id,
+    totalCents: input.baseline.totalCents,
+    contingencyCents: input.baseline.contingencyCents,
+    milestones,
+    generatedAt: now.toISOString(),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// SADC volatility-adjusted contingency
+// ---------------------------------------------------------------------------
+
+/**
+ * Compute a volatility-adjusted contingency percentage based on the coefficient
+ * of variation in recent rate history. Base contingency is 9% per SADC norms;
+ * high-volatility markets push it up (max 15%), stable markets pull it down
+ * (min 5%).
+ */
+export function volatilityAdjustedContingency(
+  basePct: number,
+  rateHistory: Array<{ rateCents: number }>,
+  now: Date = new Date(),
+): { adjustedPct: number; factor: string; reason: string; _now: Date } {
+  void now;
+  if (rateHistory.length < 3) {
+    return {
+      adjustedPct: basePct,
+      factor: 'stable',
+      reason: 'Insufficient rate history — using base contingency.',
+      _now: now,
+    };
+  }
+
+  const rates = rateHistory.map((r) => r.rateCents);
+  const mean = rates.reduce((s, r) => s + r, 0) / rates.length;
+  if (mean === 0) {
+    return { adjustedPct: basePct, factor: 'stable', reason: 'Zero mean rate — using base contingency.', _now: now };
+  }
+
+  const variance = rates.reduce((s, r) => s + (r - mean) ** 2, 0) / rates.length;
+  const cv = Math.sqrt(variance) / mean;
+
+  let factor: string;
+  let adjustedPct: number;
+  if (cv > 0.3) {
+    factor = 'high-volatility';
+    adjustedPct = Math.min(basePct + 3, 15);
+  } else if (cv > 0.15) {
+    factor = 'moderate-volatility';
+    adjustedPct = basePct + 1;
+  } else {
+    factor = 'stable';
+    adjustedPct = Math.max(basePct - 2, 5);
+  }
+
+  return {
+    adjustedPct,
+    factor,
+    reason: `CV = ${cv.toFixed(3)} → ${factor}. Base ${basePct}% adjusted to ${adjustedPct}%.`,
+    _now: now,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Milestone Escrow derivation from the locked baseline
+// ---------------------------------------------------------------------------
+
+export interface MilestoneEscrow {
+  name: string;
+  pct: number;
+  amountCents: number;
+}
+
+/**
+ * Derive the milestone escrow amounts from the locked Cost Baseline using the
+ * 35/40/25 split. The amounts represent the escrow-held total per milestone
+ * (including pro-rata contingency).
+ */
+export function deriveMilestoneEscrow(
+  baseline: CostBaseline,
+  splits?: Array<{ name: string; pct: number }>,
+): MilestoneEscrow[] {
+  const actualSplits = splits ?? DEFAULT_MILESTONE_SPLITS;
+  return actualSplits.map((split) => ({
+    name: split.name,
+    pct: split.pct,
+    amountCents: Math.round(baseline.totalCents * (split.pct / 100)),
+  }));
+}
+
+// ---------------------------------------------------------------------------
+// Must-Haves budget tracker
+// ---------------------------------------------------------------------------
+
+export interface MustHaveBudgetInput {
+  name: string;
+  category: string;
+  budgetAllowanceCents: number;
+  actualCostCents: number;
+}
+
+/**
+ * Build the Must-Haves budget tracker comparing allowance vs actual cost for
+ * each must-have item.
+ */
+export function mustHavesTracker(items: MustHaveBudgetInput[], projectId: string): MustHaveItem[] {
+  return items.map((item, i) => {
+    const varianceCents = item.actualCostCents - item.budgetAllowanceCents;
+    const variancePct = item.budgetAllowanceCents > 0
+      ? Math.round((varianceCents / item.budgetAllowanceCents) * 1000) / 10
+      : 0;
+    return {
+      id: `mh-${projectId}-${i}`,
+      projectId,
+      name: item.name,
+      category: item.category,
+      budgetAllowanceCents: item.budgetAllowanceCents,
+      actualCostCents: item.actualCostCents,
+      varianceCents,
+      variancePct,
+      status: varianceCents > 0 ? 'over' as const : varianceCents < 0 ? 'under' as const : 'on-target' as const,
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Cost at a Glance
+// ---------------------------------------------------------------------------
+
+export interface CostAtGlanceInput {
+  projectId: string;
+  baseline: CostBaseline;
+  ghostMaterialCostCents: number;
+  redPenLeakageCents: number;
+  valueEngineeringSavingsCents: number;
+  spentToDateCents?: number;
+  committedCents?: number;
+}
+
+/**
+ * Aggregate the cost summary for the Cost at a Glance dial/gauge.
+ */
+export function buildCostAtGlance(input: CostAtGlanceInput): CostAtGlance {
+  const spent = input.spentToDateCents ?? 0;
+  const committed = input.committedCents ?? 0;
+  const remaining = Math.max(0, input.baseline.totalCents - spent - committed);
+  const budgetUtilisationPct = input.baseline.totalCents > 0
+    ? Math.round(((spent + committed) / input.baseline.totalCents) * 1000) / 10
+    : 0;
+
+  return {
+    projectId: input.projectId,
+    directCostCents: input.baseline.totalCents - input.baseline.contingencyCents,
+    contingencyCents: input.baseline.contingencyCents,
+    totalBudgetCents: input.baseline.totalCents,
+    spentToDateCents: spent,
+    committedCents: committed,
+    remainingCents: remaining,
+    ghostMaterialCostCents: input.ghostMaterialCostCents,
+    redPenLeakageCents: input.redPenLeakageCents,
+    valueEngineeringSavingsCents: input.valueEngineeringSavingsCents,
+    budgetUtilisationPct,
   };
 }

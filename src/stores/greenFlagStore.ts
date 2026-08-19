@@ -11,12 +11,23 @@ import type {
   CostBaseline,
   BoqItem,
   ContractorCandidate,
+  GhostMaterial,
+  CashFlowForecast,
+  MustHaveItem,
+  CostAtGlance,
 } from '@/domain/greenflag';
 import { buildResourceHub } from '@/engine/greenflag/resourceHub';
 import { bestFitContractor, generateContract } from '@/engine/greenflag/teamAssembly';
 import { buildContractorScorecard, buildSupplierScorecard, certifyEntity } from '@/engine/greenflag/certification';
 import { createForwardCommitment, commitmentTotals } from '@/engine/greenflag/bulkProcurement';
-import { lockCostBaseline, tagBoqWithWbs } from '@/engine/greenflag/costClarification';
+import {
+  lockCostBaseline,
+  tagBoqWithWbs,
+  detectGhostMaterials,
+  cashFlowForecast,
+  mustHavesTracker,
+  buildCostAtGlance,
+} from '@/engine/greenflag/costClarification';
 import type { BoqResult } from '@/adapters/designToBoq';
 
 interface GreenFlagState {
@@ -27,6 +38,11 @@ interface GreenFlagState {
   forwardCommitments: ForwardCommitment[];
   costBaselines: CostBaseline[];
   boqItems: BoqItem[];
+  ghostMaterials: GhostMaterial[];
+  cashFlow: CashFlowForecast | null;
+  mustHaves: MustHaveItem[];
+  costAtGlance: CostAtGlance | null;
+  contingencyPct: number;
   isLoading: boolean;
   currentProjectId: string | null;
 
@@ -40,8 +56,13 @@ interface GreenFlagState {
   certifyContractor: (input: Parameters<typeof certifyEntity>[0]) => Promise<ContractorScorecard | null>;
   certifySupplier: (input: Parameters<typeof certifyEntity>[0]) => Promise<SupplierScorecard | null>;
   addCommitment: (input: { material: string; quantity: number; unit: string; priceCents: number; supplierId: string; commitmentDate: string }) => Promise<ForwardCommitment | null>;
-  lockBaseline: (projectId: string, contingencyCents: number) => Promise<CostBaseline | null>;
+  lockBaseline: (projectId: string, contingencyPct: number) => Promise<CostBaseline | null>;
   seedBoqItems: (projectId: string, items: BoqItem[]) => Promise<void>;
+  detectGhosts: (projectId: string, deliveries: Array<{ description: string; quantityDelivered: number; unit: string }>) => void;
+  setContingencyPct: (pct: number) => void;
+  computeCashFlow: () => void;
+  computeCostAtGlance: () => void;
+  updateMustHaves: (items: Array<{ name: string; category: string; budgetAllowanceCents: number; actualCostCents: number }>) => void;
 }
 
 export const useGreenFlagStore = create<GreenFlagState>()(
@@ -55,6 +76,11 @@ export const useGreenFlagStore = create<GreenFlagState>()(
         forwardCommitments: [],
         costBaselines: [],
         boqItems: [],
+        ghostMaterials: [],
+        cashFlow: null,
+        mustHaves: [],
+        costAtGlance: null,
+        contingencyPct: 9,
         isLoading: false,
         currentProjectId: null,
 
@@ -69,6 +95,21 @@ export const useGreenFlagStore = create<GreenFlagState>()(
             db.costBaselines.where({ projectId }).toArray(),
             db.boqItems.where({ projectId }).toArray(),
           ]);
+          const baseline = costBaselines[0] ?? null;
+          let ghostMaterials: GhostMaterial[] = [];
+          let cashFlow: CashFlowForecast | null = null;
+          let costAtGlance: CostAtGlance | null = null;
+          if (baseline) {
+            ghostMaterials = detectGhostMaterials(boqItems, []);
+            cashFlow = cashFlowForecast({ projectId, baseline });
+            costAtGlance = buildCostAtGlance({
+              projectId,
+              baseline,
+              ghostMaterialCostCents: ghostMaterials.reduce((s, g) => s + g.ghostCostCents, 0),
+              redPenLeakageCents: 0,
+              valueEngineeringSavingsCents: 0,
+            });
+          }
           set((s) => {
             s.resources = resources;
             s.teamAssignments = teamAssignments;
@@ -77,6 +118,9 @@ export const useGreenFlagStore = create<GreenFlagState>()(
             s.forwardCommitments = forwardCommitments;
             s.costBaselines = costBaselines;
             s.boqItems = boqItems;
+            s.ghostMaterials = ghostMaterials;
+            s.cashFlow = cashFlow;
+            s.costAtGlance = costAtGlance;
             s.isLoading = false;
           });
         },
@@ -141,15 +185,28 @@ export const useGreenFlagStore = create<GreenFlagState>()(
           return commitment;
         },
 
-        lockBaseline: async (projectId, contingencyCents) => {
+        lockBaseline: async (projectId, contingencyPct) => {
           const items = get().boqItems.filter((i) => i.projectId === projectId);
           if (items.length === 0) return null;
+          const contingencyCents = Math.round(items.reduce((s, l) => s + l.totalCents, 0) * (contingencyPct / 100));
           const baseline = lockCostBaseline({ projectId, lines: items, contingencyCents });
           await db.costBaselines.put(baseline);
+          const ghostMaterials = detectGhostMaterials(items, []);
+          const cashFlow = cashFlowForecast({ projectId, baseline });
+          const costAtGlance = buildCostAtGlance({
+            projectId,
+            baseline,
+            ghostMaterialCostCents: ghostMaterials.reduce((s, g) => s + g.ghostCostCents, 0),
+            redPenLeakageCents: 0,
+            valueEngineeringSavingsCents: 0,
+          });
           set((s) => {
             const idx = s.costBaselines.findIndex((b) => b.projectId === projectId);
             if (idx >= 0) s.costBaselines[idx] = baseline;
             else s.costBaselines.push(baseline);
+            s.ghostMaterials = ghostMaterials;
+            s.cashFlow = cashFlow;
+            s.costAtGlance = costAtGlance;
           });
           return baseline;
         },
@@ -158,6 +215,46 @@ export const useGreenFlagStore = create<GreenFlagState>()(
           const tagged = tagBoqWithWbs(items.map((item) => ({ ...item, projectId })));
           await db.boqItems.bulkPut(tagged);
           set((s) => { s.boqItems = tagged; });
+        },
+
+        detectGhosts: (projectId, deliveries) => {
+          const items = get().boqItems.filter((i) => i.projectId === projectId);
+          const ghosts = detectGhostMaterials(items, deliveries);
+          set((s) => { s.ghostMaterials = ghosts; });
+        },
+
+        setContingencyPct: (pct) => {
+          set((s) => { s.contingencyPct = pct; });
+        },
+
+        computeCashFlow: () => {
+          const baseline = get().costBaselines[0];
+          const projectId = get().currentProjectId;
+          if (!baseline || !projectId) return;
+          const cf = cashFlowForecast({ projectId, baseline });
+          set((s) => { s.cashFlow = cf; });
+        },
+
+        computeCostAtGlance: () => {
+          const baseline = get().costBaselines[0];
+          const projectId = get().currentProjectId;
+          if (!baseline || !projectId) return;
+          const ghosts = get().ghostMaterials;
+          const lag = buildCostAtGlance({
+            projectId,
+            baseline,
+            ghostMaterialCostCents: ghosts.reduce((s, g) => s + g.ghostCostCents, 0),
+            redPenLeakageCents: 0,
+            valueEngineeringSavingsCents: 0,
+          });
+          set((s) => { s.costAtGlance = lag; });
+        },
+
+        updateMustHaves: (items) => {
+          const projectId = get().currentProjectId;
+          if (!projectId) return;
+          const mh = mustHavesTracker(items, projectId);
+          set((s) => { s.mustHaves = mh; });
         },
       }),
       {

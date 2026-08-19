@@ -245,3 +245,76 @@ export interface RebateTierConfig {
   groupBuyPct: number;
   totalPct: number;
 }
+
+/**
+ * C5 — Ghost Material: a BOQ line item billed but not verified on site.
+ * Detected by cross-referencing the locked BOQ against delivery records.
+ */
+export interface GhostMaterial {
+  id: string;
+  projectId: string;
+  wbsCode: string;
+  description: string;
+  unit: string;
+  billedQuantity: number;
+  deliveredQuantity: number;
+  ghostQuantity: number;
+  unitCostCents: number;
+  ghostCostCents: number;
+  severity: 'none' | 'partial' | 'total';
+}
+
+/**
+ * C5 — Cash Flow Forecast: milestone-based cash flow projection from the
+ * locked Cost Baseline using the 35/40/25 milestone split.
+ */
+export interface CashFlowMilestone {
+  name: string;
+  pct: number;
+  amountCents: number;
+  cumulativeCents: number;
+  dueDate: string;
+  status: 'projected' | 'funded' | 'released';
+}
+
+export interface CashFlowForecast {
+  projectId: string;
+  baselineId: string;
+  totalCents: number;
+  contingencyCents: number;
+  milestones: CashFlowMilestone[];
+  generatedAt: string;
+}
+
+/**
+ * C5 — Must-Have item: budget allowance vs actual cost tracker.
+ * Compares the builder's must-have selections against the BOQ actuals.
+ */
+export interface MustHaveItem {
+  id: string;
+  projectId: string;
+  name: string;
+  category: string;
+  budgetAllowanceCents: number;
+  actualCostCents: number;
+  varianceCents: number;
+  variancePct: number;
+  status: 'under' | 'on-target' | 'over';
+}
+
+/**
+ * C5 — Cost at a Glance: aggregated summary for the dial/gauge display.
+ */
+export interface CostAtGlance {
+  projectId: string;
+  directCostCents: number;
+  contingencyCents: number;
+  totalBudgetCents: number;
+  spentToDateCents: number;
+  committedCents: number;
+  remainingCents: number;
+  ghostMaterialCostCents: number;
+  redPenLeakageCents: number;
+  valueEngineeringSavingsCents: number;
+  budgetUtilisationPct: number;
+}
