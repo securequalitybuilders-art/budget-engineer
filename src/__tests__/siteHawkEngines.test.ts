@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildCriticalPath, findCriticalPath, toGanttRows, cashflowCurve, buildWbsDictionary } from '@/engine/sitehawk/criticalPath';
+import { buildCriticalPath, findCriticalPath, toGanttRows, cashflowCurve, buildWbsDictionary, buildRiskRegister, buildScheduleOfValues, monthlyCashflowProjection } from '@/engine/sitehawk/criticalPath';
 import { buildResourceSchedule, TRADE_LABOUR_RATES, tradeFromWbs, createLogisticsRecord, advanceLogistics, logisticsSummary, aggregateJobCosts } from '@/engine/sitehawk/resourceScheduling';
 import { createTwinSnapshot, createVerificationReport, twinSummary, milestoneProgressFor } from '@/engine/sitehawk/digitalTwin';
 import { createEscrowMilestone, transitionEscrowMilestone, createReleaseRecord, escrowSummary, ESCROW_STATE_FLOW } from '@/engine/sitehawk/escrowTrigger';
@@ -77,6 +77,56 @@ describe('P1 Critical Path', () => {
     const dict = buildWbsDictionary('p1', schedule);
     expect(dict).toHaveLength(1);
     expect(dict[0].code).toBe('02.01');
+  });
+
+  it('builds a risk register with 8 standard templates', () => {
+    const schedule = buildCriticalPath(CANONICAL_TASKS).schedule;
+    const risks = buildRiskRegister('proj-1', schedule, { totalCents: 4120000 } as never);
+    expect(risks.length).toBe(8);
+    const scheduleRisk = risks.find((r) => r.category === 'Schedule')!;
+    expect(scheduleRisk.score).toBeGreaterThanOrEqual(4);
+    expect(scheduleRisk.contingencyCents).toBeGreaterThan(0);
+    expect(scheduleRisk.id).toContain('proj-1');
+    expect(risks.every((r) => r.owner.length > 0)).toBe(true);
+  });
+
+  it('escalates cost risk to critical when volatility exceeds 0.3 CV', () => {
+    const schedule = buildCriticalPath(CANONICAL_TASKS).schedule;
+    const risksLow = buildRiskRegister('proj-1', schedule, { totalCents: 4120000 } as never, 0.2);
+    const risksHigh = buildRiskRegister('proj-1', schedule, { totalCents: 4120000 } as never, 0.4);
+    const costLow = risksLow.find((r) => r.category === 'Cost')!;
+    const costHigh = risksHigh.find((r) => r.category === 'Cost')!;
+    expect(costHigh.score).toBeGreaterThan(costLow.score);
+    expect(costHigh.probability).toBe('critical');
+  });
+
+  it('builds a schedule of values with WBS grouping and earned value', () => {
+    const schedule = buildCriticalPath(CANONICAL_TASKS).schedule;
+    const lines = buildScheduleOfValues('proj-1', schedule, { totalCents: 4220000 } as never);
+    expect(lines.length).toBeGreaterThanOrEqual(4);
+    const total = lines.reduce((s, l) => s + l.amountCents, 0);
+    expect(total).toBe(4220000);
+    expect(lines[0].unit).toBe('lot');
+    expect(lines[0].earnedCents).toBe(0);
+    expect(lines[0].retainedCents).toBe(0);
+  });
+
+  it('projects a 12-month cashflow inflow vs outflow', () => {
+    const schedule = buildCriticalPath(CANONICAL_TASKS).schedule;
+    const baseline = { totalCents: 4120000 } as never;
+    const result = monthlyCashflowProjection(baseline, schedule, '2026-07-01', 12);
+    expect(result.months).toHaveLength(12);
+    expect(result.totalInflowCents).toBeGreaterThan(0);
+    expect(result.totalOutflowCents).toBeGreaterThan(0);
+    expect(result.nextCashflowDate).toBeTruthy();
+    expect(result.nextCashflowCents).toBeGreaterThan(0);
+  });
+
+  it('returns an empty projection without a baseline', () => {
+    const result = monthlyCashflowProjection(null, [], '2026-07-01', 6);
+    expect(result.months).toHaveLength(0);
+    expect(result.totalInflowCents).toBe(0);
+    expect(result.nextCashflowDate).toBe('');
   });
 });
 

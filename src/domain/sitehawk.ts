@@ -76,6 +76,9 @@ export interface DigitalTwinTimelineEntry {
   note: string;
   progressPct: number;
   status: 'verified' | 'pending' | 'rejected';
+  photoDataUrl?: string;
+  photoName?: string;
+  thumbnailUrl?: string;
 }
 
 export interface VerificationReport {
@@ -132,6 +135,155 @@ export interface VariationImpact {
   spreadCents: number;
 }
 
+// ── P1 Risk Register ──────────────────────────────────────────────────────
+
+export type RiskProbability = 'low' | 'medium' | 'high' | 'critical';
+export type RiskImpact = 'negligible' | 'minor' | 'moderate' | 'major' | 'severe';
+export type RiskStatus = 'open' | 'mitigated' | 'closed' | 'accepted';
+
+export interface RiskRegisterEntry {
+  id: string;
+  projectId: string;
+  code: string;
+  category: string;
+  description: string;
+  probability: RiskProbability;
+  impact: RiskImpact;
+  score: number;
+  status: RiskStatus;
+  owner: string;
+  mitigation: string;
+  contingencyCents: number;
+  createdAt: string;
+}
+
+// ── P1 Schedule of Values ─────────────────────────────────────────────────
+
+export interface SovLineItem {
+  id: string;
+  projectId: string;
+  wbsCode: string;
+  description: string;
+  unit: string;
+  quantity: number;
+  rateCents: number;
+  amountCents: number;
+  schedulePct: number;
+  earnedCents: number;
+  retainedCents: number;
+}
+
+// ── P1 Cashflow Projection ────────────────────────────────────────────────
+
+export interface CashflowProjectionMonth {
+  monthKey: string;
+  label: string;
+  plannedInflowCents: number;
+  plannedOutflowCents: number;
+  netCents: number;
+  cumulativeNetCents: number;
+}
+
+export interface CashflowProjectionResult {
+  months: CashflowProjectionMonth[];
+  totalInflowCents: number;
+  totalOutflowCents: number;
+  nextCashflowDate: string;
+  nextCashflowCents: number;
+}
+
+// ── P2 Equipment & Machine Scheduling ────────────────────────────────────
+
+export type EquipmentStatus = 'scheduled' | 'on-site' | 'in-use' | 'demob';
+
+export interface EquipmentSlot {
+  id: string;
+  projectId: string;
+  equipmentType: string;
+  description: string;
+  operatorName: string | null;
+  scheduledDate: string;
+  durationDays: number;
+  wbsCode: string;
+  costCents: number;
+  status: EquipmentStatus;
+}
+
+// ── P2 Fleet / Truck GPS Tracking ────────────────────────────────────────
+
+export type TruckStatus = 'en-route' | 'at-gate' | 'unloading' | 'departed';
+
+export interface TruckLocation {
+  id: string;
+  orderId: string;
+  truckId: string;
+  driverName: string;
+  supplierName: string;
+  material: string;
+  lat: number;
+  lng: number;
+  heading: number;
+  speedKmh: number;
+  lastPing: string;
+  geofenced: boolean;
+  geofenceRadiusM: number;
+  etaMinutes: number;
+  status: TruckStatus;
+}
+
+export type DriverStatus = 'idle' | 'en-route' | 'delivering' | 'off-duty';
+
+export interface FleetDriver {
+  id: string;
+  projectId: string;
+  name: string;
+  phone: string;
+  truckId: string;
+  licenseClass: string;
+  status: DriverStatus;
+  deliveriesCompleted: number;
+  totalDistanceKm: number;
+}
+
+// ── P2 Procurement / PO / Invoice ────────────────────────────────────────
+
+export type PoStatus = 'draft' | 'issued' | 'received' | 'invoiced' | 'paid';
+
+export interface PurchaseOrderRecord {
+  id: string;
+  projectId: string;
+  poNumber: string;
+  supplierName: string;
+  material: string;
+  quantity: number;
+  unit: string;
+  unitCostCents: number;
+  totalCostCents: number;
+  status: PoStatus;
+  issuedAt: string | null;
+  receivedAt: string | null;
+  invoiceRef: string | null;
+  createdAt: string;
+}
+
+export type InvoiceStatus = 'received' | 'matched' | 'approved' | 'paid';
+
+export interface InvoiceRecord {
+  id: string;
+  projectId: string;
+  invoiceRef: string;
+  poId: string | null;
+  supplierName: string;
+  amountCents: number;
+  taxCents: number;
+  totalCents: number;
+  status: InvoiceStatus;
+  receivedAt: string;
+  approvedAt: string | null;
+}
+
+// ── WIPAA (existing) ─────────────────────────────────────────────────────
+
 export type WipaaAlertLevel = 'green' | 'amber' | 'red';
 
 export interface WipaaEntry {
@@ -146,4 +298,51 @@ export interface WipaaEntry {
   escalationPct: number;
   alertLevel: WipaaAlertLevel;
   createdAt: string;
+}
+
+// ── P3 Digital Twin — Inspection Checklist ─────────────────────────────────
+
+export type InspectionCategory = 'structural' | 'mep' | 'roof' | 'final';
+
+export interface InspectionChecklistItem {
+  id: string;
+  label: string;
+  checked: boolean;
+  note?: string;
+}
+
+export interface InspectionChecklist {
+  id: string;
+  projectId: string;
+  category: InspectionCategory;
+  milestoneName: string;
+  items: InspectionChecklistItem[];
+  signedOff: boolean;
+  signedOffBy: string | null;
+  signedOffAt: string | null;
+  createdAt: string;
+}
+
+// ── P3 Digital Twin — Progress Status ──────────────────────────────────────
+
+export interface ProgressStatus {
+  completionPct: number;
+  spentToDateCents: number;
+  budgetCents: number;
+  varianceCents: number;
+  grossMarginPct: number;
+  wipaaStatus: 'on-track' | 'under-billed' | 'over-billed' | null;
+  milestoneName: string;
+  milestoneStatus: 'verified' | 'pending' | 'rejected';
+}
+
+// ── P3 Digital Twin — Computer Vision Match ────────────────────────────────
+
+export interface CvMatchResult {
+  matched: boolean;
+  confidence: number;
+  matchedFeatures: string[];
+  mismatchedFeatures: string[];
+  photoNote: string;
+  workingDrawingRef: string;
 }
