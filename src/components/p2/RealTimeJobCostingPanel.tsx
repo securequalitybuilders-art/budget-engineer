@@ -30,7 +30,7 @@ export function RealTimeJobCostingPanel() {
 
   const committedCents = poSummary.totalPoCostCents;
   const spentCents = poSummary.paidCents;
-  const budgetCents = baseline?.totalCostCents ?? 0;
+  const budgetCents = baseline?.totalCents ?? 0;
   const budgetUsedPct = budgetCents > 0 ? Math.round(spentCents / budgetCents * 100) : 0;
 
   return (

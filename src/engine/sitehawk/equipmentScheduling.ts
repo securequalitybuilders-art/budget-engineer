@@ -45,7 +45,7 @@ const EQUIPMENT_CATALOG: Array<{
 ];
 
 export function matchEquipmentToTask(schedule: ScheduleRecord): typeof EQUIPMENT_CATALOG[number] | null {
-  const desc = `${schedule.name} ${schedule.wbsCode}`.toLowerCase();
+  const desc = `${schedule.task} ${schedule.wbsCode}`.toLowerCase();
   for (const eq of EQUIPMENT_CATALOG) {
     if (eq.wbsPattern.test(desc)) return eq;
   }
@@ -72,7 +72,7 @@ export function buildEquipmentPlan(
       equipmentType: match.type,
       description: match.description,
       operatorName: null,
-      scheduledDate: schedule.startDay,
+      scheduledDate: schedule.startDate,
       durationDays,
       wbsCode: schedule.wbsCode,
       costCents,

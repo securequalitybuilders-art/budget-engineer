@@ -79,20 +79,23 @@ export interface DigitalTwinTimelineEntry {
   photoDataUrl?: string;
   photoName?: string;
   thumbnailUrl?: string;
+  is360?: boolean;
 }
 
 export interface VerificationReport {
   id: string;
   projectId: string;
   milestoneId: string | null;
-  method: 'ai-vision' | 'drone' | 'manual';
+  method: 'ai-vision' | 'drone' | 'manual' | 'structural-engineer';
   verdict: 'pass' | 'fail' | 'inconclusive';
   confidence: number;
   details: string;
   createdAt: string;
 }
 
-export type EscrowMilestoneState = 'pending' | 'verified' | 'released' | 'disputed' | 'appeal';
+export type EscrowMilestoneState = 'pending' | 'verified' | 'released' | 'disputed' | 'appeal' | 'suspended';
+
+export type ConcernStatus = 'open' | 'under-review' | 'rework-scoped' | 'resolved' | 'dismissed';
 
 export interface EscrowMilestoneRecord {
   id: string;
@@ -102,6 +105,7 @@ export interface EscrowMilestoneRecord {
   amountCents: number;
   status: EscrowMilestoneState;
   releaseDate: string | null;
+  concernStatus: ConcernStatus | null;
   createdAt: string;
 }
 
@@ -113,6 +117,88 @@ export interface EscrowReleaseRecord {
   releasedAt: string;
   releasedBy: 'auto' | 'qs' | 'architect' | 'system';
   proofRef: string;
+}
+
+// ── P4 Escrow — Checkpoint (thread-scoped, every state transition) ──────────
+
+export interface EscrowCheckpoint {
+  id: string;
+  projectId: string;
+  milestoneId: string;
+  fromState: EscrowMilestoneState;
+  toState: EscrowMilestoneState;
+  triggeredBy: 'system' | 'qs' | 'architect' | 'concierge';
+  reason: string;
+  checkpointAt: string;
+}
+
+// ── P4 Escrow — Alert (WhatsApp / Vault notification) ──────────────────────
+
+export type EscrowAlertType =
+  | 'work-started'
+  | 'weekly-digest'
+  | 'milestone-complete'
+  | 'approval-given'
+  | 'concern-flagged'
+  | 'funds-released'
+  | 'supplier-paid';
+
+export interface EscrowAlert {
+  id: string;
+  projectId: string;
+  milestoneId: string | null;
+  type: EscrowAlertType;
+  title: string;
+  message: string;
+  channel: 'vault' | 'whatsapp' | 'both';
+  sentAt: string;
+  read: boolean;
+}
+
+// ── P4 Escrow — Supplier Payment (direct to supplier bank) ─────────────────
+
+export type SupplierPaymentStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+export interface SupplierPayment {
+  id: string;
+  projectId: string;
+  milestoneId: string;
+  supplierName: string;
+  supplierBankRef: string;
+  amountCents: number;
+  status: SupplierPaymentStatus;
+  initiatedAt: string;
+  completedAt: string | null;
+  proofOfFunds: boolean;
+}
+
+// ── P4 Escrow — Build Guide Chat ────────────────────────────────────────────
+
+export type BuildGuideMessageType = 'user' | 'build-guide' | 'concierge' | 'system';
+
+export interface BuildGuideMessage {
+  id: string;
+  projectId: string;
+  milestoneId: string;
+  type: BuildGuideMessageType;
+  content: string;
+  createdAt: string;
+  read: boolean;
+}
+
+// ── P4 Escrow — Concern ────────────────────────────────────────────────────
+
+export interface EscrowConcern {
+  id: string;
+  projectId: string;
+  milestoneId: string;
+  raisedBy: string;
+  description: string;
+  status: ConcernStatus;
+  reworkEstimateCents: number | null;
+  conciergeNote: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
 }
 
 export interface VariationPenalty {

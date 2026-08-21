@@ -1,6 +1,6 @@
-import * as React from 'react';
 import { Lock, ChevronRight, DollarSign } from 'lucide-react';
-import type { CostBaseline, CashFlowForecast, MilestoneEscrow } from '@/domain/greenflag';
+import type { CostBaseline, CashFlowForecast } from '@/domain/greenflag';
+import type { MilestoneEscrow } from '@/engine/greenflag/costClarification';
 
 function fmtCents(cents: number): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(cents / 100);

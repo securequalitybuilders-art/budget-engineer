@@ -18,11 +18,10 @@ import {
   createPurchaseOrder,
   createInvoice,
   transitionPo,
-  transitionInvoice,
   matchInvoiceToPo,
   buildJobCostSummary,
 } from '@/engine/sitehawk/realTimeJobCosting';
-import type { ScheduleRecord, TruckLocation, FleetDriver, PurchaseOrderRecord } from '@/domain/sitehawk';
+import type { ScheduleRecord, TruckLocation, FleetDriver } from '@/domain/sitehawk';
 
 const PROJECT = 'test-proj';
 const NOW = new Date('2026-08-15T10:00:00Z');
@@ -31,15 +30,12 @@ const SCHEDULE: ScheduleRecord = {
   id: 'sched-1',
   projectId: PROJECT,
   wbsCode: '03-210',
-  name: 'Concrete foundation slab',
-  startDay: 1,
-  endDay: 5,
+  task: 'Concrete foundation slab',
+  startDate: '2026-08-15',
   durationDays: 5,
   predecessors: [],
   costCents: 150_00,
-  slack: 0,
   critical: true,
-  category: 'labour',
 };
 
 const TRUCK: TruckLocation = {
@@ -80,14 +76,14 @@ describe('Equipment scheduling engine', () => {
   });
 
   it('matches concrete slab task to mixer', () => {
-    const s: ScheduleRecord = { ...SCHEDULE, id: 'sched-1b', wbsCode: '03-300', name: 'Concrete slab pour' };
+    const s: ScheduleRecord = { ...SCHEDULE, id: 'sched-1b', wbsCode: '03-300', task: 'Concrete slab pour' };
     const eq = matchEquipmentToTask(s);
     expect(eq).not.toBeNull();
     expect(eq!.type).toBe('Concrete Mixer');
   });
 
   it('returns null for unmatched task', () => {
-    const s: ScheduleRecord = { ...SCHEDULE, wbsCode: '99-999', name: 'Miscellaneous works' };
+    const s: ScheduleRecord = { ...SCHEDULE, wbsCode: '99-999', task: 'Miscellaneous works' };
     expect(matchEquipmentToTask(s)).toBeNull();
   });
 

@@ -97,7 +97,7 @@ export function LogisticsTracker() {
         </DzCard>
         <DzCard>
           <Kicker><MapPin size={14} className="inline mr-1" />Inbound Deliveries</Kicker>
-          <div className="text-2xl font-bold">{logistics.filter(l => l.status === 'inbound').length}</div>
+          <div className="text-2xl font-bold">{logistics.filter(l => l.status === 'ordered').length}</div>
           <DzPill tone="neutral">pending</DzPill>
         </DzCard>
         <DzCard>
@@ -146,9 +146,7 @@ export function LogisticsTracker() {
           <DataTable
             columns={[
               { key: 'material', header: 'Material' },
-              { key: 'quantity', header: 'Qty', render: (r) => `${r.quantity} ${r.unit}` },
-              { key: 'supplier', header: 'Supplier' },
-              { key: 'expectedDate', header: 'Expected' },
+              { key: 'etaDays', header: 'ETA', render: (r) => `${r.etaDays}d` },
               { key: 'status', header: 'Status', render: (r) => <DzPill tone={r.status === 'delivered' ? 'released' : 'neutral'}>{r.status}</DzPill> },
             ]}
             rows={logistics}

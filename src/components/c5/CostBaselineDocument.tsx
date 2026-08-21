@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { FileText, AlertTriangle } from 'lucide-react';
 import type { CostBaseline, CostAtGlance, GhostMaterial } from '@/domain/greenflag';
 

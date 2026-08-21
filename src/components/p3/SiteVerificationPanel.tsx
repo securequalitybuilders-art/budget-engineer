@@ -5,6 +5,7 @@ import { useProjectStore } from '@/stores/projectStore';
 import { DataTable, DzCard, DzPill, FormField, Kicker, PageEnter } from '@/components/dzenhare';
 import { matchPhotoToPlan } from '@/engine/sitehawk/computerVision';
 import { evaluateEscrowTrigger } from '@/engine/sitehawk/digitalTwin';
+import { Stamp } from 'lucide-react';
 
 interface VerificationEntry {
   id: string;
@@ -31,6 +32,8 @@ export function SiteVerificationPanel() {
   const [wdRef, setWdRef] = useState('WD-001');
   const [wdDesc, setWdDesc] = useState('');
   const [busy, setBusy] = useState(false);
+  const [engineerName, setEngineerName] = useState('');
+  const [signOffBusy, setSignOffBusy] = useState(false);
 
   useEffect(() => {
     if (projectId) loadForProject(projectId);
@@ -96,6 +99,27 @@ export function SiteVerificationPanel() {
 
   const matchedCount = verificationEntries.filter((e) => e.matched).length;
   const escrowReady = verificationEntries.filter((e) => e.escrowStatus === 'release-ready').length;
+  const allMatched = verificationEntries.length > 0 && verificationEntries.every((e) => e.matched);
+  const structuralSignOff = useMemo(
+    () => projectReports.some((r) => r.method === 'structural-engineer' && r.verdict === 'pass'),
+    [projectReports],
+  );
+
+  const handleStructuralSignOff = useCallback(async () => {
+    if (!projectId || signOffBusy || structuralSignOff || !engineerName) return;
+    setSignOffBusy(true);
+    try {
+      await addVerification({
+        milestoneId: null,
+        method: 'structural-engineer',
+        verdict: 'pass',
+        confidence: 100,
+        details: `Structural engineer sign-off by ${engineerName}`,
+      });
+    } finally {
+      setSignOffBusy(false);
+    }
+  }, [projectId, signOffBusy, structuralSignOff, engineerName, addVerification]);
 
   return (
       <PageEnter className="space-y-4">
@@ -122,6 +146,14 @@ export function SiteVerificationPanel() {
               {escrowReady}
             </p>
             <p className="text-xs text-[var(--text-muted)]">milestones release-ready</p>
+          </DzCard>
+          <DzCard className="p-4">
+            <Kicker>Sign-off</Kicker>
+            <div className="mt-1 flex items-center gap-1">
+              <Stamp className={`h-5 w-5 ${structuralSignOff ? 'text-[var(--success)]' : 'text-[var(--text-muted)]'}`} />
+              <p className="font-display text-2xl font-bold text-[var(--text-primary)]">{structuralSignOff ? 'Signed' : 'Pending'}</p>
+            </div>
+            <p className="text-xs text-[var(--text-muted)]">structural engineer</p>
           </DzCard>
         </div>
 
@@ -182,6 +214,32 @@ export function SiteVerificationPanel() {
             </div>
           </DzCard>
         )}
+
+        {/* Structural Engineer Sign-off */}
+        <DzCard className="p-4">
+          <Kicker>Structural Engineer Sign-off</Kicker>
+          {structuralSignOff ? (
+            <div className="mt-3 flex items-center gap-2 text-[var(--success)]">
+              <Stamp className="h-4 w-4" />
+              <span className="text-sm font-semibold">Signed off by structural engineer</span>
+            </div>
+          ) : (
+            <div className="mt-3 flex flex-wrap items-end gap-3">
+              <FormField id="sv-eng-name" label="Engineer Name" className="w-64" value={engineerName} onChange={(e) => setEngineerName(e.target.value)} placeholder="e.g. Dr. J. Moyo" />
+              <button
+                type="button"
+                onClick={handleStructuralSignOff}
+                disabled={signOffBusy || !engineerName || !allMatched}
+                className="rounded-lg bg-[var(--brand-primary)] px-4 py-2 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:opacity-50"
+              >
+                {signOffBusy ? 'Signing...' : 'Sign Off'}
+              </button>
+              {!allMatched && verificationEntries.length > 0 && (
+                <span className="text-[11px] text-[var(--warning)]">All photos must match before sign-off</span>
+              )}
+            </div>
+          )}
+        </DzCard>
       </PageEnter>
   );
 }

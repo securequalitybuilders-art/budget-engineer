@@ -42,8 +42,8 @@ vi.mock('@/stores/siteHawkStore', () => ({
 
 vi.mock('@/stores/greenFlagStore', () => ({
   useGreenFlagStore: Object.assign(
-    (sel: (s: { baselines: unknown[] }) => unknown) => sel({ baselines: [] }),
-    { getState: () => ({ baselines: [] }) },
+    (sel: (s: { costBaselines: unknown[] }) => unknown) => sel({ costBaselines: [] }),
+    { getState: () => ({ costBaselines: [] }) },
   ),
 }));
 

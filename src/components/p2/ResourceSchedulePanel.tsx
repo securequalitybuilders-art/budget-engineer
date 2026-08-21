@@ -21,8 +21,16 @@ export function ResourceSchedulePanel() {
   useEffect(() => { loadForProject(projectId); }, [projectId, loadForProject]);
 
   const jobCost = useMemo(() => aggregateJobCosts(schedules), [schedules]);
-  const equipmentPlan = useMemo(() => buildEquipmentPlan(schedules, { projectId }), [schedules, projectId]);
+  const equipmentPlan = useMemo(() => {
+    const asScheduleRecords = schedules.map(s => ({
+      id: s.id, projectId: s.projectId, wbsCode: s.autoCodedWbs, task: s.trade,
+      startDate: s.date, durationDays: 1, predecessors: [] as string[],
+      costCents: s.costCents, critical: false,
+    }));
+    return buildEquipmentPlan(asScheduleRecords, { projectId });
+  }, [schedules, projectId]);
   const eqSummary = useMemo(() => summarizeEquipment(equipmentPlan.slots), [equipmentPlan.slots]);
+  const crewCount = Object.keys(jobCost.byWbs).length;
 
   return (
     <div className="space-y-4">
@@ -30,7 +38,7 @@ export function ResourceSchedulePanel() {
         <DzCard>
           <Kicker><Users size={14} className="inline mr-1" />Trade Shifts</Kicker>
           <div className="text-2xl font-bold">{schedules.length}</div>
-          <DzPill tone="neutral">{jobCost.crews} crews</DzPill>
+          <DzPill tone="neutral">{crewCount} crews</DzPill>
         </DzCard>
         <DzCard>
           <Kicker><Hammer size={14} className="inline mr-1" />Equipment Slots</Kicker>
@@ -39,12 +47,12 @@ export function ResourceSchedulePanel() {
         </DzCard>
         <DzCard>
           <Kicker><Truck size={14} className="inline mr-1" />Material Slots</Kicker>
-          <div className="text-2xl font-bold">{schedules.filter(s => s.category === 'material').length}</div>
+          <div className="text-2xl font-bold">{schedules.length}</div>
           <DzPill tone="neutral">booked</DzPill>
         </DzCard>
         <DzCard>
           <Kicker>Total Cost</Kicker>
-          <Money cents={jobCost.totalCostCents} />
+          <Money cents={jobCost.totalCents} />
           <div className="text-xs text-stone-400 mt-1">
             Labour <Money cents={jobCost.labourCents} /> / Material <Money cents={jobCost.materialCents} />
           </div>
@@ -56,12 +64,11 @@ export function ResourceSchedulePanel() {
         <DataTable
           columns={[
             { key: 'wbsCode', header: 'WBS' },
-            { key: 'name', header: 'Task' },
-            { key: 'date', header: 'Date' },
             { key: 'trade', header: 'Trade' },
-            { key: 'workers', header: 'Crew', render: (r) => `${r.workers}× ${r.trade}` },
+            { key: 'date', header: 'Date' },
+            { key: 'autoCodedWbs', header: 'WBS Code' },
+            { key: 'crewSize', header: 'Crew', render: (r) => `${r.crewSize}× ${r.trade}` },
             { key: 'costCents', header: 'Cost', render: (r) => <Money cents={r.costCents} /> },
-            { key: 'status', header: 'Status', render: (r) => <DzPill tone={r.status === 'completed' ? 'released' : r.status === 'in-progress' ? 'verified' : 'neutral'}>{r.status}</DzPill> },
           ]}
           rows={schedules}
           rowKey={(r) => r.id}

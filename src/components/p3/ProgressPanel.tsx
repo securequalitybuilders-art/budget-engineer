@@ -6,7 +6,7 @@ import { useGreenFlagStore } from '@/stores/greenFlagStore';
 import { useProjectStore } from '@/stores/projectStore';
 import { DataTable, DzCard, DzPill, Kicker, PageEnter } from '@/components/dzenhare';
 import { buildProgressStatus, buildMilestoneHolds } from '@/engine/sitehawk/progressTracker';
-import type { MilestoneHold } from '@/domain/sitehawk';
+import type { MilestoneHold } from '@/engine/sitehawk/progressTracker';
 
 const MILESTONE_SPLIT = [
   { name: 'Substructure (35%)', pct: 35, amountCents: 500000 },
@@ -30,7 +30,7 @@ export function ProgressPanel() {
       loadForProject: s.loadForProject,
     })),
   );
-  const baseline = useGreenFlagStore((s) => s.baselines.find((b) => b.projectId === projectId) ?? null);
+  const baseline = useGreenFlagStore((s) => s.costBaselines.find((b: { projectId: string }) => b.projectId === projectId) ?? null);
 
   useEffect(() => {
     if (projectId) loadForProject(projectId);
@@ -48,7 +48,7 @@ export function ProgressPanel() {
   const verified = projectReports.some((r) => r.verdict === 'pass');
   const latestPhoto = projectTimeline.length > 0 ? projectTimeline[projectTimeline.length - 1].capturedAt : null;
 
-  const budgetCents = baseline?.totalEstimatedCents ?? 1500000;
+  const budgetCents = baseline?.totalCents ?? 1500000;
   const spentCents = Math.round(budgetCents * 0.45);
 
   const status = buildProgressStatus({

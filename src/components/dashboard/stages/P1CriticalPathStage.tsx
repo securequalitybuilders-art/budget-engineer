@@ -55,7 +55,7 @@ export function P1CriticalPathStage() {
     [projectSchedules],
   );
   const risks = useMemo(
-    () => buildRiskRegister(projectId, projectSchedules, projectBaseline),
+    () => buildRiskRegister(projectId ?? 'local', projectSchedules, projectBaseline),
     [projectId, projectSchedules, projectBaseline],
   );
 
@@ -98,7 +98,7 @@ export function P1CriticalPathStage() {
 
         {/* Critical Path Gantt with WBS Dictionary + Schedule of Values */}
         <CriticalPathGantt
-          projectId={projectId}
+          projectId={projectId ?? 'local'}
           schedule={projectSchedules}
           baseline={projectBaseline}
         />

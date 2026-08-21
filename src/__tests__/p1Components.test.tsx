@@ -10,10 +10,10 @@ import type { CostBaseline } from '@/domain/greenflag';
 afterEach(cleanup);
 
 const SCHEDULE: ScheduleRecord[] = [
-  { id: 'f', task: 'Foundation', wbsCode: '02.01', durationDays: 5, predecessors: [], startDay: 0, endDay: 5, costCents: 1_400_000, critical: true },
-  { id: 's', task: 'Shell', wbsCode: '03.01', durationDays: 10, predecessors: ['f'], startDay: 5, endDay: 15, costCents: 1_650_000, critical: true },
-  { id: 'r', task: 'Finishes', wbsCode: '04.01', durationDays: 4, predecessors: ['s'], startDay: 15, endDay: 19, costCents: 1_070_000, critical: true },
-  { id: 'p', task: 'Patching', wbsCode: '05.01', durationDays: 3, predecessors: [], startDay: 0, endDay: 3, costCents: 100_000, critical: false },
+  { id: 'f', projectId: 'proj-1', task: 'Foundation', wbsCode: '02.01', durationDays: 5, predecessors: [], startDate: '2026-01-01', costCents: 1_400_000, critical: true },
+  { id: 's', projectId: 'proj-1', task: 'Shell', wbsCode: '03.01', durationDays: 10, predecessors: ['f'], startDate: '2026-01-06', costCents: 1_650_000, critical: true },
+  { id: 'r', projectId: 'proj-1', task: 'Finishes', wbsCode: '04.01', durationDays: 4, predecessors: ['s'], startDate: '2026-01-16', costCents: 1_070_000, critical: true },
+  { id: 'p', projectId: 'proj-1', task: 'Patching', wbsCode: '05.01', durationDays: 3, predecessors: [], startDate: '2026-01-01', costCents: 100_000, critical: false },
 ];
 
 const BASELINE: CostBaseline = {
@@ -73,9 +73,9 @@ describe('CriticalPathGantt', () => {
 
   it('renders dependency arrows when parallel predecessors create float gaps', () => {
     const parallelSchedule: ScheduleRecord[] = [
-      { id: 'a', task: 'Earthworks', wbsCode: '01.01', durationDays: 3, predecessors: [], startDay: 0, endDay: 3, costCents: 500_000, critical: false },
-      { id: 'b', task: 'Procurement', wbsCode: '01.02', durationDays: 8, predecessors: [], startDay: 0, endDay: 8, costCents: 800_000, critical: true },
-      { id: 'c', task: 'Install', wbsCode: '01.03', durationDays: 5, predecessors: ['a', 'b'], startDay: 8, endDay: 13, costCents: 600_000, critical: true },
+      { id: 'a', projectId: 'proj-1', task: 'Earthworks', wbsCode: '01.01', durationDays: 3, predecessors: [], startDate: '2026-01-01', costCents: 500_000, critical: false },
+      { id: 'b', projectId: 'proj-1', task: 'Procurement', wbsCode: '01.02', durationDays: 8, predecessors: [], startDate: '2026-01-01', costCents: 800_000, critical: true },
+      { id: 'c', projectId: 'proj-1', task: 'Install', wbsCode: '01.03', durationDays: 5, predecessors: ['a', 'b'], startDate: '2026-01-09', costCents: 600_000, critical: true },
     ];
     render(<CriticalPathGantt projectId="proj-1" schedule={parallelSchedule} baseline={null} />);
     const timeline = screen.getByTestId('gantt-timeline');

@@ -19,11 +19,26 @@ import type {
   PurchaseOrderRecord,
   InvoiceRecord,
   InspectionChecklist,
+  EscrowCheckpoint,
+  EscrowAlert,
+  SupplierPayment,
+  BuildGuideMessage,
+  BuildGuideMessageType,
+  EscrowConcern,
 } from '@/domain/sitehawk';
 import { buildCriticalPath } from '@/engine/sitehawk/criticalPath';
 import { createLogisticsRecord, advanceLogistics } from '@/engine/sitehawk/resourceScheduling';
 import { createTwinSnapshot, createVerificationReport } from '@/engine/sitehawk/digitalTwin';
-import { createEscrowMilestone, transitionEscrowMilestone } from '@/engine/sitehawk/escrowTrigger';
+import {
+  createEscrowMilestone,
+  transitionEscrowMilestone,
+  flagConcern,
+  resolveConcern as engineResolveConcern,
+  createSupplierPayment,
+  transitionSupplierPayment as engineTransitionSupplierPayment,
+  createBuildGuideMessage,
+  conciergeResponse,
+} from '@/engine/sitehawk/escrowTrigger';
 import { buildWipaaEntry } from '@/engine/sitehawk/wipaaMonitor';
 import { transitionPo as engineTransitionPo, transitionInvoice as engineTransitionInvoice } from '@/engine/sitehawk/realTimeJobCosting';
 
@@ -44,6 +59,11 @@ interface SiteHawkState {
   pos: PurchaseOrderRecord[];
   invoices: InvoiceRecord[];
   inspectionChecklists: InspectionChecklist[];
+  escrowCheckpoints: EscrowCheckpoint[];
+  escrowAlerts: EscrowAlert[];
+  supplierPayments: SupplierPayment[];
+  buildGuideMessages: BuildGuideMessage[];
+  escrowConcerns: EscrowConcern[];
   isLoading: boolean;
   currentProjectId: string | null;
 
@@ -51,7 +71,7 @@ interface SiteHawkState {
   saveSchedule: (projectId: string, tasks: Array<{ id: string; name: string; wbsCode: string; durationDays: number; predecessors: string[]; costCents: number }>) => Promise<ScheduleRecord[]>;
   addLogistics: (input: { supplierName: string; material: string; etaDays: number; orderId?: string | null }) => Promise<LogisticsRecord | null>;
   stepLogistics: (id: string) => Promise<void>;
-  addSnapshot: (input: { milestoneId?: string | null; geoLat: number; geoLng: number; note: string; progressPct: number }) => Promise<DigitalTwinTimelineEntry | null>;
+  addSnapshot: (input: { milestoneId?: string | null; geoLat: number; geoLng: number; note: string; progressPct: number; is360?: boolean }) => Promise<DigitalTwinTimelineEntry | null>;
   addVerification: (input: { milestoneId?: string | null; method: VerificationReport['method']; verdict: VerificationReport['verdict']; confidence: number; details: string }) => Promise<VerificationReport | null>;
   addEscrowMilestone: (input: { escrowId?: string | null; milestoneName: string; amountCents: number }) => Promise<EscrowMilestoneRecord | null>;
   transitionEscrow: (id: string, approval?: 'approved' | 'rejected') => Promise<{ ok: boolean; reason: string }>;
@@ -65,6 +85,13 @@ interface SiteHawkState {
   transitionInvoice: (id: string, status: InvoiceRecord['status']) => Promise<void>;
   addInspectionChecklist: (cl: InspectionChecklist) => Promise<void>;
   updateInspectionChecklist: (cl: InspectionChecklist) => Promise<void>;
+
+  flagEscrowConcern: (milestoneId: string, raisedBy: string, description: string, reworkEstimateCents?: number | null) => Promise<EscrowConcern | null>;
+  resolveEscrowConcern: (concernId: string, conciergeNote: string) => Promise<EscrowConcern | null>;
+  initiateSupplierPayment: (milestoneId: string, supplierName: string, supplierBankRef: string, amountCents: number) => Promise<SupplierPayment | null>;
+  advanceSupplierPayment: (paymentId: string, status: SupplierPayment['status']) => Promise<void>;
+  sendBuildGuideMessage: (milestoneId: string, type: BuildGuideMessageType, content: string) => Promise<BuildGuideMessage>;
+  dismissAlert: (alertId: string) => void;
 }
 
 export const useSiteHawkStore = create<SiteHawkState>()(
@@ -87,12 +114,17 @@ export const useSiteHawkStore = create<SiteHawkState>()(
         pos: [],
         invoices: [],
         inspectionChecklists: [],
+        escrowCheckpoints: [],
+        escrowAlerts: [],
+        supplierPayments: [],
+        buildGuideMessages: [],
+        escrowConcerns: [],
         isLoading: false,
         currentProjectId: null,
 
         loadForProject: async (projectId) => {
           set((s) => { s.isLoading = true; s.currentProjectId = projectId; });
-          const [wbsDictionary, schedules, resourceSchedules, logistics, digitalTwinTimeline, verificationReports, escrowMilestones, escrowReleases, variationPenalties, wipaaEntries, equipmentSlots, truckLocations, drivers, pos, invoices, inspectionChecklists] = await Promise.all([
+          const [wbsDictionary, schedules, resourceSchedules, logistics, digitalTwinTimeline, verificationReports, escrowMilestones, escrowReleases, variationPenalties, wipaaEntries, equipmentSlots, truckLocations, drivers, pos, invoices, inspectionChecklists, escrowCheckpoints, escrowAlerts, supplierPayments, buildGuideMessages, escrowConcerns] = await Promise.all([
             db.wbsDictionary.where({ projectId }).toArray(),
             db.schedules.where({ projectId }).toArray(),
             db.resourceSchedules.where({ projectId }).toArray(),
@@ -109,6 +141,11 @@ export const useSiteHawkStore = create<SiteHawkState>()(
             db.purchaseOrdersP2.where({ projectId }).toArray(),
             db.invoicesP2.where({ projectId }).toArray(),
             db.inspectionChecklists.where({ projectId }).toArray(),
+            db.escrowCheckpoints.where({ projectId }).toArray(),
+            db.escrowAlerts.where({ projectId }).toArray(),
+            db.supplierPayments.where({ projectId }).toArray(),
+            db.buildGuideMessages.where({ projectId }).toArray(),
+            db.escrowConcerns.where({ projectId }).toArray(),
           ]);
           set((s) => {
             s.wbsDictionary = wbsDictionary;
@@ -127,6 +164,11 @@ export const useSiteHawkStore = create<SiteHawkState>()(
             s.pos = pos;
             s.invoices = invoices;
             s.inspectionChecklists = inspectionChecklists;
+            s.escrowCheckpoints = escrowCheckpoints;
+            s.escrowAlerts = escrowAlerts;
+            s.supplierPayments = supplierPayments;
+            s.buildGuideMessages = buildGuideMessages;
+            s.escrowConcerns = escrowConcerns;
             s.isLoading = false;
           });
         },
@@ -193,9 +235,13 @@ export const useSiteHawkStore = create<SiteHawkState>()(
           const verification = get().verificationReports.filter((v) => v.projectId === milestone.projectId).slice(-1)[0] ?? null;
           const result = transitionEscrowMilestone({ milestone, verification, approval });
           await db.escrowMilestones.put(result.milestone);
+          await db.escrowCheckpoints.put(result.checkpoint);
+          if (result.alert) await db.escrowAlerts.put(result.alert);
           set((s) => {
             const idx = s.escrowMilestones.findIndex((m) => m.id === id);
             if (idx >= 0) s.escrowMilestones[idx] = result.milestone;
+            s.escrowCheckpoints.push(result.checkpoint);
+            if (result.alert) s.escrowAlerts.push(result.alert);
           });
           return result;
         },
@@ -274,6 +320,86 @@ export const useSiteHawkStore = create<SiteHawkState>()(
           set((s) => {
             const idx = s.inspectionChecklists.findIndex((c) => c.id === cl.id);
             if (idx >= 0) s.inspectionChecklists[idx] = cl;
+          });
+        },
+
+        // ── P4: Concern flow ────────────────────────────────────────────────
+        flagEscrowConcern: async (milestoneId, raisedBy, description, reworkEstimateCents) => {
+          const projectId = get().currentProjectId;
+          if (!projectId) return null;
+          const { concern, milestoneUpdate } = flagConcern({ projectId, milestoneId, raisedBy, description, reworkEstimateCents });
+          await db.escrowConcerns.put(concern);
+          const idx = get().escrowMilestones.findIndex((m) => m.id === milestoneId);
+          if (idx >= 0) {
+            const updated = { ...get().escrowMilestones[idx], ...milestoneUpdate };
+            await db.escrowMilestones.put(updated);
+            set((s) => {
+              s.escrowConcerns.push(concern);
+              const mi = s.escrowMilestones.findIndex((m) => m.id === milestoneId);
+              if (mi >= 0) Object.assign(s.escrowMilestones[mi], milestoneUpdate);
+            });
+          } else {
+            set((s) => { s.escrowConcerns.push(concern); });
+          }
+          return concern;
+        },
+
+        resolveEscrowConcern: async (concernId, conciergeNote) => {
+          const concern = get().escrowConcerns.find((c) => c.id === concernId);
+          if (!concern) return null;
+          const resolved = engineResolveConcern(concern, conciergeNote);
+          await db.escrowConcerns.put(resolved);
+          set((s) => {
+            const idx = s.escrowConcerns.findIndex((c) => c.id === concernId);
+            if (idx >= 0) s.escrowConcerns[idx] = resolved;
+          });
+          return resolved;
+        },
+
+        // ── P4: Supplier payments ───────────────────────────────────────────
+        initiateSupplierPayment: async (milestoneId, supplierName, supplierBankRef, amountCents) => {
+          const projectId = get().currentProjectId;
+          if (!projectId) return null;
+          const payment = createSupplierPayment({ projectId, milestoneId, supplierName, supplierBankRef, amountCents });
+          await db.supplierPayments.put(payment);
+          set((s) => { s.supplierPayments.push(payment); });
+          return payment;
+        },
+
+        advanceSupplierPayment: async (paymentId, status) => {
+          const payment = get().supplierPayments.find((p) => p.id === paymentId);
+          if (!payment) return;
+          const updated = engineTransitionSupplierPayment(payment, status);
+          await db.supplierPayments.put(updated);
+          set((s) => {
+            const idx = s.supplierPayments.findIndex((p) => p.id === paymentId);
+            if (idx >= 0) s.supplierPayments[idx] = updated;
+          });
+        },
+
+        // ── P4: Build Guide chat ────────────────────────────────────────────
+        sendBuildGuideMessage: async (milestoneId, type, content) => {
+          const projectId = get().currentProjectId;
+          if (!projectId) {
+            return createBuildGuideMessage({ projectId: '', milestoneId, type, content });
+          }
+          const msg = createBuildGuideMessage({ projectId, milestoneId, type, content });
+          await db.buildGuideMessages.put(msg);
+          set((s) => { s.buildGuideMessages.push(msg); });
+
+          if (type === 'user') {
+            const autoReply = conciergeResponse(projectId, milestoneId, content);
+            await db.buildGuideMessages.put(autoReply);
+            set((s) => { s.buildGuideMessages.push(autoReply); });
+          }
+          return msg;
+        },
+
+        // ── P4: Alert management ────────────────────────────────────────────
+        dismissAlert: (alertId) => {
+          set((s) => {
+            const idx = s.escrowAlerts.findIndex((a) => a.id === alertId);
+            if (idx >= 0) s.escrowAlerts[idx] = { ...s.escrowAlerts[idx], read: true };
           });
         },
       }),

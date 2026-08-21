@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronRight, ShieldCheck } from 'lucide-react';
 import { useSiteHawkStore } from '@/stores/siteHawkStore';
 import { useProjectStore } from '@/stores/projectStore';
-import { analyzeVariation, REVERSAL_PENALTY_RATE, MAX_PENALTY_PCT } from '@/engine/sitehawk/variationVault';
+import { analyzeVariation, processChangeOrder, REVERSAL_PENALTY_RATE, MAX_PENALTY_PCT } from '@/engine/sitehawk/variationVault';
 import type { LensName } from '@/domain/sitehawk';
 import { StageScaffold } from './StageScaffold';
 import { DataTable, DzCard, DzPill, FormField, Kicker, Money, PageEnter } from '@/components/dzenhare';
@@ -28,7 +28,12 @@ export function P5VariationVaultStage() {
   const [title, setTitle] = useState('');
   const [declaredCents, setDeclaredCents] = useState(0);
   const [lensInputs, setLensInputs] = useState<Partial<Record<LensName, number>>>({});
+  const [lockedBaselineCents, setLockedBaselineCents] = useState(0);
+  const [timelineDeltaDays, setTimelineDeltaDays] = useState(0);
+  const [wbsCode, setWbsCode] = useState('');
   const [lastResult, setLastResult] = useState<ReturnType<typeof analyzeVariation> | null>(null);
+  const [lastOrder, setLastOrder] = useState<ReturnType<typeof processChangeOrder> | null>(null);
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
   useEffect(() => {
     if (projectId) loadForProject(projectId);
@@ -54,7 +59,18 @@ export function P5VariationVaultStage() {
       lensInputs,
     });
     setLastResult(result);
-  }, [projectId, title, declaredCents, lensInputs]);
+    const orderResult = processChangeOrder({
+      projectId,
+      title,
+      lines: [{ description: title, quantity: 1, unit: 'ls', unitCostCents: declaredCents }],
+      declaredImpactCents: declaredCents,
+      lensInputs,
+      lockedBaselineCents,
+      timelineDeltaDays,
+      wbsCode: wbsCode || undefined,
+    });
+    setLastOrder(orderResult);
+  }, [projectId, title, declaredCents, lensInputs, lockedBaselineCents, timelineDeltaDays, wbsCode]);
 
   const updateLens = useCallback((lens: LensName, val: string) => {
     setLensInputs((prev) => ({ ...prev, [lens]: val ? Number(val) : undefined }));
@@ -128,6 +144,12 @@ export function P5VariationVaultStage() {
               ))}
             </div>
 
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              <FormField id="p5-baseline" label="Locked baseline ($)" type="number" min={0} className="w-full" value={lockedBaselineCents} onChange={(e) => setLockedBaselineCents(Number(e.target.value))} />
+              <FormField id="p5-timeline" label="Timeline delta (days)" type="number" className="w-full" value={timelineDeltaDays} onChange={(e) => setTimelineDeltaDays(Number(e.target.value))} />
+              <FormField id="p5-wbs" label="WBS code" className="w-full" value={wbsCode} onChange={(e) => setWbsCode(e.target.value)} placeholder="99.00.00" />
+            </div>
+
             {lastResult && (
               <div className="mt-4 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-tertiary)]/30 p-4 space-y-3">
                 <div className="flex items-center justify-between">
@@ -156,6 +178,95 @@ export function P5VariationVaultStage() {
               </div>
             )}
           </DzCard>
+
+          {lastOrder && (
+            <DzCard className="p-4 lg:col-span-3">
+              <div className="flex items-center justify-between">
+                <Kicker>Change Order Manager</Kicker>
+                <DzPill tone={lastOrder.withinCap ? 'verified' : 'disputed'}>
+                  {lastOrder.withinCap ? 'Within cap' : 'Exceeds cap'}
+                </DzPill>
+              </div>
+              <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-tertiary)]/30 p-3">
+                  <p className="text-[11px] font-medium uppercase text-[var(--text-muted)]">Cost impact</p>
+                  <p className="mt-1 font-display text-xl font-bold text-[var(--text-primary)]">
+                    <Money cents={lastOrder.newBoqLine.totalCents} />
+                  </p>
+                  <p className="text-[11px] text-[var(--text-muted)]">{lastOrder.newBoqLine.description}</p>
+                </div>
+                <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-tertiary)]/30 p-3">
+                  <p className="text-[11px] font-medium uppercase text-[var(--text-muted)]">Timeline</p>
+                  <p className={`mt-1 font-display text-xl font-bold ${lastOrder.timelineDeltaDays > 0 ? 'text-[var(--danger)]' : lastOrder.timelineDeltaDays < 0 ? 'text-[var(--success)]' : 'text-[var(--text-primary)]'}`}>
+                    {lastOrder.timelineDeltaDays > 0 ? '+' : ''}{lastOrder.timelineDeltaDays}d
+                  </p>
+                  <p className="text-[11px] text-[var(--text-muted)]">
+                    {lastOrder.timelineDeltaDays !== 0
+                      ? lastOrder.timelineDeltaDays > 0 ? 'schedule delay' : 'schedule compression'
+                      : 'no change'}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-tertiary)]/30 p-3">
+                  <p className="text-[11px] font-medium uppercase text-[var(--text-muted)]">Reversal penalty</p>
+                  <p className="mt-1 font-display text-xl font-bold text-[var(--warning)]">
+                    <Money cents={lastOrder.breakdown.totalCents} />
+                  </p>
+                  <p className="text-[11px] text-[var(--text-muted)]">{MAX_PENALTY_PCT}% cap</p>
+                </div>
+                <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-tertiary)]/30 p-3">
+                  <p className="text-[11px] font-medium uppercase text-[var(--text-muted)]">True Ledger</p>
+                  <p className="mt-1 font-display text-xl font-bold text-[var(--brand-accent)]">{lastOrder.wbsCode}</p>
+                  <p className="text-[11px] text-[var(--text-muted)]">
+                    revised baseline <Money cents={lastOrder.revisedBaselineCents} />
+                  </p>
+                </div>
+              </div>
+
+              {/* Reversal penalty breakdown */}
+              {lastOrder.breakdown.totalCents > 0 && (
+                <div className="mt-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-tertiary)]/30 p-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowBreakdown((v) => !v)}
+                    className="flex w-full items-center gap-2 text-left text-[13px] font-semibold text-[var(--text-primary)]"
+                    data-testid="breakdown-toggle"
+                  >
+                    {showBreakdown ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                    Reversal penalty breakdown
+                    <span className="ml-auto font-mono text-[var(--danger)]"><Money cents={lastOrder.breakdown.totalCents} /></span>
+                  </button>
+                  {showBreakdown && (
+                    <div className="mt-2 space-y-1 text-[12px]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[var(--text-muted)]">Supplier restocking</span>
+                        <span className="font-mono text-[var(--danger)]"><Money cents={lastOrder.breakdown.supplierRestockingCents} /></span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[var(--text-muted)]">Labor reallocation</span>
+                        <span className="font-mono text-[var(--danger)]"><Money cents={lastOrder.breakdown.laborReallocationCents} /></span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[var(--text-muted)]">Contractor overhead</span>
+                        <span className="font-mono text-[var(--danger)]"><Money cents={lastOrder.breakdown.contractorOverheadCents} /></span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Notifications */}
+              {lastOrder.notifications.length > 0 && (
+                <ul className="mt-3 space-y-1" data-testid="co-notifications">
+                  {lastOrder.notifications.map((n, i) => (
+                    <li key={i} className="flex items-start gap-1.5 text-[11px] text-[var(--text-muted)]">
+                      <ShieldCheck size={12} className="mt-0.5 shrink-0 text-[var(--brand-accent)]" />
+                      {n}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </DzCard>
+          )}
 
           <DzCard className="p-4">
             <Kicker>Variation history</Kicker>
